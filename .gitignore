@@ -74,12 +74,12 @@ zig-out/
 **/build/*
 
 # General folders and files
-**/sandbox
-**/backup
-**/raw
+**/sandbox/*
+**/backup/*
+**/raw/*
 *.doc
 *.docx
-**/pack
-**/odevzdani
+**/pack/*
+**/odevzdani/*
 !ifj24_examples/**/*.out
 !ifj24_examples/**/*.in
