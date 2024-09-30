@@ -20,10 +20,14 @@ Podrobné informace o projektu jsou k nahlédnutí ve složce `info/` ve formát
 
 | **Jméno**             | **Zlaté hvězdičky ⭐** | **Černé puntíky ⚫** | **Celkové skóre**                 |
 | --------------------- | :-: | :-: | :-: |
-| **Farkašovský Lukáš** | -  | -       | ±0 |
-| **Hýža Pavel**        | -  | -      | ±0 |
-| **Kalina Jan**        | -  | -    | ±0 |
-| **Krejčí David**      | -  | -    | ±0 |
+| **Farkašovský Lukáš** | ⭐  | -       | +1 |
+| **Hýža Pavel**        | ⭐  | -      | +1 |
+| **Kalina Jan**        | ⭐  | -    | +1 |
+| **Krejčí David**      | ⭐  | -    | +1 |
+
+### Vůdcův log
+- **30\. 09\. 2024:** <br>
+  *Všem členům týmu byla udělena jedna zlatá hvězdička za splnění vůdcova domácího úkolu a aktivní přístup k diskusi na týmovém meetingu dne 30\. 09\. 2024 v čase 14:00-15:50.*
 
 
 ## Prostředí
