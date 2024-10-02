@@ -1,0 +1,109 @@
+{
+    "version": "0.2.0",
+    "configurations": [  
+        {
+            "name": "(gdb) run-error-test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/build/error_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip Google Test functions",
+                    "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "make: build-error-test"
+        },
+        {
+            "name": "(gdb) run-string-test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/build/string_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip Google Test functions",
+                    "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "make: build-string-test"
+        },
+        {
+            "name": "(gdb) run-symtable-test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/build/symtable_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip Google Test functions",
+                    "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "make: build-symtable-test"
+        },
+        {
+            "name": "(gdb) run-scanner-test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/build/scanner_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip Google Test functions",
+                    "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "make: build-scanner-test"
+        }
+    ]
+}

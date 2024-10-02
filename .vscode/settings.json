@@ -1,0 +1,21 @@
+{
+    "testMate.cpp.test.advancedExecutables": [
+        {
+            "name": "Error Handling Library Tests",
+            "pattern": "${workspaceFolder}/test/build/error_test"
+        },
+        {
+            "name": "Dynamic String Library Tests",
+            "pattern": "${workspaceFolder}/test/build/string_test"
+        },
+        {
+            "name": "Symbol Table LibraryTests",
+            "pattern": "${workspaceFolder}/test/build/symtable_test"
+        },
+        {
+            "name": "Lexical Analyzer (scanner) Tests",
+            "pattern": "${workspaceFolder}/test/build/scanner_test"
+        }
+    ],
+    "makefile.makefilePath": "${workspaceFolder}/src/Makefile"
+}
