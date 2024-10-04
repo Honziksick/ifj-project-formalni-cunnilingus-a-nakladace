@@ -119,6 +119,15 @@
             "problemMatcher": []
         },
         {
+            "label": "build-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "build-error",
             "type": "shell",
             "command": "make -C \"${workspaceFolder}/src\" build-error",

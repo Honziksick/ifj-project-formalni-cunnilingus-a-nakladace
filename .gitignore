@@ -72,6 +72,8 @@ zig-out/
 
 # Build system
 **/build/*
+**/build_test/*
+**/build_coverage/*
 
 # General folders and files
 **/sandbox/*
