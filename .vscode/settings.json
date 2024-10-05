@@ -2,23 +2,23 @@
     "testMate.cpp.test.advancedExecutables": [
         {
             "name": "All IFJ24 Compiler Tests",
-            "pattern": "${workspaceFolder}/test/build/ifj24_compiler_test"
+            "pattern": "${workspaceFolder}/test/build_test/ifj24_compiler_test"
         },
         {
             "name": "Lexical Analyzer (scanner) Tests",
-            "pattern": "${workspaceFolder}/test/build/scanner_test"
+            "pattern": "${workspaceFolder}/test/build_test/scanner_test"
         },
         {
             "name": "Error Handling Library Tests",
-            "pattern": "${workspaceFolder}/test/build/error_test"
+            "pattern": "${workspaceFolder}/test/build_test/error_test"
         },
         {
             "name": "Dynamic String Library Tests",
-            "pattern": "${workspaceFolder}/test/build/string_test"
+            "pattern": "${workspaceFolder}/test/build_test/string_test"
         },
         {
             "name": "Symbol Table LibraryTests",
-            "pattern": "${workspaceFolder}/test/build/symtable_test"
+            "pattern": "${workspaceFolder}/test/build_test/symtable_test"
         }
     ],
     "makefile.makefilePath": "${workspaceFolder}/src/Makefile"
