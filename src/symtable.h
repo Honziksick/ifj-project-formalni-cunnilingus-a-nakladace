@@ -6,7 +6,7 @@
 * Autor: Krejčí David <xkrejcd00> *
 * *
 * Datum: 01.10.2024 *
-* Poslední změna: 05.10.2024 *
+* Poslední změna: 06.10.2024 *
 * *
 * Tým: Tým xkalinj00 *
 * Členové: Farkašovský Lukáš <xfarkal00> *
@@ -200,6 +200,8 @@ void symtable_destroyTable(symtable *table);
 
 /**
  * @brief Hashovací funkce pro výpočet hashe z klíče
+ * 
+ * @details Djb2 hashovací funkce
  * 
  * @param key Ukazatel na klíč (řetězec)
  * @return Hash klíče
