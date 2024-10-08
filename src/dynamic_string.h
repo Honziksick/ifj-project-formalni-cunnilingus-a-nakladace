@@ -28,38 +28,50 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "string.h" // Vlastní knihovny
+
 #include "error.h"  // (zatím nejsou implementovány)
+
+//Počáteční velikost dynamického řetězce při inicializaci
+//10 volných míst
+#define STRING_INIT_SIZE 10
 
 /**
  * @brief   Datový typ dynamického řetězce.
+ *
  * @details Každý řetězec má ukazatel ukazatele na sebe, velikost místa, které
  *          je pro daný řetězec alokované a skutečnou délku, tedy počet znaků
  *          vyskytujících se v řetězci bez ukončovacího znaku '\0'.
  */
 typedef struct {
-    char *str;                 /**< Ukazatel na dynamické pole znaků, které tvoří řetězec ukončený '\0' */
-    unsigned int allocateSize; /**< Velikost alokované paměti (kapacita řetězce včetně volných míst) */
-    unsigned int length;       /**< Skutečná délka řetězce (počet znaků před '\0') */
+    char *str;                 /**< Ukazatel na dynamické pole znaků */
+    unsigned int allocatedSize; /**< Velikost alokované paměti (kapacita řetězce včetně volných míst) */
+    unsigned int length;       /**< Skutečná délka řetězce */
 } string;
 
 /**
  * @brief Alokuje paměť pro dynamické pole
+ *
  * @param size Velikost dynamického pole
- * @return Ukazatel na novou dynamické pole nebo NULL v případě chyby
+ *
+ * @return Ukazatel na nové dynamické pole nebo NULL v případě chyby
  */
 string *string_allocate(size_t size);
 
 /**
- * @brief   Inicializace dynamického řetězce s počáteční kapacitou
- * @details
- */
-string string_init(unsigned int size);
+ * @brief Inicializace dynamického řetězce s počáteční kapacitou
+ *
+ * @details Tato funkce alokuje paměť pro nový datový typ řetězce a inicializuje
+ *          všechny položky na prázdné.
+ *
+ * @return Vrací ukazatel na nově vytvořený datový typ
+*/
+string string_init();
 
 /**
- * @brief   Uvolnění paměti dynamického řetězce
- * @details
- */
+ * @brief Uvolnění paměti dynamického řetězce
+ *
+ * @details Pokud daný string skutečně existuje, uvolní se, jinak nic nedělá
+*/
 void string_free(string *str);
 
 /**
