@@ -35,7 +35,7 @@
 EXECUTABLE = ifj24_compiler
 
 # Název ZIP archivu pro odevzdání projektu
-PACK_NAME = xkalinj00.zip
+PACK_NAME = xkalinj00
 
 
 ###                                       ###
@@ -79,7 +79,8 @@ TEST_BUILD_DIR = $(TEST_DIR)/build_test
 COVERAGE_BUILD_DIR = $(TEST_DIR)/build_coverage
 
 # Adresář s připraveným projektem pro zabalení
-PACK_DIR = ../$(PACK_NAME)
+PACK_DIR = ../pack
+ARCHIVE_DIR = $(PACK_DIR)/$(PACK_NAME)
 
 
 ###                                   ###
@@ -194,18 +195,16 @@ coverage:
 			xdg-open $(COVERAGE_BUILD_DIR)/code_coverage_web_result.html; \
 		fi \
 	fi'
-	
+
 ### pack: ## Vytvoří ZIP archiv s projektem pro odevzdání
 pack:
 	$(MAKE) $(SILENTOPT) install-pack-dep
-	$(MAKE) $(SILENTOPT) clean
 	$(MAKE) $(SILENTOPT) clean-pack
 	mkdir -p $(PACK_DIR)
-	$(MAKE) pack-repo
-	$(MAKE) pack-doc
-	$(MAKE) pack-install
-	cd $(PACK_DIR) && zip -r ../$(PACK_NAME) ./
-	rm -rf $(PACK_DIR)
+	$(MAKE) $(SILENTOPT) pack-prepare
+	@echo ""
+	cd $(PACK_DIR)/$(ARCHIVE_DIR) && zip -r ../$(PACK_NAME) ./
+
 
 ################################################################################
 #                                                                              #
@@ -229,9 +228,9 @@ clean-doc:
 clean-coverage:
 	rm -rf $(COVERAGE_BUILD_DIR)
 
-### clean-pack: ## Odstraní ZIP archiv s projektem pro odevzdání
+### clean-pack: ## Odstraní složku pro zabalení projektu, včetně archivu
 clean-pack:
-	rm -f ../$(PACK_NAME)
+	rm -rf $(PACK_DIR)
 
 
 ################################################################################
@@ -569,110 +568,63 @@ $(COVERAGE_BUILD_DIR)/gtest_main.a: $(COVERAGE_BUILD_DIR)/gtest-all.o \
 #                                                                              #
 ################################################################################
 
-### pack-repo: ## Zkopíruje požadované složky repozitáře do složky pro odevzdání
-pack-repo:
-	mkdir -p $(PACK_DIR)/$(PACK_REPO_DIR)
-	if [ -d "../.git" ]; then \
-		rsync -av --progress ../.git $(PACK_REPO_DIR)/; \
-	else \
-		echo "../.git does not exist"; \
-	fi
-	if [ -d "../.github" ]; then \
-		rsync -av --progress ../.github $(PACK_REPO_DIR)/; \
-	else \
-		echo "../.github does not exist"; \
-	fi
-	if [ -d "../.vscode" ]; then \
-		rsync -av --progress ../.vscode $(PACK_REPO_DIR)/; \
-	else \
-		echo "../.vscode does not exist"; \
-	fi
-	if [ -d "../doc" ]; then \
-		rsync -av --progress ../doc $(PACK_REPO_DIR)/; \
-	else \
-		echo "../doc does not exist"; \
-	fi
-	if [ -d "../mockup" ]; then \
-		rsync -av --progress ../mockup $(PACK_REPO_DIR)/; \
-	else \
-		echo "../mockup does not exist"; \
-	fi
-	if [ -d "../plan" ]; then \
-		rsync -av --progress ../plan $(PACK_REPO_DIR)/; \
-	else \
-		echo "../plan does not exist"; \
-	fi
-	if [ -d "../profiling" ]; then \
-		rsync -av --progress ../profiling $(PACK_REPO_DIR)/; \
-	else \
-		echo "../profiling does not exist"; \
-	fi
-	if [ -d "../src" ]; then \
-		rsync -av --progress ../src $(PACK_REPO_DIR)/ --exclude build; \
-	else \
-		echo "../src does not exist"; \
-	fi
-	if [ -f "../.editorconfig" ]; then \
-		rsync -av --progress ../.editorconfig $(PACK_REPO_DIR)/; \
-	else \
-		echo "../.editorconfig does not exist"; \
-	fi
-	if [ -f "../.gitignore" ]; then \
-		rsync -av --progress ../.gitignore $(PACK_REPO_DIR)/; \
-	else \
-		echo "../.gitignore does not exist"; \
-	fi
-	if [ -f "../LICENSE" ]; then \
-		rsync -av --progress ../LICENSE $(PACK_REPO_DIR)/; \
-	else \
-		echo "../LICENSE does not exist"; \
-	fi
-	if [ -f "../README.md" ]; then \
-		rsync -av --progress ../README.md $(PACK_REPO_DIR)/; \
-	else \
-		echo "../README.md does not exist"; \
-	fi
-	if [ -f "../screenshot.png" ]; then \
-		rsync -av --progress ../screenshot.png $(PACK_REPO_DIR)/; \
-	else \
-		echo "../screenshot.png does not exist"; \
-	fi
-	if [ -f "../dokumentace.pdf" ]; then \
-		rsync -av --progress ../dokumentace.pdf $(PACK_REPO_DIR)/; \
-	else \
-		echo "../dokumentace.pdf does not exist"; \
-	fi
-	if [ -d "../mockup" ]; then \
-		rsync -av --progress ../mockup $(PACK_REPO_DIR)/; \
-	else \
-		echo "../mockup does not exist"; \
-	fi
-	if [ -d "../install" ]; then \
-		rsync -av --progress ../install $(PACK_REPO_DIR)/; \
-	else \
-		echo "../install does not exist"; \
-	fi
-	if [ -f "../skutecnost.txt" ]; then \
-		rsync -av --progress ../skutecnost.txt $(PACK_REPO_DIR)/; \
-	else \
-		echo "../skutecnost.txt does not exist"; \
-	fi
-	if [ -f "../hodnoceni.txt" ]; then \
-		rsync -av --progress ../hodnoceni.txt $(PACK_REPO_DIR)/; \
-	else \
-		echo "../hodnoceni.txt does not exist"; \
-	fi
-	if [ -f "../debugging.png" ]; then \
-		rsync -av --progress ../debugging.png $(PACK_REPO_DIR)/; \
-	else \
-		echo "../debugging.png does not exist"; \
-	fi
-
-### pack-doc: ## Vygeneruje dokumentaci pro účely odevzdání do složky pro odevzdání
-pack-doc:
-	$(MAKE) $(SILENTOPT) doc
-	cp -r $(DOC_OUT_DIR)/ $(PACK_DIR)/
-	@$(MAKE) $(SILENTOPT) clean-doc
+### pack-prepare: ## Zkopíruje všechny potřebné soubory do adresáře '../pack'
+pack-prepare:
+	@{ \
+		missing_files=0; \
+		if [ -d "$(SRC_DIR)" ]; then \
+			rsync -a --include '*/' --include '*.c' --exclude '*' --exclude '*/' --prune-empty-dirs $(SRC_DIR)/ $(PACK_DIR)/$(ARCHIVE_DIR)/; \
+		else \
+			echo "\033[0;31m\nError: Adresář "$(SRC_DIR)" neexistuje.\033[0m"; \
+		fi; \
+		if [ -d "$(SRC_DIR)" ]; then \
+			rsync -a --include '*/' --include '*.h' --exclude '*' --exclude '*/' --prune-empty-dirs $(SRC_DIR)/ $(PACK_DIR)/$(ARCHIVE_DIR)/; \
+		else \
+			echo "\033[0;31m\nError: Adresář "$(SRC_DIR)" neexistuje.\033[0m"; \
+		fi; \
+		if [ -f "$(SRC_DIR)/Makefile" ]; then \
+			rsync -a $(SRC_DIR)/Makefile $(PACK_DIR)/$(ARCHIVE_DIR)/; \
+		else \
+			missing_files=1; \
+		fi; \
+		if [ -d "$(TEST_DIR)" ]; then \
+			rsync -a --include '*/' --include '*.cpp' --exclude '*' --exclude '*/' --prune-empty-dirs $(TEST_DIR)/ $(PACK_DIR)/$(ARCHIVE_DIR)/; \
+		else \
+			echo "\033[0;31m\nError: Adresář "$(TEST_DIR)" neexistuje.\033[0m"; \
+		fi; \
+		if [ -f "../rozsireni" ]; then \
+			rsync -a ../rozsireni $(PACK_DIR)/$(ARCHIVE_DIR)/; \
+		else \
+			missing_files=1; \
+		fi; \
+		if [ -f "../dokumentace.pdf" ]; then \
+			rsync -a ../dokumentace.pdf $(PACK_DIR)/$(ARCHIVE_DIR)/; \
+		else \
+			missing_files=1; \
+		fi; \
+		if [ -f "../rozdeleni" ]; then \
+			rsync -a ../rozdeleni $(PACK_DIR)/$(ARCHIVE_DIR)/; \
+		else \
+			missing_files=1; \
+		fi; \
+		echo "\033[0;32m\nSeznam zkopírovaných souborů:\033[0m"; \
+		find $(PACK_DIR) -type f -printf "\033[0;32m%p\033[0m\n"; \
+		if [ "$$missing_files" -eq 1 ]; then \
+			echo "\033[0;31m\nSeznam chybějících souborů:\033[0m"; \
+		fi; \
+		if [ ! -f "$(PACK_DIR)/$(ARCHIVE_DIR)/Makefile" ]; then \
+			echo "\033[0;31mError: Soubor "Makefile" nebyl zkopírován.\033[0m"; \
+		fi; \
+		if [ ! -f "$(PACK_DIR)/$(ARCHIVE_DIR)/dokumentace.pdf" ]; then \
+			echo "\033[0;31mError: Soubor "dokumentace.pdf" nebyl zkopírován.\033[0m"; \
+		fi; \
+		if [ ! -f "$(PACK_DIR)/$(ARCHIVE_DIR)/rozdeleni" ]; then \
+			echo "\033[0;31mError: Soubor "rozdeleni" nebyl zkopírován.\033[0m"; \
+		fi; \
+		if [ ! -f "$(PACK_DIR)/$(ARCHIVE_DIR)/rozsireni" ]; then \
+			echo "\033[0;31mError: Soubor "rozsireni" nebyl zkopírován.\033[0m"; \
+		fi; \
+	}
 
 
 ################################################################################
