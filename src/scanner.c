@@ -3,7 +3,8 @@
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
  * Soubor:           scanner.c                                                 *
- * Autor:            Hýža Pavel      <xhyzapa00>                               *
+ * Autor:            Hýža Pavel         <xhyzapa00>                            *
+ *                   Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
  * Poslední změna:   6.10.2024                                                 *
@@ -18,6 +19,7 @@
 /**
  * @file scanner.c
  * @author Hýža Pavel \<xhyzapa00>
+ * @author Farkašovský Lukáš \<xfarkal00>
  *
  * @brief Definice a implementace funkcí modulu scanner.
  * @details Tento soubor obsahuje deklaraci funkcí a datových typů modulu
