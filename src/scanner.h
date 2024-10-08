@@ -3,7 +3,8 @@
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
  * Soubor:           scanner.h                                                 *
- * Autor:            Hýža Pavel      <xhyzapa00>                               *
+ * Autor:            Hýža Pavel         <xhyzapa00>                            *
+ *                   Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
  * Poslední změna:   6.10.2024                                                 *
@@ -18,6 +19,7 @@
 /**
  * @file scanner.h
  * @author Hýža Pavel \<xhyzapa00>
+ * @author Farkašovský Lukáš \<xfarkal00>
  *
  * @brief Hlavičkový soubor pro implementaci funkcí modulu scanner.
  * @details Tento soubor obsahuje deklaraci funkcí a datových typů modulu
@@ -27,7 +29,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "string.h" //Vlastní knihovny
+#include "dynamic_string.h" //Vlastní knihovny
 #include "error.h"  //(zatím nejsou implementovány)
 
 // Definice různých typů tokenů
