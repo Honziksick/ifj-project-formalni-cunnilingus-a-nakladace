@@ -77,6 +77,8 @@ int string_append_char(string *str, char character) {
         str->str[str->length] = character;
         // Řetězec se zvětší o jeden
         str->length++;
+        // Alokovaná velikost se tím pádem též zvětší
+        str->allocatedSize++;
     }
     return;
 }
@@ -90,6 +92,7 @@ int string_copy(string *strCopied, string *strTo){
         return 0;
     }
     // Pokud kopírujeme do menšího pole, vrátí 0
+    // Useless??
     if(strTo->length < strCopied->length){
         return 0;
     }
@@ -97,6 +100,8 @@ int string_copy(string *strCopied, string *strTo){
     for(size_t i = 0; i < strCopied->length-1; i++){
         strTo->str[i] = strCopied->str[i];
     }
+    // Délka se při zkopírování může měnit
+    strTo->length = strCopied->length;
     return 1;
 }
 
@@ -121,7 +126,7 @@ bool string_compare(string *str1, string *str2){
 }
 
 /**
- * @brief   Zvětší dynamický řetězec na požadovanou délku.
+ * @brief Zvětší dynamický řetězec na požadovanou délku.
  */
 string *string_resize(string *str, size_t size) {
     // Pokud nemáme řetězec, tak vracíme NULL
