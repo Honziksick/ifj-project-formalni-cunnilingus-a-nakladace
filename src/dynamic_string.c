@@ -27,14 +27,14 @@
 #include "dynamic_string.h"
 
 /**
- * @brief Alokuje parametry stringu a pole
+ * @brief Alokuje parametry stringu a pole.
 */
-inline string *string_allocate(size_t size){
+inline string *string_allocate(size_t size) {
     return malloc(sizeof(string)+size);
 }
 
 /**
- * @brief Inicializace dynamického řetězce s počáteční kapacitou
+ * @brief Inicializace dynamického řetězce s počáteční kapacitou.
 */
 string *string_init() {
     // Vytvoříme nový string
@@ -53,26 +53,100 @@ string *string_init() {
 }
 
 /**
- * @brief Uvolnění paměti dynamického řetězce
+ * @brief Uvolnění paměti dynamického řetězce.
 */
-void string_free(string *str){
-    // Pokud string existuje
+void string_free(string *str) {
+    // Pokud string existuje, smažeme ho
     if(str != NULL){
         free(str);
     }
 }
 
 /**
- * @brief Přidání jednoho znaku na konec dynamického řetězce
+ * @brief Přidání jednoho znaku na konec dynamického řetězce.
 */
-int string_append_char(string *str, char character);
+int string_append_char(string *str, char character) {
+    // Pokud je string plný, musíme ho zvětšit o jedno
+    if(str->length+1 > str->allocatedSize){
+        string_resize(str, str->length+1);
+    }
+
+    // Pokud máme string, do kterého jde appendovat
+    if(str != NULL) {;
+        // Přidání zanku na konec
+        str->str[str->length] = character;
+        // Řetězec se zvětší o jeden
+        str->length++;
+    }
+    return;
+}
 
 /**
- * @brief Zkopíruje obsah jednoho dynamického řetězce do druhého
+ * @brief Zkopíruje obsah jednoho dynamického řetězce do druhého.
 */
-int string_copy(string *str1, string *str2);
+int string_copy(string *strCopied, string *strTo){
+    // Pokud jeden z řetězců neexistuje, vrátí 0
+    if(strCopied == NULL || strTo == NULL){
+        return 0;
+    }
+    // Pokud kopírujeme do menšího pole, vrátí 0
+    if(strTo->length < strCopied->length){
+        return 0;
+    }
+    // Přendává prvky od str[0] do konce
+    for(size_t i = 0; i < strCopied->length-1; i++){
+        strTo->str[i] = strCopied->str[i];
+    }
+    return 1;
+}
 
 /**
- * @brief Porovná dva dynamické řetězce
+ * @brief Porovná dva dynamické řetězce.
 */
-int string_compare(string *str1, string *str2);
+bool string_compare(string *str1, string *str2){
+    /* Pokud od začátku víme, že jsou růžně dlouhé oba řetězce,
+       potom nemohou být stejné.*/
+    if(str1->length != str2->length){
+        return false;
+    }
+
+    // Projdeme oba stringy
+    for(size_t i = 0; i < str1->length; i++){
+        // Pokud si jsou odlišné, vrátíme false
+        if(str1->str[i] != str2->str[i]){
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief   Zvětší dynamický řetězec na požadovanou délku.
+ */
+string *string_resize(string *str, size_t size) {
+    // Pokud nemáme řetězec, tak vracíme NULL
+    if(str == NULL) {
+        return NULL;
+    }
+
+    // Vytvoříme nový řetězec
+    string *stringCreated = string_allocate(size);
+    // Pokud se špatně malokuje, vrací NULL
+    if(stringCreated == NULL){
+        return NULL;
+    }
+
+    // Inicializujeme nový řetězec
+    stringCreated->allocatedSize = size;
+    stringCreated->length = 0;
+    // Zkopíruje znaky z původního řetězce do nově vytvořeného
+    if(string_copy(str->str, stringCreated->str) == 0){
+        // Pokud selže, uvolní nově vytvořený řetězec a vrátí NULL
+        free(stringCreated);
+        return NULL;
+    }
+
+    // Uvolníme původní řetězec
+    free(str);
+    return stringCreated;
+}
