@@ -77,8 +77,6 @@ int string_append_char(string *str, char character) {
         str->str[str->length] = character;
         // Řetězec se zvětší o jeden
         str->length++;
-        // Alokovaná velikost se tím pádem též zvětší
-        str->allocatedSize++;
     }
     return;
 }
