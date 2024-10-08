@@ -44,6 +44,13 @@ typedef struct {
 } string;
 
 /**
+ * @brief Alokuje paměť pro dynamické pole
+ * @param size Velikost dynamického pole
+ * @return Ukazatel na novou dynamické pole nebo NULL v případě chyby
+ */
+string *string_allocate(size_t size);
+
+/**
  * @brief   Inicializace dynamického řetězce s počáteční kapacitou
  * @details
  */

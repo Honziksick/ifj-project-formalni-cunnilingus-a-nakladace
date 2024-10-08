@@ -6,7 +6,7 @@
 # Autor:            Jan Kalina <xkalinj00>                                     #
 #                                                                              #
 # Datum:            29.09.2024                                                 #
-# Poslední změna:   29.09.2024                                                 #
+# Poslední změna:   8.10.2024                                                  #
 #                                                                              #
 # Tým:      Tým xkalinj00                                                      #
 # Členové:  Farkašovský Lukáš    <xfarkal00>                                   #
@@ -244,7 +244,7 @@ clean-pack:
 ###                                                                          ###
 
 ERROR_LIB_XKALINJ00 = error
-STRING_LIB_XFARKAL00 = string
+STRING_LIB_XFARKAL00 = dynamic_string
 SYMTABLE_XKREJCD00 = symtable
 
 ### build-error: ## Sestaví knihovnu k řízení chybových stavů
