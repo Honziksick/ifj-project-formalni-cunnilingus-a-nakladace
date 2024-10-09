@@ -36,50 +36,86 @@ using namespace std;
 using namespace testing;
 using namespace internal;
 
+/**
+ * @brief Testuje funkci `error_handle` pro lexikální chybu.
+ */
 TEST(ErrorHandle, E1_Lexical) {
     EXPECT_EXIT(error_handle(ERROR_LEXICAL), ExitedWithCode(1), "");
 }
 
+/**
+ * @brief Testuje funkci `error_handle` pro syntaktickou chybu.
+ */
 TEST(ErrorHandle, E2_Syntactic) {
     EXPECT_EXIT(error_handle(ERROR_SYNTAX), ExitedWithCode(2), "");
 }
 
+/**
+ * @brief Testuje funkci `error_handle` pro sémantickou chybu - nedefinovaná funkce nebo proměnná.
+ */
 TEST(ErrorHandle, E3_Semantic) {
     EXPECT_EXIT(error_handle(ERROR_SEM_UNDEF), ExitedWithCode(3), "");
 }
 
+/**
+ * @brief Testuje funkci `error_handle` pro sémantickou chybu - nesprávný počet/typ parametrů nebo návratová hodnota.
+ */
 TEST(ErrorHandle, E4_Semantic) {
     EXPECT_EXIT(error_handle(ERROR_SEM_PARAMS_OR_RETVAL), ExitedWithCode(4), "");
 }
 
+/**
+ * @brief Testuje funkci `error_handle` pro sémantickou chybu - redefinice nebo přiřazení konstantě.
+ */
 TEST(ErrorHandle, E5_Semantic) {
     EXPECT_EXIT(error_handle(ERROR_SEM_REDEF_OR_CONSTDEF), ExitedWithCode(5), "");
 }
 
+/**
+ * @brief Testuje funkci `error_handle` pro sémantickou chybu - chybějící nebo nadbytečný výraz v návratovém příkazu.
+ */
 TEST(ErrorHandle, E6_Semantic) {
     EXPECT_EXIT(error_handle(ERROR_SEM_RETURN_EXP), ExitedWithCode(6), "");
 }
 
+/**
+ * @brief Testuje funkci `error_handle` pro sémantickou chybu - nekompatibilita typů.
+ */
 TEST(ErrorHandle, E7_Semantic) {
     EXPECT_EXIT(error_handle(ERROR_SEM_TYPE_COMPATIBILITY), ExitedWithCode(7), "");
 }
 
+/**
+ * @brief Testuje funkci `error_handle` pro sémantickou chybu - nelze odvodit typ proměnné.
+ */
 TEST(ErrorHandle, E8_Semantic) {
     EXPECT_EXIT(error_handle(ERROR_SEM_TYPE_INFERENCE), ExitedWithCode(8), "");
 }
 
+/**
+ * @brief Testuje funkci `error_handle` pro sémantickou chybu - nepoužitá proměnná.
+ */
 TEST(ErrorHandle, E9_Semantic) {
     EXPECT_EXIT(error_handle(ERROR_SEM_UNUSED_VAR), ExitedWithCode(9), "");
 }
 
+/**
+ * @brief Testuje funkci `error_handle` pro jiné sémantické chyby.
+ */
 TEST(ErrorHandle, E10_Semantic) {
     EXPECT_EXIT(error_handle(ERROR_SEM_OTHER), ExitedWithCode(10), "");
 }
 
+/**
+ * @brief Testuje funkci `error_handle` pro interní chybu.
+ */
 TEST(ErrorHandle, E99_Internal) {
     EXPECT_EXIT(error_handle(ERROR_INTERNAL), ExitedWithCode(99), "");
 }
 
+/**
+ * @brief Testuje funkci `error_printMessage` pro lexikální chybu.
+ */
 TEST(PrintErrorMessage, E1_Lexical) {
     CaptureStderr();
     error_printMessage(ERROR_LEXICAL);
@@ -89,6 +125,9 @@ TEST(PrintErrorMessage, E1_Lexical) {
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }
 
+/**
+ * @brief Testuje funkci `error_printMessage` pro syntaktickou chybu.
+ */
 TEST(PrintErrorMessage, E2_Syntactic) {
     CaptureStderr();
     error_printMessage(ERROR_SYNTAX);
@@ -98,6 +137,9 @@ TEST(PrintErrorMessage, E2_Syntactic) {
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }
 
+/**
+ * @brief Testuje funkci `error_printMessage` pro sémantickou chybu - nedefinovaná funkce nebo proměnná.
+ */
 TEST(PrintErrorMessage, E3_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_UNDEF);
@@ -107,6 +149,9 @@ TEST(PrintErrorMessage, E3_Semantic) {
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }
 
+/**
+ * @brief Testuje funkci `error_printMessage` pro sémantickou chybu - nesprávný počet/typ parametrů nebo návratová hodnota.
+ */
 TEST(PrintErrorMessage, E4_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_PARAMS_OR_RETVAL);
@@ -117,6 +162,9 @@ TEST(PrintErrorMessage, E4_Semantic) {
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }
 
+/**
+ * @brief Testuje funkci `error_printMessage` pro sémantickou chybu - redefinice nebo přiřazení konstantě.
+ */
 TEST(PrintErrorMessage, E5_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_REDEF_OR_CONSTDEF);
@@ -127,6 +175,9 @@ TEST(PrintErrorMessage, E5_Semantic) {
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }
 
+/**
+ * @brief Testuje funkci `error_printMessage` pro sémantickou chybu - chybějící nebo nadbytečný výraz v návratovém příkazu.
+ */
 TEST(PrintErrorMessage, E6_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_RETURN_EXP);
@@ -136,6 +187,9 @@ TEST(PrintErrorMessage, E6_Semantic) {
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }
 
+/**
+ * @brief Testuje funkci `error_printMessage` pro sémantickou chybu - nekompatibilita typů.
+ */
 TEST(PrintErrorMessage, E7_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_TYPE_COMPATIBILITY);
@@ -146,6 +200,9 @@ TEST(PrintErrorMessage, E7_Semantic) {
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }
 
+/**
+ * @brief Testuje funkci `error_printMessage` pro sémantickou chybu - nelze odvodit typ proměnné.
+ */
 TEST(PrintErrorMessage, E8_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_TYPE_INFERENCE);
@@ -156,6 +213,9 @@ TEST(PrintErrorMessage, E8_Semantic) {
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }
 
+/**
+ * @brief Testuje funkci `error_printMessage` pro sémantickou chybu - nepoužitá proměnná.
+ */
 TEST(PrintErrorMessage, E9_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_UNUSED_VAR);
@@ -166,6 +226,9 @@ TEST(PrintErrorMessage, E9_Semantic) {
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }
 
+/**
+ * @brief Testuje funkci `error_printMessage` pro jiné sémantické chyby.
+ */
 TEST(PrintErrorMessage, E10_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_OTHER);
@@ -174,6 +237,9 @@ TEST(PrintErrorMessage, E10_Semantic) {
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }
 
+/**
+ * @brief Testuje funkci `error_printMessage` pro interní chybu.
+ */
 TEST(PrintErrorMessage, E99_Internal) {
     CaptureStderr();
     error_printMessage(ERROR_INTERNAL);
@@ -183,3 +249,5 @@ TEST(PrintErrorMessage, E99_Internal) {
                             "allocation error).\n";
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }
+
+/*** Konec souboru error_test.cpp ***/
