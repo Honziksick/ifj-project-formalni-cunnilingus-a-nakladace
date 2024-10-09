@@ -34,7 +34,7 @@ string *string_init() {
     string *stringCreated = malloc(sizeof(string));
     stringCreated->str = malloc(sizeof(STRING_INIT_SIZE));
     // Pokud se špatně alokovala paměť, vrátíme NULL
-    if(stringCreated == NULL || stringCreated->str == NULL){
+    if(stringCreated == NULL || stringCreated->str == NULL) {
         return NULL;
     }
 
@@ -50,7 +50,7 @@ string *string_init() {
 */
 void string_free(string *str) {
     // Pokud string existuje, smažeme ho
-    if(str != NULL){
+    if(str != NULL) {
         // Nejdříve ukazatel na pole a až pak strukturu
         free(str->str);
         free(str);
@@ -62,7 +62,7 @@ void string_free(string *str) {
 */
 int string_append_char(string *str, char character) {
     // Pokud je string plný, musíme ho zvětšit o jedno
-    if(str->length+1 > str->allocatedSize){
+    if(str->length+1 > str->allocatedSize) {
         // Kontrola, zda neselhal resize
         str = string_resize(str, str->length+1);
         if(str == NULL){
@@ -83,9 +83,9 @@ int string_append_char(string *str, char character) {
 /**
  * @brief Zkopíruje obsah jednoho dynamického řetězce do druhého.
 */
-int string_copy(string *strCopied, string *strTo){
+int string_copy(string *strCopied, string *strTo) {
     // Pokud jeden z řetězců neexistuje, vrátí 0
-    if(strCopied == NULL || strTo == NULL){
+    if(strCopied == NULL || strTo == NULL) {
         return STRING_COPY_FAIL;
     }
 
@@ -106,22 +106,46 @@ int string_copy(string *strCopied, string *strTo){
 /**
  * @brief Porovná dva dynamické řetězce.
 */
-int string_compare(string *str1, string *str2){
+int string_compare(string *str1, string *str2) {
     // Pokud je jeden ze stringů prázdný
-    if(str1 == NULL || str2 == NULL){
+    if(str1 == NULL || str2 == NULL) {
         return STRING_NOT_EQUAL;
     }
 
     /* Pokud od začátku víme, že jsou růžně dlouhé oba řetězce,
        potom nemohou být stejné.*/
-    if(str1->length != str2->length){
+    if(str1->length != str2->length) {
         return STRING_NOT_EQUAL;
     }
 
     // Projdeme oba stringy
-    for(size_t i = 0; i < str1->length; i++){
+    for(size_t i = 0; i < str1->length; i++) {
         // Pokud si jsou odlišné, vrátíme false
         if(str1->str[i] != str2->str[i]){
+            return STRING_NOT_EQUAL;
+        }
+    }
+    return STRING_EQUAL;
+}
+
+/**
+ * @brief Porovná dynamický řetězec s konstantním řetězcem.
+*/
+int string_compare_const_str(string *str, const char *strConst) {
+    // Pokud porovnávaný string neexistuje
+    if(str == NULL) {
+        return STRING_NOT_EQUAL;
+    }
+    // Proměnná pro uložení délky strConst
+    unsigned int length = strlen(strConst);
+    // Pokud nejsou stejně dlouhé, tak nejsou ani stejné
+    if(str->length != length) {
+        return STRING_NOT_EQUAL;
+    }
+    // Projdeme oba řetězce a porovnáme je
+    for(size_t i = 0; i < str->length; i++) {
+        // Pokud nejsou stejné vracíme STRING_NOT_EQUAL
+        if(str->str[i] != strConst[i]) {
             return STRING_NOT_EQUAL;
         }
     }
@@ -142,7 +166,7 @@ string *string_resize(string *str, unsigned int size) {
     stringCreated->str = malloc(sizeof(size));
 
     // Pokud se špatně malokuje, vrací NULL
-    if(stringCreated == NULL || stringCreated->str == NULL){
+    if(stringCreated == NULL || stringCreated->str == NULL) {
         return NULL;
     }
 
@@ -150,7 +174,7 @@ string *string_resize(string *str, unsigned int size) {
     stringCreated->allocatedSize = size;
     stringCreated->length = 0;
     // Zkopíruje znaky z původního řetězce do nově vytvořeného
-    if(string_copy(str, stringCreated) == 0){
+    if(string_copy(str, stringCreated) == 0) {
         // Pokud selže, uvolní nově vytvořený řetězec a vrátí NULL
         free(stringCreated);
         return NULL;

@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "error.h"  // (zatím nejsou implementovány)
 
@@ -57,9 +58,9 @@ typedef enum {
  *          vyskytujících se v řetězci.
  */
 typedef struct {
-    char *str;                 /**< Ukazatel na dynamické pole znaků */
-    unsigned int allocatedSize; /**< Velikost alokované paměti (kapacita řetězce včetně volných míst) */
-    unsigned int length;       /**< Skutečná délka řetězce */
+    char *str;                      /**< Ukazatel na dynamické pole znaků */
+    unsigned int allocatedSize;     /**< Velikost alokované paměti (kapacita řetězce včetně volných míst) */
+    unsigned int length;            /**< Skutečná délka řetězce */
 } string;
 
 /**
@@ -122,6 +123,22 @@ int string_copy(string *strCopied, string *strTo);
  * @return Vrací true, pokud jsou stejné, jinak vrací false.
  */
 int string_compare(string *str1, string *str2);
+
+/**
+ * @brief Porovná dynamický řetězec s konstantním řetězcem.
+ *
+ * @details Funkce zjistí délku konstantního řetězce a poté jej porovná
+ *          s dynamickým řetězcem.
+ *
+ * @param str Dynamický řetězec
+ * @param strConst Konstantní řetězec
+ * @param length Délka konstantního řetězce
+ *
+ * @return Pokud nejsou stejné řetězce, jejich délka nebo pokud je ukazatel
+ *         na dynamický pole prázdný, vrací STRING_NOT_EQUAL.
+ *         Pokud jsou řetězce stejné, vrací STRING_EQUAL.
+*/
+int string_compare_const_str(string *str, const char *strConst);
 
 /**
  * @brief   Zvětší dynamický řetězec na požadovanou délku.
