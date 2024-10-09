@@ -1,0 +1,185 @@
+/*******************************************************************************
+ *                                                                             *
+ * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
+ *                                                                             *
+ * Soubor:           error_test.cpp                                            *
+ * Autor:            Jan Kalina   <xkalinj00>                                  *
+ *                                                                             *
+ * Datum:            09.10.2024                                                *
+ * Poslední změna:   09.10.2024                                                *
+ *                                                                             *
+ * Tým:      Tým xkalinj00                                                     *
+ * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
+ *           Hýža Pavel           <xhyzapa00>                                  *
+ *           Kalina Jan           <xkalinj00>                                  *
+ *           Krejčí David         <xkrejcd00>                                  *
+ *                                                                             *
+ ******************************************************************************/
+/**
+ * @file error_test.cpp
+ * @author Jan Kalina \<xkalinj00>
+ *
+ * @brief Testy funkcí knihovny pro řízení chybových stavů
+ * @details Tento zdrojový soubor obsahuje unit testy funkcí implementovaných
+ *          v souboru `error.c`. Testy jsou vytvořené za využití frameworku
+ *          Google Test.
+ */
+
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
+
+extern "C" {
+#include "error.h"
+}
+
+using namespace std;
+using namespace testing;
+using namespace internal;
+
+TEST(ErrorHandle, E1_Lexical) {
+    EXPECT_EXIT(error_handle(ERROR_LEXICAL), ExitedWithCode(1), "");
+}
+
+TEST(ErrorHandle, E2_Syntactic) {
+    EXPECT_EXIT(error_handle(ERROR_SYNTAX), ExitedWithCode(2), "");
+}
+
+TEST(ErrorHandle, E3_Semantic) {
+    EXPECT_EXIT(error_handle(ERROR_SEM_UNDEF), ExitedWithCode(3), "");
+}
+
+TEST(ErrorHandle, E4_Semantic) {
+    EXPECT_EXIT(error_handle(ERROR_SEM_PARAMS_OR_RETVAL), ExitedWithCode(4), "");
+}
+
+TEST(ErrorHandle, E5_Semantic) {
+    EXPECT_EXIT(error_handle(ERROR_SEM_REDEF_OR_CONSTDEF), ExitedWithCode(5), "");
+}
+
+TEST(ErrorHandle, E6_Semantic) {
+    EXPECT_EXIT(error_handle(ERROR_SEM_RETURN_EXP), ExitedWithCode(6), "");
+}
+
+TEST(ErrorHandle, E7_Semantic) {
+    EXPECT_EXIT(error_handle(ERROR_SEM_TYPE_COMPATIBILITY), ExitedWithCode(7), "");
+}
+
+TEST(ErrorHandle, E8_Semantic) {
+    EXPECT_EXIT(error_handle(ERROR_SEM_TYPE_INFERENCE), ExitedWithCode(8), "");
+}
+
+TEST(ErrorHandle, E9_Semantic) {
+    EXPECT_EXIT(error_handle(ERROR_SEM_UNUSED_VAR), ExitedWithCode(9), "");
+}
+
+TEST(ErrorHandle, E10_Semantic) {
+    EXPECT_EXIT(error_handle(ERROR_SEM_OTHER), ExitedWithCode(10), "");
+}
+
+TEST(ErrorHandle, E99_Internal) {
+    EXPECT_EXIT(error_handle(ERROR_INTERNAL), ExitedWithCode(99), "");
+}
+
+TEST(PrintErrorMessage, E1_Lexical) {
+    CaptureStderr();
+    error_printMessage(ERROR_LEXICAL);
+    string GotErrMsg = GetCapturedStderr();
+    string ExpectedErrMsg = "(Error 1) Lexical error: invalid structure of the " \
+                            "current lexeme.\n";
+    EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+}
+
+TEST(PrintErrorMessage, E2_Syntactic) {
+    CaptureStderr();
+    error_printMessage(ERROR_SYNTAX);
+    string GotErrMsg = GetCapturedStderr();
+    string ExpectedErrMsg = "(Error 2) Syntax error: invalid program " \
+                            "syntax, missing header, etc.\n";
+    EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+}
+
+TEST(PrintErrorMessage, E3_Semantic) {
+    CaptureStderr();
+    error_printMessage(ERROR_SEM_UNDEF);
+    string GotErrMsg = GetCapturedStderr();
+    string ExpectedErrMsg = "(Error 3) Semantic error: undefined function " \
+                            "or variable.\n";
+    EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+}
+
+TEST(PrintErrorMessage, E4_Semantic) {
+    CaptureStderr();
+    error_printMessage(ERROR_SEM_PARAMS_OR_RETVAL);
+    string GotErrMsg = GetCapturedStderr();
+    string ExpectedErrMsg = "(Error 4) Semantic error: incorrect number/type " \
+                            "of parameters in function call; incorrect type " \
+                            "or disallowed discard of function return value.\n";
+    EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+}
+
+TEST(PrintErrorMessage, E5_Semantic) {
+    CaptureStderr();
+    error_printMessage(ERROR_SEM_REDEF_OR_CONSTDEF);
+    string GotErrMsg = GetCapturedStderr();
+    string ExpectedErrMsg = "(Error 5) Semantic error: redefinition of " \
+                            "variable or function; assignment to a " \
+                            "non-modifiable variable.\n";
+    EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+}
+
+TEST(PrintErrorMessage, E6_Semantic) {
+    CaptureStderr();
+    error_printMessage(ERROR_SEM_RETURN_EXP);
+    string GotErrMsg = GetCapturedStderr();
+    string ExpectedErrMsg = "(Error 6) Semantic error: missing/excessive " \
+                            "expression in function return statement.\n";
+    EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+}
+
+TEST(PrintErrorMessage, E7_Semantic) {
+    CaptureStderr();
+    error_printMessage(ERROR_SEM_TYPE_COMPATIBILITY);
+    string GotErrMsg = GetCapturedStderr();
+    string ExpectedErrMsg = "(Error 7) Semantic error: type incompatibility " \
+                            "in arithmetic, string, and relational expressions; " \
+                            "incompatible expression type (e.g., in assignment).\n";
+    EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+}
+
+TEST(PrintErrorMessage, E8_Semantic) {
+    CaptureStderr();
+    error_printMessage(ERROR_SEM_TYPE_INFERENCE);
+    string GotErrMsg = GetCapturedStderr();
+    string ExpectedErrMsg = "(Error 8) Semantic error: variable type not " \
+                            "specified and cannot be inferred from the " \
+                            "expression used.\n";
+    EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+}
+
+TEST(PrintErrorMessage, E9_Semantic) {
+    CaptureStderr();
+    error_printMessage(ERROR_SEM_UNUSED_VAR);
+    string GotErrMsg = GetCapturedStderr();
+    string ExpectedErrMsg = "(Error 9) Semantic error: unused variable " \
+                            "within its scope; modifiable variable without " \
+                            "the possibility of change after initialization.\n";
+    EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+}
+
+TEST(PrintErrorMessage, E10_Semantic) {
+    CaptureStderr();
+    error_printMessage(ERROR_SEM_OTHER);
+    string GotErrMsg = GetCapturedStderr();
+    string ExpectedErrMsg = "(Error 10) Other semantic errors.\n";
+    EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+}
+
+TEST(PrintErrorMessage, E99_Internal) {
+    CaptureStderr();
+    error_printMessage(ERROR_INTERNAL);
+    string GotErrMsg = GetCapturedStderr();
+    string ExpectedErrMsg = "(Error 99) Internal compiler error: not " \
+                            "influenced by the input program (e.g., memory " \
+                            "allocation error).\n";
+    EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+}
