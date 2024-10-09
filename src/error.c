@@ -114,3 +114,5 @@ void error_freeAllocatedData(ErrorType error) {
 inline void error_killMePlease(ErrorType error) {
     exit(error);
 } // error_killMePlease()
+
+/*** Konec souboru error.c ***/
