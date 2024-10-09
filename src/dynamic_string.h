@@ -41,9 +41,10 @@
  *          ke kterým může dojít v určitých funkcích.
  */
 typedef enum {
-    STRING_SUCCESS,
-    STRING_COPY_FAIL,
-    STRING_COMPARE_FAIL
+    STRING_SUCCESS,                 /**< Operace se zdařila */
+    STRING_ALLOCATION_FAIL,         /**< Selhání alokace paměti */
+    STRING_APPEND_FAIL,             /**< Nepodařilo se appendovat */
+    STRING_RESIZE_FAIL              /**< Nepovedlo se zvětšení tabulky*/
 } string_result;
 
 /**
@@ -76,7 +77,7 @@ string *string_allocate(size_t size);
  *
  * @return Vrací ukazatel na nově vytvořený datový typ.
 */
-string string_init();
+string *string_init();
 
 /**
  * @brief Uvolnění paměti dynamického řetězce.
@@ -143,4 +144,4 @@ bool string_compare(string *str1, string *str2);
  *         vrací NULL.
  *         V případě, že se vše povedlo, vrátí nově zvětšený řetězec.
  */
-string string_resize(string *str, size_t size);
+string *string_resize(string *str, unsigned int size);
