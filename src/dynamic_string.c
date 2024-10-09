@@ -6,7 +6,7 @@
  * Autor:            Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            8.10.2024                                                 *
- * Poslední změna:   8.10.2024                                                 *
+ * Poslední změna:   9.10.2024                                                 *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -86,41 +86,46 @@ int string_append_char(string *str, char character) {
 int string_copy(string *strCopied, string *strTo){
     // Pokud jeden z řetězců neexistuje, vrátí 0
     if(strCopied == NULL || strTo == NULL){
-        return 0;
+        return STRING_COPY_FAIL;
     }
 
-    // Přendává prvky od str[0] do konce
-    for(size_t i = 0; i < strCopied->length-1; i++){
-        strTo->str[i] = strCopied->str[i];
-    }
+    string *stringCreated = malloc(sizeof(string));
+    stringCreated->str = malloc(sizeof(strCopied->allocatedSize));
+
+    // Přidělení pole
+    stringCreated->str = strCopied->str;
     // Délka se při zkopírování může měnit
-    strTo->length = strCopied->length;
-    return 1;
+    stringCreated->length = strCopied->length;
+    // Přendáme ukazatele, aby ukazoval na správnou překopírovanou strukturu
+    *stringCreated = *strTo;
+
+    string_free(strTo);
+    return STRING_SUCCESS;
 }
 
 /**
  * @brief Porovná dva dynamické řetězce.
 */
-bool string_compare(string *str1, string *str2){
+int string_compare(string *str1, string *str2){
     // Pokud je jeden ze stringů prázdný
     if(str1 == NULL || str2 == NULL){
-        return false;
+        return STRING_NOT_EQUAL;
     }
 
     /* Pokud od začátku víme, že jsou růžně dlouhé oba řetězce,
        potom nemohou být stejné.*/
     if(str1->length != str2->length){
-        return false;
+        return STRING_NOT_EQUAL;
     }
 
     // Projdeme oba stringy
     for(size_t i = 0; i < str1->length; i++){
         // Pokud si jsou odlišné, vrátíme false
         if(str1->str[i] != str2->str[i]){
-            return false;
+            return STRING_NOT_EQUAL;
         }
     }
-    return true;
+    return STRING_EQUAL;
 }
 
 /**
@@ -152,6 +157,7 @@ string *string_resize(string *str, unsigned int size) {
     }
 
     // Uvolníme původní řetězec
+    free(str->str);
     free(str);
     return stringCreated;
 }
