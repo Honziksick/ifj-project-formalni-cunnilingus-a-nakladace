@@ -111,6 +111,6 @@ void error_freeAllocatedData(ErrorType error) {
 /**
  * @brief Funkce pro ukončení programu s příslušným chybovým kódem.
  */
-void error_killMePlease(ErrorType error) {
+inline void error_killMePlease(ErrorType error) {
     exit(error);
 } // error_killMePlease()
