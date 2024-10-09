@@ -27,27 +27,20 @@
 #include "dynamic_string.h"
 
 /**
- * @brief Alokuje parametry stringu a pole.
-*/
-inline string *string_allocate(size_t size) {
-    return malloc(sizeof(string)+size);
-}
-
-/**
  * @brief Inicializace dynamického řetězce s počáteční kapacitou.
 */
 string *string_init() {
     // Vytvoříme nový string
-    string *stringCreated = string_allocate(STRING_INIT_SIZE);
+    string *stringCreated = malloc(sizeof(string));
+    stringCreated->str = malloc(sizeof(STRING_INIT_SIZE));
     // Pokud se špatně alokovala paměť, vrátíme NULL
-    if(stringCreated == NULL){
+    if(stringCreated == NULL || stringCreated->str == NULL){
         return NULL;
     }
 
     stringCreated->allocatedSize = STRING_INIT_SIZE;
     // Na začátku není v řetězci žádný znak
     stringCreated->length = 0;
-    stringCreated->str = NULL;
 
     return stringCreated;
 }
@@ -58,6 +51,8 @@ string *string_init() {
 void string_free(string *str) {
     // Pokud string existuje, smažeme ho
     if(str != NULL){
+        // Nejdříve ukazatel na pole a až pak strukturu
+        free(str->str);
         free(str);
     }
 }
@@ -68,17 +63,21 @@ void string_free(string *str) {
 int string_append_char(string *str, char character) {
     // Pokud je string plný, musíme ho zvětšit o jedno
     if(str->length+1 > str->allocatedSize){
-        string_resize(str, str->length+1);
+        // Kontrola, zda neselhal resize
+        str = string_resize(str, str->length+1);
+        if(str == NULL){
+            return STRING_RESIZE_FAIL;
+        }
     }
 
     // Pokud máme string, do kterého jde appendovat
     if(str != NULL) {;
-        // Přidání zanku na konec
+        // Přidání znaku na konec
         str->str[str->length] = character;
         // Řetězec se zvětší o jeden
         str->length++;
     }
-    return;
+    return STRING_SUCCESS;
 }
 
 /**
@@ -87,55 +86,58 @@ int string_append_char(string *str, char character) {
 int string_copy(string *strCopied, string *strTo){
     // Pokud jeden z řetězců neexistuje, vrátí 0
     if(strCopied == NULL || strTo == NULL){
-        return STRING_COPY_FAIL;
+        return 0;
     }
-    // Pokud kopírujeme do menšího pole, vrátí 0
-    // Useless??
-    if(strTo->length < strCopied->length){
-        return STRING_COPY_FAIL;
-    }
+
     // Přendává prvky od str[0] do konce
     for(size_t i = 0; i < strCopied->length-1; i++){
         strTo->str[i] = strCopied->str[i];
     }
     // Délka se při zkopírování může měnit
     strTo->length = strCopied->length;
-    return STRING_SUCCESS;
+    return 1;
 }
 
 /**
  * @brief Porovná dva dynamické řetězce.
 */
 bool string_compare(string *str1, string *str2){
+    // Pokud je jeden ze stringů prázdný
+    if(str1 == NULL || str2 == NULL){
+        return false;
+    }
+
     /* Pokud od začátku víme, že jsou růžně dlouhé oba řetězce,
        potom nemohou být stejné.*/
     if(str1->length != str2->length){
-        return STRING_COMPARE_FAIL;
+        return false;
     }
 
     // Projdeme oba stringy
     for(size_t i = 0; i < str1->length; i++){
         // Pokud si jsou odlišné, vrátíme false
         if(str1->str[i] != str2->str[i]){
-            return STRING_COMPARE_FAIL;
+            return false;
         }
     }
-    return STRING_SUCCESS;
+    return true;
 }
 
 /**
  * @brief Zvětší dynamický řetězec na požadovanou délku.
  */
-string *string_resize(string *str, size_t size) {
+string *string_resize(string *str, unsigned int size) {
     // Pokud nemáme řetězec, tak vracíme NULL
     if(str == NULL) {
         return NULL;
     }
 
     // Vytvoříme nový řetězec
-    string *stringCreated = string_allocate(size);
+    string *stringCreated = malloc(sizeof(string));
+    stringCreated->str = malloc(sizeof(size));
+
     // Pokud se špatně malokuje, vrací NULL
-    if(stringCreated == NULL){
+    if(stringCreated == NULL || stringCreated->str == NULL){
         return NULL;
     }
 
@@ -143,7 +145,7 @@ string *string_resize(string *str, size_t size) {
     stringCreated->allocatedSize = size;
     stringCreated->length = 0;
     // Zkopíruje znaky z původního řetězce do nově vytvořeného
-    if(string_copy(str->str, stringCreated->str) == STRING_COPY_FAIL){
+    if(string_copy(str, stringCreated) == 0){
         // Pokud selže, uvolní nově vytvořený řetězec a vrátí NULL
         free(stringCreated);
         return NULL;
