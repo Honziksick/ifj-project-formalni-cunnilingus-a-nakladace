@@ -3,8 +3,11 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/src/**",
-                "${workspaceFolder}/test/**"
+                "${workspaceFolder}",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/test",
+                "${workspaceFolder}/test/googletest-src/googletest",
+                "${workspaceFolder}/test/googletest-src/googlemock"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
@@ -15,8 +18,11 @@
         {
             "name": "Linux - Unit Tests",
             "includePath": [
-                "${workspaceFolder}/src/**",
-                "${workspaceFolder}/test/**"
+                "${workspaceFolder}",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/test",
+                "${workspaceFolder}/test/googletest-src/googletest",
+                "${workspaceFolder}/test/googletest-src/googlemock"
             ],
             "defines": ["UNIT_TEST"],
             "compilerPath": "/usr/bin/g++",
