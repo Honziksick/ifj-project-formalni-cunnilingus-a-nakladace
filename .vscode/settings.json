@@ -14,7 +14,7 @@
         },
         {
             "name": "Dynamic String Library Tests",
-            "pattern": "${workspaceFolder}/test/build_test/string_test"
+            "pattern": "${workspaceFolder}/test/build_test/dynamic_string_test"
         },
         {
             "name": "Symbol Table LibraryTests",
