@@ -43,7 +43,9 @@
 typedef enum {
     STRING_SUCCESS,                 /**< Operace se zdařila */
     STRING_ALLOCATION_FAIL,         /**< Selhání alokace paměti */
-    STRING_APPEND_FAIL,             /**< Nepodařilo se appendovat */
+    STRING_EQUAL,                   /**< Řetězce jsou stejné */
+    STRING_NOT_EQUAL,               /**< Řetězce nejsou stejné */
+    STRING_COPY_FAIL,               /**< Řetězec se nepovedlo zkopírovat */
     STRING_RESIZE_FAIL              /**< Nepovedlo se zvětšení tabulky*/
 } string_result;
 
@@ -61,32 +63,21 @@ typedef struct {
 } string;
 
 /**
- * @brief Alokuje paměť pro dynamické pole.
- *
- * @param size Velikost dynamického pole
- *
- * @return Ukazatel na nové dynamické pole nebo NULL v případě chyby.
- */
-string *string_allocate(size_t size);
-
-/**
  * @brief Inicializace dynamického řetězce s počáteční kapacitou.
  *
- * @details Tato funkce alokuje paměť pro nový datový typ řetězce a inicializuje
- *          všechny položky na prázdné.
+ * @details Tato funkce alokuje paměť pro nový datový typ řetězce, pro pole znaků
+ *          a inicializuje všechny položky na prázdné.
  *
- * @return Vrací ukazatel na nově vytvořený datový typ.
+ * @return Vrací ukazatel na nově vytvořený datový typ nebo NULL, když selže.
 */
 string *string_init();
 
 /**
  * @brief Uvolnění paměti dynamického řetězce.
  *
- * @details Pokud daný string skutečně existuje, uvolní se, jinak nic nedělá.
+ * @details Pokud daný string skutečně existuje, uvolní se i s pole vevnitř.
  *
  * @param str Ukazatel na datový typ string
- *
- * @return Vrací vytvořený dynamický řetězec.
 */
 void string_free(string *str);
 
@@ -99,21 +90,24 @@ void string_free(string *str);
  *
  * @param str Ukazatel na datový typ string
  * @param character Znak, který se vloží na konec řetězce
+ *
+ * @return Vrací STRING_SUCCESS, pokud se vyvedla operace.
+ *         Vrací STRING_RESIZE_FAIL, pokud se nezdařilo nafouknout datový typ.
  */
 int string_append_char(string *str, char character);
 
 /**
  * @brief   Zkopíruje obsah jednoho dynamického řetězce do druhého.
  *
- * @details Zkopírujeme obsah z řetězce strCopied do řetězce strTo a
- *          zároveň se také strTo->length změní na délku strCopied.
+ * @details Vytvoří nový pomocný řetězec strCreated a přendá všechny parametry z
+ *          strCopied a ukazatel na strTo a uvolní strTo.
  *
  * @param strCopied Řetězec, z kterého kopírujeme
- * @param strTo Řetězec do kterého kopírujeme
+ * @param strCreated Nový řetězec do kterého kopírujeme
+ * @param strTo Řetězec do kterého chceme kopírovat
  *
- * @return Pokud jeden z řetězců neexistující nebo kopířujeme do
- *         menšího řetězce, vrátí 0.
- *         V opačném případě vrací 1.
+ * @return Pokud jeden z řetězců neexistující vrátí STRING_COPY_FAIL.
+ *         V opačném případě vrací STRING_SUCCESS.
  */
 int string_copy(string *strCopied, string *strTo);
 
@@ -127,7 +121,7 @@ int string_copy(string *strCopied, string *strTo);
  *
  * @return Vrací true, pokud jsou stejné, jinak vrací false.
  */
-bool string_compare(string *str1, string *str2);
+int string_compare(string *str1, string *str2);
 
 /**
  * @brief   Zvětší dynamický řetězec na požadovanou délku.
@@ -137,7 +131,7 @@ bool string_compare(string *str1, string *str2);
  *          segfaultům. Vytvoříme nový řetězec, do kterého potom zkopírujeme
  *          předešlý řetězec.
  *
- * @param str Ukazatel na datový typ string, který chceme zvětšit
+ * @param str Ukazatel na datový typ string, který chceme zvětšit.
  *
  * @return V případě, že požadovaný řetězec neexistuje, špatně se malokuje
  *         nebo se špatně zkopírovalo z původního řetězce
