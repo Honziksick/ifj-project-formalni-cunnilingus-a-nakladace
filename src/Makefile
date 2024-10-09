@@ -16,8 +16,8 @@
 #                                                                              #
 # Popis:    Tento soubor obsahuje Makefile pro "Společný projekt do předmětů   #
 #           IFJ a IAL: Implementace překladače imperativního jazyka IFJ24".    #
-#           Makefile vychází ze souboru `Makefile` vytvořeného studentem       #
-#           <xkalinj00> v rámci druhého projektu do předmětu IVS na VUT FIT.   #
+#           Makefile vychází ze souboru `Makefile` vytvořeného mnou (studentem #
+#           <xkalinj00>) v rámci druhého projektu do předmětu IVS na VUT FIT.  #
 #                                                                              #
 ################################################################################
 
@@ -46,20 +46,12 @@ PACK_NAME = xkalinj00
 $(VERBOSE)SILENTOPT = -s
 
 
-###                                 ###
-#  Definice cest pro některé výstupy  #
-###                                 ###
+###                                        ###
+#  Definice cest pro některé vstupy/výstupy  #
+###                                        ###
 
 # Adresář pro generování dokumentace
 DOC_OUT_DIR = ../doc
-
-
-###                                                          ###
-#  Definice cest ke složkám se soubory pro testování projektu  #
-###                                                          ###
-
-# Cesta k adresáři s testy
-TEST_DIR = ../test
 
 # Cesta ke zdrojovým souborům Google Test a Google Mock knihoven
 GTEST_DIR = $(TEST_DIR)/googletest-src/googletest
@@ -72,6 +64,9 @@ GMOCK_DIR = $(TEST_DIR)/googletest-src/googlemock
 
 # Cesta k adresáři se zdrojovými soubory překladače
 SRC_DIR = .
+
+# Cesta k adresáři s testy
+TEST_DIR = ../test
 
 # Adresáře pro umístění postavených souborů
 BUILD_DIR = $(SRC_DIR)/build
@@ -103,7 +98,6 @@ COVERAGE_FLAGS = -fprofile-arcs -ftest-coverage
 SANITIZE_FLAGS = -fsanitize=address -fsanitize=undefined
 
 # Flagy pro překlad různých částí projektu
-
 CFLAGS_STD = $(STD_C) -O2 $(WARNING_FLAGS) 
 CFLAGS_TEST = $(STD_C) -O0 $(WARNING_FLAGS) $(DEBUG_FLAGS) $(SANITIZE_FLAGS)
 CXXFLAGS_TEST = $(STD_CXX) -O0 $(DEBUG_FLAGS) $(WARNING_FLAGS) $(SANITIZE_FLAGS)
@@ -111,11 +105,11 @@ CFLAGS_COV = $(STD_C) -O0 $(WARNING_FLAGS) $(DEBUG_FLAGS) $(COVERAGE_FLAGS) $(SA
 CXXFLAGS_COV = $(STD_CXX) -O0 $(WARNING_FLAGS) $(DEBUG_FLAGS) $(COVERAGE_FLAGS) $(SANITIZE_FLAGS)
 
 
-###                                                           ###
-#  Proměnné obsahující seznamy zdojových a objektových souborů  #
-###                                                           ###
+###                                                            ###
+#  Proměnné obsahující seznamy zdrojových a objektových souborů  #
+###                                                            ###
 
-# Seznam všech zdrojových souborů
+# Seznam všech zdrojových souborů překladače a testů
 SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
 TEST_FILES = $(wildcard $(TEST_DIR)/*.cpp)
 
@@ -137,52 +131,58 @@ COV_TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.cpp,$(COVERAGE_BUILD_DIR)/%.o,$(TE
 # Příkaz '.PHONY' určuje, že následující příkazy nejsou nikdy brány jako soubory
 .PHONY: all build help clean test doc coverage pack
 
-### all: ## Provede sestavení celého překladače
+### MC # all: # Provede sestavení celého překladače určeného k nasazení
 all: build
 
-### build: ## Sestaví překladač týmu "Tým xkalinj00"
+### MC # build: # Sestaví překladač týmu "Tým xkalinj00"
 build:
 	@echo "\033[31mPřekladač tým xkalinj00 alias \"Formální cunnilingus a nakladače\" ještě není připraven.\033[0m"
 # NEZAPOMENOUT PŘESUNOUT VÝSLEDNOU BINÁRKU
 
-### help: ## Vypíše nápovědu k použití Makefile
+# Definice zkratek pro kategorie příkazů
+CATEGORIES := MC C B T CC DEV O
+
+### MC # help: # Vypíše nápovědu k použití Makefile
 help:
-	$(MAKE) $(SILENTOPT) install-help-dep
+	@$(MAKE) $(SILENTOPT) install-help-dep
 	@{ \
-	echo "Proměnné:"; \
-	grep -E '### [A-Z\_]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-	grep -v "grep -E '###.*:.*?## .*$$'" | \
-	sort -f | \
-	awk 'BEGIN {FS = ":.*?## "}; \
-	{gsub(/### /, "", $$1); \
-	printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'; \
-	echo ""; \
-	echo "Příkazy:"; \
-	grep -E '### [a-z\-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-	grep -v "grep -E '###.*:.*?## .*$$'" | \
-	sort -f | \
-	awk 'BEGIN {FS = ":.*?## "}; \
-	{gsub(/### /, "", $$1); \
-	printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'; \
+	for CATEGORY in $(CATEGORIES); do \
+		case $$CATEGORY in \
+		"MC") FULL_CAT="Main Commands";; \
+		"C") FULL_CAT="Clean";; \
+		"B") FULL_CAT="Build Modules and Submodules";; \
+		"T") FULL_CAT="Test";; \
+		"CC") FULL_CAT="Code Coverage";; \
+		"DEV") FULL_CAT="Install Dependencies";; \
+		"O") FULL_CAT="Others";; \
+		esac; \
+		echo "\033[0;33m$$FULL_CAT:\033[0m"; \
+		grep -E "^### $$CATEGORY # [a-zA-Z0-9_\-]+:.*?# .*$$" $(MAKEFILE_LIST) | \
+		sort -f | \
+		awk 'BEGIN {FS = ":.*?# "}; \
+		{gsub(/^### [A-Z]+ # /, "", $$1); \
+		printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'; \
+		echo ""; \
+	done; \
 	} | less -R
 
-### clean: ## Odstraní všechny soubory vytvořené během kompilace (včetně dokumentace a archivu)
-clean: clean-build clean-test clean-doc clean-coverage clean-pack
+### MC # clean: # Odstraní všechny soubory vytvořené během kompilace (včetně dokumentace a archivu)
+clean: clean-build clean-test clean-coverage clean-doc clean-pack
 
-### test: ## Sestaví knihovny GoogleTest a GoogleMock a spustí test překladače
+### MC # test: # Sestaví knihovny GoogleTest a GoogleMock a spustí test překladače
 test: build-test
 	$(TEST_BUILD_DIR)/$(EXECUTABLE)_test
 
-### doc: ## Vygeneruje dokumentaci k projektu
+### MC # doc: # Vygeneruje dokumentaci k projektu do adresáře `../doc/`
 doc:
-	$(MAKE) $(SILENTOPT) install-doc-dep
+	@$(MAKE) $(SILENTOPT) install-doc-dep
 	$(MAKE) $(SILENTOPT) clean-doc
 	doxygen Doxyfile 
 	cd $(DOC_OUT_DIR)/html && grep -v 'target="_self">resources\|target="_self">doc' files.html > temp.html && mv temp.html files.html
 
-### coverage: ## Sestaví celý projekt s pokrytím kódu
+### MC # coverage: # Provede analýzu pokrytí kódu a vygeneruje HTML přehled
 coverage: 
-	$(MAKE) $(SILENTOPT) install-cov-dep
+	@$(MAKE) $(SILENTOPT) install-cov-dep
 	$(MAKE) build-coverage
 	$(MAKE) run-test-coverage
 	$(MAKE) process-coverage
@@ -196,9 +196,9 @@ coverage:
 		fi \
 	fi'
 
-### pack: ## Vytvoří ZIP archiv s projektem pro odevzdání
+### MC # pack: # Vytvoří ZIP archiv se soubory určenými k odevzdání
 pack:
-	$(MAKE) $(SILENTOPT) install-pack-dep
+	@$(MAKE) $(SILENTOPT) install-pack-dep
 	$(MAKE) $(SILENTOPT) clean-pack
 	mkdir -p $(PACK_DIR)
 	$(MAKE) $(SILENTOPT) pack-prepare
@@ -212,23 +212,23 @@ pack:
 #                                                                              #
 ################################################################################
 
-### clean-build: ## Odstraní adresář src/build s verzí překladače k nasazení
+### C # clean-build: # Odstraní adresář 'src/build' s verzí překladače k nasazení
 clean-build:
 	rm -rf $(BUILD_DIR)
 
-### clean-build: ## Odstraní adresář test/build s unit testy překladače
+### C # clean-build: # Odstraní adresář '../test/build-test' s unit testy překladače
 clean-test:
 	rm -rf $(TEST_BUILD_DIR)
 
-### clean-doc: ## Odstraní všechny soubory z adresáře 'doc' (kromě ./resources/)
+### C # clean-doc: # Odstraní veškerý obsah adresáře '../doc' (kromě '../doc/resources/')
 clean-doc:
 	find $(DOC_OUT_DIR) -mindepth 1 ! -path '$(DOC_OUT_DIR)/resources*' -delete || true
 
-### clean-coverage: ## Odstraní všechny soubory vytvořené během pokrytí kódu
+### C # clean-coverage: # Odstraní adresář '../test/build-coverage' s pokrytím kódu
 clean-coverage:
 	rm -rf $(COVERAGE_BUILD_DIR)
 
-### clean-pack: ## Odstraní složku pro zabalení projektu, včetně archivu
+### C # clean-pack: # Odstraní složku '../pack' pro zabalení projektu (včetně archivu)
 clean-pack:
 	rm -rf $(PACK_DIR)
 
@@ -247,14 +247,14 @@ ERROR_LIB_XKALINJ00 = error
 STRING_LIB_XFARKAL00 = dynamic_string
 SYMTABLE_XKREJCD00 = symtable
 
-### build-error: ## Sestaví knihovnu k řízení chybových stavů
-build-$(ERROR_LIB_XKALINJ00): $(BUILD_DIR)/$(ERROR_LIB_XKALINJ00).o
+### B # build-error: # Sestaví knihovnu k řízení chybových stavů
+build-error: $(BUILD_DIR)/$(ERROR_LIB_XKALINJ00).o
 
-### build-string: ## Sestaví knihovnu operací nad dynamickým stringem
-build-$(STRING_LIB_XFARKAL00): $(BUILD_DIR)/$(STRING_LIB_XFARKAL00).o
+### B # build-string: # Sestaví knihovnu operací nad dynamickým stringem
+build-string: $(BUILD_DIR)/$(STRING_LIB_XFARKAL00).o
 
-### build-symtable: ## Sestaví knihovnu operací nad tabulkou symbolů typu TRP
-build-$(SYMTABLE_XKREJCD00): $(BUILD_DIR)/$(SYMTABLE_XKREJCD00).o
+### B # build-symtable: # Sestaví knihovnu operací nad tabulkou symbolů typu TRP-izp
+build-symtable: $(BUILD_DIR)/$(SYMTABLE_XKREJCD00).o
 
 # Stavba objekotvých souborů jednotlivých podpůrných submodulů a knihoven
 $(BUILD_DIR)/$(ERROR_LIB_XKALINJ00).o: $(SRC_DIR)/$(ERROR_LIB_XKALINJ00).c
@@ -299,13 +299,13 @@ SUB_SEMANT_XKREJCD00 = xkrejcd00
 SCANNER_XHYZAPA00 = scanner
 PARSER_TEAM = parser
 
-### build-scanner: ## Sestaví lexikální analyzátor alias scanner
-build-$(SCANNER_XHYZAPA00): $(BUILD_DIR)/$(SCANNER_XHYZAPA00).o
+### B # build-scanner: # Sestaví lexikální analyzátor alias 'scanner'
+build-scanner: $(BUILD_DIR)/$(SCANNER_XHYZAPA00).o
 
-### build-parser: ## Sestaví lexikální analyzátor alias scanner
+### B # build-parser: # Sestaví syntaktický analyzátor alias 'parser'
 build-$(PARSER_TEAM): $(BUILD_DIR)/$(PARSER_TEAM).o
 
-# Stavba objekotvých souborů modulů překladače
+# Stavba objekotvých souborů jednotlivých modulů překladače
 $(BUILD_DIR)/$(SCANNER_XHYZAPA00).o: $(SRC_DIR)/$(SCANNER_XHYZAPA00).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
@@ -325,13 +325,13 @@ $(BUILD_DIR)/$(PARSER_TEAM).o: $(SRC_DIR)/$(PARSER_TEAM).c
 #                    Kompilace unit TESTU CELÉHO PŘEKLADAČE                    #
 ###                                                                          ###
 
-### build-test: ## Sestaví veškeré pro překladač napsané testy
+### T # build-test: # Sestaví testovací program sdružující veškeré testy překladače
 build-test: $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES) $(TEST_BUILD_DIR)/gtest_main.a $(TEST_BUILD_DIR)/gtest.a
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CXX) $(CFLAGS_TEST) $(CXXFLAGS_TEST) $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES) \
 		$(TEST_BUILD_DIR)/gtest_main.a -o $(TEST_BUILD_DIR)/$(EXECUTABLE)_test
 
-# Stavba objektových souborů s přepínači pro pokrytí kódu
+# Stavba objektových souborů modulů a submodulů s přepínači pro pokrytí kódu
 $(TEST_BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
@@ -345,7 +345,7 @@ $(TEST_BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp
 #                        Kompilace GOOGLE TEST KNIHOVNY                        #
 ###                                                                          ###
 
-### build-test-libs: ## Sestaví knihovny Google Test a Google Mock
+### T # build-test-libs: # Sestaví knihovny Google Test a Google Mock
 build-test-libs: $(TEST_BUILD_DIR)/gtest_main.a $(TEST_BUILD_DIR)/gtest.a
 
 # Stavba objektových souborů Google Test knihoven
@@ -376,25 +376,25 @@ $(TEST_BUILD_DIR)/gtest_main.a: $(TEST_BUILD_DIR)/gtest-all.o \
 #                    TESTY podpůrných KNIHOVEN a SUBMODULŮ                     #
 ###                                                                          ###
 
-### build-error-test: ## Sestaví testy knihovny pro řízení chybových stavů
-build-$(ERROR_LIB_XKALINJ00)-test: $(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00)_test
+### T # build-error-test: # Sestaví test knihovny pro řízení chybových stavů
+build-error-test: $(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00)_test
 
-### run-error-test: ## Spustí testy knihovny pro řízení chybových stavů
-run-$(ERROR_LIB_XKALINJ00)-test: $(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00)_test
+### T # run-error-test: # Spustí test knihovny pro řízení chybových stavů
+run-error-test: $(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00)_test
 	$(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00)_test
 
-### build-string-test: ## Sestaví testy knihovny operací nad dynamickým stringem
-build-$(STRING_LIB_XFARKAL00)-test: $(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00)_test
+### T # build-string-test: # Sestaví test knihovny operací nad dynamickým stringem
+build-string-test: $(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00)_test
 
-### run-string-test: ## Spustí testy knihovny operací nad dynamickým stringem
-run-$(STRING_LIB_XFARKAL00)-test: $(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00)_test
+### T # run-string-test: # Spustí test knihovny operací nad dynamickým stringem
+run-string-test: $(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00)_test
 	$(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00)_test
 
-### build-symtable-test: ## Sestaví testy knihovny operací na tabulkou symbolů
-build-$(SYMTABLE_XKREJCD00)-test: $(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00)_test
+### T # build-symtable-test: # Sestaví test knihovny operací nad tabulkou symbolů
+build-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00)_test
 
-### run-symtable-test: ## Spustí testy knihovny operací na tabulkou symbolů
-run-$(SYMTABLE_XKREJCD00)-test: $(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00)_test
+### T # run-symtable-test: # Spustí test knihovny operací nad tabulkou symbolů
+run-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00)_test
 	$(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00)_test
 
 # Stavba testů podpůrných knihoven a submodulů
@@ -457,18 +457,14 @@ $(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00).o: $(SRC_DIR)/$(SYMTABLE_XKREJCD00).c
 #                                                                              #
 ################################################################################
 
-###                                                                          ###
-#                TESTY lexikálního analyzátoru alias "scanneru"                #
-###                                                                          ###
+### T # build-scanner-test: # Sestaví testy lexikálního analyzátoru alias 'scanneru'
+build-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test
 
-### build-scanner-test: ## Sestaví testy lexikálního analyzátoru alias scanneru
-build-$(SCANNER_XHYZAPA00)-test: $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test
-
-### run-scanner-test: ## Spustí testy lexikálního analyzátoru alias scanneru
-run-$(SCANNER_XHYZAPA00)-test: $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test
+### T # run-scanner-test: # Spustí testy lexikálního analyzátoru alias 'scanneru'
+run-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test
 	$(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test
 
-# Stavba testů podpůrných knihoven a submodulů
+# Stavba integračních testů celých modulů 
 $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test: $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test.o \
 											$(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00).o \
 											$(TEST_BUILD_DIR)/gtest_main.a \
@@ -484,16 +480,6 @@ $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00).o: $(SRC_DIR)/$(SCANNER_XHYZAPA00).c
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
 
-###                                                                          ###
-#               TESTY syntaktického analyzátoru alias "parseru"                #
-###                                                                          ###
-
-
-###                                                                          ###
-#                        TESTY sémantického analyzátoru                        #
-###                                                                          ###
-
-
 ################################################################################
 #                                                                              #
 #                           GENEROVÁNÍ CODE COVERAGE                           #
@@ -504,17 +490,17 @@ $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00).o: $(SRC_DIR)/$(SCANNER_XHYZAPA00).c
 #                   ZPRACOVÁNÍ vygenerovaného CODE COVERAGE                    #
 ###                                                                          ###
 
-### build-coverage: ## Sestaví všechny zdrojové soubory a testy s přepínači pro pokrytí kódu
+### CC # build-coverage: # Sestaví všechny zdrojové soubory a testy s přepínači pro pokrytí kódu
 build-coverage: $(COV_SRC_OBJ_FILES) $(COV_TEST_OBJ_FILES) $(COVERAGE_BUILD_DIR)/gtest_main.a $(COVERAGE_BUILD_DIR)/gtest.a
 	@mkdir -p $(COVERAGE_BUILD_DIR)
 	$(CXX) $(CFLAGS_COV) $(CXXFLAGS_COV) $(COV_SRC_OBJ_FILES) $(COV_TEST_OBJ_FILES) \
 		$(COVERAGE_BUILD_DIR)/gtest_main.a -o $(COVERAGE_BUILD_DIR)/$(EXECUTABLE)_coverage
 
-### run-test-coverage: ## Spustí všechny testy s pokrytím kódu
+### CC # run-test-coverage: # Spustí všechny testy generující pokrytí kódu
 run-test-coverage:
 	$(COVERAGE_BUILD_DIR)/$(EXECUTABLE)_coverage
 
-### process-coverage: ## Zpracuje data o pokrytí kódu a vygeneruje HTML výstup
+### CC # process-coverage: # Zpracuje data o pokrytí kódu a vygeneruje HTML výstup
 process-coverage:
 	lcov --quiet --directory $(COVERAGE_BUILD_DIR) --capture \
 	--output-file $(COVERAGE_BUILD_DIR)/coverage.info
@@ -545,7 +531,7 @@ $(COVERAGE_BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp
 	@mkdir -p $(COVERAGE_BUILD_DIR)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_COV) -c $< -o $@
 
-# Stavba objektových souborů Google Test knihoven s přepínačí pro code coverage
+# Stavba objektových souborů Google Test knihoven s přepínačí pro pokrytí kódu
 $(COVERAGE_BUILD_DIR)/gtest-all.o: $(GTEST_DIR)/src/gtest-all.cc
 	@mkdir -p $(COVERAGE_BUILD_DIR)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_COV) -c $< -o $@
@@ -568,7 +554,7 @@ $(COVERAGE_BUILD_DIR)/gtest_main.a: $(COVERAGE_BUILD_DIR)/gtest-all.o \
 #                                                                              #
 ################################################################################
 
-### pack-prepare: ## Zkopíruje všechny potřebné soubory do adresáře '../pack'
+### O # pack-prepare: # Zkopíruje všechny potřebné soubory do adresáře '../pack/xkalinj00'
 pack-prepare:
 	@{ \
 		missing_files=0; \
@@ -633,26 +619,26 @@ pack-prepare:
 #                                                                              #
 ################################################################################
 
-### install-dev-dep: ## Nainstaluje závislosti potřebné pro kompilaci projektu
+### DEV # install-dev-dep: # Nainstaluje závislosti potřebné pro používání všech funkcí 'Makefile'
 install-dev-dep: update-dep install-doc-dep install-pack-dep install-help-dep install-cov-dep
 
-### install-help-dep: ## Nainstaluje závislosti potřebné pro výpis nápovědy k Makefile
+### DEV # install-help-dep: # Nainstaluje závislosti potřebné pro výpis nápovědy k 'Makefile'
 install-help-dep:
 	@dpkg -s less >/dev/null 2>&1 || (echo "Instaluji less" && sudo apt-get install less)
 
-### install-cov-dep: ## Nainstaluje závislosti potřebné pro generování code coverage
+### DEV # install-cov-dep: # Nainstaluje závislosti potřebné pro generování pokrytí kódu
 install-cov-dep:
 	@dpkg -s lcov >/dev/null 2>&1 || (echo "Instaluji lcov" && sudo apt-get install lcov)
 
-### install-doc-dep: ## Nainstaluje závislosti potřebné pro generování dokumentace
+### DEV # install-doc-dep: # Nainstaluje závislosti potřebné pro generování dokumentace
 install-doc-dep:
 	@dpkg -s doxygen >/dev/null 2>&1 || (echo "Instaluji doxygen" && sudo apt-get install doxygen)
 
-### install-pack-dep: ## Nainstaluje závislosti potřebné pro zabalení projektu
+### DEV # install-pack-dep: # Nainstaluje závislosti potřebné pro zabalení projektu
 install-pack-dep:
 	@dpkg -s rsync >/dev/null 2>&1 || (echo "Instaluji rsync" && sudo apt-get install rsync)
 	@dpkg -s zip >/dev/null 2>&1 || (echo "Instaluji zip" && sudo apt-get install zip)
 
-### dev-update-dep: ## Aktualizuje seznam dostupných balíčků
+### DEV # dev-update-dep: # Aktualizuje seznam dostupných balíčků
 update-dep:
 	sudo apt-get update -y

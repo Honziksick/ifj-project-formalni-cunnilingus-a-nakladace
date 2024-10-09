@@ -57,7 +57,7 @@
             "name": "(gdb) run-string-test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/test/build_test/string_test",
+            "program": "${workspaceFolder}/test/build_test/dynamic_string_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/src",
