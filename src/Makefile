@@ -51,7 +51,7 @@ $(VERBOSE)SILENTOPT = -s
 ###                                        ###
 
 # Adresář pro generování dokumentace
-DOC_OUT_DIR = ../doc
+DOC_DIR = ../doc
 
 # Cesta ke zdrojovým souborům Google Test a Google Mock knihoven
 GTEST_DIR = $(TEST_DIR)/googletest-src/googletest
@@ -178,7 +178,17 @@ doc:
 	@$(MAKE) $(SILENTOPT) install-doc-dep
 	$(MAKE) $(SILENTOPT) clean-doc
 	doxygen Doxyfile 
-	cd $(DOC_OUT_DIR)/html && grep -v 'target="_self">resources\|target="_self">doc' files.html > temp.html && mv temp.html files.html
+	cd $(DOC_DIR)/html && grep -v 'target="_self">resources\|target="_self">doc' files.html > temp.html && mv temp.html files.html
+	@echo '<html><head><meta http-equiv="refresh" content="0; url=html/index.html"></head></html>' > $(DOC_DIR)/documentation.html
+	@echo -e "\033[33mChcete otevřít HTML dokumentaci v hlavním systémovém prohlížeči? (y/n): \033[0m"
+	@bash -c 'read -t 5 -p "" choice; \
+	if [ "$$choice" = "y" ]; then \
+		if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then \
+			cmd.exe /C start $(DOC_DIR)/documentation.html; \
+		else \
+			xdg-open $(DOC_DIR)/documentation.html; \
+		fi \
+	fi'
 
 ### MC # coverage: # Provede analýzu pokrytí kódu a vygeneruje HTML přehled
 coverage: 
@@ -222,7 +232,7 @@ clean-test:
 
 ### C # clean-doc: # Odstraní veškerý obsah adresáře '../doc' (kromě '../doc/resources/')
 clean-doc:
-	find $(DOC_OUT_DIR) -mindepth 1 ! -path '$(DOC_OUT_DIR)/resources*' -delete || true
+	find $(DOC_DIR) -mindepth 1 ! -path '$(DOC_DIR)/resources*' -delete || true
 
 ### C # clean-coverage: # Odstraní adresář '../test/build-coverage' s pokrytím kódu
 clean-coverage:
