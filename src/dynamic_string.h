@@ -36,6 +36,17 @@
 #define STRING_INIT_SIZE 10
 
 /**
+ * @brief   Výčet návratových hodnot funkcí
+ * @details Tento výčet definuje různé návratové hodnoty,
+ *          ke kterým může dojít v určitých funkcích.
+ */
+typedef enum {
+    STRING_SUCCESS,
+    STRING_COPY_FAIL,
+    STRING_COMPARE_FAIL
+} string_result;
+
+/**
  * @brief   Datový typ dynamického řetězce.
  *
  * @details Každý řetězec má ukazatel ukazatele na sebe, velikost místa, které

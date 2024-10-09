@@ -87,12 +87,12 @@ int string_append_char(string *str, char character) {
 int string_copy(string *strCopied, string *strTo){
     // Pokud jeden z řetězců neexistuje, vrátí 0
     if(strCopied == NULL || strTo == NULL){
-        return 0;
+        return STRING_COPY_FAIL;
     }
     // Pokud kopírujeme do menšího pole, vrátí 0
     // Useless??
     if(strTo->length < strCopied->length){
-        return 0;
+        return STRING_COPY_FAIL;
     }
     // Přendává prvky od str[0] do konce
     for(size_t i = 0; i < strCopied->length-1; i++){
@@ -100,7 +100,7 @@ int string_copy(string *strCopied, string *strTo){
     }
     // Délka se při zkopírování může měnit
     strTo->length = strCopied->length;
-    return 1;
+    return STRING_SUCCESS;
 }
 
 /**
@@ -110,17 +110,17 @@ bool string_compare(string *str1, string *str2){
     /* Pokud od začátku víme, že jsou růžně dlouhé oba řetězce,
        potom nemohou být stejné.*/
     if(str1->length != str2->length){
-        return false;
+        return STRING_COMPARE_FAIL;
     }
 
     // Projdeme oba stringy
     for(size_t i = 0; i < str1->length; i++){
         // Pokud si jsou odlišné, vrátíme false
         if(str1->str[i] != str2->str[i]){
-            return false;
+            return STRING_COMPARE_FAIL;
         }
     }
-    return true;
+    return STRING_SUCCESS;
 }
 
 /**
@@ -143,7 +143,7 @@ string *string_resize(string *str, size_t size) {
     stringCreated->allocatedSize = size;
     stringCreated->length = 0;
     // Zkopíruje znaky z původního řetězce do nově vytvořeného
-    if(string_copy(str->str, stringCreated->str) == 0){
+    if(string_copy(str->str, stringCreated->str) == STRING_COPY_FAIL){
         // Pokud selže, uvolní nově vytvořený řetězec a vrátí NULL
         free(stringCreated);
         return NULL;
