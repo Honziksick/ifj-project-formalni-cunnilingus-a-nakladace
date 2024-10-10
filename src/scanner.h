@@ -29,15 +29,17 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "dynamic_string.h" //Vlastní knihovny
-#include "error.h"  //(zatím nejsou implementovány)
+#include "scanner.c"        //Vlastní knihovny
+#include "dynamic_string.h"
+#include "error.h"
 
 // Definice různých typů tokenů
 typedef enum {
     TOKEN_IDENTIFIER,
-    TOKEN_OPERATOR,
-    TOKEN_KEYWORD,
     TOKEN_INT,
+    TOKEN_OPERATOR,
+    TOKEN_DOT,
+    TOKEN_KEYWORD,
     TOKEN_FLOAT,
     TOKEN_STRING,
     TOKEN_EOF
@@ -51,6 +53,31 @@ typedef struct {
     String value;
 } Token;
 
+// Moje práce
+
+// Definice rozlišovaných typů znaků (char) na vstupu
+typedef enum {
+    LETTER = 1,
+    NUMBER = 2,
+    OPERATOR = 3,
+    DOT = 4,
+    EMPTY = 5,
+    ERROR = 6;
+} CharType;
+
+// Práce se znaky na vstupu
+// Přečte další znak ze zdrojového kódu
+char scanner_getNextChar();
+
+// Vrácí znak zpět do vstupu (backtracking)
+void scanner_ungetChar();
+
+// Rozhodování o typu znaku na vstupu
+CharType scanner_charIdentity(char c);
+
+void scanner_FSM();
+
+// Není moje práce
 // Vytvoří nový token
 Token scanner_tokenCreate(TokenType type, String *value);
 
@@ -70,19 +97,10 @@ void scanner_skipComment();
 bool scanner_isUnderscore(char c);
 
 // Je operátor?
-bool scanner_isOperator(char c);
-
-// Je bílý znak?
-bool scanner_isWhitespace(char c);
+//bool scanner_isOperator(char c);
 
 // Je slovo klíčové slovo?
 bool scanner_isKeyword(String *s);
-
-// Přečte další znak ze zdrojového kódu
-char scanner_getNextChar();
-
-// Vrácí znak zpět do vstupu (backtracking)
-void scanner_ungetChar();
 
 // Je alfanumerický znak? (písmeno nebo číslice)
 bool scanner_isAlphanumeric(char c);
