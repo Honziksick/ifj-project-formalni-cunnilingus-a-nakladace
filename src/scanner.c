@@ -30,15 +30,15 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "scanner.h"        //Vlastní knihovny
-#include "dynamic_string.h" 
+#include "dynamic_string.h"
 #include "error.h"
 
-char scanner_getNextChar(FILE *file) {      // Čte jeden znak ze souboru
-    return fgetc(file);
+char scanner_getNextChar() {      // Čte jeden znak ze souboru
+    return getc();
 }
 
-void scanner_ungetChar(FILE *file, char c) {    // Vrátí char zpět do vstupního proudu
-    ungetc(c, file);
+void scanner_ungetChar(char c) {    // Vrátí char zpět do vstupního proudu
+    ungetc(c);
 }
 
 CharType scanner_charIdentity(char c) {

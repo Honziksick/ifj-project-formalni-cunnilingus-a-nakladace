@@ -137,7 +137,7 @@ int string_compare_const_str(string *str, const char *strConst) {
         return STRING_NOT_EQUAL;
     }
     // Proměnná pro uložení délky strConst
-    unsigned int length = strlen(strConst);
+    size_t length = strlen(strConst);
     // Pokud nejsou stejně dlouhé, tak nejsou ani stejné
     if(str->length != length) {
         return STRING_NOT_EQUAL;
@@ -155,7 +155,7 @@ int string_compare_const_str(string *str, const char *strConst) {
 /**
  * @brief Zvětší dynamický řetězec na požadovanou délku.
  */
-string *string_resize(string *str, unsigned int size) {
+string *string_resize(string *str, size_t size) {
     // Pokud nemáme řetězec, tak vracíme NULL
     if(str == NULL) {
         return NULL;
