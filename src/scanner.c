@@ -33,7 +33,14 @@
 #include "dynamic_string.h" 
 #include "error.h"
 
-//Bude následovat implementace funkcí
+char scanner_getNextChar(FILE *file) {
+    return fgetc(file);
+}
+
+void scanner_ungetChar(FILE *file, char c) {
+    ungetc(c, file);
+}
+
 CharType scanner_charIdentity(char c) {
     if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {  //65 - 90, 97 - 122
         return 1; //c je LETTER
@@ -107,12 +114,12 @@ Token scanner_FSM() {
                         stateFSM = 2;
                         break;
                     case 3: //OPERATOR
-                        scanner_ungetChar();
+                        scanner_ungetChar(c);
                         Token = scanner_tokenCreate(TOKEN_IDENTIFIER, *str);
                         stopFSM = true;
                         break;
                     case 4: //DOT
-                        scanner_ungetChar();
+                        scanner_ungetChar(c);
                         Token = scanner_tokenCreate(TOKEN_IDENTIFIER, *str);
                         stopFSM = true;
                         break;
@@ -139,7 +146,7 @@ Token scanner_FSM() {
                         stateFSM = 3;
                         break;
                     case 3: //OPERATOR
-                        scanner_ungetChar();
+                        scanner_ungetChar(c);
                         Token = scanner_tokenCreate(TOKEN_INT, *str);
                         stopFSM = true;
                         break;
@@ -198,7 +205,7 @@ Token scanner_FSM() {
                         stateFSM = 5;
                         break;
                     case 3: //OPERATOR
-                        scanner_ungetChar();
+                        scanner_ungetChar(c);
                         Token = scanner_tokenCreate(TOKEN_FLOAT, *str);
                         stopFSM = true;
                         break;
@@ -224,5 +231,10 @@ Token scanner_FSM() {
     }
 
     string_free(*str);
+    return Token;
+}
+
+Token scanner_getNextToken() {
+    Token = scanner_FSM();
     return Token;
 }
