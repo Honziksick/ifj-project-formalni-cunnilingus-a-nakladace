@@ -29,7 +29,28 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "string.h" //Vlastní knihovny
-#include "error.h"  //(zatím nejsou implementovány)
+#include "scanner.h"        //Vlastní knihovny
+#include "dynamic_string.h" 
+#include "error.h"
 
 //Bude následovat implementace funkcí
+CharType scanner_charIdentity(char c) {
+    if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {  //65 - 90, 97 - 122
+        return 1; //c je LETTER
+    }
+    else if(c >= '0' && c <= '9') { //48 - 57
+        return 2; //c je NUMBER
+    }
+    else if((c >= '!' && c <= '-') || c == '/' || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~')) { //33 - 45, 47, 58 - 64, 91 - 96, 123 - 126
+        return 3; //c je OPERATOR
+    }
+    else if(c == '.') { //47
+        return 4; //c je DOT
+    }
+    else if(c == 32) { //space
+        return 5; //c je EMPTY
+    }
+    else {
+        return 6; //c není nic z výše uvedených
+    }
+}
