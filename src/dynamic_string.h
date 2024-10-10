@@ -30,11 +30,11 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "error.h"  // (zatím nejsou implementovány)
+#include "error.h"
 
 //Počáteční velikost dynamického řetězce při inicializaci
 //10 volných míst
-#define STRING_INIT_SIZE 10
+#define STRING_INIT_SIZE 8
 
 /**
  * @brief   Výčet návratových hodnot funkcí
@@ -59,8 +59,8 @@ typedef enum {
  */
 typedef struct {
     char *str;                      /**< Ukazatel na dynamické pole znaků */
-    unsigned int allocatedSize;     /**< Velikost alokované paměti (kapacita řetězce včetně volných míst) */
-    unsigned int length;            /**< Skutečná délka řetězce */
+    size_t allocatedSize;     /**< Velikost alokované paměti (kapacita řetězce včetně volných míst) */
+    size_t length;            /**< Skutečná délka řetězce */
 } string;
 
 /**
@@ -155,4 +155,4 @@ int string_compare_const_str(string *str, const char *strConst);
  *         vrací NULL.
  *         V případě, že se vše povedlo, vrátí nově zvětšený řetězec.
  */
-string *string_resize(string *str, unsigned int size);
+string *string_resize(string *str, size_t size);

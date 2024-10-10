@@ -315,7 +315,7 @@ build-scanner: $(BUILD_DIR)/$(SCANNER_XHYZAPA00).o
 ### B # build-parser: # Sestaví syntaktický analyzátor alias 'parser'
 build-$(PARSER_TEAM): $(BUILD_DIR)/$(PARSER_TEAM).o
 
-# Stavba objekotvých souborů jednotlivých modulů překladače
+# Stavba objektových souborů jednotlivých modulů překladače
 $(BUILD_DIR)/$(SCANNER_XHYZAPA00).o: $(SRC_DIR)/$(SCANNER_XHYZAPA00).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
