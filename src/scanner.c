@@ -7,7 +7,7 @@
  *                   Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   6.10.2024                                                 *
+ * Poslední změna:   10.10.2024                                                 *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -33,11 +33,11 @@
 #include "dynamic_string.h" 
 #include "error.h"
 
-char scanner_getNextChar(FILE *file) {
+char scanner_getNextChar(FILE *file) {      // Čte jeden znak ze souboru
     return fgetc(file);
 }
 
-void scanner_ungetChar(FILE *file, char c) {
+void scanner_ungetChar(FILE *file, char c) {    // Vrátí char zpět do vstupního proudu
     ungetc(c, file);
 }
 
@@ -234,7 +234,7 @@ Token scanner_FSM() {
     return Token;
 }
 
-Token scanner_getNextToken() {
+Token scanner_getNextToken() {  //Převaděč Tokenu pro Parser (vlastně nepotřebné, Token lze brát přímo z FSM)
     Token = scanner_FSM();
     return Token;
 }
