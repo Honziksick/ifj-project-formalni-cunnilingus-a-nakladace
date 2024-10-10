@@ -65,6 +65,16 @@ typedef enum {
     ERROR = 6;
 } CharType;
 
+// Definice stavů FSM lexikálního analyzátoru
+typedef enum {
+    START = 1,
+    CHARACTERS = 2,
+    DIGITS = 3,
+    FLOAT_UNREADY = 4,
+    FLOAT_READY = 5,
+    ERROR = 6;
+} stateFSM;
+
 // Práce se znaky na vstupu
 // Přečte další znak ze zdrojového kódu
 char scanner_getNextChar();
@@ -75,7 +85,8 @@ void scanner_ungetChar();
 // Rozhodování o typu znaku na vstupu
 CharType scanner_charIdentity(char c);
 
-void scanner_FSM();
+// Finite State Machine lexikálního analyzátoru, z proudu charů na vstupu udělá Token na výstupu.
+Token scanner_FSM();
 
 // Není moje práce
 // Vytvoří nový token
