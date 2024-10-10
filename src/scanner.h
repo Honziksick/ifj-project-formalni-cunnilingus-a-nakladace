@@ -7,7 +7,7 @@
  *                   Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   6.10.2024                                                 *
+ * Poslední změna:   10.10.2024                                                 *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -46,15 +46,6 @@ typedef enum {
     // ... Opět možná další enumy, plus by bylo lepší přiřadit explicitní hodnoty
 } TokenType;
 
-/* Každý token má typ, hodnotu (tj. dynamický řetězec) a informace o pozici
-   tokenu ve zdrojovém kódu (řádek a sloupec) */
-typedef struct {
-    TokenType type;     // ten TokenType tu musí být, aby mohl být enum pojmenovaný
-    String value;
-} Token;
-
-// Moje práce
-
 // Definice rozlišovaných typů znaků (char) na vstupu
 typedef enum {
     LETTER = 1,
@@ -74,6 +65,13 @@ typedef enum {
     FLOAT_READY = 5,
     ERROR = 6;
 } stateFSM;
+
+/* Každý token má typ, hodnotu (tj. dynamický řetězec) a informace o pozici
+   tokenu ve zdrojovém kódu (řádek a sloupec) */
+typedef struct {
+    TokenType type;     // ten TokenType tu musí být, aby mohl být enum pojmenovaný
+    String value;
+} Token;
 
 // Práce se znaky na vstupu
 // Přečte další znak ze zdrojového kódu
@@ -95,31 +93,7 @@ Token scanner_FSM();
 Token scanner_getNextToken();
 
 // Odstraní token
-void scanner_tokenDestroy(Token *token);
-
-// Přeskočí bílé znaky
-void scanner_skipWhitespace();
-
-// Přeskočí komentáře
-void scanner_skipComment();
-
-// Je podtržítko? (`_`)
-bool scanner_isUnderscore(char c);
-
-// Je operátor?
-//bool scanner_isOperator(char c);
-
-// Je slovo klíčové slovo?
-bool scanner_isKeyword(String *s);
-
-// Je alfanumerický znak? (písmeno nebo číslice)
-bool scanner_isAlphanumeric(char c);
-
-// Je znak?
-bool scanner_isAlpha(char c);
-
-// Je číslice?
-bool scanner_isDigit(char c);
+//void scanner_tokenDestroy(Token *token);
 
 /* možná další is_něco() funkce nebo jiné funkce
    - je nějak potřeba poznat, zda se jedná o escape sekvenci
