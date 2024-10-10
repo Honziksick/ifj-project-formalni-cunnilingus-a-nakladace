@@ -80,23 +80,22 @@ typedef enum {
 char scanner_getNextChar();
 
 // Vrácí znak zpět do vstupu (backtracking)
-void scanner_ungetChar();
+void scanner_ungetChar(char c);
 
 // Rozhodování o typu znaku na vstupu
 CharType scanner_charIdentity(char c);
 
-// Finite State Machine lexikálního analyzátoru, z proudu charů na vstupu udělá Token na výstupu.
-Token scanner_FSM();
-
-// Není moje práce
 // Vytvoří nový token
 Token scanner_tokenCreate(TokenType type, String *value);
 
-// Odstraní token
-void scanner_tokenDestroy(Token *token);
+// Finite State Machine lexikálního analyzátoru, z proudu charů na vstupu udělá Token na výstupu.
+Token scanner_FSM();
 
 // Volá parser, žádost o další token
 Token scanner_getNextToken();
+
+// Odstraní token
+void scanner_tokenDestroy(Token *token);
 
 // Přeskočí bílé znaky
 void scanner_skipWhitespace();
