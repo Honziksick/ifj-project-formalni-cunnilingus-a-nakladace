@@ -25,6 +25,11 @@
  *
 */
 
+#ifndef DYNAMIC_STRING_H_
+/** @cond */
+#define DYNAMIC_STRING_H_
+/** @endcond */
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -155,3 +160,7 @@ int string_compare_const_str(string *str, const char *strConst);
  *         V případě, že se vše povedlo, vrátí nově zvětšený řetězec.
  */
 string *string_resize(string *str, size_t size);
+
+#endif  // DYNAMIC_STRING_H_
+
+/*** Konec souboru dynamic_string.h ***/
