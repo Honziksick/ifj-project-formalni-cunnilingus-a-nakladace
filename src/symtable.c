@@ -6,7 +6,7 @@
  * Autor:            David Krejčí <xkrejcd00>                                  *
  *                                                                             *
  * Datum:            01.10.2024                                                *
- * Poslední změna:   09.10.2024                                                *
+ * Poslední změna:   14.10.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -63,7 +63,7 @@ symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *o
     }
 
     // Vypočítáme aktuální zaplněnost tabulky
-    double current_fullness = table->used_size / table->allocated_size;
+    double current_fullness = (double)table->used_size / (double)table->allocated_size;
     // Pokud je tabulka plná, musíme ji rozšířit
     if(current_fullness > MAX_FULLNESS_BEFORE_EXPAND) {
         table = symtable_resize(table, table->allocated_size * 2);
@@ -93,7 +93,7 @@ symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *o
             }
             // Pokud je požadován odkaz na novou položku, vrátíme ho
             if(out_item != NULL) {
-                out_item = item;
+                *out_item = *item;
             }
             return SYMTABLE_SUCCESS;
         }
@@ -104,7 +104,7 @@ symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *o
 
             // Vrátíme odkaz na existující položku a
             if(out_item != NULL) {
-                out_item = item;
+                *out_item = *item;
             }
             return SYMTABLE_ITEM_ALREADY_EXISTS;
         }
@@ -135,7 +135,7 @@ symtable_result symtable_findItem(symtable *table, DString *searched_key, symtab
         // Pokud je nalezena položka se stejným klíčem, vracíme ji
         if(string_compare(item.key,searched_key) == 0) {
             if(out_item != NULL) {
-                out_item = &item;
+                *out_item = item;
             }
             return SYMTABLE_SUCCESS;
         }
@@ -171,7 +171,7 @@ symtable_result symtable_deleteItem(symtable *table, DString *key) {
 
     // Při úspěchu položku odstraníme
     item.symbol_state = SYMTABLE_SYMBOL_DEAD;
-    string_delete(item.key);
+    string_free(item.key);
     item.key = NULL;
     free(item.data);
     item.data = NULL;
@@ -195,7 +195,7 @@ void symtable_deleteAll(symtable *table) {
            item.symbol_state != SYMTABLE_SYMBOL_DEAD) {
 
             // Pokud je položka živá, odstraníme ji
-            string_delete(item.key);
+            string_free(item.key);
             item.key = NULL;
             free(item.data);
             item.data = NULL;
@@ -221,8 +221,8 @@ inline void symtable_destroyTable(symtable *table) {
 */
 size_t symtable_hashFunction(DString *key) {
     size_t hash = 5381;
-    for(int i = 0; i < key->length;i++) {
-        hash = ((hash << 5) + hash) + key->str[i];
+    for(size_t i = 0; i < key->length;i++) {
+        hash = ((hash << 5) + hash) + (size_t)key->str[i];
     }
     return hash;
 }
