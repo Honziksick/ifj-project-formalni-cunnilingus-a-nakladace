@@ -7,7 +7,7 @@
  *                   Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   10.10.2024                                                 *
+ * Poslední změna:   14.10.2024                                                 *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -29,8 +29,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "scanner.c"        //Vlastní knihovny
-#include "dynamic_string.h"
+#include "dynamic_string.h"//Vlastní knihovny
 #include "error.h"
 
 // Definice různých typů tokenů
@@ -53,7 +52,7 @@ typedef enum {
     OPERATOR = 3,
     DOT = 4,
     EMPTY = 5,
-    ERROR = 6;
+    CHAR_ERROR = 6
 } CharType;
 
 // Definice stavů FSM lexikálního analyzátoru
@@ -63,14 +62,14 @@ typedef enum {
     DIGITS = 3,
     FLOAT_UNREADY = 4,
     FLOAT_READY = 5,
-    ERROR = 6;
+    ERROR = 6
 } stateFSM;
 
 /* Každý token má typ, hodnotu (tj. dynamický řetězec) a informace o pozici
    tokenu ve zdrojovém kódu (řádek a sloupec) */
 typedef struct {
     TokenType type;     // ten TokenType tu musí být, aby mohl být enum pojmenovaný
-    String value;
+    string value;
 } Token;
 
 // Práce se znaky na vstupu
@@ -84,7 +83,7 @@ void scanner_ungetChar(char c);
 CharType scanner_charIdentity(char c);
 
 // Vytvoří nový token
-Token scanner_tokenCreate(TokenType type, String *value);
+Token scanner_tokenCreate(TokenType type, string *value);
 
 // Finite State Machine lexikálního analyzátoru, z proudu charů na vstupu udělá Token na výstupu.
 Token scanner_FSM();

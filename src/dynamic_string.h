@@ -47,7 +47,8 @@ typedef enum {
     STRING_EQUAL,                   /**< Řetězce jsou stejné */
     STRING_NOT_EQUAL,               /**< Řetězce nejsou stejné */
     STRING_COPY_FAIL,               /**< Řetězec se nepovedlo zkopírovat */
-    STRING_RESIZE_FAIL              /**< Nepovedlo se zvětšení tabulky*/
+    STRING_APPEND_FAIL,             /**< Nepovedlo se appendnout řetězec */
+    STRING_RESIZE_FAIL              /**< Nepovedlo se zvětšení řetězce */
 } string_result;
 
 /**

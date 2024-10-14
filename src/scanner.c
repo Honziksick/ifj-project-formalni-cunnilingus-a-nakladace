@@ -7,7 +7,7 @@
  *                   Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   10.10.2024                                                 *
+ * Poslední změna:   14.10.2024                                                 *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -30,15 +30,14 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "scanner.h"        //Vlastní knihovny
-#include "dynamic_string.h"
 #include "error.h"
 
 char scanner_getNextChar() {      // Čte jeden znak ze souboru
-    return getc();
+    return (char)getchar();
 }
 
 void scanner_ungetChar(char c) {    // Vrátí char zpět do vstupního proudu
-    ungetc(c);
+    ungetc(c, stdin);
 }
 
 CharType scanner_charIdentity(char c) {
@@ -58,42 +57,43 @@ CharType scanner_charIdentity(char c) {
         return EMPTY; //c je EMPTY
     }
     else {
-        return ERROR; //c není nic z výše uvedených
+        return CHAR_ERROR; //c není nic z výše uvedených
     }
 }
 
 Token scanner_FSM() {
     char c;
     bool stopFSM = false;
-    stateFSM = START;
-    string str = *string_init();
+    stateFSM state = START;
+    string *str = string_init();
+    Token tToken;
 
     while(stopFSM == false)
     {
-        switch (stateFSM) {
+        switch (state) {
             case START: //START
                 c = scanner_getNextChar();
                 switch (scanner_charIdentity(c)) {
                     case LETTER: //LETTER
-                        string_append_char(*str, c);
-                        stateFSM = CHARACTERS;
+                        string_append_char(str, c);
+                        state = CHARACTERS;
                         break;
                     case NUMBER: //NUMBER
-                        string_append_char(*str, c);
-                        stateFSM = DIGITS;
+                        string_append_char(str, c);
+                        state = DIGITS;
                         break;
                     case OPERATOR: //OPERATOR
-                        string_append_char(*str, c);
-                        Token = scanner_tokenCreate(TOKEN_OPERATOR, *str);
+                        string_append_char(str, c);
+                        tToken = scanner_tokenCreate(TOKEN_OPERATOR, str);
                         stopFSM = true;
                         break;
                     case DOT: //DOT
-                        string_append_char(*str, c);
-                        Token = scanner_tokenCreate(TOKEN_DOT, *str);
+                        string_append_char(str, c);
+                        tToken = scanner_tokenCreate(TOKEN_DOT, str);
                         stopFSM = true;
                         break;
                     case EMPTY: //EMPTY
-                        stateFSM = START;
+                        state = START;
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
                         stopFSM = true;
@@ -106,30 +106,30 @@ Token scanner_FSM() {
                 c = scanner_getNextChar();
                 switch (scanner_charIdentity(c)) {
                     case LETTER: //LETTER
-                        string_append_char(*str, c);
-                        stateFSM = CHARACTERS;
+                        string_append_char(str, c);
+                        state = CHARACTERS;
                         break;
                     case NUMBER: //NUMBER
-                        string_append_char(*str, c);
-                        stateFSM = CHARACTERS;
+                        string_append_char(str, c);
+                        state = CHARACTERS;
                         break;
                     case OPERATOR: //OPERATOR
                         scanner_ungetChar(c);
-                        Token = scanner_tokenCreate(TOKEN_IDENTIFIER, *str);
+                        tToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                         stopFSM = true;
                         break;
                     case DOT: //DOT
                         scanner_ungetChar(c);
-                        Token = scanner_tokenCreate(TOKEN_IDENTIFIER, *str);
+                        tToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                         stopFSM = true;
                         break;
                     case EMPTY: //EMPTY
-                        Token = scanner_tokenCreate(TOKEN_IDENTIFIER, *str);
+                        tToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                         stopFSM = true;
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
                         stopFSM = true;
-                        error_handle(START);
+                        error_handle(1);
                         break;
                 }
                 break;
@@ -138,24 +138,24 @@ Token scanner_FSM() {
                 c = scanner_getNextChar();
                 switch (scanner_charIdentity(c)) {
                     case START: //LETTER
-                        string_append_char(*str, c);
-                        stateFSM = CHARACTERS;
+                        string_append_char(str, c);
+                        state = CHARACTERS;
                         break;
                     case CHARACTERS: //NUMBER
-                        string_append_char(*str, c);
-                        stateFSM = DIGITS;
+                        string_append_char(str, c);
+                        state = DIGITS;
                         break;
                     case DIGITS: //OPERATOR
                         scanner_ungetChar(c);
-                        Token = scanner_tokenCreate(TOKEN_INT, *str);
+                        tToken = scanner_tokenCreate(TOKEN_INT, str);
                         stopFSM = true;
                         break;
                     case DOT: //DOT
-                        string_append_char(*str, c);
-                        stateFSM = FLOAT_UNREADY;
+                        string_append_char(str, c);
+                        state = FLOAT_UNREADY;
                         break;
                     case EMPTY: //EMPTY
-                        Token = scanner_tokenCreate(TOKEN_INT, *str);
+                        tToken = scanner_tokenCreate(TOKEN_INT, str);
                         stopFSM = true;
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
@@ -172,8 +172,8 @@ Token scanner_FSM() {
                         error_handle(ERROR_LEXICAL);
                         break;
                     case NUMBER: //NUMBER
-                        string_append_char(*str, c);
-                        stateFSM = FLOAT_READY;
+                        string_append_char(str, c);
+                        state = FLOAT_READY;
                         break;
                     case OPERATOR: //OPERATOR
                         stopFSM = true;
@@ -201,12 +201,12 @@ Token scanner_FSM() {
                         error_handle(ERROR_LEXICAL);
                         break;
                     case NUMBER: //NUMBER
-                        string_append_char(*str, c);
-                        stateFSM = FLOAT_READY;
+                        string_append_char(str, c);
+                        state = FLOAT_READY;
                         break;
                     case OPERATOR: //OPERATOR
                         scanner_ungetChar(c);
-                        Token = scanner_tokenCreate(TOKEN_FLOAT, *str);
+                        tToken = scanner_tokenCreate(TOKEN_FLOAT, str);
                         stopFSM = true;
                         break;
                     case DOT: //DOT
@@ -214,7 +214,7 @@ Token scanner_FSM() {
                         error_handle(ERROR_LEXICAL);
                         break;
                     case EMPTY: //EMPTY
-                        Token = scanner_tokenCreate(TOKEN_FLOAT, *str);
+                        tToken = scanner_tokenCreate(TOKEN_FLOAT, str);
                         stopFSM = true;
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
@@ -230,11 +230,11 @@ Token scanner_FSM() {
         }
     }
 
-    string_free(*str);
-    return Token;
+    string_free(str);
+    return tToken;
 }
 
 Token scanner_getNextToken() {  //Převaděč Tokenu pro Parser (vlastně nepotřebné, Token lze brát přímo z FSM)
-    Token = scanner_FSM();
-    return Token;
+    Token tToken = scanner_FSM();
+    return tToken;
 }
