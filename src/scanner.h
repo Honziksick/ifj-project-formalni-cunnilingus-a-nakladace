@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
+
 #include "dynamic_string.h"//Vlastní knihovny
 #include "error.h"
 

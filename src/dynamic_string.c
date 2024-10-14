@@ -29,9 +29,9 @@
 /**
  * @brief Inicializace dynamického řetězce s počáteční kapacitou.
 */
-string *string_init() {
+DString *string_init() {
     // Vytvoříme nový string
-    string *stringCreated = malloc(sizeof(string));
+    DString *stringCreated = malloc(sizeof(DString));
     stringCreated->str = malloc(sizeof(STRING_INIT_SIZE));
     // Pokud se špatně alokovala paměť, vrátíme NULL
     if(stringCreated == NULL || stringCreated->str == NULL) {
@@ -48,7 +48,7 @@ string *string_init() {
 /**
  * @brief Uvolnění paměti dynamického řetězce.
 */
-void string_free(string *str) {
+void string_free(DString *str) {
     // Pokud string existuje, smažeme ho
     if(str != NULL) {
         // Nejdříve ukazatel na pole a až pak strukturu
@@ -60,7 +60,7 @@ void string_free(string *str) {
 /**
  * @brief Přidání jednoho znaku na konec dynamického řetězce.
 */
-int string_append_char(string *str, char character) {
+int string_append_char(DString *str, char character) {
     // Pokud je string plný, musíme ho zvětšit o jedno
     if(str->length+1 > str->allocatedSize) {
         // Kontrola, zda neselhal resize
@@ -83,13 +83,13 @@ int string_append_char(string *str, char character) {
 /**
  * @brief Zkopíruje obsah jednoho dynamického řetězce do druhého.
 */
-int string_copy(string *strCopied, string *strTo) {
+int string_copy(DString *strCopied, DString *strTo) {
     // Pokud jeden z řetězců neexistuje, vrátí 0
     if(strCopied == NULL || strTo == NULL) {
         return STRING_COPY_FAIL;
     }
 
-    string *stringCreated = malloc(sizeof(string));
+    DString *stringCreated = malloc(sizeof(DString));
     stringCreated->str = malloc(sizeof(strCopied->allocatedSize));
 
     // Přidělení pole
@@ -106,7 +106,7 @@ int string_copy(string *strCopied, string *strTo) {
 /**
  * @brief Porovná dva dynamické řetězce.
 */
-int string_compare(string *str1, string *str2) {
+int string_compare(DString *str1, DString *str2) {
     // Pokud je jeden ze stringů prázdný
     if(str1 == NULL || str2 == NULL) {
         return STRING_NOT_EQUAL;
@@ -131,7 +131,7 @@ int string_compare(string *str1, string *str2) {
 /**
  * @brief Porovná dynamický řetězec s konstantním řetězcem.
 */
-int string_compare_const_str(string *str, const char *strConst) {
+int string_compare_const_str(DString *str, const char *strConst) {
     // Pokud porovnávaný string neexistuje
     if(str == NULL) {
         return STRING_NOT_EQUAL;
@@ -155,14 +155,14 @@ int string_compare_const_str(string *str, const char *strConst) {
 /**
  * @brief Zvětší dynamický řetězec na požadovanou délku.
  */
-string *string_resize(string *str, size_t size) {
+DString *string_resize(DString *str, size_t size) {
     // Pokud nemáme řetězec, tak vracíme NULL
     if(str == NULL) {
         return NULL;
     }
 
     // Vytvoříme nový řetězec
-    string *stringCreated = malloc(sizeof(string));
+    DString *stringCreated = malloc(sizeof(DString));
     stringCreated->str = malloc(sizeof(size));
 
     // Pokud se špatně malokuje, vrací NULL
@@ -185,3 +185,5 @@ string *string_resize(string *str, size_t size) {
     free(str);
     return stringCreated;
 }
+
+/*** Konec souboru dynamic_string.c ***/

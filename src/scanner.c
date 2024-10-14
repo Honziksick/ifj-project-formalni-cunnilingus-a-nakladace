@@ -29,8 +29,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
+
 #include "scanner.h"        //Vlastní knihovny
-#include "error.h"
+
 
 char scanner_getNextChar() {      // Čte jeden znak ze souboru
     return (char)getchar();
@@ -65,7 +66,7 @@ Token scanner_FSM() {
     char c;
     bool stopFSM = false;
     stateFSM state = START;
-    string *str = string_init();
+    DString *str = string_init();
     Token tToken;
 
     while(stopFSM == false)

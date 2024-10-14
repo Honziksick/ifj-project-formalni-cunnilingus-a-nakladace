@@ -97,7 +97,7 @@ typedef enum {
  *          signatura funkce).
  */
 typedef struct {
-    string *key;                 /**< Klíč položky (identifikátor) */
+    DString *key;                 /**< Klíč položky (identifikátor) */
     unsigned char symbol_state;  /**< Stav symbolu dle výčtu `symtable_symbol_state` */
     void *data;                  /**< Ukazatel na data asociovaná s položkou */
 } symtable_item;
@@ -150,7 +150,7 @@ symtable *symtable_init();
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL.
  *         - @c SYMTABLE_RESIZE_FAIL, pokud selhalo rozšíření tabulky.
  */
-symtable_result symtable_addItem(symtable *table, string *key, symtable_item *out_item);
+symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *out_item);
 
 /**
  * @brief Vyhledá položku v tabulce symbolů
@@ -168,7 +168,7 @@ symtable_result symtable_addItem(symtable *table, string *key, symtable_item *ou
  *           v tabulce nenachází.
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL
  */
-symtable_result symtable_findItem(symtable *table, string *key, symtable_item *out_item);
+symtable_result symtable_findItem(symtable *table, DString *key, symtable_item *out_item);
 
 /**
  * @brief Odstraní položku z tabulky symbolů
@@ -183,7 +183,7 @@ symtable_result symtable_findItem(symtable *table, string *key, symtable_item *o
  *           v tabulce nenachází.
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL
  */
-symtable_result symtable_deleteItem(symtable *table, string *key);
+symtable_result symtable_deleteItem(symtable *table, DString *key);
 
 /**
  * @brief Vymaže všechny položky z tabulky symbolů
@@ -219,7 +219,7 @@ void symtable_destroyTable(symtable *table);
  * @param [in] key Ukazatel na klíč (řetězec)
  * @return Hash klíče
  */
-size_t symtable_hashFunction(string *key);
+size_t symtable_hashFunction(DString *key);
 
 /**
  * @brief Přesun dat z jedné tabulky do druhé
