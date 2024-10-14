@@ -56,7 +56,7 @@ symtable *symtable_init() {
 /**
  * @brief Přidá novou položku do tabulky symbolů
 */
-symtable_result symtable_addItem(symtable *table, string *key, symtable_item *out_item) {
+symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *out_item) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
@@ -116,7 +116,7 @@ symtable_result symtable_addItem(symtable *table, string *key, symtable_item *ou
 /**
  * @brief Vyhledá položku v tabulce symbolů
 */
-symtable_result symtable_findItem(symtable *table, string *searched_key, symtable_item *out_item) {
+symtable_result symtable_findItem(symtable *table, DString *searched_key, symtable_item *out_item) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
@@ -154,7 +154,7 @@ symtable_result symtable_findItem(symtable *table, string *searched_key, symtabl
 /**
  * @brief Odstraní položku z tabulky symbolů
 */
-symtable_result symtable_deleteItem(symtable *table, string *key) {
+symtable_result symtable_deleteItem(symtable *table, DString *key) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
@@ -219,7 +219,7 @@ inline void symtable_destroyTable(symtable *table) {
 /**
  * @brief Hashovací funkce pro výpočet hashe z klíče
 */
-size_t symtable_hashFunction(string *key) {
+size_t symtable_hashFunction(DString *key) {
     size_t hash = 5381;
     for(int i = 0; i < key->length;i++) {
         hash = ((hash << 5) + hash) + key->str[i];
