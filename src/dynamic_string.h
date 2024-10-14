@@ -65,8 +65,8 @@ typedef enum {
  */
 typedef struct {
     char *str;                      /**< Ukazatel na dynamické pole znaků */
-    size_t allocatedSize;     /**< Velikost alokované paměti (kapacita řetězce včetně volných míst) */
-    size_t length;            /**< Skutečná délka řetězce */
+    size_t allocatedSize;           /**< Velikost alokované paměti (kapacita řetězce včetně volných míst) */
+    size_t length;                  /**< Skutečná délka řetězce */
 } DString;
 
 /**
@@ -95,7 +95,7 @@ void string_free(DString *str);
  *          Pokud je řetězec plný, tak jej zvětšíme na požadovanou délku, což
  *          je o jeden znak větší.
  *
- * @param str Ukazatel na datový typ string
+ * @param str Ukazatel na datový typ DString
  * @param character Znak, který se vloží na konec řetězce
  *
  * @return Vrací STRING_SUCCESS, pokud se vyvedla operace.
@@ -152,7 +152,7 @@ int string_compare_const_str(DString *str, const char *strConst);
  *          segfaultům. Vytvoříme nový řetězec, do kterého potom zkopírujeme
  *          předešlý řetězec.
  *
- * @param str Ukazatel na datový typ string, který chceme zvětšit.
+ * @param str Ukazatel na datový typ DString, který chceme zvětšit.
  *
  * @return V případě, že požadovaný řetězec neexistuje, špatně se malokuje
  *         nebo se špatně zkopírovalo z původního řetězce
