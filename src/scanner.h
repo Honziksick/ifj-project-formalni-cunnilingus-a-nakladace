@@ -70,7 +70,7 @@ typedef enum {
    tokenu ve zdrojovém kódu (řádek a sloupec) */
 typedef struct {
     TokenType type;     // ten TokenType tu musí být, aby mohl být enum pojmenovaný
-    string value;
+    DString value;
 } Token;
 
 // Práce se znaky na vstupu
@@ -84,7 +84,7 @@ void scanner_ungetChar(char c);
 CharType scanner_charIdentity(char c);
 
 // Vytvoří nový token
-Token scanner_tokenCreate(TokenType type, string *value);
+Token scanner_tokenCreate(TokenType type, DString *value);
 
 // Finite State Machine lexikálního analyzátoru, z proudu charů na vstupu udělá Token na výstupu.
 Token scanner_FSM();
