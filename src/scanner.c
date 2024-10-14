@@ -43,57 +43,57 @@ void scanner_ungetChar(char c) {    // Vrátí char zpět do vstupního proudu
 
 CharType scanner_charIdentity(char c) {
     if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {  //65 - 90, 97 - 122
-        return 1; //c je LETTER
+        return LETTER; //c je LETTER
     }
     else if(c >= '0' && c <= '9') { //48 - 57
-        return 2; //c je NUMBER
+        return NUMBER; //c je NUMBER
     }
     else if((c >= '!' && c <= '-') || c == '/' || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~')) { //33 - 45, 47, 58 - 64, 91 - 96, 123 - 126
-        return 3; //c je OPERATOR
+        return OPERATOR; //c je OPERATOR
     }
     else if(c == '.') { //47
-        return 4; //c je DOT
+        return DOT; //c je DOT
     }
     else if(c == 32) { //space
-        return 5; //c je EMPTY
+        return EMPTY; //c je EMPTY
     }
     else {
-        return 6; //c není nic z výše uvedených
+        return ERROR; //c není nic z výše uvedených
     }
 }
 
 Token scanner_FSM() {
     char c;
     bool stopFSM = false;
-    stateFSM = 1;
+    stateFSM = START;
     string str = *string_init();
 
     while(stopFSM == false)
     {
         switch (stateFSM) {
-            case 1: //START
+            case START: //START
                 c = scanner_getNextChar();
                 switch (scanner_charIdentity(c)) {
-                    case 1: //LETTER
+                    case LETTER: //LETTER
                         string_append_char(*str, c);
-                        stateFSM = 2;
+                        stateFSM = CHARACTERS;
                         break;
-                    case 2: //NUMBER
+                    case NUMBER: //NUMBER
                         string_append_char(*str, c);
-                        stateFSM = 3;
+                        stateFSM = DIGITS;
                         break;
-                    case 3: //OPERATOR
+                    case OPERATOR: //OPERATOR
                         string_append_char(*str, c);
                         Token = scanner_tokenCreate(TOKEN_OPERATOR, *str);
                         stopFSM = true;
                         break;
-                    case 4: //DOT
+                    case DOT: //DOT
                         string_append_char(*str, c);
                         Token = scanner_tokenCreate(TOKEN_DOT, *str);
                         stopFSM = true;
                         break;
-                    case 5: //EMPTY
-                        stateFSM = 1;
+                    case EMPTY: //EMPTY
+                        stateFSM = START;
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
                         stopFSM = true;
@@ -102,23 +102,23 @@ Token scanner_FSM() {
                 }
                 break;
 
-            case 2: //CHARACTERS
+            case CHARACTERS: //CHARACTERS
                 c = scanner_getNextChar();
                 switch (scanner_charIdentity(c)) {
-                    case 1: //LETTER
+                    case LETTER: //LETTER
                         string_append_char(*str, c);
-                        stateFSM = 2;
+                        stateFSM = CHARACTERS;
                         break;
-                    case 2: //NUMBER
+                    case NUMBER: //NUMBER
                         string_append_char(*str, c);
-                        stateFSM = 2;
+                        stateFSM = CHARACTERS;
                         break;
-                    case 3: //OPERATOR
+                    case OPERATOR: //OPERATOR
                         scanner_ungetChar(c);
                         Token = scanner_tokenCreate(TOKEN_IDENTIFIER, *str);
                         stopFSM = true;
                         break;
-                    case 4: //DOT
+                    case DOT: //DOT
                         scanner_ungetChar(c);
                         Token = scanner_tokenCreate(TOKEN_IDENTIFIER, *str);
                         stopFSM = true;
@@ -129,32 +129,32 @@ Token scanner_FSM() {
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
                         stopFSM = true;
-                        error_handle(1);
+                        error_handle(START);
                         break;
                 }
                 break;
 
-            case 3: //DIGITS
+            case DIGITS: //DIGITS
                 c = scanner_getNextChar();
                 switch (scanner_charIdentity(c)) {
-                    case 1: //LETTER
+                    case START: //LETTER
                         string_append_char(*str, c);
-                        stateFSM = 2;
+                        stateFSM = CHARACTERS;
                         break;
-                    case 2: //NUMBER
+                    case CHARACTERS: //NUMBER
                         string_append_char(*str, c);
-                        stateFSM = 3;
+                        stateFSM = DIGITS;
                         break;
-                    case 3: //OPERATOR
+                    case DIGITS: //OPERATOR
                         scanner_ungetChar(c);
                         Token = scanner_tokenCreate(TOKEN_INT, *str);
                         stopFSM = true;
                         break;
-                    case 4: //DOT
+                    case DOT: //DOT
                         string_append_char(*str, c);
-                        stateFSM = 4;
+                        stateFSM = FLOAT_UNREADY;
                         break;
-                    case 5: //EMPTY
+                    case EMPTY: //EMPTY
                         Token = scanner_tokenCreate(TOKEN_INT, *str);
                         stopFSM = true;
                         break;
@@ -164,26 +164,26 @@ Token scanner_FSM() {
                         break;
                 }
                 break;
-            case 4: //FLOAT_UNREADY
+            case FLOAT_UNREADY: //FLOAT_UNREADY
                 c = scanner_getNextChar();
                 switch (scanner_charIdentity(c)) {
-                    case 1: //LETTER
+                    case LETTER: //LETTER
                         stopFSM = true;
                         error_handle(1);
                         break;
-                    case 2: //NUMBER
+                    case NUMBER: //NUMBER
                         string_append_char(*str, c);
                         stateFSM = 5;
                         break;
-                    case 3: //OPERATOR
+                    case OPERATOR: //OPERATOR
                         stopFSM = true;
                         error_handle(1);
                         break;
-                    case 4: //DOT
+                    case DOT: //DOT
                         stopFSM = true;
                         error_handle(1);
                         break;
-                    case 5: //EMPTY
+                    case EMPTY: //EMPTY
                         stopFSM = true;
                         error_handle(1);
                         break;
@@ -193,27 +193,27 @@ Token scanner_FSM() {
                         break;
                 }
                 break;
-            case 5: //FLOAT_READY
+            case FLOAT_READY: //FLOAT_READY
                 c = scanner_getNextChar();
                 switch (scanner_charIdentity(c)) {
-                    case 1: //LETTER
+                    case LETTER: //LETTER
                         stopFSM = true;
                         error_handle(1);
                         break;
-                    case 2: //NUMBER
+                    case NUMBER: //NUMBER
                         string_append_char(*str, c);
                         stateFSM = 5;
                         break;
-                    case 3: //OPERATOR
+                    case OPERATOR: //OPERATOR
                         scanner_ungetChar(c);
                         Token = scanner_tokenCreate(TOKEN_FLOAT, *str);
                         stopFSM = true;
                         break;
-                    case 4: //DOT
+                    case DOT: //DOT
                         stopFSM = true;
                         error_handle(1);
                         break;
-                    case 5: //EMPTY
+                    case EMPTY: //EMPTY
                         Token = scanner_tokenCreate(TOKEN_FLOAT, *str);
                         stopFSM = true;
                         break;
