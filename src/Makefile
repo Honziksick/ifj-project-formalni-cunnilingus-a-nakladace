@@ -477,6 +477,8 @@ run-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test
 # Stavba integračních testů celých modulů 
 $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test: $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test.o \
 											$(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00).o \
+											$(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00).o \
+											$(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00).o \
 											$(TEST_BUILD_DIR)/gtest_main.a \
 											$(TEST_BUILD_DIR)/gtest.a
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
