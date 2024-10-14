@@ -97,7 +97,7 @@ Token scanner_FSM() {
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
                         stopFSM = true;
-                        error_handle(1);
+                        error_handle(ERROR_LEXICAL);
                         break;
                 }
                 break;
@@ -123,7 +123,7 @@ Token scanner_FSM() {
                         Token = scanner_tokenCreate(TOKEN_IDENTIFIER, *str);
                         stopFSM = true;
                         break;
-                    case 5: //EMPTY
+                    case EMPTY: //EMPTY
                         Token = scanner_tokenCreate(TOKEN_IDENTIFIER, *str);
                         stopFSM = true;
                         break;
@@ -160,7 +160,7 @@ Token scanner_FSM() {
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
                         stopFSM = true;
-                        error_handle(1);
+                        error_handle(ERROR_LEXICAL);
                         break;
                 }
                 break;
@@ -169,27 +169,27 @@ Token scanner_FSM() {
                 switch (scanner_charIdentity(c)) {
                     case LETTER: //LETTER
                         stopFSM = true;
-                        error_handle(1);
+                        error_handle(ERROR_LEXICAL);
                         break;
                     case NUMBER: //NUMBER
                         string_append_char(*str, c);
-                        stateFSM = 5;
+                        stateFSM = FLOAT_READY;
                         break;
                     case OPERATOR: //OPERATOR
                         stopFSM = true;
-                        error_handle(1);
+                        error_handle(ERROR_LEXICAL);
                         break;
                     case DOT: //DOT
                         stopFSM = true;
-                        error_handle(1);
+                        error_handle(ERROR_LEXICAL);
                         break;
                     case EMPTY: //EMPTY
                         stopFSM = true;
-                        error_handle(1);
+                        error_handle(ERROR_LEXICAL);
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
                         stopFSM = true;
-                        error_handle(1);
+                        error_handle(ERROR_LEXICAL);
                         break;
                 }
                 break;
@@ -198,11 +198,11 @@ Token scanner_FSM() {
                 switch (scanner_charIdentity(c)) {
                     case LETTER: //LETTER
                         stopFSM = true;
-                        error_handle(1);
+                        error_handle(ERROR_LEXICAL);
                         break;
                     case NUMBER: //NUMBER
                         string_append_char(*str, c);
-                        stateFSM = 5;
+                        stateFSM = FLOAT_READY;
                         break;
                     case OPERATOR: //OPERATOR
                         scanner_ungetChar(c);
@@ -211,7 +211,7 @@ Token scanner_FSM() {
                         break;
                     case DOT: //DOT
                         stopFSM = true;
-                        error_handle(1);
+                        error_handle(ERROR_LEXICAL);
                         break;
                     case EMPTY: //EMPTY
                         Token = scanner_tokenCreate(TOKEN_FLOAT, *str);
@@ -219,13 +219,13 @@ Token scanner_FSM() {
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
                         stopFSM = true;
-                        error_handle(1);
+                        error_handle(ERROR_LEXICAL);
                         break;
                 }
                 break;
             default: //stateFSM ERROR
                 stopFSM = true;
-                error_handle(1);
+                error_handle(ERROR_LEXICAL);
                 break;
         }
     }
