@@ -1,18 +1,18 @@
 /*******************************************************************************
  *                                                                             *
- * Název projektu: Implementace překladače imperativního jazyka IFJ24          *
+ * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
- * Soubor:         dynamic_string.h                                            *
- * Autor:          Farkašovský Lukáš <xfarkal00>                               *
+ * Soubor:           dynamic_string.h                                          *
+ * Autor:            Farkašovský Lukáš <xfarkal00>                             *
  *                                                                             *
- * Datum:          08.10.2024                                                  *
- * Poslední změna: 08.10.2024                                                  *
+ * Datum:            08.10.2024                                                *
+ * Poslední změna:   14.10.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
- * Členové:  Farkašovský Lukáš <xfarkal00>                                     *
- *           Hýža Pavel <xhyzapa00>                                            *
- *           Kalina Jan <xkalinj00>                                            *
- *           Krejčí David <xkrejcd00>                                          *
+ * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
+ *           Hýža Pavel           <xhyzapa00>                                  *
+ *           Kalina Jan           <xkalinj00>                                  *
+ *           Krejčí David         <xkrejcd00>                                  *
  *                                                                             *
 *******************************************************************************/
 /**
@@ -37,12 +37,11 @@
 
 #include "error.h"
 
-//Počáteční velikost dynamického řetězce při inicializaci
-//10 volných míst
-#define STRING_INIT_SIZE 8
+#define STRING_INIT_SIZE 8    /**< Počáteční velikost dynamického řetězce při inicializaci */
+#define DEFAULT_RESIZE_SIZE 8  /**< Délka, o kterou budeme dynamický řetězec zvětšovat */
 
 /**
- * @brief   Výčet návratových hodnot funkcí
+ * @brief   Výčet návratových hodnot funkcí v knihovně pro dynamický string
  * @details Tento výčet definuje různé návratové hodnoty,
  *          ke kterým může dojít v určitých funkcích.
  */
@@ -75,7 +74,7 @@ typedef struct {
  * @details Tato funkce alokuje paměť pro nový datový typ řetězce, pro pole znaků
  *          a inicializuje všechny položky na prázdné.
  *
- * @return Vrací ukazatel na nově vytvořený datový typ nebo NULL, když selže.
+ * @return Vrací ukazatel na nově vytvořený datový typ nebo `NULL`, když selže.
 */
 DString *string_init();
 
@@ -84,7 +83,7 @@ DString *string_init();
  *
  * @details Pokud daný string skutečně existuje, uvolní se i s pole vevnitř.
  *
- * @param str Ukazatel na datový typ DString
+ * @param [in] str Ukazatel na datový typ `DString`
 */
 void string_free(DString *str);
 
@@ -95,11 +94,11 @@ void string_free(DString *str);
  *          Pokud je řetězec plný, tak jej zvětšíme na požadovanou délku, což
  *          je o jeden znak větší.
  *
- * @param str Ukazatel na datový typ DString
- * @param character Znak, který se vloží na konec řetězce
+ * @param [in,out] str Ukazatel na datový typ DString
+ * @param [in] character Znak, který se vloží na konec řetězce
  *
- * @return Vrací STRING_SUCCESS, pokud se vyvedla operace.
- *         Vrací STRING_RESIZE_FAIL, pokud se nezdařilo nafouknout datový typ.
+ * @return Vrací @c STRING_SUCCESS, pokud se vyvedla operace.
+ *         Vrací @c STRING_RESIZE_FAIL, pokud se nezdařilo nafouknout datový typ.
  */
 int string_append_char(DString *str, char character);
 
@@ -109,11 +108,11 @@ int string_append_char(DString *str, char character);
  * @details Vytvoří nový pomocný řetězec strCreated a přendá všechny parametry z
  *          strCopied a ukazatel na strTo a uvolní strTo.
  *
- * @param strCopied Řetězec, z kterého kopírujeme
- * @param strTo Řetězec do kterého chceme kopírovat
+ * @param [in] strCopied Řetězec, z kterého kopírujeme
+ * @param [in,out] strTo Řetězec do kterého chceme kopírovat
  *
- * @return Pokud jeden z řetězců neexistující vrátí STRING_COPY_FAIL.
- *         V opačném případě vrací STRING_SUCCESS.
+ * @return Pokud jeden z řetězců neexistující vrátí @c STRING_COPY_FAIL.
+ *         V opačném případě vrací @c STRING_SUCCESS.
  */
 int string_copy(DString *strCopied, DString *strTo);
 
@@ -122,10 +121,10 @@ int string_copy(DString *strCopied, DString *strTo);
  *
  * @details Projde dva stringy a porovná je mezi sebou.
  *
- * @param str1 První řetězec
- * @param str2 Druhý řetězec
+ * @param [in] str1 První řetězec
+ * @param [in] str2 Druhý řetězec
  *
- * @return Vrací true, pokud jsou stejné, jinak vrací false.
+ * @return Vrací @c true, pokud jsou stejné, jinak vrací @c false.
  */
 int string_compare(DString *str1, DString *str2);
 
@@ -135,12 +134,12 @@ int string_compare(DString *str1, DString *str2);
  * @details Funkce zjistí délku konstantního řetězce a poté jej porovná
  *          s dynamickým řetězcem.
  *
- * @param str Dynamický řetězec
- * @param strConst Konstantní řetězec
+ * @param [in] str Dynamický řetězec
+ * @param [in] strConst Konstantní řetězec
  *
  * @return Pokud nejsou stejné řetězce, jejich délka nebo pokud je ukazatel
- *         na dynamický pole prázdný, vrací STRING_NOT_EQUAL.
- *         Pokud jsou řetězce stejné, vrací STRING_EQUAL.
+ *         na dynamický pole prázdný, vrací @c STRING_NOT_EQUAL.
+ *         Pokud jsou řetězce stejné, vrací @c STRING_EQUAL.
 */
 int string_compare_const_str(DString *str, const char *strConst);
 
@@ -152,11 +151,12 @@ int string_compare_const_str(DString *str, const char *strConst);
  *          segfaultům. Vytvoříme nový řetězec, do kterého potom zkopírujeme
  *          předešlý řetězec.
  *
- * @param str Ukazatel na datový typ DString, který chceme zvětšit.
+ * @param [in,out] str Ukazatel na datový typ DString, který chceme zvětšit.
+ * @param [in] size Délka, o kterou chceme řetězec zvětšit
  *
  * @return V případě, že požadovaný řetězec neexistuje, špatně se malokuje
  *         nebo se špatně zkopírovalo z původního řetězce
- *         vrací NULL.
+ *         vrací `NULL`.
  *         V případě, že se vše povedlo, vrátí nově zvětšený řetězec.
  */
 DString *string_resize(DString *str, size_t size);
