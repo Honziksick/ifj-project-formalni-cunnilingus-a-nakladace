@@ -6,7 +6,7 @@
  * Autor:            Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            9.10.2024                                                 *
- * Poslední změna:   9.10.2024                                                 *
+ * Poslední změna:   14.10.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -25,133 +25,53 @@
 
 // Potřebné knihovny k testování
 #include "gtest/gtest.h"
-#include <gmock/gmock.h>
-#include "../src/scanner.h"
-#include <string.h>
-#include <iostream>
+#include "gmock/gmock.h"
 
-using namespace ::testing;
+extern "C" {
+#include "scanner.h"
+}
+
+using namespace testing;
 using namespace std;
+using namespace internal;
 
-TEST(Function, isDigit){
-    // ASCII 65 == A, 90 == Z
-    for(size_t i = 65; i <= 90; i++){
-        // Čísla 65 - 90 reprezentují A - Z
-        EXPECT_FALSE(scanner_isDigit(char(i)));
-    }
+/**
+ * @brief Testuje funkci `scanner_charIdentity` pro písmena.
+ */
+TEST(Identity, Letter) {
+    EXPECT_EQ(scanner_charIdentity('A'), LETTER);
+    EXPECT_EQ(scanner_charIdentity('Z'), LETTER);
+    EXPECT_EQ(scanner_charIdentity('a'), LETTER);
+    EXPECT_EQ(scanner_charIdentity('z'), LETTER);
+}
 
-    // ASCII 97 == a, 122 == z
-    for(size_t i = 97; i <= 122; i++){
-        // Čísla 97 - 122 reprezentují a - z
-        EXPECT_FALSE(scanner_isDigit(char(i)));
-    }
-
-    // Čísla od 0 do 9 jsou skutečně čísly
+/**
+ * @brief Testuje funkci `scanner_charIdentity` pro čísla.
+ */
+TEST(Identity, Number) {
     for(size_t i = 0; i < 10; i++){
+
         // Převedení čísla i do char numC
         char numC = i + '0';
-        EXPECT_TRUE(scanner_isDigit(numC));
-    }
-
-    // ASCII od 0 - 31 se jedná o Control Characters, ne znaky/čísla
-    // ASCII od 32 - 47 se jedná o symboly, ne znaky
-    // Dále se tak jedná pro symboly mezi 58 - 64, 91 - 96, ...
-    for(size_t i = 0; i <= 47; i++){
-        EXPECT_FALSE(scanner_isDigit(i));
-    }
-
-    for(size_t i = 58; i <= 64; i++){
-        EXPECT_FALSE(scanner_isDigit(i));
-    }
-
-    for(size_t i = 91; i <= 96; i++){
-        EXPECT_FALSE(scanner_isDigit(i));
-    }
-
-    for(size_t i = 123; i <= 127; i++){
-        EXPECT_FALSE(scanner_isDigit(i));
+        EXPECT_EQ(scanner_charIdentity(numC), NUMBER);
     }
 }
 
-TEST(Function, isAlpha){
-    // ASCII 65 == A, 90 == Z
-    for(size_t i = 65; i <= 90; i++){
-        // Čísla 65 - 90 reprezentují A - Z
-        EXPECT_TRUE(scanner_isAlphanumeric(char(i)));
-    }
-
-    // ASCII 97 == a, 122 == z
-    for(size_t i = 97; i <= 122; i++){
-        // Čísla 97 - 122 reprezentují a - z
-        EXPECT_TRUE(scanner_isAlphanumeric(char(i)));
-    }
-
-    // Čísla od 0 do 9 nejsou znaky
-    for(size_t i = 0; i < 10; i++){
-        // Převedení čísla i do char numC
-        char numC = i + '0';
-        EXPECT_FALSE(scanner_isAlpha(numC));
-    }
-
-    // ASCII od 0 - 31 se jedná o Control Characters, ne znaky/čísla
-    // ASCII od 32 - 47 se jedná o symboly, ne znaky
-    // Dále se tak jedná pro symboly mezi 58 - 64, 91 - 96, ...
-    for(size_t i = 0; i <= 47; i++){
-        EXPECT_FALSE(scanner_isAlpha(i));
-    }
-
-    for(size_t i = 58; i <= 64; i++){
-        EXPECT_FALSE(scanner_isAlpha(i));
-    }
-
-    for(size_t i = 91; i <= 96; i++){
-        EXPECT_FALSE(scanner_isAlpha(i));
-    }
-
-    for(size_t i = 123; i <= 127; i++){
-        EXPECT_FALSE(scanner_isAlpha(i));
-    }
-}
-
-TEST(Function, isAlphanumeric){
-
-    // ASCII 65 == A, 90 == Z
-    for(size_t i = 65; i <= 90; i++){
-        // Čísla 65 - 90 reprezentují A - Z
-        EXPECT_TRUE(scanner_isAlphanumeric(char(i)));
-    }
-
-    // ASCII 97 == a, 122 == z
-    for(size_t i = 97; i <= 122; i++){
-        // Čísla 97 - 122 reprezentují a - z
-        EXPECT_TRUE(scanner_isAlphanumeric(char(i)));
-    }
-
-    // Čísla od 0 do 9 jsou skutečně čísly
-    for(size_t i = 0; i < 10; i++){
-        // Převedení čísla i do char numC
-        char numC = i + '0';
-        EXPECT_TRUE(scanner_isAlphanumeric(numC));
-    }
-
-                    /*TESTING OF SYMBOLS*/
-
-    // ASCII od 0 - 31 se jedná o Control Characters, ne znaky/čísla
-    // ASCII od 32 - 47 se jedná o symboly, ne znaky
-    // Dále se tak jedná pro symboly mezi 58 - 64, 91 - 96, ...
-    for(size_t i = 0; i <= 47; i++){
-        EXPECT_FALSE(scanner_isAlphanumeric(i));
-    }
-
-    for(size_t i = 58; i <= 64; i++){
-        EXPECT_FALSE(scanner_isAlphanumeric(i));
-    }
-
-    for(size_t i = 91; i <= 96; i++){
-        EXPECT_FALSE(scanner_isAlphanumeric(i));
-    }
-
-    for(size_t i = 123; i <= 127; i++){
-        EXPECT_FALSE(scanner_isAlphanumeric(i));
-    }
+/**
+ * @brief Testuje funkci `scanner_charIdentity` pro operátory.
+ */
+TEST(Identity, Operator) {
+    EXPECT_EQ(scanner_charIdentity('+'), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('-'), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('*'), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('/'), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('%'), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('<'), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('>'), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('='), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('!'), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('&'), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('|'), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('^'), OPERATOR);
+    EXPECT_EQ(scanner_charIdentity('~'), OPERATOR);
 }
