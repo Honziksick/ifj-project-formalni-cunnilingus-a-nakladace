@@ -235,6 +235,15 @@ Token scanner_FSM() {
     return tToken;
 }
 
+
+// Provizorní kód, pls dodělat popřípadě
+Token scanner_tokenCreate(TokenType type, DString *value) {
+    Token token;
+    token.type = type;
+    token.value = *value;
+    return token;
+}
+
 Token scanner_getNextToken() {  //Převaděč Tokenu pro Parser (vlastně nepotřebné, Token lze brát přímo z FSM)
     Token tToken = scanner_FSM();
     return tToken;
