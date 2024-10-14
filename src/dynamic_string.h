@@ -104,7 +104,6 @@ int string_append_char(string *str, char character);
  *          strCopied a ukazatel na strTo a uvolní strTo.
  *
  * @param strCopied Řetězec, z kterého kopírujeme
- * @param strCreated Nový řetězec do kterého kopírujeme
  * @param strTo Řetězec do kterého chceme kopírovat
  *
  * @return Pokud jeden z řetězců neexistující vrátí STRING_COPY_FAIL.
@@ -132,7 +131,6 @@ int string_compare(string *str1, string *str2);
  *
  * @param str Dynamický řetězec
  * @param strConst Konstantní řetězec
- * @param length Délka konstantního řetězce
  *
  * @return Pokud nejsou stejné řetězce, jejich délka nebo pokud je ukazatel
  *         na dynamický pole prázdný, vrací STRING_NOT_EQUAL.
