@@ -7,7 +7,7 @@
  *                   Kalina Jan         <xkalinj00> (edit)                     *
  *                                                                             *
  * Datum:            08.10.2024                                                *
- * Poslední změna:   14.10.2024                                                *
+ * Poslední změna:   15.10.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
