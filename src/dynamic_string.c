@@ -182,48 +182,29 @@ int string_compare_const_str(DString *str, const char *strConst) {
 /**
  * @brief Zvětší dynamický řetězec na požadovanou délku.
  */
-DString *string_resize(DString *str, size_t size) {
+DString *string_resize(DString *string, size_t size) {
     // Pokud nemáme řetězec, tak vracíme NULL
-    if(str == NULL) {
+    if(string == NULL) {
         return NULL;
     }
 
-    // Vytvoříme nový řetězec
-    DString *stringCreated = (DString *)malloc(sizeof(DString));
-
-    // Pokud se špatně malokuje, vrací NULL
-    if(stringCreated == NULL) {
-        return NULL;
-    }
-
-    size_t resizeSize = str->length + size;
+    // Nový paměťový nárok pole znaků dynamického stringu
+    size_t resizeSize = string->length + size;
 
     // Vytvoříme buňky pro znaky
-    stringCreated->str = (char *)malloc(resizeSize * sizeof(char));
+    char *newStr = (char *)realloc(string->str, resizeSize * sizeof(char));
 
-    // Pokud se špatně malokuje, vrací NULL
-    if(stringCreated->str == NULL) {
-        free(stringCreated);
+    // Pokud se špatně realokuje, vrací NULL
+    if(string->str == NULL) {
+        free(string);
         return NULL;
     }
 
-    // Inicializujeme nový řetězec
-    stringCreated->allocatedSize = resizeSize;
-    stringCreated->length = 0;
+    // Aktualizace akazatele na pole znaků a velikost alokované paměti
+    string->str = newStr;
+    string->allocatedSize = resizeSize;
 
-    // Zkopíruje znaky z původního řetězce do nově vytvořeného
-    if(string_copy(str, stringCreated) == 0) {
-        // Pokud selže, uvolní nově vytvořený řetězec a vrátí NULL
-        free(stringCreated->str);
-        free(stringCreated);
-        return NULL;
-    }
-
-    // Uvolníme původní řetězec
-    free(str->str);
-    free(str);
-
-    return stringCreated;
+    return string;
 } /* konec *string_resize() */
 
 /*** Konec souboru dynamic_string.c ***/
