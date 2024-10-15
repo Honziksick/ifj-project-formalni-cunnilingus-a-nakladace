@@ -6,7 +6,7 @@
  * Autor:            David Krejčí <xkrejcd00>                                  *
  *                                                                             *
  * Datum:            01.10.2024                                                *
- * Poslední změna:   09.10.2024                                                *
+ * Poslední změna:   15.10.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -33,6 +33,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "dynamic_string.h"
+#include "scanner.h"
 
 
 /**
@@ -59,13 +60,16 @@
  *          které lze položce v tabulce symbolů přiřadit.
  */
 typedef enum {
-    SYMTABLE_SYMBOL_EMPTY,            /**< Prázdná položka v tabulce */
-    SYMTABLE_SYMBOL_DEAD,             /**< Položka byla odstraněna */
-    SYMTABLE_SYMBOL_VARIABLE_INT,     /**< Proměnná typu int */
-    SYMTABLE_SYMBOL_VARIABLE_DOUBLE,  /**< Proměnná typu double */
-    SYMTABLE_SYMBOL_VARIABLE_STRING,  /**< Proměnná typu string */
-    SYMTABLE_SYMBOL_FUNCTION,         /**< Funkce */
-    SYMTABLE_SYMBOL_UNKNOWN           /**< Neznámý typ symbolu */
+    SYMTABLE_SYMBOL_EMPTY,                      /**< Prázdná položka v tabulce */
+    SYMTABLE_SYMBOL_DEAD,                       /**< Položka byla odstraněna */
+    SYMTABLE_SYMBOL_VARIABLE_INT,               /**< Proměnná typu int */
+    SYMTABLE_SYMBOL_VARIABLE_INT_OR_NULL,       /**< Proměnná typu int nebo NULL */
+    SYMTABLE_SYMBOL_VARIABLE_DOUBLE,            /**< Proměnná typu double */
+    SYMTABLE_SYMBOL_VARIABLE_DOUBLE_OR_NULL,    /**< Proměnná typu double nebo NULL */
+    SYMTABLE_SYMBOL_VARIABLE_STRING,            /**< Proměnná typu string */
+    SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL,    /**< Proměnná typu string nebo NULL */
+    SYMTABLE_SYMBOL_FUNCTION,                   /**< Funkce */
+    SYMTABLE_SYMBOL_UNKNOWN                     /**< Neznámý typ symbolu */
 } symtable_symbolState;
 
 /**
@@ -97,9 +101,12 @@ typedef enum {
  *          signatura funkce).
  */
 typedef struct {
-    DString *key;                 /**< Klíč položky (identifikátor) */
-    unsigned char symbol_state;  /**< Stav symbolu dle výčtu `symtable_symbol_state` */
-    void *data;                  /**< Ukazatel na data asociovaná s položkou */
+    DString *key;                   /**< Klíč položky (identifikátor) */
+    unsigned char symbol_state;     /**< Stav symbolu dle výčtu `symtable_symbol_state` */
+    bool used;                      /**< Příznak, zda je položka použita */
+    bool declared;                  /**< Příznak, zda je položka deklarována */
+    bool constant;                  /**< Příznak, zda je položka konstantní */
+    void *data;                     /**< Ukazatel na data asociovaná s položkou */
 } symtable_item;
 
 /**
@@ -149,8 +156,29 @@ symtable *symtable_init();
  *           již v tabulce existuje.
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL.
  *         - @c SYMTABLE_RESIZE_FAIL, pokud selhalo rozšíření tabulky.
+ *         - @c SYMTABLE_ALLOCATION_FAIL, pokud selhala alokace paměti pro nový prvek.
  */
 symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *out_item);
+
+/**
+ * @brief Přidá novou položku do tabulky symbolů z tokenu
+ *
+ * @details Tato funkce zkopíruje klíč z tokenu a přidá jej do tabulky symbolů.
+ *          Pokud je tabulka plná, zvětší ji na dvojnásobek aktuální velikosti.
+ *          Přidaná položka je vracena v parametru `out_item`.
+ *          Pokud je `out_item` NULL, položka není vrácena.
+ *          Pokud položka již existuje, je předán ukazatel na existující položku.
+ *
+ * @param [in] table Ukazatel na tabulku symbolů
+ * @param [in] token Token nové položky
+ * @param [in] out_item Ukazatel na přidanou položku (výstupní parametr)
+ * @return - @c SYMTABLE_SUCCESS při úspěšném vložení nové položky.
+ *         - @c SYMTABLE_ITEM_ALREADY_EXISTS, pokud položka se zadaným klíčem
+ *           již v tabulce existuje.
+ *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL.
+ *         - @c SYMTABLE_RESIZE_FAIL, pokud selhalo rozšíření tabulky.
+ */
+symtable_result symtable_addToken(symtable *table, Token token, symtable_item *out_item);
 
 /**
  * @brief Vyhledá položku v tabulce symbolů

@@ -6,7 +6,7 @@
  * Autor:            David Krejčí <xkrejcd00>                                  *
  *                                                                             *
  * Datum:            01.10.2024                                                *
- * Poslední změna:   14.10.2024                                                *
+ * Poslední změna:   15.10.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -83,8 +83,21 @@ symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *o
         if(item->symbol_state == SYMTABLE_SYMBOL_EMPTY ||
            item->symbol_state == SYMTABLE_SYMBOL_DEAD) {
 
-            // Přidáme novou položku
-            item->key = key;
+            // Vytvoříme kopii klíče
+            DString *key_copy = string_init();
+            // Pokud se nepodařilo alokovat paměť, vracíme SYMTABLE_ALLOCATION_FAIL
+            if(key_copy == NULL) {
+                return SYMTABLE_ALLOCATION_FAIL;
+            }
+            // Pokud se nepodařilo zkopírovat klíč,
+            // uvolníme alokovanou paměť a vracíme SYMTABLE_ALLOCATION_FAIL
+            if(string_copy(key,key_copy) == STRING_COPY_FAIL) {
+                string_free(key_copy);
+                return SYMTABLE_ALLOCATION_FAIL;
+            }
+
+            // Inicializujeme novou položku
+            item->key = key_copy;
             item->data = NULL;
             item->symbol_state = SYMTABLE_SYMBOL_UNKNOWN;
             // Inkrementujeme počet použitých položek
@@ -111,6 +124,13 @@ symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *o
         // Jinak pokračujeme v hledání
         index = (index+1) % table->allocated_size;
     }
+}
+
+/**
+ * @brief Přidá novou položku do tabulky symbolů z tokenu
+*/
+symtable_result symtable_addToken(symtable *table, Token token, symtable_item *out_item){
+    return symtable_addItem(table, &token.value, out_item);
 }
 
 /**
