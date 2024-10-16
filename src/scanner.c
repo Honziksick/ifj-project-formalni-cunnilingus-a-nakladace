@@ -7,7 +7,7 @@
  *                   Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   14.10.2024                                                 *
+ * Poslední změna:   16.10.2024                                                 *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -67,7 +67,7 @@ Token scanner_FSM() {
     bool stopFSM = false;
     stateFSM state = START;
     DString *str = string_init();
-    Token tToken;
+    Token lexToken;
 
     while(stopFSM == false)
     {
@@ -85,12 +85,12 @@ Token scanner_FSM() {
                         break;
                     case OPERATOR: //OPERATOR
                         string_append_char(str, c);
-                        tToken = scanner_tokenCreate(TOKEN_OPERATOR, str);
+                        lexToken = scanner_tokenCreate(TOKEN_OPERATOR, str);
                         stopFSM = true;
                         break;
                     case DOT: //DOT
                         string_append_char(str, c);
-                        tToken = scanner_tokenCreate(TOKEN_DOT, str);
+                        lexToken = scanner_tokenCreate(TOKEN_DOT, str);
                         stopFSM = true;
                         break;
                     case EMPTY: //EMPTY
@@ -116,16 +116,16 @@ Token scanner_FSM() {
                         break;
                     case OPERATOR: //OPERATOR
                         scanner_ungetChar(c);
-                        tToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
+                        lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                         stopFSM = true;
                         break;
                     case DOT: //DOT
                         scanner_ungetChar(c);
-                        tToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
+                        lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                         stopFSM = true;
                         break;
                     case EMPTY: //EMPTY
-                        tToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
+                        lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                         stopFSM = true;
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
@@ -148,7 +148,7 @@ Token scanner_FSM() {
                         break;
                     case DIGITS: //OPERATOR
                         scanner_ungetChar(c);
-                        tToken = scanner_tokenCreate(TOKEN_INT, str);
+                        lexToken = scanner_tokenCreate(TOKEN_INT, str);
                         stopFSM = true;
                         break;
                     case DOT: //DOT
@@ -156,7 +156,7 @@ Token scanner_FSM() {
                         state = FLOAT_UNREADY;
                         break;
                     case EMPTY: //EMPTY
-                        tToken = scanner_tokenCreate(TOKEN_INT, str);
+                        lexToken = scanner_tokenCreate(TOKEN_INT, str);
                         stopFSM = true;
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
@@ -207,7 +207,7 @@ Token scanner_FSM() {
                         break;
                     case OPERATOR: //OPERATOR
                         scanner_ungetChar(c);
-                        tToken = scanner_tokenCreate(TOKEN_FLOAT, str);
+                        lexToken = scanner_tokenCreate(TOKEN_FLOAT, str);
                         stopFSM = true;
                         break;
                     case DOT: //DOT
@@ -215,7 +215,7 @@ Token scanner_FSM() {
                         error_handle(ERROR_LEXICAL);
                         break;
                     case EMPTY: //EMPTY
-                        tToken = scanner_tokenCreate(TOKEN_FLOAT, str);
+                        lexToken = scanner_tokenCreate(TOKEN_FLOAT, str);
                         stopFSM = true;
                         break;
                     default: //ERROR (pravděpodobně scanner_charIdentity)
@@ -232,7 +232,7 @@ Token scanner_FSM() {
     }
 
     string_free(str);
-    return tToken;
+    return lexToken;
 }
 
 
@@ -244,7 +244,7 @@ Token scanner_tokenCreate(TokenType type, DString *value) {
     return token;
 }
 
-Token scanner_getNextToken() {  //Převaděč Tokenu pro Parser (vlastně nepotřebné, Token lze brát přímo z FSM)
-    Token tToken = scanner_FSM();
-    return tToken;
+Token scanner_getNexlexToken() {  //Převaděč Tokenu pro Parser (vlastně nepotřebné, Token lze brát přímo z FSM)
+    Token lexToken = scanner_FSM();
+    return lexToken;
 }
