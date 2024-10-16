@@ -738,7 +738,7 @@ TEST(FSM, FSM_KEYWORD_11){
 /**
  * @brief Testuje funkci `scanner_FSM` pro keyword void.
  */
-TEST(FSM, FSM_KEYWORD_11){
+TEST(FSM, FSM_KEYWORD_12){
     char c[] = "void";
     Token state; 
 
@@ -753,7 +753,7 @@ TEST(FSM, FSM_KEYWORD_11){
 /**
  * @brief Testuje funkci `scanner_FSM` pro keyword while.
  */
-TEST(FSM, FSM_KEYWORD_12){
+TEST(FSM, FSM_KEYWORD_13){
     char c[] = "while";
     Token state; 
 
