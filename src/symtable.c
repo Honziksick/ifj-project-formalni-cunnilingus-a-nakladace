@@ -77,7 +77,7 @@ symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *o
     size_t index = symtable_hashFunction(key) % table->allocated_size;
 
     // Procházíme tabulku dokud nenarazíme na prázdnou položku
-    while(1) {
+    while(true) {
         symtable_item *item = &table->array[index];
         // Pokud je nalezeno prázdné místo, vkládáme novou položku
         if(item->symbol_state == SYMTABLE_SYMBOL_EMPTY ||
