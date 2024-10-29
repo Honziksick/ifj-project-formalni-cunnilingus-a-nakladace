@@ -62,7 +62,25 @@ typedef enum {
     TOKEN_LESS_EQUAL_THAN = 23,
     TOKEN_GREATER_THAN = 24,
     TOKEN_GREATER_EQUAL_THAN = 25,
-    TOKEN_EOF = 26
+    TOKEN_EOF = 26,
+    //KEYWORDS
+    TOKEN_K_const = 27,
+    TOKEN_K_var = 28,
+    TOKEN_K_i32 = 29,
+    TOKEN_K_f64 = 30,
+    TOKEN_K_u8 = 31,
+    TOKEN_K_Qi32 = 32,
+    TOKEN_K_Qf64 = 33,
+    TOKEN_K_Qu8 = 34,
+    TOKEN_K_pub = 35,
+    TOKEN_K_fn = 36,
+    TOKEN_K_void = 36,
+    TOKEN_K_return = 37,
+    TOKEN_K_null = 38,
+    TOKEN_K_if = 39,
+    TOKEN_K_else = 40,
+    TOKEN_K_while = 41,
+    TOKEN_K_import = 42
 } TokenType;
 
 // Definice rozlišovaných typů znaků (char) na vstupu
@@ -164,8 +182,14 @@ void scanner_ungetChar(char c);
 // Rozhodování o typu znaku na vstupu
 CharType scanner_charIdentity(char c);
 
+// Rozhodování o tom, jestli LETTERS je IDENTIFIKÁTOR, nebo KEYWORD
+scanner_isKeyword(DString *value);
+
 // Vytvoří nový token
 Token scanner_tokenCreate(TokenType type, DString *value);
+
+// Vytvoří nový token bez stringu (všechny prvky stringu nastaveny na NULL)
+Token scanner_stringlessTokenCreate(TokenType type);
 
 // Finite State Machine lexikálního analyzátoru, z proudu charů na vstupu udělá Token na výstupu.
 Token scanner_FSM();
