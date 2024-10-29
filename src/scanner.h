@@ -7,7 +7,7 @@
  *                   Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   14.10.2024                                                 *
+ * Poslední změna:   29.10.2024                                                 *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -35,31 +35,64 @@
 
 // Definice různých typů tokenů
 typedef enum {
-    TOKEN_IDENTIFIER,
-    TOKEN_INT,
-    TOKEN_OPERATOR,
-    TOKEN_DOT,
-    TOKEN_KEYWORD,
-    TOKEN_FLOAT,
-    TOKEN_STRING,
-    TOKEN_EOF
-    // ... Opět možná další enumy, plus by bylo lepší přiřadit explicitní hodnoty
+    TOKEN_IDENTIFIER = 1,
+    TOKEN_KEYWORD = 2,
+    TOKEN_INT = 3,
+    TOKEN_FLOAT = 4,
+    TOKEN_STRING = 5,
+    //SPECIAL SIMPLE
+    TOKEN_LEFT_PARENTHESIS = 6,
+    TOKEN_RIGHT_PARENTHESIS = 7,
+    TOKEN_ASTERISK = 8,
+    TOKEN_PLUS = 9,
+    TOKEN_COMMA = 10,
+    TOKEN_MINUS = 11,
+    TOKEN_COLON = 12,
+    TOKEN_SEMICOLON = 13,
+    TOKEN_LEFT_CURLY_BRACKET = 14,
+    TOKEN_VERTICAL_BAR = 15,
+    TOKEN_RIGHT_CURLY_BRACKET = 16,
+    //SPECIAL COMPLEX
+    TOKEN_PERIOD = 17,
+    TOKEN_EQUALITY_SIGN = 18,
+    TOKEN_SLASH = 19,
+    TOKEN_EQUAL_TO = 20,
+    TOKEN_NOT_EQUAL_TO = 21,
+    TOKEN_LESS_THAN = 22,
+    TOKEN_LESS_EQUAL_THAN = 23,
+    TOKEN_GREATER_THAN = 24,
+    TOKEN_GREATER_EQUAL_THAN = 25,
+    TOKEN_EOF = 26
 } TokenType;
 
 // Definice rozlišovaných typů znaků (char) na vstupu
 typedef enum {
     LETTER = 1,
     NUMBER = 2,
-    OPERATOR = 3,
-    DOT = 4,
-    EMPTY = 5,
-    CHAR_ERROR = 6
+    WHITE = 3,      //WHITESPACE
+    NIL = 4,        //NOT IN LANGUAGE
+    SIMPLE = 5,     //SPECIAL SIMPLE
+    //SPECIAL COMPLEX
+    C_EXCLAMATION_MARK = 6,
+    C_DOUBLE_QUOTE = 7,
+    C_PERIOD = 8,
+    C_SLASH = 9,
+    C_LESS_THAN = 10,
+    C_EQUALITY_SIGN = 11,
+    C_GREATER_THAN = 12,
+    C_QUESTION_MARK = 13,
+    C_AT_SIGN = 14,
+    C_LEFT_SQUARE_BRACKET = 15,
+    C_BACKSLASH = 16,
+    C_RIGHT_SQUARE_BRACKET = 17,
+    C_EOL = 18,
+    C_EOF = 19
 } CharType;
 
 // Definice stavů FSM lexikálního analyzátoru
 typedef enum {
     START = 1,
-    CHARACTERS = 2,
+    LETTERS = 2,
     DIGITS = 3,
     FLOAT_UNREADY = 4,
     FLOAT_READY = 5,
