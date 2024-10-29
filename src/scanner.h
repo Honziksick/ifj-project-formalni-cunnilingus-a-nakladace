@@ -71,33 +71,81 @@ typedef enum {
     NUMBER = 2,
     WHITE = 3,      //WHITESPACE
     NIL = 4,        //NOT IN LANGUAGE
-    SIMPLE = 5,     //SPECIAL SIMPLE
+    //SPECIAL SIMPLE
+    S_LEFT_PARENTHESIS = 5,
+    S_RIGHT_PARENTHESIS = 6,
+    S_ASTERISK = 7,
+    S_PLUS = 8,
+    S_COMMA = 9,
+    S_MINUS = 10,
+    S_COLON = 11,
+    S_SEMICOLON = 12,
+    S_LEFT_CURLY_BRACKET = 13,
+    S_VERTICAL_BAR = 14,
+    S_RIGHT_CURLY_BRACKET = 15,
     //SPECIAL COMPLEX
-    C_EXCLAMATION_MARK = 6,
-    C_DOUBLE_QUOTE = 7,
-    C_PERIOD = 8,
-    C_SLASH = 9,
-    C_LESS_THAN = 10,
-    C_EQUALITY_SIGN = 11,
-    C_GREATER_THAN = 12,
-    C_QUESTION_MARK = 13,
-    C_AT_SIGN = 14,
-    C_LEFT_SQUARE_BRACKET = 15,
-    C_BACKSLASH = 16,
-    C_RIGHT_SQUARE_BRACKET = 17,
-    C_EOL = 18,
-    C_EOF = 19
+    C_EXCLAMATION_MARK = 16,
+    C_DOUBLE_QUOTE = 17,
+    C_PERIOD = 18,
+    C_SLASH = 19,
+    C_LESS_THAN = 20,
+    C_EQUALITY_SIGN = 21,
+    C_GREATER_THAN = 22,
+    C_QUESTION_MARK = 23,
+    C_AT_SIGN = 24,
+    C_LEFT_SQUARE_BRACKET = 25,
+    C_BACKSLASH = 26,
+    C_RIGHT_SQUARE_BRACKET = 27,
+    C_EOL = 28,
+    C_EOF = 29
 } CharType;
 
 // Definice stavů FSM lexikálního analyzátoru
 typedef enum {
     START = 1,
     LETTERS = 2,
-    DIGITS = 3,
+    NUMBERS = 3,
     FLOAT_UNREADY = 4,
     FLOAT_READY = 5,
-    ERROR = 6
-} stateFSM;
+    //NUMBER OR NULL PATH
+    NON = 6,
+    NON1a = 7,
+    NON1b = 8,
+    NON2a = 9,
+    NON2b = 11,
+    NON3a = 12,
+    NON3b = 13,
+    NON3c = 14,
+    //[]u8 PATH
+    U1 = 15,
+    U2 = 16,
+    U3 = 17,
+    //@import PATH
+    I1 = 18,
+    I2 = 19,
+    I3 = 20,
+    I4 = 21,
+    I5 = 22,
+    I6 = 23,
+    //= OR == PATH
+    EQUAL = 24,
+    //!= PATH
+    NOT_EQUAL = 25,
+    //< OR <= PATH
+    LESS = 26,
+    //> OR >= PATH
+    GREATER = 27,
+    //SLASH PATH
+    SLASH = 28,
+    DOUBLE_SLASH = 29,
+    //STRING PATH
+    DOUBLE_QUOTE = 30,
+    ESCAPE = 31,
+    ESCAPE_X = 32, //Tímto si nejsem jistý
+    //BACKSLASH PATH
+    BACKSLASH = 33,
+    DOUBLE_BACKSLASH = 34
+} StateFSM;
 
 /* Každý token má typ, hodnotu (tj. dynamický řetězec) a informace o pozici
    tokenu ve zdrojovém kódu (řádek a sloupec) */

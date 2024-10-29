@@ -7,7 +7,7 @@
  *                   Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   16.10.2024                                                 *
+ * Poslední změna:   29.10.2024                                                 *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -43,29 +43,86 @@ void scanner_ungetChar(char c) {    // Vrátí char zpět do vstupního proudu
 
 CharType scanner_charIdentity(char c) {
     if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {  //65 - 90, 97 - 122
-        return LETTER; //c je LETTER
+        return LETTER; //c je písmeno (LETTER)
     }
     else if(c >= '0' && c <= '9') { //48 - 57
-        return NUMBER; //c je NUMBER
+        return NUMBER; //c je číslo (NUMBER)
     }
-    else if((c >= '!' && c <= '-') || c == '/' || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~')) { //33 - 45, 47, 58 - 64, 91 - 96, 123 - 126
-        return OPERATOR; //c je OPERATOR
+    else if(c == 9 || c == 32) { //TAB or SPACE
+        return WHITE; //c je prázdný znak (WHITE)
     }
-    else if(c == '.') { //47
-        return DOT; //c je DOT
-    }
-    else if(c == 32) { //space
-        return EMPTY; //c je EMPTY
+    else if((c>= 0 && c <= 8) || (c>= 11 && c <= 31) || (c>= 35 && c <= 39) || c==96 || (c>= 126 && c <= 254)) { //Znak, co není v jazyce povolen
+
     }
     else {
-        return CHAR_ERROR; //c není nic z výše uvedených
+        switch (c) {
+            case 10:    // New Line (EOL - End of Line)
+                return C_EOL;
+
+            case 33:    // !
+                return C_EXCLAMATION_MARK;
+            case 34:    // "
+                return C_DOUBLE_QUOTE;
+
+            case 40:    // (
+                return S_LEFT_PARENTHESIS;
+            case 41:    // )
+                return S_RIGHT_PARENTHESIS;
+            case 42:    // *
+                return S_ASTERISK;
+            case 43:    // +
+                return S_PLUS;
+            case 44:    // ,
+                return S_COMMA;
+            case 45:    // -
+                return S_MINUS;
+            case 46:    // .
+                return C_PERIOD;
+            case 47:    // /
+                return C_SLASH;
+
+            case 58:    // :
+                return S_COLON;
+            case 59:    // ;
+                return S_SEMICOLON;
+            case 60:    // <
+                return C_LESS_THAN;
+            case 61:    // =
+                return C_EQUALITY_SIGN;
+            case 62:    // >
+                return C_GREATER_THAN;
+            case 63:    // ?
+                return C_QUESTION_MARK;
+            case 64:    // @
+                return C_AT_SIGN;
+
+            case 91:    // [
+                return C_LEFT_SQUARE_BRACKET;
+            case 92:    // \ 
+                return C_BACKSLASH;
+            case 93:    // ]
+                return C_RIGHT_SQUARE_BRACKET;
+
+            case 123:   // {
+                return S_LEFT_CURLY_BRACKET;
+            case 124:   // |
+                return S_VERTICAL_BAR;
+            case 125:   // }
+                return S_RIGHT_CURLY_BRACKET;
+
+            case 255:   // EOF
+                return C_EOF;
+            
+            default:    // ERROR při identifikaci CHARu (nepatří mezi 0 - 255)
+                error_handle(ERROR_LEXICAL);
+        }
     }
 }
 
 Token scanner_FSM() {
     char c;
     bool stopFSM = false;
-    stateFSM state = START;
+    StateFSM state = START;
     DString *str = string_init();
     Token lexToken;
 
