@@ -36,7 +36,7 @@
 /**
  * @brief Výčtový typ chybových kódu vycházející ze zadání projektu.
  */
-typedef enum {
+typedef enum ErrorType {
     ERROR_LEXICAL = 1,                /**< Chyba v programu v rámci lexikální analýzy (chybná struktura aktuálního lexému) */
     ERROR_SYNTAX = 2,                 /**< Chyba v programu v rámci syntaktické analýzy (chybná syntaxe programu, chybějící hlavička, atp.) */
     ERROR_SEM_UNDEF = 3,              /**< Sémantická chyba v programu – nedefinovaná funkce či proměnná */

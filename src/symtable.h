@@ -50,7 +50,7 @@
 
 /*******************************************************************************
  *                                                                             *
- *                           VÝČTOVÉ DATOVÉ TYPY                               *
+ *                             VÝČTOVÉ DATOVÉ TYPY                             *
  *                                                                             *
  ******************************************************************************/
 
@@ -90,7 +90,7 @@ typedef enum {
 
 /*******************************************************************************
  *                                                                             *
- *                            VEŘEJNÉ STRUKTURY                                *
+ *                              VEŘEJNÉ STRUKTURY                              *
  *                                                                             *
  ******************************************************************************/
 
@@ -107,7 +107,7 @@ typedef struct {
     bool declared;                  /**< Příznak, zda je položka deklarována */
     bool constant;                  /**< Příznak, zda je položka konstantní */
     void *data;                     /**< Ukazatel na data asociovaná s položkou */
-} symtable_item;
+} SymtableItem, *SymtableItemPtr;
 
 /**
  * @brief   Struktura hashovací tabulky
@@ -119,13 +119,13 @@ typedef struct {
 typedef struct {
     size_t allocated_size;          /**< Velikost alokovaného pole položek */
     size_t used_size;               /**< Počet použitých položek včetně mrtvých*/
-    symtable_item array[];          /**< Pole položek */
-} symtable;
+    SymtableItem array[];          /**< Pole položek */
+} Symtable, *SymtablePtr;
 
 
 /*******************************************************************************
  *                                                                             *
- *                    FUNKCE URČENÉ PRO VEŘEJNÉ VYUŽITÍ                        *
+ *                      FUNKCE URČENÉ PRO VEŘEJNÉ VYUŽITÍ                      *
  *                                                                             *
  ******************************************************************************/
 
@@ -137,7 +137,7 @@ typedef struct {
  *
  * @return Ukazatel na nově vytvořenou tabulku symbolů, nebo NULL v případě chyby
  */
-symtable *symtable_init();
+Symtable *symtable_init();
 
 /**
  * @brief Přidá novou položku do tabulky symbolů
@@ -158,7 +158,7 @@ symtable *symtable_init();
  *         - @c SYMTABLE_RESIZE_FAIL, pokud selhalo rozšíření tabulky.
  *         - @c SYMTABLE_ALLOCATION_FAIL, pokud selhala alokace paměti pro nový prvek.
  */
-symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *out_item);
+symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *out_item);
 
 /**
  * @brief Přidá novou položku do tabulky symbolů z tokenu
@@ -178,7 +178,7 @@ symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *o
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL.
  *         - @c SYMTABLE_RESIZE_FAIL, pokud selhalo rozšíření tabulky.
  */
-symtable_result symtable_addToken(symtable *table, Token token, symtable_item *out_item);
+symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem *out_item);
 
 /**
  * @brief Vyhledá položku v tabulce symbolů
@@ -196,7 +196,7 @@ symtable_result symtable_addToken(symtable *table, Token token, symtable_item *o
  *           v tabulce nenachází.
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL
  */
-symtable_result symtable_findItem(symtable *table, DString *key, symtable_item *out_item);
+symtable_result symtable_findItem(Symtable *table, DString *key, SymtableItem *out_item);
 
 /**
  * @brief Odstraní položku z tabulky symbolů
@@ -211,7 +211,7 @@ symtable_result symtable_findItem(symtable *table, DString *key, symtable_item *
  *           v tabulce nenachází.
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL
  */
-symtable_result symtable_deleteItem(symtable *table, DString *key);
+symtable_result symtable_deleteItem(Symtable *table, DString *key);
 
 /**
  * @brief Vymaže všechny položky z tabulky symbolů
@@ -220,7 +220,7 @@ symtable_result symtable_deleteItem(symtable *table, DString *key);
  *
  * @param [in] table Ukazatel na tabulku symbolů
  */
-void symtable_deleteAll(symtable *table);
+void symtable_deleteAll(Symtable *table);
 
 /**
  * @brief Zničí tabulku symbolů a uvolní její paměť
@@ -229,13 +229,13 @@ void symtable_deleteAll(symtable *table);
  *
  * @param [in] table Ukazatel na tabulku symbolů
  */
-void symtable_destroyTable(symtable *table);
+void symtable_destroyTable(Symtable *table);
 
 
 /*******************************************************************************
  *                                                                             *
- *                    FUNKCE URČENÉ PRO PRIVÁTNÍ VYUŽITÍ                       *
- *         (neměly by být použity mimo implementaci tabulky symbolů)           *
+ *                     FUNKCE URČENÉ PRO PRIVÁTNÍ VYUŽITÍ                      *
+ *          (neměly by být použity mimo implementaci tabulky symbolů)          *
  *                                                                             *
  ******************************************************************************/
 
@@ -260,7 +260,7 @@ size_t symtable_hashFunction(DString *key);
  * @param [in] table_in_array Cílová tabulka
  * @return @c TRUE, pokud byl přesun úspěšný, jinak @c FALSE.
  */
-bool symtable_transfer(symtable *table_out_array, symtable *table_in_array);
+bool symtable_transfer(Symtable *table_out_array, Symtable *table_in_array);
 
 /**
  * @brief Zvětší tabulku symbolů na novou velikost
@@ -269,14 +269,14 @@ bool symtable_transfer(symtable *table_out_array, symtable *table_in_array);
  * @param [in] size Nová velikost tabulky
  * @return Ukazatel na novou tabulku, nebo `NULL` v případě chyby.
  */
-symtable *symtable_resize(symtable *table, size_t size);
+Symtable *symtable_resize(Symtable *table, size_t size);
 
 /**
  * @brief Alokuje paměť pro novou tabulku symbolů
  * @param [in] size Velikost nové tabulky
  * @return Ukazatel na novou tabulku, nebo `NULL` v případě chyby
  */
-symtable *symtable_allocate(size_t size);
+Symtable *symtable_allocate(size_t size);
 
 #endif  // SYMTABLE_H_
 
