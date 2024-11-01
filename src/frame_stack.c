@@ -3,12 +3,10 @@
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
  * Soubor:           frame_stack.c                                             *
- * Autor:            Jan Kalina   <xkalinj00> (návrh, hlavičkový soubor)       *
- *                   David Krejčí <xkrejcd00> (návrh)                          *
- *                   XXXXX XXXXX  <xplagia00> (implementace)                   *
+ * Autor:            XXXXX XXXXX  <xplagia00>                                  *
  *                                                                             *
- * Datum:            xx.xx.2024                                                *
- * Poslední změna:   xx.xx.2024                                                *
+ * Datum:            30.10.2024                                                *
+ * Poslední změna:   30.10.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -19,9 +17,7 @@
  ******************************************************************************/
 /**
  * @file frame_stack.c
- * @author Jan Kalina \<xkalinj00> (návrh, hlavičkový soubor)
- * @author David Krejčí \<xkrejcd00> (návrh)
- * @author XXXXX XXXXX \<xplagiat00> (implementace)
+ * @author XXXXX XXXXX \<xplagiat00>
  *
  * @brief Implementační funkcí pro práci se zásobníkem rámců.
  * @details Tento implementační soubor obsahuje definice funkcí a datových struktur

@@ -5,10 +5,9 @@
  * Soubor:           frame_stack.h                                             *
  * Autor:            Jan Kalina   <xkalinj00> (návrh, hlavičkový soubor)       *
  *                   David Krejčí <xkrejcd00> (návrh)                          *
- *                   XXXXX XXXXX  <xplagia00> (implementace)                   *
  *                                                                             *
- * Datum:            xx.xx.2024                                                *
- * Poslední změna:   xx.xx.2024                                                *
+ * Datum:            30.10.2024                                                *
+ * Poslední změna:   30.10.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -21,7 +20,6 @@
  * @file frame_stack.h
  * @author Jan Kalina \<xkalinj00> (návrh, hlavičkový soubor)
  * @author David Krejčí \<xkrejcd00> (návrh)
- * @author XXXXX XXXXX \<xplagiat00> (implementace)
  *
  * @brief Hlavičkový soubor pro zásobník rámců.
  * @details Tento hlavičkový soubor obsahuje deklarace funkcí a datových struktur
