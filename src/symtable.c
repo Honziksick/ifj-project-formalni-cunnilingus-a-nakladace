@@ -33,9 +33,9 @@
 /**
  * @brief Inicializuje novou tabulku symbolů
 */
-symtable *symtable_init() {
+Symtable *symtable_init() {
     // Vytvoříme novou tabulku symbolů
-    symtable *table = symtable_allocate(TABLE_INIT_SIZE);
+    Symtable *table = symtable_allocate(TABLE_INIT_SIZE);
     // Pokud se nepodařilo alokovat paměť, vracíme NULL
     if(table == NULL) {
         return NULL;
@@ -56,7 +56,7 @@ symtable *symtable_init() {
 /**
  * @brief Přidá novou položku do tabulky symbolů
 */
-symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *out_item) {
+symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *out_item) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
@@ -78,7 +78,7 @@ symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *o
 
     // Procházíme tabulku dokud nenarazíme na prázdnou položku
     while(true) {
-        symtable_item *item = &table->array[index];
+        SymtableItemPtr item = &table->array[index];
         // Pokud je nalezeno prázdné místo, vkládáme novou položku
         if(item->symbol_state == SYMTABLE_SYMBOL_EMPTY ||
            item->symbol_state == SYMTABLE_SYMBOL_DEAD) {
@@ -129,14 +129,14 @@ symtable_result symtable_addItem(symtable *table, DString *key, symtable_item *o
 /**
  * @brief Přidá novou položku do tabulky symbolů z tokenu
 */
-symtable_result symtable_addToken(symtable *table, Token token, symtable_item *out_item){
+symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem *out_item){
     return symtable_addItem(table, &token.value, out_item);
 }
 
 /**
  * @brief Vyhledá položku v tabulce symbolů
 */
-symtable_result symtable_findItem(symtable *table, DString *searched_key, symtable_item *out_item) {
+symtable_result symtable_findItem(Symtable *table, DString *searched_key, SymtableItem *out_item) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
@@ -146,7 +146,7 @@ symtable_result symtable_findItem(symtable *table, DString *searched_key, symtab
     size_t index = symtable_hashFunction(searched_key) % table->allocated_size;
 
     // Vezmeme položku na indexu
-    symtable_item item = table->array[index];
+    SymtableItem item = table->array[index];
     // Inkrement pro hledání
     size_t i = 0;
     // Procházíme položky dokud nenarazíme na prázdnou položku
@@ -174,14 +174,14 @@ symtable_result symtable_findItem(symtable *table, DString *searched_key, symtab
 /**
  * @brief Odstraní položku z tabulky symbolů
 */
-symtable_result symtable_deleteItem(symtable *table, DString *key) {
+symtable_result symtable_deleteItem(Symtable *table, DString *key) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
     }
 
     // Pokusíme se najít položku
-    symtable_item item;
+    SymtableItem item;
     symtable_result find_result = symtable_findItem(table,key,&item);
 
     // Při neúspěchu vracíme návratový kód
@@ -201,7 +201,7 @@ symtable_result symtable_deleteItem(symtable *table, DString *key) {
 /**
  * @brief Vymaže všechny položky z tabulky symbolů
 */
-void symtable_deleteAll(symtable *table) {
+void symtable_deleteAll(Symtable *table) {
     // Pokud je tabulka NULL, nic se neprovede
     if(table == NULL) {
         return;
@@ -210,7 +210,7 @@ void symtable_deleteAll(symtable *table) {
     // Procházíme všechny položky v tabulce
     for(size_t i = 0; i < table->allocated_size; i++) {
         // Pokud je položka prázdná nebo mrtvá, pokračujeme
-        symtable_item item = table->array[i];
+        SymtableItem item = table->array[i];
         if(item.symbol_state != SYMTABLE_SYMBOL_EMPTY &&
            item.symbol_state != SYMTABLE_SYMBOL_DEAD) {
 
@@ -226,7 +226,7 @@ void symtable_deleteAll(symtable *table) {
 /**
  * @brief Zničí tabulku symbolů a uvolní její paměť
 */
-inline void symtable_destroyTable(symtable *table) {
+inline void symtable_destroyTable(Symtable *table) {
     // Pokud je tabulka NULL, nic se neprovede
     if(table == NULL) {
         return;
@@ -250,7 +250,7 @@ size_t symtable_hashFunction(DString *key) {
 /**
  * @brief Přesun dat z jedné tabulky do druhé (používá se při rozšiřování)
 */
-bool symtable_transfer(symtable *out_table, symtable *in_table) {
+bool symtable_transfer(Symtable *out_table, Symtable *in_table) {
     // Pokud je některá z tabulek NULL, vracíme false (nemělo by nikdy nastat)
     if(out_table == NULL || in_table == NULL) {
         return false;
@@ -270,7 +270,7 @@ bool symtable_transfer(symtable *out_table, symtable *in_table) {
         }
 
         // Vytvoříme novou položku v cílové tabulce
-        symtable_item new_location;
+        SymtableItem new_location;
         symtable_result result = symtable_addItem(in_table, out_table->array[i].key, &new_location);
         // Pokud se nepodařilo přidat položku, vracíme false
         if(result != SYMTABLE_SUCCESS) {
@@ -286,14 +286,14 @@ bool symtable_transfer(symtable *out_table, symtable *in_table) {
 /**
  * @brief Zvětší tabulku symbolů na novou velikost
 */
-symtable *symtable_resize(symtable *table, size_t size) {
+Symtable *symtable_resize(Symtable *table, size_t size) {
     // Pokud je tabulka NULL, vracíme NULL (nemělo by nikdy nastat)
     if(table == NULL) {
         return NULL;
     }
 
     // Vytvoříme novou tabulku
-    symtable *new_table = symtable_allocate(size);
+    SymtablePtr new_table = symtable_allocate(size);
     // Pokud se nepodařilo alokovat paměť, vracíme NULL
     if(new_table == NULL) {
         return NULL;
@@ -314,8 +314,8 @@ symtable *symtable_resize(symtable *table, size_t size) {
 /**
  * @brief Alokuje paměť pro novou tabulku symbolů
 */
-inline symtable *symtable_allocate(size_t size) {
-    return malloc(sizeof(symtable)+size*sizeof(symtable_item));
+inline Symtable *symtable_allocate(size_t size) {
+    return malloc(sizeof(Symtable)+size*sizeof(SymtableItem));
 }
 
 /*** Konec souboru symtable.c ***/
