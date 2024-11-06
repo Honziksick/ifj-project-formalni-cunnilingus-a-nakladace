@@ -183,7 +183,7 @@ void scanner_ungetChar(char c);
 CharType scanner_charIdentity(char c);
 
 // Rozhodování o tom, jestli LETTERS je IDENTIFIKÁTOR, nebo KEYWORD
-scanner_isKeyword(DString *value);
+bool scanner_isKeyword(DString *value);
 
 // Vytvoří nový token
 Token scanner_tokenCreate(TokenType type, DString *value);

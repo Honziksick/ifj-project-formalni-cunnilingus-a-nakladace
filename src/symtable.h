@@ -119,7 +119,7 @@ typedef struct {
 typedef struct {
     size_t allocated_size;          /**< Velikost alokovaného pole položek */
     size_t used_size;               /**< Počet použitých položek včetně mrtvých*/
-    SymtableItem array[];          /**< Pole položek */
+    SymtableItem *array;          /**< Pole položek */
 } Symtable, *SymtablePtr;
 
 
