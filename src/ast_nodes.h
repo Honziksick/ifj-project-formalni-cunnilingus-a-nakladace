@@ -38,6 +38,7 @@
 #include <stdbool.h>
 #include "dynamic_string.h"
 
+
 /*******************************************************************************
  *                                                                             *
  *                             VÝČTOVÉ DATOVÉ TYPY                             *
@@ -144,11 +145,13 @@ typedef enum AST_ExprType {
     AST_EXPR_BINARY_OP          = 4,            /**< Binární operátor */
 } AST_ExprType;
 
+
 /*******************************************************************************
  *                                                                             *
  *                   STRUKTURY PRO JEDNOTLIVÉ TYPY AST UZLŮ                    *
  *                                                                             *
  ******************************************************************************/
+
 /**
  * @brief Kořenový uzel programu.
  *

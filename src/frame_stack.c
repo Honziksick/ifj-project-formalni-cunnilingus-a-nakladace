@@ -32,6 +32,6 @@
 #include "dynamic_string.h"
 
 // Globální zásobník rámců používaný v celém překladači.
-FrameStack *frameStack;
+FrameStack *stack;
 
 /*** Konec souboru frame_stack.h ***/
