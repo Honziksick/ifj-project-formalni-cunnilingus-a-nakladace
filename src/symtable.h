@@ -84,7 +84,8 @@ typedef enum {
     SYMTABLE_ITEM_ALREADY_EXISTS,    /**< Přidávaná položka již existuje */
     SYMTABLE_ITEM_DOESNT_EXIST,      /**< Hledaná položka není v tabulce */
     SYMTABLE_TABLE_NULL,             /**< Předaná tabulka je NULL */
-    SYMTABLE_RESIZE_FAIL             /**< Chyba při zvětšení tabulky */
+    SYMTABLE_RESIZE_FAIL,            /**< Chyba při zvětšení tabulky */
+    SYMTABLE_KEY_NULL                /**< Předaný klíč je NULL */
 } symtable_result;
 
 
@@ -157,6 +158,7 @@ Symtable *symtable_init();
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL.
  *         - @c SYMTABLE_RESIZE_FAIL, pokud selhalo rozšíření tabulky.
  *         - @c SYMTABLE_ALLOCATION_FAIL, pokud selhala alokace paměti pro nový prvek.
+ *         - @c SYMTABLE_KEY_NULL, pokud byl předán klíč NULL.
  */
 symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *out_item);
 
@@ -195,6 +197,8 @@ symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem *ou
  *         - @c SYMTABLE_ITEM_DOESNT_EXIST, pokud se položka s daným klíčem
  *           v tabulce nenachází.
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL
+ *         - @c SYMTABLE_ALLOCATION_FAIL, pokud selhalo alokování paměti
+ *         - @c SYMTABLE_KEY_NULL, pokud byl předán klíč NULL
  */
 symtable_result symtable_findItem(Symtable *table, DString *key, SymtableItem *out_item);
 
@@ -210,6 +214,7 @@ symtable_result symtable_findItem(Symtable *table, DString *key, SymtableItem *o
  *         - @c SYMTABLE_ITEM_DOESNT_EXIST, pokud se položka s daným klíčem
  *           v tabulce nenachází.
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL
+ *         - @c SYMTABLE_KEY_NULL, pokud byl předán klíč NULL
  */
 symtable_result symtable_deleteItem(Symtable *table, DString *key);
 
