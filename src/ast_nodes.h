@@ -54,13 +54,13 @@ typedef enum AST_NodeType {
     // Struktury programu
     AST_PROGRAM_NODE            = 1,            /**< Uzel pro celý program */
     AST_FUN_DEF_NODE            = 2,            /**< Uzel pro definici funkce */
-    AST_ARG_OR_PARAM_NODE       = 3,            /**< Uzel pro parametr */
+    AST_ARG_OR_PARAM_NODE       = 3,            /**< Uzel pro argument/parametr funkce */
     AST_STATEMENT_NODE          = 4,            /**< Uzel pro příkaz */
 
     // Příkazy
     AST_FUN_CALL_NODE           = 5,            /**< Uzel pro volání funkce */
-    AST_IF_NODE                 = 6,            /**< Uzel pro podmíněný příkaz if */
-    AST_WHILE_NODE              = 7,            /**< Uzel pro cyklus while */
+    AST_IF_NODE                 = 6,            /**< Uzel pro podmíněný příkaz "if" */
+    AST_WHILE_NODE              = 7,            /**< Uzel pro cyklus "while" */
 
     // Výrazy
     AST_EXPR_NODE               = 8,            /**< Uzel pro výraz */
@@ -76,12 +76,13 @@ typedef enum AST_NodeType {
  *          abstraktním syntaktickém stromu (AST).
  */
 typedef enum AST_StatementType {
+    AST_STATEMENT_NOT_DEFINED   = 0,            /**< Typ příkazu není definován */
     AST_STATEMENT_VAR_DEF       = 1,            /**< Definice proměnné */
     AST_STATEMENT_EXPR          = 2,            /**< Výraz */
     AST_STATEMENT_FUN_CALL      = 3,            /**< Volání funkce */
-    AST_STATEMENT_IF            = 4,            /**< Podmíněný příkaz if */
-    AST_STATEMENT_WHILE         = 5,            /**< Smyčka while */
-    AST_STATEMENT_RETURN        = 6,            /**< Návratový příkaz */
+    AST_STATEMENT_IF            = 4,            /**< Podmíněný příkaz "if" */
+    AST_STATEMENT_WHILE         = 5,            /**< Cyklus "while" */
+    AST_STATEMENT_RETURN        = 6,            /**< Příkaz "return" */
 } AST_StatementType;
 
 /**
@@ -90,6 +91,7 @@ typedef enum AST_StatementType {
  * @details Reprezentuje typy binárních operátorů používaných ve výrazech AST.
  */
 typedef enum AST_BinOpType {
+    AST_OP_NOT_DEFINED          = 0,            /**< Typ operátoru nebyl definován */
     AST_OP_EQUAL                = 1,            /**< Operátor rovnosti "==" */
     AST_OP_NOT_EQUAL            = 2,            /**< Operátor nerovnosti "!=" */
     AST_OP_LESS_THAN            = 3,            /**< Operátor menší než "<" */
@@ -109,6 +111,7 @@ typedef enum AST_BinOpType {
  * @details Reprezentuje základní datové typy literálů v AST.
  */
 typedef enum AST_LiteralType {
+    AST_LITERAL_NOT_DEFINED     = 0,            /**< Typ literálu nebyl definován */
     AST_LITERAL_INT             = 1,            /**< Literál typu i32 */
     AST_LITERAL_FLOAT           = 2,            /**< Literál typu f64 */
     AST_LITERAL_STRING          = 3,            /**< Literál typu []u8 */
@@ -123,14 +126,14 @@ typedef enum AST_LiteralType {
  * @warning Typ @c void je povolen pouze jako pseudo návratový typ funkcí.
  */
 typedef enum AST_DataType {
-    AST_DATA_TYPE_NOT_DEFINED   = 1,            /**< Datový typ není uveden */
-    AST_DATA_TYPE_INT           = 2,            /**< Datový typ i32 */
-    AST_DATA_TYPE_INT_OR_NULL   = 3,            /**< Datový typ i32 nebo NULL */
-    AST_DATA_TYPE_FLOAT         = 4,            /**< Datový typ f64 */
+    AST_DATA_TYPE_NOT_DEFINED   = 0,            /**< Datový typ není uveden */
+    AST_DATA_TYPE_INT           = 1,            /**< Datový typ i32 */
+    AST_DATA_TYPE_INT_OR_NULL   = 2,            /**< Datový typ i32 nebo NULL */
+    AST_DATA_TYPE_FLOAT         = 3,            /**< Datový typ f64 */
     AST_DATA_TYPE_FLOAT_OR_NULL = 5,            /**< Datový typ f64 nebo NULL */
-    AST_DATA_TYPE_STRING        = 6,            /**< Datový typ []u8 */
-    AST_DATA_TYPE_STRING_OR_NULL= 7,            /**< Datový typ []u8 nebo NULL */
-    AST_DATA_TYPE_VOID          = 8,            /**< Datový typ void */
+    AST_DATA_TYPE_STRING        = 5,            /**< Datový typ []u8 */
+    AST_DATA_TYPE_STRING_OR_NULL= 6,            /**< Datový typ []u8 nebo NULL */
+    AST_DATA_TYPE_VOID          = 7,            /**< Datový typ void */
 } AST_DataType;
 
 /**
@@ -139,10 +142,11 @@ typedef enum AST_DataType {
  * @details Reprezentuje různé typy výrazů, které mohou být použity v AST.
  */
 typedef enum AST_ExprType {
+    AST_EXPR_NOT_DEFINED        = 0,            /**< Typ výrazu nebyl definován */
     AST_EXPR_LITERAL            = 1,            /**< Literál */
     AST_EXPR_VARIABLE           = 2,            /**< Proměnná (identifikátor) */
     AST_EXPR_FUN_CALL           = 3,            /**< Volání funkce */
-    AST_EXPR_BINARY_OP          = 4,            /**< Binární operátor */
+    AST_EXPR_BINARY_OP          = 4,            /**< Binární operace */
 } AST_ExprType;
 
 
@@ -205,7 +209,7 @@ typedef struct AST_ArgOrParamNode {
 typedef struct AST_StatementNode {
     enum   AST_NodeType      type;              /**< Typ uzlu (AST_STATEMENT_NODE) */
     enum   AST_StatementType statementType;     /**< Typ příkazu */
-           void              *node;             /**< Ukazatel na uzel specifický pro daný příkaz */
+           void              *statement;        /**< Ukazatel na uzel specifický pro daný příkaz */
     struct AST_StatementNode *next;             /**< Ukazatel na další příkaz */
 } AST_StatementNode;
 
@@ -299,6 +303,23 @@ typedef struct AST_VarNode {
     enum AST_LiteralType literalType;           /**< Typ hodnoty */
          void            *value;                /**< Ukazatel na hodnotu literálu */
 } AST_VarNode;
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                       DEKLARACE GLOBÁLNÍCH PROMĚNNÝCH                       *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Globální kořen abstraktního syntaktického stromu.
+ *
+ * @details Tato proměnná obsahuje kořenový uzel abstraktního syntaktického
+ *          stromu (AST), který je vytvářen během syntaktické analýzy. AST je
+ *          používán pro reprezentaci struktury programu a je generován parserem.
+ *          Dále je využíván k sémantické analýze a generování 3AK.
+ */
+extern AST_ProgramNode *ASTroot;
 
 #endif // AST_NODES_H_
 

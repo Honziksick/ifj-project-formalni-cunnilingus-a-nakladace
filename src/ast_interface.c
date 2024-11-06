@@ -3,10 +3,10 @@
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
  * Soubor:           ast_interface.c                                           *
- * Autor:            XXXX XXXXX   <xplagia00>                                  *
+ * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            01.11.2024                                                *
- * Poslední změna:   01.11.2024                                                *
+ * Poslední změna:   06.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -17,7 +17,7 @@
  ******************************************************************************/
 /**
  * @file ast_interface.c
- * @author XXXX XXXXX \<xplagia00>
+ * @author Jan Kalina \<xkalinj00>
  *
  * @brief Implementace funkcí pro tvorbu a destrukci uzlů AST.
  *
@@ -30,5 +30,800 @@
 
 #include "ast_nodes.h"
 #include "ast_interface.h"
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Vytvoří nový uzel AST daného typu.
+ */
+void *AST_createNode(AST_NodeType type) {
+    // Na základě typu uzlu typu uzlu vybereme specializovaný "creator"
+    switch(type) {
+        // Uzel pro program
+        case AST_PROGRAM_NODE:
+            return AST_createProgramNode();
+
+        // Uzel pro definici funkce
+        case AST_FUN_DEF_NODE:
+            return AST_createFunDefNode();
+
+        // Uzel pro argument/parametr funkce
+        case AST_ARG_OR_PARAM_NODE:
+            return AST_createArgOrParamNode();
+
+        // Uzel pro příkaz
+        case AST_STATEMENT_NODE:
+            return AST_createStatementNode();
+
+        // Uzel pro volání funkce
+        case AST_FUN_CALL_NODE:
+            return AST_createFunCallNode();
+
+        // Uzel pro podmíněný příkaz "if"
+        case AST_IF_NODE:
+            return AST_createIfNode();
+
+        // Uzel pro cyklus "while"
+        case AST_WHILE_NODE:
+            return AST_createWhileNode();
+
+        // Uzel pro výraz
+        case AST_EXPR_NODE:
+            return AST_createExprNode();
+
+        // Uzel pro binární operaci
+        case AST_BIN_OP_NODE:
+            return AST_createBinOpNode();
+
+        // Uzel pro literál
+        case AST_LITERAL_NODE:
+            return AST_createLiteralNode();
+
+        // Uzel pro proměnnou
+        case AST_VAR_NODE:
+            return AST_createVarNode();
+
+        // Jinak vracíme NULL
+        default:
+            return NULL;
+    }
+} // AST_createNode()
+
+/**
+ * @brief Uvolní paměť uzlu AST daného typu.
+ */
+void AST_destroyNode(AST_NodeType type, void *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    switch(type) {
+        // Uzel pro program
+        case AST_PROGRAM_NODE:
+            AST_destroyProgramNode((AST_ProgramNode *)node);
+            break;
+
+        // Uzel pro definici funkce
+        case AST_FUN_DEF_NODE:
+            AST_destroyFunDefNode((AST_FunDefNode *)node);
+            break;
+
+        // Uzel pro argument/parametr funkce
+        case AST_ARG_OR_PARAM_NODE:
+            AST_destroyArgOrParamNode((AST_ArgOrParamNode *)node);
+            break;
+
+        // Uzel pro příkaz
+        case AST_STATEMENT_NODE:
+            AST_destroyStatementNode((AST_StatementNode *)node);
+            break;
+
+        // Uzel pro volání funkce
+        case AST_FUN_CALL_NODE:
+            AST_destroyFunCallNode((AST_FunCallNode *)node);
+            break;
+
+        // Uzel pro podmíněný příkaz "if"
+        case AST_IF_NODE:
+            AST_destroyIfNode((AST_IfNode *)node);
+            break;
+
+        // Uzel pro cyklus "while"
+        case AST_WHILE_NODE:
+            AST_destroyWhileNode((AST_WhileNode *)node);
+            break;
+
+        // Uzel pro výraz
+        case AST_EXPR_NODE:
+            AST_destroyExprNode((AST_ExprNode *)node);
+            break;
+
+        // Uzel pro binární operaci
+        case AST_BIN_OP_NODE:
+            AST_destroyBinOpNode((AST_BinOpNode *)node);
+            break;
+
+        // Uzel pro literál
+        case AST_LITERAL_NODE:
+            AST_destroyLiteralNode((AST_LiteralNode *)node);
+            break;
+
+        // Uzel pro proměnnou
+        case AST_VAR_NODE:
+            AST_destroyVarNode((AST_VarNode *)node);
+            break;
+
+        // Jinak se nic nestane
+        default:
+            return;
+    }
+} // AST_destroyNode()
+
+/**
+ * @brief Alokuje paměť pro globální kořen abstraktního syntaktického stromu
+ */
+inline void AST_createTree() {
+    ASTroot = AST_createProgramNode();
+} // AST_createTree()
+
+/**
+ * @brief Uvolní z paměti celý abstraktní syntaktický strom
+ */
+void AST_destroyTree() {
+    // Pokud je kořen platný, zahájí postupnou destrukci stromu
+    if(ASTroot != NULL) {
+        AST_destroyProgramNode(ASTroot);
+        ASTroot = NULL;
+    }
+} // AST_destroyTree()
+
+
+/*******************************************************************************
+ *                                                                             *
+ *           IMPLEMENTACE INTERNÍCH FUNKCÍ NA TVORBU A DESTRUKCI UZLŮ          *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Vytvoří kořenový uzel programu.
+ */
+AST_ProgramNode *AST_createProgramNode() {
+    // Alokujeme paměť pro nový uzel typu "AST_ProgramNode"
+    AST_ProgramNode *node = (AST_ProgramNode *)malloc(sizeof(AST_ProgramNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->type = AST_PROGRAM_NODE;
+    node->importedFile = NULL;
+    node->functionList = NULL;
+
+    // Vracíme ukazatel na nový uzel
+    return node;
+} // AST_createProgramNode()
+
+/**
+ * @brief Uvolní paměť pro kořenový uzel programu.
+ */
+void AST_destroyProgramNode(AST_ProgramNode *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    // Uvolníme dynamický string uvnitř uzlu
+    if(node->importedFile != NULL) {
+        string_free(node->importedFile);
+    }
+
+    // Uvolníme všechny s uzlem svázané definice funkcí
+    AST_destroyFunDefList(node->functionList);
+
+    // Uvolníme uzel
+    free(node);
+} // AST_destroyProgramNode()
+
+/**
+ * @brief Vytvoří uzel pro definici funkce.
+ */
+AST_FunDefNode *AST_createFunDefNode() {
+    // Alokujeme paměť pro nový uzel typu "AST_FunDefNode"
+    AST_FunDefNode *node = (AST_FunDefNode *)malloc(sizeof(AST_FunDefNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->type = AST_FUN_DEF_NODE;
+    node->identifier = NULL;
+    node->parameters = NULL;
+    node->returnType = AST_DATA_TYPE_NOT_DEFINED;
+    node->body = NULL;
+    node->next = NULL;
+
+    // Vracíme ukazatel na nový uzel
+    return node;
+} // AST_createFunDefNode()
+
+/**
+ * @brief Uvolní paměť pro uzel definice funkce.
+ */
+void AST_destroyFunDefNode(AST_FunDefNode *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    // Uvolníme dynamický string uvnitř uzlu
+    if(node->identifier != NULL) {
+        string_free(node->identifier);
+    }
+
+    // Uvolníme všechny s uzlem svázané parametry
+    AST_destroyArgOrParamList(node->parameters);
+
+    // Uvolníme všechny s uzlem svázané příkazy
+    AST_destroyStatementList(node->body);
+
+    // Uvolníme uzel
+    free(node);
+} // AST_destroyFunDefNode()
+
+/**
+ * @brief Vytvoří uzel pro parametry nebo argumenty funkce.
+ */
+AST_ArgOrParamNode *AST_createArgOrParamNode() {
+    // Alokujeme paměť pro nový uzel typu "AST_ArgOrParamNode"
+    AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)malloc(sizeof(AST_ArgOrParamNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->type = AST_ARG_OR_PARAM_NODE;
+    node->identifier = NULL;
+    node->variable = NULL;
+    node->next = NULL;
+
+    // Vracíme ukazatel na nový uzel
+    return node;
+} // AST_createArgOrParamNode()
+
+/**
+ * @brief Uvolní paměť pro uzel definice funkce.
+ */
+void AST_destroyArgOrParamNode(AST_ArgOrParamNode *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    // Uvolníme dynamický string uvnitř uzlu
+    if(node->identifier != NULL) {
+        string_free(node->identifier);
+    }
+
+    // Uvolníme s uzlem svázaný uzel proměnné
+    AST_destroyNode(AST_VAR_NODE, node->variable);
+
+    // Uvolníme uzel
+    free(node);
+} // AST_destroyArgOrParamNode()
+
+/**
+ * @brief Vytvoří uzel pro příkaz.
+ */
+AST_StatementNode *AST_createStatementNode() {
+    // Alokujeme paměť pro nový uzel typu "AST_StatementNode"
+    AST_StatementNode *node = (AST_StatementNode *)malloc(sizeof(AST_StatementNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->type = AST_STATEMENT_NODE;
+    node->statementType = AST_STATEMENT_NOT_DEFINED;
+    node->statement = NULL;
+    node->next = NULL;
+
+    // Vracíme ukazatel na nový uzel
+    return node;
+} // AST_createStatementNode()
+
+/**
+ * @brief Uvolní paměť pro uzel příkazu.
+ */
+void AST_destroyStatementNode(AST_StatementNode *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    // Pokud je ukazatel na konkrétní příkaz platný, ...
+    if(node->statement != NULL) {
+        // ...na základě jeho typu voláme specializovaný destruktor
+        switch(node->statementType) {
+            // Typ příkazu není definován
+            case AST_STATEMENT_NOT_DEFINED:
+                break;
+
+            // Definice proměnné
+            case AST_STATEMENT_VAR_DEF:
+                AST_destroyNode(AST_VAR_NODE, node->statement);
+                break;
+
+            // Výraz
+            case AST_STATEMENT_EXPR:
+                AST_destroyNode(AST_EXPR_NODE, node->statement);
+                break;
+
+            // Volání funkce
+            case AST_STATEMENT_FUN_CALL:
+                AST_destroyNode(AST_FUN_CALL_NODE, node->statement);
+                break;
+
+            // Podmíněný příkaz "if"
+            case AST_STATEMENT_IF:
+                AST_destroyNode(AST_IF_NODE, node->statement);
+                break;
+
+            // Cyklus "while"
+            case AST_STATEMENT_WHILE:
+                AST_destroyNode(AST_WHILE_NODE, node->statement);
+                break;
+
+            // Příkaz "return"
+            case AST_STATEMENT_RETURN:
+                AST_destroyNode(AST_EXPR_NODE, node->statement);
+                break;
+
+            // Jinak se nic nestane
+            default:
+                return;
+        }
+    }
+
+    // Uvolníme uzel
+    free(node);
+} // AST_destroyStatementNode()
+
+/**
+ * @brief Vytvoří uzel pro volání funkce.
+ */
+AST_FunCallNode *AST_createFunCallNode() {
+    // Alokujeme paměť pro nový uzel typu "AST_FunCallNode"
+    AST_FunCallNode *node = (AST_FunCallNode *)malloc(sizeof(AST_FunCallNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->type = AST_FUN_CALL_NODE;
+    node->identifier = NULL;
+    node->isBuiltIn = false;
+    node->arguments = NULL;
+
+    // Vracíme ukazatel na nový uzel
+    return node;
+} // AST_createFunCallNode()
+
+/**
+ * @brief Uvolní paměť pro uzel volání funkce.
+ */
+void AST_destroyFunCallNode(AST_FunCallNode *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    // Uvolníme dynamický string uvnitř uzlu
+    if(node->identifier != NULL) {
+        string_free(node->identifier);
+    }
+
+    // Uvolníme všechny s uzlem svázané argumenty
+    AST_destroyArgOrParamList(node->arguments);
+
+    // Uvolníme uzel
+    free(node);
+} // AST_destroyFunCallNode()
+
+/**
+ * @brief Vytvoří uzel pro podmíněný příkaz if.
+ */
+AST_IfNode *AST_createIfNode() {
+    // Alokujeme paměť pro nový uzel typu "AST_IfNode"
+    AST_IfNode *node = (AST_IfNode *)malloc(sizeof(AST_IfNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->type = AST_IF_NODE;
+    node->condition = NULL;
+    node->nullCondition = NULL;
+    node->thenBranch = NULL;
+    node->elseBranch = NULL;
+
+    // Vracíme ukazatel na nový uzel
+    return node;
+} // AST_createIfNode()
+
+/**
+ * @brief Uvolní paměť pro uzel podmíněného příkazu if.
+ */
+void AST_destroyIfNode(AST_IfNode *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    // Uvolníme všechny s uzlem příkazu "if" svázané podmínky
+    AST_destroyNode(AST_EXPR_NODE, node->condition);
+    AST_destroyNode(AST_VAR_NODE, node->nullCondition);
+
+    // Uvolníme všechny s větví "then" svázané příkazy
+    AST_destroyStatementList(node->thenBranch);
+
+    // Uvolníme všechny s větví "else" svázané příkazy
+    AST_destroyStatementList(node->elseBranch);
+
+    // Uvolníme uzel
+    free(node);
+} // AST_destroyIfNode()
+
+/**
+ * @brief Vytvoří uzel pro cyklus while.
+ */
+AST_WhileNode *AST_createWhileNode() {
+    // Alokujeme paměť pro nový uzel typu "AST_WhileNode"
+    AST_WhileNode *node = (AST_WhileNode *)malloc(sizeof(AST_WhileNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->type = AST_WHILE_NODE;
+    node->condition = NULL;
+    node->nullCondition = NULL;
+    node->body = NULL;
+
+    // Vracíme ukazatel na nový uzel
+    return node;
+} // AST_createWhileNode()
+
+/**
+ * @brief Uvolní paměť pro uzel cyklu while.
+ */
+void AST_destroyWhileNode(AST_WhileNode *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    // Uvolníme všechny s uzlem cyklu "while" svázané podmínky
+    AST_destroyNode(AST_EXPR_NODE, node->condition);
+    AST_destroyNode(AST_VAR_NODE, node->nullCondition);
+
+    // Uvolníme všechny s cyklem svázané příkazy
+    AST_destroyStatementList(node->body);
+
+    // Uvolníme uzel
+    free(node);
+} // AST_destroyWhileNode()
+
+/**
+ * @brief Vytvoří uzel pro výraz.
+ */
+AST_ExprNode *AST_createExprNode() {
+    // Alokujeme paměť pro nový uzel typu "AST_ExprNode"
+    AST_ExprNode *node = (AST_ExprNode *)malloc(sizeof(AST_ExprNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->type = AST_EXPR_NODE;
+    node->exprType = AST_EXPR_NOT_DEFINED;
+    node->expression = NULL;
+
+    // Vracíme ukazatel na nový uzel
+    return node;
+} // AST_createExprNode()
+
+/**
+ * @brief Uvolní paměť pro uzel výrazu.
+ */
+void AST_destroyExprNode(AST_ExprNode *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    // Pokud je ukazatel na konkrétní výraz platný, ...
+    if(node->expression != NULL) {
+        // ...na základě jeho typu voláme specializovaný destruktor
+        switch(node->exprType) {
+            // Typ výrazu nebyl definován
+            case AST_EXPR_NOT_DEFINED:
+                break;
+
+            // Literál
+            case AST_EXPR_LITERAL:
+                AST_destroyNode(AST_LITERAL_NODE, node->expression);
+                break;
+
+            // Proměnná (identifikátor)
+            case AST_EXPR_VARIABLE:
+                AST_destroyNode(AST_VAR_NODE, node->expression);
+                break;
+
+            // Volání funkce
+            case AST_EXPR_FUN_CALL:
+                AST_destroyNode(AST_FUN_CALL_NODE, node->expression);
+                break;
+
+            // Binární operace
+            case AST_EXPR_BINARY_OP:
+                AST_destroyNode(AST_BIN_OP_NODE, node->expression);
+                break;
+
+            // Jinak se nic nestane
+            default:
+                return;
+        }
+    }
+
+    // Uvolníme uzel
+    free(node);
+} // AST_destroyExprNode()
+
+/**
+ * @brief Vytvoří uzel pro binární operátor.
+ */
+AST_BinOpNode *AST_createBinOpNode() {
+    // Alokujeme paměť pro nový uzel typu "AST_BinOpNode"
+    AST_BinOpNode *node = (AST_BinOpNode *)malloc(sizeof(AST_BinOpNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->type = AST_BIN_OP_NODE;
+    node->op = AST_OP_NOT_DEFINED;
+    node->left = NULL;
+    node->right = NULL;
+
+    // Vracíme ukazatel na nový uzel
+    return node;
+} // AST_createBinOpNode()
+
+/**
+ * @brief Uvolní paměť pro uzel binárního operátoru.
+ */
+void AST_destroyBinOpNode(AST_BinOpNode *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    // Uvolníme levý a pravý operand binární operace
+    AST_destroyNode(AST_EXPR_NODE, node->left);
+    AST_destroyNode(AST_EXPR_NODE, node->right);
+
+    // Uvolníme uzel
+    free(node);
+} // AST_destroyBinOpNode()
+
+/**
+ * @brief Vytvoří uzel pro literál.
+ */
+AST_LiteralNode *AST_createLiteralNode() {
+    // Alokujeme paměť pro nový uzel typu "AST_LiteralNode"
+    AST_LiteralNode *node = (AST_LiteralNode *)malloc(sizeof(AST_LiteralNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->type = AST_LITERAL_NODE;
+    node->literalType = AST_LITERAL_NOT_DEFINED;
+    node->value = NULL;
+
+    // Vracíme ukazatel na nový uzel
+    return node;
+} // AST_createLiteralNode()
+
+/**
+ * @brief Uvolní paměť pro uzel literálu.
+ */
+void AST_destroyLiteralNode(AST_LiteralNode *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    // Uvolníme paměť přidělenou hodnotě literálu
+    if(node->value != NULL) {
+        AST_destroyValue(node->literalType, node->value);
+    }
+
+    // Uvolníme uzel
+    free(node);
+} // AST_destroyLiteralNode()
+
+/**
+ * @brief Vytvoří uzel pro proměnnou.
+ */
+AST_VarNode *AST_createVarNode() {
+    // Alokujeme paměť pro nový uzel typu "AST_VarNode"
+    AST_VarNode *node = (AST_VarNode *)malloc(sizeof(AST_VarNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->type = AST_VAR_NODE;
+    node->identifier = NULL;
+    node->literalType = AST_LITERAL_NOT_DEFINED;
+    node->value = NULL;
+
+    // Vracíme ukazatel na nový uzel
+    return node;
+} // AST_createVarNode()
+
+/**
+ * @brief Uvolní paměť pro uzel proměnné.
+ */
+void AST_destroyVarNode(AST_VarNode *node) {
+    // Pokud je ukazatel na uzel neplatný, nic se nestane
+    if(node == NULL) {
+        return;
+    }
+
+    // Uvolníme dynamický string uvnitř uzlu
+    if(node->identifier != NULL) {
+        string_free(node->identifier);
+    }
+
+    // Uvolníme paměť přidělenou hodnotě proměnné
+    if(node->value != NULL) {
+        AST_destroyValue(node->literalType, node->value);
+    }
+
+    // Uvolníme uzel
+    free(node);
+} // AST_destroyVarNode()
+
+
+/*******************************************************************************
+ *                                                                             *
+ *             IMPLEMENTACE INTERNÍCH FUNKCÍ NA DESTRUKCI SEZNAMŮ              *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Uvolní paměť pro všechny uzly v seznamu parametrů/argumentů v uzlu pro funkci.
+ */
+void AST_destroyArgOrParamList(AST_ArgOrParamNode *list) {
+    // Vytvoříme si pomocný ukazatel na aktuální argument/parametr
+    AST_ArgOrParamNode *currArgOrParamNode = list;
+
+    // Cyklicky mažeme vždy první uzel pro argument/parametr v seznamu
+    while(currArgOrParamNode != NULL) {
+        AST_ArgOrParamNode *nextArgOrParamNode = currArgOrParamNode->next;
+        AST_destroyNode(AST_ARG_OR_PARAM_NODE, currArgOrParamNode);
+        currArgOrParamNode = nextArgOrParamNode;
+    }
+} // AST_destroyArgOrParamList()
+
+/**
+ * @brief Uvolní paměť pro všechny uzly v seznamu pro příkazy.
+ */
+void AST_destroyStatementList(AST_StatementNode *list) {
+    // Vytvoříme si pomocný ukazatel na aktuální příkaz
+    AST_StatementNode *currStatementNode = list;
+
+    // Cyklicky mažeme vždy první uzel pro příkaz v seznamu
+    while(currStatementNode != NULL) {
+        AST_StatementNode *nextStatementNode = currStatementNode->next;
+        AST_destroyNode(AST_STATEMENT_NODE, currStatementNode);
+        currStatementNode = nextStatementNode;
+    }
+} // AST_destroyStatementList()
+
+/**
+ * @brief Uvolní paměť pro všechny uzly v seznamu definovaných funkcí.
+ */
+void AST_destroyFunDefList(AST_FunDefNode *list) {
+    // Vytvoříme si pomocný ukazatel na aktuální definici funkce
+    AST_FunDefNode *currFunDefNode = list;
+
+    // Cyklicky mažeme vždy první uzel pro definici funkce v seznamu
+    while(currFunDefNode != NULL) {
+        AST_FunDefNode *nextFunDefNode = currFunDefNode->next;
+        AST_destroyNode(AST_FUN_DEF_NODE, currFunDefNode);
+        currFunDefNode = nextFunDefNode;
+    }
+} // AST_destroyFunDefList()
+
+/**
+ * @brief Uvolní paměť hodnoty proměnné nebo literálu.
+ */
+void AST_destroyValue(AST_LiteralType type, void *value) {
+
+    // Pokud je ukazatel na příslušnou hodnotu proměnné/literálu platný, ...
+    if(value != NULL) {
+        // ...tak na základě jeho typu voláme specializovaný destruktor
+        switch(type) {
+            // Typ literálu nebyl definován
+            case AST_LITERAL_NOT_DEFINED:
+                break;
+
+            // Literál typu i32
+            case AST_LITERAL_INT:
+                free((int *)value);
+                break;
+
+            // Literál typu f64
+            case AST_LITERAL_FLOAT:
+                free((double *)value);
+                break;
+
+            // Literál typu []u8
+            case AST_LITERAL_STRING:
+                string_free((DString *)value);
+                break;
+
+            // Literál typu NULL (pro ten nemusíme provádět žádnou operaci)
+            case AST_LITERAL_NULL:
+                break;
+
+            // Jinak se nic nestane
+            default:
+                return;
+        }
+    }
+} // AST_destroyValue()
 
 /*** Konec souboru ast_interface.c ***/
