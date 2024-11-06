@@ -3,10 +3,10 @@
 # Název projektu:   Implementace překladače imperativního jazyka IFJ24         #
 #                                                                              #
 # Soubor:           Makefile                                                   #
-# Autor:            Jan Kalina <xkalinj00>                                     #
+# Autor:            Jan Kalina   <xkalinj00>                                   #
 #                                                                              #
 # Datum:            29.09.2024                                                 #
-# Poslední změna:   8.10.2024                                                  #
+# Poslední změna:   06.11.2024                                                 #
 #                                                                              #
 # Tým:      Tým xkalinj00                                                      #
 # Členové:  Farkašovský Lukáš    <xfarkal00>                                   #
@@ -98,10 +98,10 @@ COVERAGE_FLAGS = -fprofile-arcs -ftest-coverage
 SANITIZE_FLAGS = -fsanitize=address -fsanitize=undefined
 
 # Flagy pro překlad různých částí projektu
-CFLAGS_STD = $(STD_C) -O2 $(WARNING_FLAGS) 
+CFLAGS_STD = $(STD_C) -O2 $(WARNING_FLAGS)
 CFLAGS_TEST = $(STD_C) -O0 $(WARNING_FLAGS) $(DEBUG_FLAGS) $(SANITIZE_FLAGS)
-CXXFLAGS_TEST = $(STD_CXX) -O0 $(DEBUG_FLAGS) $(WARNING_FLAGS) $(SANITIZE_FLAGS)
-CFLAGS_COV = $(STD_C) -O0 $(WARNING_FLAGS) $(DEBUG_FLAGS) $(COVERAGE_FLAGS) $(SANITIZE_FLAGS)
+CXXFLAGS_TEST = $(STD_CXX) -O0 $(WARNING_FLAGS) $(DEBUG_FLAGS) $(SANITIZE_FLAGS)
+CFLAGS_COV = $(STD_C) -O0 $(WARNING_FLAGS) $(DEBUG_FLAGS) $(COVERAGE_FLAGS)
 CXXFLAGS_COV = $(STD_CXX) -O0 $(WARNING_FLAGS) $(DEBUG_FLAGS) $(COVERAGE_FLAGS) $(SANITIZE_FLAGS)
 
 
@@ -111,6 +111,7 @@ CXXFLAGS_COV = $(STD_CXX) -O0 $(WARNING_FLAGS) $(DEBUG_FLAGS) $(COVERAGE_FLAGS) 
 
 # Seznam všech zdrojových souborů překladače a testů
 SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC_FILES))
 TEST_FILES = $(wildcard $(TEST_DIR)/*.cpp)
 
 # Seznam všech objektových souborů přeložených pro testování
@@ -135,9 +136,9 @@ COV_TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.cpp,$(COVERAGE_BUILD_DIR)/%.o,$(TE
 all: build
 
 ### MC # build: # Sestaví překladač týmu "Tým xkalinj00"
-build:
-	@echo "\033[31mPřekladač tým xkalinj00 alias \"Formální cunnilingus a nakladače\" ještě není připraven.\033[0m"
-# NEZAPOMENOUT PŘESUNOUT VÝSLEDNOU BINÁRKU
+build: $(BUILD_DIR)/$(EXECUTABLE)
+	mv $(BUILD_DIR)/$(EXECUTABLE) $(SRC_DIR)/$(EXECUTABLE)
+	$(MAKE) clean-build
 
 # Definice zkratek pro kategorie příkazů
 CATEGORIES := MC C B T CC DEV O
@@ -166,8 +167,8 @@ help:
 	done; \
 	} | less -R
 
-### MC # clean: # Odstraní všechny soubory vytvořené během kompilace (včetně dokumentace a archivu)
-clean: clean-build clean-test clean-coverage clean-doc clean-pack
+### MC # clean: # Příkaz 'clean' je namapován na příkaz 'clean-build' pro účely odevzdaní
+clean: clean-build
 
 ### MC # test: # Sestaví knihovny GoogleTest a GoogleMock a spustí test překladače
 test: build-test
@@ -177,7 +178,7 @@ test: build-test
 doc:
 	@$(MAKE) $(SILENTOPT) install-doc-dep
 	$(MAKE) $(SILENTOPT) clean-doc
-	doxygen Doxyfile 
+	doxygen Doxyfile
 	cd $(DOC_DIR)/html && grep -v 'target="_self">resources\|target="_self">doc' files.html > temp.html && mv temp.html files.html
 	@echo '<html><head><meta http-equiv="refresh" content="0; url=html/index.html"></head></html>' > $(DOC_DIR)/documentation.html
 	@echo -e "\033[33mChcete otevřít HTML dokumentaci v hlavním systémovém prohlížeči? (y/n): \033[0m"
@@ -191,7 +192,7 @@ doc:
 	fi'
 
 ### MC # coverage: # Provede analýzu pokrytí kódu a vygeneruje HTML přehled
-coverage: 
+coverage:
 	@$(MAKE) $(SILENTOPT) install-cov-dep
 	$(MAKE) build-coverage
 	$(MAKE) run-test-coverage
@@ -222,6 +223,9 @@ pack:
 #                                                                              #
 ################################################################################
 
+### C # clean-all: # Odstraní všechny soubory vytvořené během kompilace (včetně dokumentace a archivu)
+clean-all: clean-build clean-test clean-coverage clean-doc clean-pack
+
 ### C # clean-build: # Odstraní adresář 'src/build' s verzí překladače k nasazení
 clean-build:
 	rm -rf $(BUILD_DIR)
@@ -245,6 +249,22 @@ clean-pack:
 
 ################################################################################
 #                                                                              #
+#                         KOMPILACE CELÉHO PŘEKLADAČE                          #
+#                                                                              #
+################################################################################
+
+# Pravidlo pro sestavení cílového programu
+$(BUILD_DIR)/$(EXECUTABLE): $(OBJ_FILES)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -o $@ $^
+
+# Pravidlo pro sestavení objektových souborů
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
+
+################################################################################
+#                                                                              #
 #                         KOMPILACE DÍLČÍCH SUBMODULŮ                          #
 #                                                                              #
 ################################################################################
@@ -253,29 +273,44 @@ clean-pack:
 #                         Podpůrné KNIHOVNY a SUBMODULY                        #
 ###                                                                          ###
 
-ERROR_LIB_XKALINJ00 = error
-STRING_LIB_XFARKAL00 = dynamic_string
-SYMTABLE_XKREJCD00 = symtable
+ERROR_LIB = error
+DYNAMIC_STRING_LIB = dynamic_string
+SYMTABLE = symtable
 
 ### B # build-error: # Sestaví knihovnu k řízení chybových stavů
-build-error: $(BUILD_DIR)/$(ERROR_LIB_XKALINJ00).o
+build-error: $(BUILD_DIR)/$(ERROR_LIB).o
 
 ### B # build-string: # Sestaví knihovnu operací nad dynamickým stringem
-build-string: $(BUILD_DIR)/$(STRING_LIB_XFARKAL00).o
+build-string: $(BUILD_DIR)/$(DYNAMIC_STRING_LIB).o
 
 ### B # build-symtable: # Sestaví knihovnu operací nad tabulkou symbolů typu TRP-izp
-build-symtable: $(BUILD_DIR)/$(SYMTABLE_XKREJCD00).o
+build-symtable: $(BUILD_DIR)/$(SYMTABLE).o
 
 # Stavba objekotvých souborů jednotlivých podpůrných submodulů a knihoven
-$(BUILD_DIR)/$(ERROR_LIB_XKALINJ00).o: $(SRC_DIR)/$(ERROR_LIB_XKALINJ00).c
+$(BUILD_DIR)/$(ERROR_LIB).o: $(SRC_DIR)/$(ERROR_LIB).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
-$(BUILD_DIR)/$(STRING_LIB_XFARKAL00).o: $(SRC_DIR)/$(STRING_LIB_XFARKAL00).c
+$(BUILD_DIR)/$(DYNAMIC_STRING_LIB).o: $(SRC_DIR)/$(DYNAMIC_STRING_LIB).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
-$(BUILD_DIR)/$(SYMTABLE_XKREJCD00).o: $(SRC_DIR)/$(SYMTABLE_XKREJCD00).c
+$(BUILD_DIR)/$(SYMTABLE).o: $(SRC_DIR)/$(SYMTABLE).c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
+
+###                                                                          ###
+#              SUBMODULY lexikálního analyzátoru alias "scanneru"              #
+###                                                                          ###
+
+SCANNER = scanner
+
+### B # build-scanner: # Sestaví lexikální analyzátor alias 'scanner'
+build-scanner: $(BUILD_DIR)/$(SCANNER).o
+
+# Stavba objektových souborů jednotlivých modulů překladače
+$(BUILD_DIR)/$(SCANNER).o: $(SRC_DIR)/$(SCANNER).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
@@ -284,45 +319,60 @@ $(BUILD_DIR)/$(SYMTABLE_XKREJCD00).o: $(SRC_DIR)/$(SYMTABLE_XKREJCD00).c
 #             SUBMODULY syntaktického analyzátoru alias "parseru"              #
 ###                                                                          ###
 
-SUB_PARSER_XKALINJ00 = xkalinj00
-SUB_PARSER_XFARKAL00 = xfarkal00
-SUB_PARSER_XHYZAPA00 = xhyzapa00
-SUB_PARSER_XKREJCD00 = xkrejcd00
+LLTABLE = lltable
+FRAME_STACK_LIB = frame_stack
+AST_LIB = ast_interface
+PARSER = parser
+PARSER_SRC = $(SRC_DIR)/$(LLTABLE).c $(SRC_DIR)/$(FRAME_STACK_LIB).c $(SRC_DIR)/$(AST_LIB).c $(SRC_DIR)/$(PARSER).c
+
+### B # build-lltable: # Sestaví LL-tabulky využívanou parserem
+build-lltable: $(BUILD_DIR)/$(LLTABLE).o
+
+### B # build-frame-stack: # Sestaví knihovnu pro zásobník rámců využívný parserem
+build-frame-stack: $(BUILD_DIR)/$(FRAME_STACK_LIB).o
+
+### B # build-ast: # Sestaví knihovnu pro abstraktní syntaktický strom (AST)
+build-ast: $(BUILD_DIR)/$(AST_LIB).o
+
+### B # build-parser: # Sestaví syntaktický analyzátor alias 'parser'
+build-parser: $(BUILD_DIR)/$(PARSER).o
+
+# Stavba objektových souborů jednotlivých modulů překladače
+$(BUILD_DIR)/$(LLTABLE).o: $(SRC_DIR)/$(LLTABLE).c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
+$(BUILD_DIR)/$(FRAME_STACK_LIB).o: $(SRC_DIR)/$(FRAME_STACK_LIB).c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
+$(BUILD_DIR)/$(AST_LIB).o: $(SRC_DIR)/$(AST_LIB).c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
+$(BUILD_DIR)/$(PARSER).o: $(PARSER_SRC)
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
 
 ###                                                                          ###
 #                      SUBMODULY sémantického analyzátoru                      #
 ###                                                                          ###
 
-SUB_SEMANT_XKALINJ00 = xkalinj00
-SUB_SEMANT_XFARKAL00 = xfarkal00
-SUB_SEMANT_XHYZAPA00 = xhyzapa00
-SUB_SEMANT_XKREJCD00 = xkrejcd00
+SEMANTIC = semantic_analyser
+
+### B # build-semantic: # Sestaví sémantický analyzátor
+build-semantic: $(BUILD_DIR)/$(SEMANTIC).o
 
 
-################################################################################
-#                                                                              #
-#                  KOMPILACE JEDNOTLIVÝCH MODULŮ ZE SUBMODULŮ                  #
-#                                                                              #
-################################################################################
+###                                                                          ###
+#                 SUBMODULY generátoru tříadresného kódu (3AK)                 #
+###                                                                          ###
 
-SCANNER_XHYZAPA00 = scanner
-PARSER_TEAM = parser
+TAC = tac_generator
 
-### B # build-scanner: # Sestaví lexikální analyzátor alias 'scanner'
-build-scanner: $(BUILD_DIR)/$(SCANNER_XHYZAPA00).o
-
-### B # build-parser: # Sestaví syntaktický analyzátor alias 'parser'
-build-$(PARSER_TEAM): $(BUILD_DIR)/$(PARSER_TEAM).o
-
-# Stavba objektových souborů jednotlivých modulů překladače
-$(BUILD_DIR)/$(SCANNER_XHYZAPA00).o: $(SRC_DIR)/$(SCANNER_XHYZAPA00).c
-	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
-
-$(BUILD_DIR)/$(PARSER_TEAM).o: $(SRC_DIR)/$(PARSER_TEAM).c
-	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+### B # build-tac: # Sestaví generátor tříadresného kódu (3AK)
+build-tac: $(BUILD_DIR)/$(TAC).o
 
 
 ################################################################################
@@ -387,111 +437,211 @@ $(TEST_BUILD_DIR)/gtest_main.a: $(TEST_BUILD_DIR)/gtest-all.o \
 ###                                                                          ###
 
 ### T # build-error-test: # Sestaví test knihovny pro řízení chybových stavů
-build-error-test: $(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00)_test
+build-error-test: $(TEST_BUILD_DIR)/$(ERROR_LIB)_test
 
 ### T # run-error-test: # Spustí test knihovny pro řízení chybových stavů
-run-error-test: $(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00)_test
-	$(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00)_test
+run-error-test: $(TEST_BUILD_DIR)/$(ERROR_LIB)_test
+	$(TEST_BUILD_DIR)/$(ERROR_LIB)_test
 
 ### T # build-string-test: # Sestaví test knihovny operací nad dynamickým stringem
-build-string-test: $(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00)_test
+build-string-test: $(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test
 
 ### T # run-string-test: # Spustí test knihovny operací nad dynamickým stringem
-run-string-test: $(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00)_test
-	$(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00)_test
+run-string-test: $(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test
+	$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test
 
 ### T # build-symtable-test: # Sestaví test knihovny operací nad tabulkou symbolů
-build-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00)_test
+build-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test
 
 ### T # run-symtable-test: # Spustí test knihovny operací nad tabulkou symbolů
-run-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00)_test
-	$(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00)_test
-
-# Stavba testů podpůrných knihoven a submodulů
-$(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00)_test: $(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00)_test.o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00).o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
-
-$(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00)_test.o: $(TEST_DIR)/$(ERROR_LIB_XKALINJ00)_test.cpp
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
-
-$(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00).o: $(SRC_DIR)/$(ERROR_LIB_XKALINJ00).c
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
-
-$(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00)_test: $(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00)_test.o \
-											$(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00).o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
-
-$(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00)_test.o: $(TEST_DIR)/$(STRING_LIB_XFARKAL00)_test.cpp
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
-
-$(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00).o: $(SRC_DIR)/$(STRING_LIB_XFARKAL00).c
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
-
-$(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00)_test: $(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00)_test.o \
-											$(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00).o \
-                                            $(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00).o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
-
-$(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00)_test.o: $(TEST_DIR)/$(SYMTABLE_XKREJCD00)_test.cpp
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
-
-$(TEST_BUILD_DIR)/$(SYMTABLE_XKREJCD00).o: $(SRC_DIR)/$(SYMTABLE_XKREJCD00).c
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
-
-
-###                                                                          ###
-#                  TESTY SUBMODULŮ syntaktického analyzátoru                   #
-###                                                                          ###
-
-
-###                                                                          ###
-#                   TESTY SUBMODULŮ sémantického analyzátoru                   #
-###                                                                          ###
-
-
-################################################################################
-#                                                                              #
-#                  KOMPILACE INTEGRAČNÍCH TESTŮ CELÝCH MODULŮ                  #
-#                                                                              #
-################################################################################
+run-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test
+	$(TEST_BUILD_DIR)/$(SYMTABLE)_test
 
 ### T # build-scanner-test: # Sestaví testy lexikálního analyzátoru alias 'scanneru'
-build-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test
+build-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER)_test
 
 ### T # run-scanner-test: # Spustí testy lexikálního analyzátoru alias 'scanneru'
-run-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test
-	$(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test
+run-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER)_test
+	$(TEST_BUILD_DIR)/$(SCANNER)_test
 
-# Stavba integračních testů celých modulů 
-$(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test: $(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test.o \
-											$(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00).o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB_XKALINJ00).o \
-											$(TEST_BUILD_DIR)/$(STRING_LIB_XFARKAL00).o \
+### T # build-parser-test: # Sestaví testy syntaktického analyzátoru alias 'parser'
+build-parser-test: $(TEST_BUILD_DIR)/$(PARSER)_test
+
+### T # run-parser-test: # Spustí testy syntaktického analyzátoru alias 'parseru'
+run-parser-test: $(TEST_BUILD_DIR)/$(PARSER)_test
+	$(TEST_BUILD_DIR)/$(PARSER)_test
+
+### T # build-stack-frame-test: # Sestaví testy zásobíku rámců
+build-stack-frame-test: $(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test
+
+### T # run-stack-frame-test: # Spustí testy zásobníku rámců
+run-stack-frame-test: $(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test
+	$(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test
+
+### T # build-ast-test: # Sestaví testy rozhraní pro uzly AST
+build-ast-test: $(TEST_BUILD_DIR)/$(AST_LIB)_test
+
+### T # run-ast-test: # Spustí testy rozhraní pro uzly AST
+run-ast-test: $(TEST_BUILD_DIR)/$(AST_LIB)_test
+	$(TEST_BUILD_DIR)/$(AST_LIB)_test
+
+### T # build-semantic-test: # Sestaví testy sémantického analyzátoru
+build-semantic-test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test
+
+### T # run-semantic-test: # Spustí testy sémantického analyzátoru
+run-semantic-test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test
+	$(TEST_BUILD_DIR)/$(SEMANTIC)_test
+
+### T # build-tac-test: # Sestaví testy generátoru tříadresného kódu (3AK)
+build-tac-test: $(TEST_BUILD_DIR)/$(TAC)_test
+
+### T # run-tac-test: # Spustí testy generátoru tříadresného kódu (3AK)
+run-tac-test: $(TEST_BUILD_DIR)/$(TAC)_test
+	$(TEST_BUILD_DIR)/$(TAC)_test
+
+# Stavba testů podpůrných knihoven a submodulů
+$(TEST_BUILD_DIR)/$(ERROR_LIB)_test: $(TEST_BUILD_DIR)/$(ERROR_LIB)_test.o \
+											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
 											$(TEST_BUILD_DIR)/gtest_main.a \
 											$(TEST_BUILD_DIR)/gtest.a
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
-$(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00)_test.o: $(TEST_DIR)/$(SCANNER_XHYZAPA00)_test.cpp
+$(TEST_BUILD_DIR)/$(ERROR_LIB)_test.o: $(TEST_DIR)/$(ERROR_LIB)_test.cpp
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
 
-$(TEST_BUILD_DIR)/$(SCANNER_XHYZAPA00).o: $(SRC_DIR)/$(SCANNER_XHYZAPA00).c
+$(TEST_BUILD_DIR)/$(ERROR_LIB).o: $(SRC_DIR)/$(ERROR_LIB).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
+$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test: $(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test.o \
+											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/gtest_main.a \
+											$(TEST_BUILD_DIR)/gtest.a
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
+
+$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test.o: $(TEST_DIR)/$(DYNAMIC_STRING_LIB)_test.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o: $(SRC_DIR)/$(DYNAMIC_STRING_LIB).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(SYMTABLE)_test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test.o \
+											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
+											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/gtest_main.a \
+											$(TEST_BUILD_DIR)/gtest.a
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
+
+$(TEST_BUILD_DIR)/$(SYMTABLE)_test.o: $(TEST_DIR)/$(SYMTABLE)_test.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(SYMTABLE).o: $(SRC_DIR)/$(SYMTABLE).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(SCANNER)_test: $(TEST_BUILD_DIR)/$(SCANNER)_test.o \
+											$(TEST_BUILD_DIR)/$(SCANNER).o \
+											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
+											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/gtest_main.a \
+											$(TEST_BUILD_DIR)/gtest.a
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
+
+$(TEST_BUILD_DIR)/$(SCANNER)_test.o: $(TEST_DIR)/$(SCANNER)_test.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(SCANNER).o: $(SRC_DIR)/$(SCANNER).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(PARSER)_test: $(TEST_BUILD_DIR)/$(PARSER)_test.o \
+											$(TEST_BUILD_DIR)/$(PARSER).o \
+											$(TEST_BUILD_DIR)/$(SCANNER).o \
+											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
+											$(TEST_BUILD_DIR)/$(AST_LIB).o \
+											$(TEST_BUILD_DIR)/$(LLTABLE).o \
+											$(TEST_BUILD_DIR)/gtest_main.a \
+											$(TEST_BUILD_DIR)/gtest.a
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
+
+$(TEST_BUILD_DIR)/$(PARSER)_test.o: $(TEST_DIR)/$(PARSER)_test.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(PARSER).o: $(SRC_DIR)/$(PARSER).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test: $(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test.o \
+											$(TEST_BUILD_DIR)/$(FRAME_STACK_LIB).o \
+											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
+											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/gtest_main.a \
+											$(TEST_BUILD_DIR)/gtest.a
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
+
+$(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test.o: $(TEST_DIR)/$(FRAME_STACK_LIB)_test.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(FRAME_STACK_LIB).o: $(SRC_DIR)/$(FRAME_STACK_LIB).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(AST_LIB)_test: $(TEST_BUILD_DIR)/$(AST_LIB)_test.o \
+											$(TEST_BUILD_DIR)/$(AST_LIB).o \
+											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
+											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/gtest_main.a \
+											$(TEST_BUILD_DIR)/gtest.a
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
+
+$(TEST_BUILD_DIR)/$(AST_LIB)_test.o: $(TEST_DIR)/$(AST_LIB)_test.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(AST_LIB).o: $(SRC_DIR)/$(AST_LIB).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(SEMANTIC)_test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test.o \
+											$(TEST_BUILD_DIR)/$(SEMANTIC).o \
+											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
+											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
+											$(TEST_BUILD_DIR)/gtest_main.a \
+											$(TEST_BUILD_DIR)/gtest.a
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
+
+$(TEST_BUILD_DIR)/$(SEMANTIC)_test.o: $(TEST_DIR)/$(SEMANTIC)_test.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(SEMANTIC).o: $(SRC_DIR)/$(SEMANTIC).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(TAC)_test: $(TEST_BUILD_DIR)/$(TAC)_test.o \
+											$(TEST_BUILD_DIR)/$(TAC).o \
+											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
+											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/gtest_main.a \
+											$(TEST_BUILD_DIR)/gtest.a
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
+
+$(TEST_BUILD_DIR)/$(TAC)_test.o: $(TEST_DIR)/$(TAC)_test.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(TAC).o: $(SRC_DIR)/$(TAC).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
 ################################################################################
 #                                                                              #

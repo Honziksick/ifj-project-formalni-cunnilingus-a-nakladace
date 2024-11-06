@@ -26,3 +26,9 @@ auto_detect_tab_width = true
 tab_width = 4
 trim_trailing_whitespace = true
 insert_final_newline = true
+
+[Makefile]
+indent_style = tab
+tab_width = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
