@@ -40,7 +40,7 @@ SymtablePtr symtable_init() {
     if(table == NULL) {
         return NULL;
     }
-    
+
     // Inicializujeme velikost tabulky
     table->allocated_size = TABLE_INIT_SIZE;
     table->used_size = 0;
@@ -64,6 +64,10 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
         return SYMTABLE_TABLE_NULL;
     }
 
+    if(key == NULL){
+        return SYMTABLE_KEY_NULL;
+    }
+
     // Vypočítáme aktuální zaplněnost tabulky
     double current_fullness = (double)table->used_size / (double)table->allocated_size;
     // Pokud je tabulka plná, musíme ji rozšířit
@@ -77,6 +81,9 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
 
     // Vypočítáme index, na kterém by se měla hledaná položka nacházet
     size_t index = symtable_hashFunction(key) % table->allocated_size;
+    if(index == SYMTABLE_ALLOCATION_FAIL){
+        return SYMTABLE_ALLOCATION_FAIL;
+    }
 
     // Procházíme tabulku dokud nenarazíme na prázdnou položku
     while(true) {
@@ -144,8 +151,16 @@ symtable_result symtable_findItem(Symtable *table, DString *searched_key, Symtab
         return SYMTABLE_TABLE_NULL;
     }
 
+    // Pokud je klíč NULL, vracíme SYMTABLE_KEY_NULL
+    if(searched_key == NULL){
+        return SYMTABLE_KEY_NULL;
+    }
+
     // Vypočítáme index, na kterém by se měla hledaná položka nacházet
     size_t index = symtable_hashFunction(searched_key) % table->allocated_size;
+    if(index == SYMTABLE_ALLOCATION_FAIL){
+        return SYMTABLE_ALLOCATION_FAIL;
+    }
 
     // Vezmeme položku na indexu
     SymtableItem item = table->array[index];
@@ -180,6 +195,11 @@ symtable_result symtable_deleteItem(Symtable *table, DString *key) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
+    }
+
+    // Pokud je klíč NULL, vracíme SYMTABLE_KEY_NULL
+    if(key == NULL){
+        return SYMTABLE_KEY_NULL;
     }
 
     // Pokusíme se najít položku
@@ -243,6 +263,10 @@ inline void symtable_destroyTable(Symtable *table) {
  * @brief Hashovací funkce pro výpočet hashe z klíče
 */
 size_t symtable_hashFunction(DString *key) {
+    // Pokud je klíč NULL, vracíme SYMTABLE_ALLOCATION_FAIL
+    if(key == NULL) {
+        return SYMTABLE_ALLOCATION_FAIL;
+    }
     size_t hash = 5381;
     for(size_t i = 0; i < key->length;i++) {
         hash = ((hash << 5) + hash) + (size_t)key->str[i];
