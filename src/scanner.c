@@ -98,7 +98,7 @@ CharType scanner_charIdentity(char c) {
 
             case 91:    // [
                 return C_LEFT_SQUARE_BRACKET;
-            case 92:    // \ 
+            case 92:    // \
                 return C_BACKSLASH;
             case 93:    // ]
                 return C_RIGHT_SQUARE_BRACKET;
@@ -112,7 +112,7 @@ CharType scanner_charIdentity(char c) {
 
             case 255:   // EOF
                 return C_EOF;
-            
+
             default:    // ERROR při identifikaci CHARu (nepatří mezi 0 - 255)
                 error_handle(ERROR_LEXICAL);
         }
@@ -502,16 +502,16 @@ Token scanner_FSM() {
 Token scanner_tokenCreate(TokenType type, DString *value) {
     Token token;
     token.type = type;
-    token.value = *value;
+    token.value = value;
     return token;
 }
 
 Token scanner_stringlessTokenCreate(TokenType type) {
     Token token;
     token.type = type;
-    token.value.str = NULL;
-    token.value.length = NULL;
-    token.value.allocatedSize = NULL;
+    token.value->str = NULL;
+    token.value->length = NULL;
+    token.value->allocatedSize = NULL;
     return token;
 }
 

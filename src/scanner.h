@@ -169,7 +169,7 @@ typedef enum {
    tokenu ve zdrojovém kódu (řádek a sloupec) */
 typedef struct {
     TokenType type;     // ten TokenType tu musí být, aby mohl být enum pojmenovaný
-    DString value;
+    DString* value;
 } Token;
 
 // Práce se znaky na vstupu
