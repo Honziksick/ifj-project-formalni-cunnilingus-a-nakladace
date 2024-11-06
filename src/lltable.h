@@ -48,22 +48,6 @@
 
 /*******************************************************************************
  *                                                                             *
- *                       DEKLARACE GLOBÁLNÍCH PROMĚNNÝCH                       *
- *                                                                             *
- ******************************************************************************/
-
-/**
- * @brief Externí deklarace LL-tabulky.
- *
- * @details Tato tabulka je použita pro LL syntaktickou analýzu. Obsahuje
- *          pravidla pro přechody mezi stavy. Každý řádek tabulky obsahuje hash
- *          klíč a pole hodnot pro neterminály
- */
-extern LLtable LLTable[TERMINAL_COUNT];
-
-
-/*******************************************************************************
- *                                                                             *
  *                             DEKLARACE STRUKTUR                              *
  *                                                                             *
  ******************************************************************************/
@@ -79,6 +63,24 @@ typedef struct {
     int value[NON_TERMINAL_COUNT];  /**<  Pole hodnot reprezentující pravidla pro přechody mezi stavy  */
 } LLtable;
 
+
+/*******************************************************************************
+ *                                                                             *
+ *                       DEKLARACE GLOBÁLNÍCH PROMĚNNÝCH                       *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Externí deklarace LL-tabulky.
+ *
+ * @details Tato tabulka je použita pro LL syntaktickou analýzu. Obsahuje
+ *          pravidla pro přechody mezi stavy. Každý řádek tabulky obsahuje hash
+ *          klíč a pole hodnot pro neterminály
+ *
+ * @note Velikost tabulky musí být "počet terminálů + 1", protože musíme kromě
+ *       samotných terminálů ještě uvažovat řádek pro EPSILON
+ */
+extern LLtable table[TERMINAL_COUNT + 1];
 
 /*******************************************************************************
  *                                                                             *
