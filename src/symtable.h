@@ -6,7 +6,7 @@
  * Autor:            David Krejčí <xkrejcd00>                                  *
  *                                                                             *
  * Datum:            01.10.2024                                                *
- * Poslední změna:   15.10.2024                                                *
+ * Poslední změna:   6.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -277,8 +277,8 @@ bool symtable_transfer(Symtable *table_out_array, Symtable *table_in_array);
 Symtable *symtable_resize(Symtable *table, size_t size);
 
 /**
- * @brief Alokuje paměť pro novou tabulku symbolů
- * @param [in] size Velikost nové tabulky
+ * @brief Alokuje paměť pro pole položek tabulky symbolů
+ * @param [in] size Velikost pole
  * @return Ukazatel na novou tabulku, nebo `NULL` v případě chyby
  */
 SymtableItemPtr symtable_init_items(size_t size);

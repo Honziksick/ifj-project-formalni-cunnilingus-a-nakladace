@@ -6,7 +6,7 @@
  * Autor:            David Krejčí <xkrejcd00>                                  *
  *                                                                             *
  * Datum:            01.10.2024                                                *
- * Poslední změna:   15.10.2024                                                *
+ * Poslední změna:   6.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -44,12 +44,15 @@ SymtablePtr symtable_init() {
     // Inicializujeme velikost tabulky
     table->allocated_size = TABLE_INIT_SIZE;
     table->used_size = 0;
+
+    // Inicializujeme pole položek
     SymtableItemPtr items = symtable_init_items(TABLE_INIT_SIZE);
+    // Pokud se nepodařilo alokovat paměť, uvolníme tabulku a vracíme NULL
     if(items == NULL){
         free(table);
         return NULL;
     }
-
+    // Přiřadíme pole položek do tabulky
     table->array = items;
 
     return table;
@@ -326,7 +329,9 @@ Symtable *symtable_resize(Symtable *table, size_t size) {
         return NULL;
     }
 
+    // Alokujeme paměť pro nové pole položek
     new_table->array = symtable_init_items(size);
+    // Pokud se nepodařilo alokovat paměť, uvolníme novou tabulku a vracíme NULL
     if(new_table->array == NULL){
         free(new_table);
         return NULL;
@@ -340,19 +345,22 @@ Symtable *symtable_resize(Symtable *table, size_t size) {
         return NULL;
     }
     // Uvolníme původní tabulku
-    free(table);
+    symtable_destroyTable(table);
     return new_table;
 }
 
 /**
- * @brief Alokuje paměť pro novou tabulku symbolů
+ * @brief Alokuje paměť pro položky tabulky symbolů
 */
 inline SymtableItemPtr symtable_init_items(size_t size) {
+    // Alokujeme paměť pro size položek
     SymtableItemPtr items = malloc(size*sizeof(SymtableItem));
+    // Pokud se nepodařilo alokovat paměť, vracíme NULL
     if(items == NULL){
         return NULL;
     }
 
+    // Každou položku inicializujeme na prázdnou
     for(size_t i = 0; i < size; i++) {
         items[i].key = NULL;
         items[i].symbol_state = SYMTABLE_SYMBOL_EMPTY;
