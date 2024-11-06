@@ -39,17 +39,6 @@
 #include "symtable.h"
 #include "dynamic_string.h"
 
-/*******************************************************************************
- *                                                                             *
- *                       DEKLARACE GLOBÁLNÍCH PROMĚNNÝCH                       *
- *                                                                             *
- ******************************************************************************/
-
-/**
- * @brief Globální zásobník rámců používaný v celém překladači.
- */
-extern FrameStack *frameStack;
-
 
 /*******************************************************************************
  *                                                                             *
@@ -75,6 +64,18 @@ typedef struct FrameStack {
     FramePtr bottom;         /**< Ukazatel na spodní část zásobníku rámců. */
     size_t currentID;        /**< Aktuální ID nejvyššího rámce. */
 } FrameStack, *FrameStackPtr;
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                       DEKLARACE GLOBÁLNÍCH PROMĚNNÝCH                       *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Globální zásobník rámců používaný v celém překladači.
+ */
+extern FrameStack *stack;
 
 
 /*******************************************************************************
