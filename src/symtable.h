@@ -119,7 +119,7 @@ typedef struct {
 typedef struct {
     size_t allocated_size;          /**< Velikost alokovaného pole položek */
     size_t used_size;               /**< Počet použitých položek včetně mrtvých*/
-    SymtableItem *array;          /**< Pole položek */
+    SymtableItem *array;            /**< Pole položek */
 } Symtable, *SymtablePtr;
 
 
@@ -276,7 +276,7 @@ Symtable *symtable_resize(Symtable *table, size_t size);
  * @param [in] size Velikost nové tabulky
  * @return Ukazatel na novou tabulku, nebo `NULL` v případě chyby
  */
-Symtable *symtable_allocate(size_t size);
+SymtableItemPtr symtable_init_items(size_t size);
 
 #endif  // SYMTABLE_H_
 

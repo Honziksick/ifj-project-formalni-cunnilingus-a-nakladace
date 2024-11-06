@@ -33,23 +33,25 @@
 /**
  * @brief Inicializuje novou tabulku symbolů
 */
-Symtable *symtable_init() {
+SymtablePtr symtable_init() {
     // Vytvoříme novou tabulku symbolů
-    Symtable *table = symtable_allocate(TABLE_INIT_SIZE);
+    SymtablePtr table = malloc(sizeof(Symtable));
     // Pokud se nepodařilo alokovat paměť, vracíme NULL
     if(table == NULL) {
         return NULL;
     }
-
+    
     // Inicializujeme velikost tabulky
     table->allocated_size = TABLE_INIT_SIZE;
     table->used_size = 0;
-    // Inicializujeme všechny položky v tabulce
-    for(size_t i = 0; i < table->allocated_size; i++) {
-        table->array[i].key = NULL;
-        table->array[i].symbol_state = SYMTABLE_SYMBOL_EMPTY;
-        table->array[i].data = NULL;
+    SymtableItemPtr items = symtable_init_items(TABLE_INIT_SIZE);
+    if(items == NULL){
+        free(table);
+        return NULL;
     }
+
+    table->array = items;
+
     return table;
 }
 
@@ -233,6 +235,7 @@ inline void symtable_destroyTable(Symtable *table) {
     }
     // Odstraníme všechny položky
     symtable_deleteAll(table);
+    free(table->array);
     free(table);
 }
 
@@ -293,9 +296,15 @@ Symtable *symtable_resize(Symtable *table, size_t size) {
     }
 
     // Vytvoříme novou tabulku
-    SymtablePtr new_table = symtable_allocate(size);
+    SymtablePtr new_table = malloc(sizeof(Symtable));
     // Pokud se nepodařilo alokovat paměť, vracíme NULL
     if(new_table == NULL) {
+        return NULL;
+    }
+
+    new_table->array = symtable_init_items(size);
+    if(new_table->array == NULL){
+        free(new_table);
         return NULL;
     }
 
@@ -314,8 +323,18 @@ Symtable *symtable_resize(Symtable *table, size_t size) {
 /**
  * @brief Alokuje paměť pro novou tabulku symbolů
 */
-inline Symtable *symtable_allocate(size_t size) {
-    return malloc(sizeof(Symtable)+size*sizeof(SymtableItem));
+inline SymtableItemPtr symtable_init_items(size_t size) {
+    SymtableItemPtr items = malloc(size*sizeof(SymtableItem));
+    if(items == NULL){
+        return NULL;
+    }
+
+    for(size_t i = 0; i < size; i++) {
+        items[i].key = NULL;
+        items[i].symbol_state = SYMTABLE_SYMBOL_EMPTY;
+        items[i].data = NULL;
+    }
+    return items;
 }
 
 /*** Konec souboru symtable.c ***/
