@@ -6,7 +6,7 @@
  * Autor:            David Krejčí <xkrejcd00>                                  *
  *                                                                             *
  * Datum:            01.10.2024                                                *
- * Poslední změna:   6.11.2024                                                *
+ * Poslední změna:   7.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -72,7 +72,7 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
     }
 
     // Vypočítáme aktuální zaplněnost tabulky
-    double current_fullness = (double)table->used_size / (double)table->allocated_size;
+    size_t current_fullness = (100 * table->used_size) / table->allocated_size;
     // Pokud je tabulka plná, musíme ji rozšířit
     if(current_fullness > MAX_FULLNESS_BEFORE_EXPAND) {
         table = symtable_resize(table, table->allocated_size * 2);
@@ -81,15 +81,12 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
             return SYMTABLE_RESIZE_FAIL;
         }
     }
-
     // Vypočítáme index, na kterém by se měla hledaná položka nacházet
     size_t index = symtable_hashFunction(key) % table->allocated_size;
-    if(index == SYMTABLE_ALLOCATION_FAIL){
-        return SYMTABLE_ALLOCATION_FAIL;
-    }
 
     // Procházíme tabulku dokud nenarazíme na prázdnou položku
     while(true) {
+        fflush(stderr);
         SymtableItemPtr item = &table->array[index];
         // Pokud je nalezeno prázdné místo, vkládáme novou položku
         if(item->symbol_state == SYMTABLE_SYMBOL_EMPTY ||
@@ -108,14 +105,19 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
                 return SYMTABLE_ALLOCATION_FAIL;
             }
 
-            // Inicializujeme novou položku
-            item->key = key_copy;
-            item->data = NULL;
-            item->symbol_state = SYMTABLE_SYMBOL_UNKNOWN;
             // Inkrementujeme počet použitých položek
             if(item->symbol_state == SYMTABLE_SYMBOL_EMPTY) {
                 table->used_size++;
             }
+
+            // Inicializujeme novou položku
+            item->key = key_copy;
+            item->data = NULL;
+            item->symbol_state = SYMTABLE_SYMBOL_UNKNOWN;
+            item->constant = false;
+            item->declared = false;
+            item->used = false;
+            
             // Pokud je požadován odkaz na novou položku, vrátíme ho
             if(out_item != NULL) {
                 *out_item = *item;
@@ -124,7 +126,7 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
         }
 
         // Pokud položka s daným klíčem již existuje a je živá
-        if(string_compare(item->key,key) == 0 &&
+        if(string_compare(item->key,key) == STRING_EQUAL &&
            item->symbol_state != SYMTABLE_SYMBOL_DEAD) {
 
             // Vrátíme odkaz na existující položku a
@@ -142,7 +144,7 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
  * @brief Přidá novou položku do tabulky symbolů z tokenu
 */
 symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem *out_item){
-    return symtable_addItem(table, &token.value, out_item);
+    return symtable_addItem(table, token.value, out_item);
 }
 
 /**
@@ -173,9 +175,9 @@ symtable_result symtable_findItem(Symtable *table, DString *searched_key, Symtab
     while(item.symbol_state != SYMTABLE_SYMBOL_EMPTY) {
 
         // Pokud je nalezena položka se stejným klíčem, vracíme ji
-        if(string_compare(item.key,searched_key) == 0) {
+        if(string_compare(item.key,searched_key) == STRING_EQUAL) {
             if(out_item != NULL) {
-                *out_item = item;
+                out_item = &item;
             }
             return SYMTABLE_SUCCESS;
         }
@@ -215,11 +217,16 @@ symtable_result symtable_deleteItem(Symtable *table, DString *key) {
     }
 
     // Při úspěchu položku odstraníme
+    
+    if(item.key != NULL){
+        string_free(item.key);
+        item.key = NULL;
+    }
+    if(item.data != NULL){
+        free(item.data);
+        item.data = NULL;
+    }
     item.symbol_state = SYMTABLE_SYMBOL_DEAD;
-    string_free(item.key);
-    item.key = NULL;
-    free(item.data);
-    item.data = NULL;
     return SYMTABLE_SUCCESS;
 }
 
@@ -236,14 +243,21 @@ void symtable_deleteAll(Symtable *table) {
     for(size_t i = 0; i < table->allocated_size; i++) {
         // Pokud je položka prázdná nebo mrtvá, pokračujeme
         SymtableItem item = table->array[i];
+
+        // Pokud je položka živá, odstraníme ji
         if(item.symbol_state != SYMTABLE_SYMBOL_EMPTY &&
            item.symbol_state != SYMTABLE_SYMBOL_DEAD) {
 
-            // Pokud je položka živá, odstraníme ji
-            string_free(item.key);
-            item.key = NULL;
-            free(item.data);
-            item.data = NULL;
+            // Uvolníme klíč a data pokud existují
+            if(item.key != NULL){
+                string_free(item.key);
+                item.key = NULL;
+            }
+            if(item.data != NULL){
+                free(item.data);
+                item.data = NULL;
+            }
+            item.symbol_state = SYMTABLE_SYMBOL_DEAD;
         }
     }
 }
@@ -266,10 +280,6 @@ inline void symtable_destroyTable(Symtable *table) {
  * @brief Hashovací funkce pro výpočet hashe z klíče
 */
 size_t symtable_hashFunction(DString *key) {
-    // Pokud je klíč NULL, vracíme SYMTABLE_ALLOCATION_FAIL
-    if(key == NULL) {
-        return SYMTABLE_ALLOCATION_FAIL;
-    }
     size_t hash = 5381;
     for(size_t i = 0; i < key->length;i++) {
         hash = ((hash << 5) + hash) + (size_t)key->str[i];
@@ -309,6 +319,9 @@ bool symtable_transfer(Symtable *out_table, Symtable *in_table) {
         // Přeneseme data z jedné položky do druhé
         new_location.data = out_table->array[i].data;
         new_location.symbol_state = out_table->array->symbol_state;
+        new_location.constant = out_table->array->constant;
+        new_location.declared = out_table->array->declared;
+        new_location.used = out_table->array->used;
     }
     return true;
 }
@@ -322,7 +335,7 @@ Symtable *symtable_resize(Symtable *table, size_t size) {
         return NULL;
     }
 
-    // Vytvoříme novou tabulku
+    // Vytvoříme pomocnou tabulku
     SymtablePtr new_table = malloc(sizeof(Symtable));
     // Pokud se nepodařilo alokovat paměť, vracíme NULL
     if(new_table == NULL) {
@@ -331,22 +344,27 @@ Symtable *symtable_resize(Symtable *table, size_t size) {
 
     // Alokujeme paměť pro nové pole položek
     new_table->array = symtable_init_items(size);
-    // Pokud se nepodařilo alokovat paměť, uvolníme novou tabulku a vracíme NULL
+    // Pokud se nepodařilo alokovat paměť, uvolníme pomocnou tabulku a vracíme NULL
     if(new_table->array == NULL){
         free(new_table);
         return NULL;
     }
 
-    // Inicializujeme novou tabulku
+    // Inicializujeme pomocnou tabulku
     new_table->allocated_size = size;
     new_table->used_size = 0;
-    // Přeneseme data z původní tabulky do nové
+    // Přeneseme data z původní tabulky do pomocné
     if(symtable_transfer(table,new_table) == false) {
         return NULL;
     }
-    // Uvolníme původní tabulku
-    symtable_destroyTable(table);
-    return new_table;
+    // Uvolníme původní pole položek
+    symtable_deleteAll(table);
+    free(table->array);
+    table->array = new_table->array;
+    table->allocated_size = size;
+    free(new_table);
+
+    return table;
 }
 
 /**
@@ -365,6 +383,9 @@ inline SymtableItemPtr symtable_init_items(size_t size) {
         items[i].key = NULL;
         items[i].symbol_state = SYMTABLE_SYMBOL_EMPTY;
         items[i].data = NULL;
+        items[i].constant = false;
+        items[i].declared = false;
+        items[i].used = false;
     }
     return items;
 }

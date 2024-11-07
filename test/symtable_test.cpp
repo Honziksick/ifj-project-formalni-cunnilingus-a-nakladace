@@ -6,7 +6,7 @@
  * Autor:            Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            06.11.2024                                                *
- * Poslední změna:   06.11.2024                                                *
+ * Poslední změna:   07.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -136,17 +136,12 @@ TEST(Table, SymAddItems)
     ASSERT_NE(horse_val5, nullptr);
     DString* horse_val6 = string_init();
     ASSERT_NE(horse_val6, nullptr);
+    DString* horse_val7 = string_init();
+    ASSERT_NE(horse_val7, nullptr);
 
     SymtablePtr map = symtable_init();
     ASSERT_NE(map, nullptr);
 
-    SymtableItem item;
-    SymtableItem item1;
-    SymtableItem item2;
-    SymtableItem item3;
-    SymtableItem item4;
-    SymtableItem item5;
-    SymtableItem item6;
 
     // Konstanty počtu položek a kapicity tohoto prostředí
     size_t SIZE = 10;
@@ -160,12 +155,13 @@ TEST(Table, SymAddItems)
     const char *strConst4 = "horse4";
     const char *strConst5 = "horse5";
     const char *strConst6 = "horse6";
+    const char *strConst7 = "horse7";
 
     // Vložení slova do horse_val
     for(size_t i = 0; i < strlen(strConst); i++) {
         ASSERT_EQ(string_append_char(horse_val, strConst[i]), STRING_SUCCESS);
     }
-    // Vložení slova do horse_val1 - horse_val6
+    // Vložení slova do horse_val1 - horse_val7
     for(size_t i = 0; i < strlen(strConst1); i++) {
         ASSERT_EQ(string_append_char(horse_val1, strConst1[i]), STRING_SUCCESS);
         ASSERT_EQ(string_append_char(horse_val2, strConst2[i]), STRING_SUCCESS);
@@ -173,6 +169,7 @@ TEST(Table, SymAddItems)
         ASSERT_EQ(string_append_char(horse_val4, strConst4[i]), STRING_SUCCESS);
         ASSERT_EQ(string_append_char(horse_val5, strConst5[i]), STRING_SUCCESS);
         ASSERT_EQ(string_append_char(horse_val6, strConst6[i]), STRING_SUCCESS);
+        ASSERT_EQ(string_append_char(horse_val7, strConst7[i]), STRING_SUCCESS);
     }
     
 
@@ -181,47 +178,54 @@ TEST(Table, SymAddItems)
     EXPECT_EQ(map->used_size, USED_SIZE);
     EXPECT_EQ(map->allocated_size, SIZE);
 
-    // Pokud je klíč NULL nebo tabulkata NULL, vracíme chybu
-    EXPECT_EQ(symtable_addItem(map, NULL, &item), SYMTABLE_KEY_NULL);
-    EXPECT_EQ(symtable_addItem(NULL, horse_val, &item), SYMTABLE_TABLE_NULL);
+    // Pokud je klíč NULL nebo tabulka NULL, vracíme chybu
+    EXPECT_EQ(symtable_addItem(map, NULL, NULL), SYMTABLE_KEY_NULL);
+    EXPECT_EQ(symtable_addItem(NULL, horse_val, NULL), SYMTABLE_TABLE_NULL);
+    EXPECT_EQ(map->used_size, USED_SIZE);
 
     // Přidání itemu do tabulky
-    ASSERT_EQ(symtable_addItem(map, horse_val, &item), SYMTABLE_SUCCESS);
+    ASSERT_EQ(symtable_addItem(map, horse_val, NULL), SYMTABLE_SUCCESS);
 
     EXPECT_EQ(map->used_size, USED_SIZE + 1);
     EXPECT_EQ(map->allocated_size, SIZE);
-    EXPECT_EQ(map->array[index].key, horse_val);
+    EXPECT_EQ(string_compare(map->array[index].key, horse_val), STRING_EQUAL);
 
     index = symtable_hashFunction(horse_val1) % map->allocated_size;
-    symtable_addItem(map, horse_val1, &item1);
+    symtable_addItem(map, horse_val1, NULL);
 
     EXPECT_EQ(map->used_size, USED_SIZE + 2);
     EXPECT_EQ(map->allocated_size, SIZE);
-    EXPECT_EQ(map->array[index].key, horse_val1);
+    EXPECT_EQ(string_compare(map->array[index].key, horse_val1), STRING_EQUAL);
+    
 
-    symtable_addItem(map, horse_val2, &item2);
+    symtable_addItem(map, horse_val2, NULL);
 
     EXPECT_EQ(map->used_size, USED_SIZE + 3);
     EXPECT_EQ(map->allocated_size, SIZE);
 
-    symtable_addItem(map, horse_val3, &item3);
+    symtable_addItem(map, horse_val3, NULL);
 
     EXPECT_EQ(map->used_size, USED_SIZE + 4);
     EXPECT_EQ(map->allocated_size, SIZE);
 
-    symtable_addItem(map, horse_val4, &item4);
+    symtable_addItem(map, horse_val4, NULL);
 
     EXPECT_EQ(map->used_size, USED_SIZE + 5);
     EXPECT_EQ(map->allocated_size, SIZE);
 
-    symtable_addItem(map, horse_val5, &item5);
+    ASSERT_EQ(symtable_addItem(map, horse_val5, NULL), SYMTABLE_SUCCESS);
 
     EXPECT_EQ(map->used_size, USED_SIZE + 6);
     EXPECT_EQ(map->allocated_size, SIZE);
 
-    symtable_addItem(map, horse_val6, &item6);
+    symtable_addItem(map, horse_val6, NULL);
 
     EXPECT_EQ(map->used_size, USED_SIZE + 7);
+    EXPECT_EQ(map->allocated_size, SIZE);
+
+    symtable_addItem(map, horse_val7, NULL);
+
+    EXPECT_EQ(map->used_size, USED_SIZE + 8);
     EXPECT_EQ(map->allocated_size, SIZE*2);
 
     symtable_destroyTable(map);
@@ -232,6 +236,7 @@ TEST(Table, SymAddItems)
     string_free(horse_val4);
     string_free(horse_val5);
     string_free(horse_val6);
+    string_free(horse_val7);
 }
 
 /**
@@ -461,7 +466,7 @@ TEST(Table, SymResize){
     EXPECT_EQ(symtable_addItem(map, horse_val, NULL), SYMTABLE_SUCCESS);
     EXPECT_EQ(map->allocated_size, SIZE);
     
-    map2 = symtable_resize(map, map->allocated_size*2);
+    map2 = symtable_resize(map2, map2->allocated_size*2);
 
     EXPECT_EQ(map2->allocated_size, SIZE*2);
 
