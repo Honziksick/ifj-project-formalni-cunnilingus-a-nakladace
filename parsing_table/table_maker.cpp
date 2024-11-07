@@ -3,6 +3,7 @@
 #include <variant>
 #include <set>
 #include <algorithm>
+#include <iomanip>
 #include "rules.h"
 #include "nonterminals.h" // Include NonTerminal definitions
 #include "terminals.h"    // Include Terminal definitions
@@ -522,12 +523,13 @@ void printHashPairs(vector<HashPair>& hashPairs) {
 
 void printLLtable(vector<HashPair>& hashPairs, OutputSets& output, bool readable) {
     // print header
-    cout << "col_t table[TERMINAL_COUNT] = {" << endl << "\t";
+    cout << "LLtable table[TERMINAL_COUNT] = {" << endl << "\t";
 
     // for each terminal
     for(auto& pair : hashPairs) {
         if(readable) {
-            cout << "{" << invTerminalMap[pair.terminal] << ", {";
+            cout << "{" << invTerminalMap[pair.terminal] << "," << setw(36 - (invTerminalMap[pair.terminal].length() + 2)) << setfill(' ') << "{"; 
+
         } else {
             cout << "{" << pair.hash_value << "ULL, {";
         }
@@ -549,9 +551,9 @@ void printLLtable(vector<HashPair>& hashPairs, OutputSets& output, bool readable
                 rulecouter++;
             }
             if(added == 0) {
-                cout << "-1";
+                cout << setfill(' ') << setw(20) << (readable ? valueMap[-1] : "-1");
             } else if(added == 1) {
-                cout << added_rule_num[0];
+                cout << setfill(' ') << setw(20) << (readable ? valueMap[added_rule_num[0]] : to_string(added_rule_num[0]));
             } else {
                 cout << " ERROR( ";
                 for(auto& num : added_rule_num) {
@@ -617,7 +619,7 @@ int main() {
 
     //printHashPairs(hashPairs);
 
-    printLLtable(hashPairs, output, false);
+    printLLtable(hashPairs, output, true);
 
     return 0;
 }

@@ -5,6 +5,7 @@
 #include <array>
 #include <vector>
 #include <variant>
+#include <map>
 #include "nonterminals.h" // Include NonTerminal definitions
 #include "terminals.h"    // Include Terminal definitions
 
@@ -99,6 +100,89 @@ Rules ruleSet = {
     {NT_LITERAL, {T_STRING_LITERAL}},
     {NT_LITERAL, {T_NULL_LITERAL}}
 };
+
+// Mapování hodnot na odpovídající řetězce
+std::map<int, std::string> valueMap = {
+    {-1, "SYNTAX_ERROR"},
+    {0, "PROGRAM"},
+    {1, "PROLOGUE"},
+    {2, "FUN_DEF_LIST_1"},
+    {3, "FUN_DEF_LIST_2"},
+    {4, "FUN_DEF"},
+    {5, "PARAMETERS_1"},
+    {6, "PARAMETERS_2"},
+    {7, "PARAM_LIST"},
+    {8, "PARAM_LIST_REST_1"},
+    {9, "PARAM_LIST_REST_2"},
+    {10, "PARAM"},
+    {11, "RETURN_TYPE_1"},
+    {12, "RETURN_TYPE_2"},
+    {13, "DATA_TYPE_1"},
+    {14, "DATA_TYPE_2"},
+    {15, "DATA_TYPE_3"},
+    {16, "DATA_TYPE_4"},
+    {17, "DATA_TYPE_5"},
+    {18, "DATA_TYPE_6"},
+    {19, "STATEMENT_LIST_1"},
+    {20, "STATEMENT_LIST_2"},
+    {21, "STATEMENT_1"},
+    {22, "STATEMENT_2"},
+    {23, "STATEMENT_3"},
+    {24, "STATEMENT_4"},
+    {25, "STATEMENT_5"},
+    {26, "VAR_DEF"},
+    {27, "MODIFIABLE_1"},
+    {28, "MODIFIABLE_2"},
+    {29, "POSSIBLE_TYPE_1"},
+    {30, "POSSIBLE_TYPE_2"},
+    {31, "STATEMENT_REST_1"},
+    {32, "STATEMENT_REST_2"},
+    {33, "STATEMENT_REST_3"},
+    {34, "IF"},
+    {35, "NULL_COND_1"},
+    {36, "NULL_COND_2"},
+    {37, "SEQUENCE"},
+    {38, "WHILE"},
+    {39, "RETURN"},
+    {40, "RETURN_REST_1"},
+    {41, "RETURN_REST_2"},
+    {42, "EXPR"},
+    {43, "REL_EXPR"},
+    {44, "REL_EXPR_REST_1"},
+    {45, "REL_EXPR_REST_2"},
+    {46, "REL_OP_1"},
+    {47, "REL_OP_2"},
+    {48, "REL_OP_3"},
+    {49, "REL_OP_4"},
+    {50, "REL_OP_5"},
+    {51, "REL_OP_6"},
+    {52, "ADD_EXPR"},
+    {53, "ADD_EXPR_REST_1"},
+    {54, "ADD_EXPR_REST_2"},
+    {55, "ADD_OP_1"},
+    {56, "ADD_OP_2"},
+    {57, "MULTI_EXPR"},
+    {58, "MULTI_EXPR_REST_1"},
+    {59, "MULTI_EXPR_REST_2"},
+    {60, "MULTI_OP_1"},
+    {61, "MULTI_OP_2"},
+    {62, "TERM_1"},
+    {63, "TERM_2"},
+    {64, "TERM_3"},
+    {65, "TERM_4"},
+    {66, "TERM_REST_1"},
+    {67, "TERM_REST_2"},
+    {68, "ARGUMENTS_1"},
+    {69, "ARGUMENTS_2"},
+    {70, "ARG_LIST"},
+    {71, "ARG_1"},
+    {72, "ARG_2"},
+    {73, "LITERAL_1"},
+    {74, "LITERAL_2"},
+    {75, "LITERAL_3"},
+    {76, "LITERAL_4"}
+};
+
 
 // Specialize std::hash for the Rule type
 namespace std {
