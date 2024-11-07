@@ -52,20 +52,20 @@ enum Terminal {
     T_STRING_LITERAL,
     T_NULL_LITERAL,
     T_EOF,
-    TERMINAL_COUNT,  // Number of terminals
     T_EPSILON,
+    TERMINAL_COUNT,  // Number of terminals
 };
 
 std::unordered_map<std::string, Terminal> terminalMap = {
-    {"CONST", T_CONST},
+    {"IMPORT", T_AT_IMPORT},
     {"IFJ", T_IFJ},
-    {"EQUAL", T_EQUAL},
-    {"AT_IMPORT", T_AT_IMPORT},
-    {"LEFT_PARENTHESIS", T_LEFT_PARENTHESIS},
-    {"RIGHT_PARENTHESIS", T_RIGHT_PARENTHESIS},
-    {"SEMICOLON", T_SEMICOLON},
     {"PUB", T_PUB},
     {"FN", T_FN},
+    {"CONST", T_CONST},
+    {"ASSIGNMENT", T_EQUAL},
+    {"LEFT_BRACKET", T_LEFT_PARENTHESIS},
+    {"RIGHT_BRACKET", T_RIGHT_PARENTHESIS},
+    {"SEMICOLON", T_SEMICOLON},
     {"ID", T_ID},
     {"COLON", T_COLON},
     {"COMMA", T_COMMA},
@@ -84,7 +84,7 @@ std::unordered_map<std::string, Terminal> terminalMap = {
     {"RIGHT_CURLY_BRACKET", T_RIGHT_CURLY_BRACKET},
     {"WHILE", T_WHILE},
     {"RETURN", T_RETURN},
-    {"DOUBLE_EQUAL", T_DOUBLE_EQUAL},
+    {"IDENTITY", T_DOUBLE_EQUAL},
     {"NOT_EQUAL", T_NOT_EQUAL},
     {"LESS_THAN", T_LESS_THAN},
     {"GREATER_THAN", T_GREATER_THAN},
@@ -92,8 +92,8 @@ std::unordered_map<std::string, Terminal> terminalMap = {
     {"GREATER_THAN_OR_EQUAL", T_GREATER_THAN_OR_EQUAL},
     {"PLUS", T_PLUS},
     {"MINUS", T_MINUS},
-    {"MULTIPLY", T_MULTIPLY},
-    {"DIVIDE", T_DIVIDE},
+    {"MULTIPLICATION", T_MULTIPLY},
+    {"DIVISION", T_DIVIDE},
     {"DOT", T_DOT},
     {"INT_LITERAL", T_INT_LITERAL},
     {"FLOAT_LITERAL", T_FLOAT_LITERAL},
@@ -115,7 +115,7 @@ std::array<std::string, TERMINAL_COUNT> invTerminalMap = {
     "fn",
     "id",
     ":",
-    "c",
+    ",",
     "void",
     "i32",
     "?i32",
@@ -147,6 +147,7 @@ std::array<std::string, TERMINAL_COUNT> invTerminalMap = {
     "STRING_LITERAL",
     "NULL_LITERAL",
     "EOF",
+    "EPSILON",
 };
 
 Terminal getTerminal(const std::string& token) {
