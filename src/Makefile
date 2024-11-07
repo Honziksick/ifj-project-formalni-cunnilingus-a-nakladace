@@ -471,6 +471,13 @@ build-parser-test: $(TEST_BUILD_DIR)/$(PARSER)_test
 run-parser-test: $(TEST_BUILD_DIR)/$(PARSER)_test
 	$(TEST_BUILD_DIR)/$(PARSER)_test
 
+### T # build-lltable-test: # Sestaví testy aplikace pravidel LL-tabulky
+build-lltable-test: $(TEST_BUILD_DIR)/$(LLTABLE)_test
+
+### T # run-lltable-test: # Spustí testy aplikace pravidel LL-tabulky
+run-lltable-test: $(TEST_BUILD_DIR)/$(LLTABLE)_test
+	$(TEST_BUILD_DIR)/$(LLTABLE)_test
+
 ### T # build-stack-frame-test: # Sestaví testy zásobíku rámců
 build-stack-frame-test: $(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test
 
@@ -575,6 +582,21 @@ $(TEST_BUILD_DIR)/$(PARSER)_test.o: $(TEST_DIR)/$(PARSER)_test.cpp
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
 
 $(TEST_BUILD_DIR)/$(PARSER).o: $(SRC_DIR)/$(PARSER).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(LLTABLE)_test: $(TEST_BUILD_DIR)/$(LLTABLE)_test.o \
+											$(TEST_BUILD_DIR)/$(LLTABLE).o \
+											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
+											$(TEST_BUILD_DIR)/gtest_main.a \
+											$(TEST_BUILD_DIR)/gtest.a
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
+
+$(TEST_BUILD_DIR)/$(LLTABLE)_test.o: $(TEST_DIR)/$(LLTABLE)_test.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(LLTABLE).o: $(SRC_DIR)/$(LLTABLE).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
