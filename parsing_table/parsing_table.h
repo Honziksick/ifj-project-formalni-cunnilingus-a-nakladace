@@ -8,55 +8,54 @@
 #include <ctype.h>
 
 enum Terminal {
-    T_CONST,
-    T_IFJ,
-    T_EQUAL,
-    T_AT_IMPORT,
-    T_LEFT_PARENTHESIS,
-    T_RIGHT_PARENTHESIS,
-    T_SEMICOLON,
-    T_PUB,
-    T_FN,
-    T_ID,
-    T_COLON,
-    T_COMMA,
-    T_VOID,
-    T_INT,
-    T_INT_OR_NULL,
-    T_FLOAT,
-    T_FLOAT_OR_NULL,
-    T_STRING,
-    T_STRING_OR_NULL,
-    T_VAR,
-    T_IF,
-    T_ELSE,
-    T_PIPE,
-    T_LEFT_CURLY_BRACKET,
-    T_RIGHT_CURLY_BRACKET,
-    T_WHILE,
-    T_RETURN,
-    T_DOUBLE_EQUAL,
-    T_NOT_EQUAL,
-    T_LESS_THAN,
-    T_GREATER_THAN,
-    T_LESS_THAN_OR_EQUAL,
-    T_GREATER_THAN_OR_EQUAL,
-    T_PLUS,
-    T_MINUS,
-    T_MULTIPLY,
-    T_DIVIDE,
-    T_DOT,
-    T_INT_LITERAL,
-    T_FLOAT_LITERAL,
-    T_STRING_LITERAL,
-    T_NULL_LITERAL,
-    T_EOF,
-    T_EPSILON,
-    TERMINAL_COUNT,  // Number of terminals
-    
+    T_ID                    = 0,        /**<  Identifikátor  */
+    T_IMPORT                = 1,        /**<  Klíčové slovo "@import"  */
+    T_IFJ                   = 2,        /**<  Klíčové slovo "ifj"  */
+    T_PUB                   = 3,        /**<  Klíčové slovo "pub"  */
+    T_FN                    = 4,        /**<  Klíčové slovo "fn"  */
+    T_CONST                 = 5,        /**<  Klíčové slovo "const"  */
+    T_VAR                   = 6,        /**<  Klíčové slovo "var"  */
+    T_IF                    = 7,        /**<  Klíčové slovo "if"  */
+    T_ELSE                  = 8,        /**<  Klíčové slovo "else"  */
+    T_WHILE                 = 9,        /**<  Klíčové slovo "while"  */
+    T_RETURN                = 10,       /**<  Klíčové slovo "return"  */
+    T_ASSIGNMENT            = 11,       /**<  Operátor přiřazení "="  */
+    T_PLUS                  = 12,       /**<  Operátor součtu "+"  */
+    T_MINUS                 = 13,       /**<  Operátor rozdílu "-"  */
+    T_MULTIPLICATION        = 14,       /**<  Operátor součinu "*"  */
+    T_DIVISION              = 15,       /**<  Operátor podílu "/"  */
+    T_IDENTITY              = 16,       /**<  Operátor rovnosti "=="  */
+    T_NOT_EQUAL             = 17,       /**<  Operátor nerovnosti "!="  */
+    T_LESS_THAN             = 18,       /**<  Operátor menší než "<"  */
+    T_GREATER_THAN          = 19,       /**<  Operátor větší než ">"  */
+    T_LESS_THAN_OR_EQUAL    = 20,       /**<  Operátor menší rovno "<="  */
+    T_GREATER_THAN_OR_EQUAL = 21,       /**<  Operátor větší rovno ">=""  */
+    T_INT                   = 22,       /**<  Klíčové slovo "i32"  */
+    T_INT_OR_NULL           = 23,       /**<  Klíčové slovo "?i32"  */
+    T_FLOAT                 = 24,       /**<  Klíčové slovo "f64"  */
+    T_FLOAT_OR_NULL         = 25,       /**<  Klíčové slovo "?f64"  */
+    T_STRING                = 26,       /**<  Klíčové slovo "[]u8"  */
+    T_STRING_OR_NULL        = 27,       /**<  Klíčové slovo "?[]u8"  */
+    T_VOID                  = 28,       /**<  Klíčové slovo "void"  */
+    T_INT_LITERAL           = 29,       /**<  Literál typu i32  */
+    T_FLOAT_LITERAL         = 30,       /**<  Literál typu i64  */
+    T_STRING_LITERAL        = 31,       /**<  Literál typu []u8  */
+    T_NULL_LITERAL          = 32,       /**<  Literál typu NULL  */
+    T_DOT                   = 33,       /**<  Symbol tečky "."  */
+    T_COMMA                 = 34,       /**<  Symbol čárky ","  */
+    T_COLON                 = 35,       /**<  Symbol dvojtečky ":"  */
+    T_SEMICOLON             = 36,       /**<  Symbol středníku ";"  */
+    T_PIPE                  = 37,       /**<  Symbol svislice "|"  */
+    T_RIGHT_BRACKET         = 38,       /**<  Symbol pravé závorky ")"  */
+    T_LEFT_BRACKET          = 39,       /**<  Symbol levé závorky "("  */
+    T_RIGHT_CURLY_BRACKET   = 40,       /**<  Symbol pravé složené závorky "}"  */
+    T_LEFT_CURLY_BRACKET    = 41,       /**<  Symbol levé složené závorky "{"  */
+    T_EOF                   = 42,       /**<  Signalizace, že nastal konec souboru  */
+    T_EPSILON               = 43,       /**<  Prázdný řetězec "epsilon"  */
 };
 
-#define NON_TERIMINAL_COUNT 40
+#define TERMINAL_COUNT 44       /**<  Celkový počet terminálů v LL tabulce.*/
+#define NON_TERMINAL_COUNT 40   /**<  Celkový počet neterminálů v LL tabulce.*/
 
 size_t symtable_hashFunction(char *key) {
     size_t hash = 5381;
@@ -70,7 +69,7 @@ size_t symtable_hashFunction(char *key) {
 
 typedef struct col {
     size_t key;
-    int value[NON_TERIMINAL_COUNT];
+    int value[NON_TERMINAL_COUNT];
 } col_t;
 
 
