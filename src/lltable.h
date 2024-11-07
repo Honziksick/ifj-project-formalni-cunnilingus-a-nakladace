@@ -42,9 +42,9 @@
  *                                                                             *
  ******************************************************************************/
 
-#define TERMINAL_COUNT 43       /**<  Celkový počet terminálů v LL tabulce.*/
+#define TERMINAL_COUNT 44       /**<  Celkový počet terminálů v LL tabulce.*/
 #define NON_TERMINAL_COUNT 40   /**<  Celkový počet neterminálů v LL tabulce.*/
-
+#define HASH_SEED 5381          /**<  Prvočíslo pro hashovací funkci */
 
 /*******************************************************************************
  *                                                                             *
@@ -76,11 +76,19 @@ typedef struct {
  * @details Tato tabulka je použita pro LL syntaktickou analýzu. Obsahuje
  *          pravidla pro přechody mezi stavy. Každý řádek tabulky obsahuje hash
  *          klíč a pole hodnot pro neterminály
- *
- * @note Velikost tabulky musí být "počet terminálů + 1", protože musíme kromě
- *       samotných terminálů ještě uvažovat řádek pro EPSILON
  */
-extern LLtable table[TERMINAL_COUNT + 1];
+extern LLtable table[TERMINAL_COUNT];
+
+/**
+ * @brief Externí deklarace mapy terminálů pro LL tabulku.
+ *
+ * @details Tato globální proměnná obsahuje seznam terminálů používaných
+ *          v LL syntaktické analýze. Každý prvek pole je řetězec
+ *          reprezentující jeden terminál. Mapa terminálů je použita
+ *          pro účely hashování v tabulce symbolů na základě klíčů.
+ */
+extern const char *terminalMap[TERMINAL_COUNT];
+
 
 /*******************************************************************************
  *                                                                             *
@@ -90,56 +98,57 @@ extern LLtable table[TERMINAL_COUNT + 1];
 
 /**
  * @enum Terminals
- * @brief Výčet terminálů používaných v LL syntaktické analýze.
+ * @brief Výčet terminálů používaných indexy do jejich mapovací tabulky
  *
  * @details Tento výčet obsahuje všechny terminály, které mohou být použity
- *          v syntaktické analýze. Každý terminál je reprezentován unikátní
- *          hodnotou, která je využívaná v LL tabulce.
+ *          v syntaktické analýze. Každý terminál vyjadřuje konrétní index
+ *          do pole terminálů obsahujícího jejich klíčové slovo v podobě `*char`.
  */
 typedef enum Terminals {
-    T_CONST     = 0,                /**<  Klíčové slovo "const"  */
-    T_IFJ       = 1,                /**<  Klíčové slovo "ifj"  */
-    T_EQUAL     = 2,                /**<  Operátor přiřazení "="  */
-    T_AT_IMPORT = 3,                /**<  Klíčové slovo "@import"  */
-    T_LEFT_PARENTHESIS  = 4,        /**<  Symbol levé závorky ")"  */
-    T_RIGHT_PARENTHESIS = 5,        /**<  Symbol pravé závorky "("  */
-    T_SEMICOLON = 6,                /**<  Symbol středníku ";"  */
-    T_PUB   = 7,                    /**<  Klíčové slovo "pub"  */
-    T_FN    = 8,                    /**<  Klíčové slovo "fn"  */
-    T_ID    = 9,                    /**<  Identifikátor  */
-    T_COLON = 10,                   /**<  Symbol dvojtečky ":"  */
-    T_COMMA = 11,                   /**<  Symbol čárky ","  */
-    T_VOID  = 12,                   /**<  Klíčové slovo "void"  */
-    T_INT   = 13,                   /**<  Klíčové slovo "i32"  */
-    T_INT_OR_NULL    = 14,          /**<  Klíčové slovo "?i32"  */
-    T_FLOAT          = 15,          /**<  Klíčové slovo "f64"  */
-    T_FLOAT_OR_NULL  = 16,          /**<  Klíčové slovo "?f64"  */
-    T_STRING         = 17,          /**<  Klíčové slovo "[]u8"  */
-    T_STRING_OR_NULL = 18,          /**<  Klíčové slovo "?[]u8"  */
-    T_VAR  = 19,                    /**<  Klíčové slovo "var"  */
-    T_IF   = 20,                    /**<  Klíčové slovo "if"  */
-    T_ELSE = 21,                    /**<  Klíčové slovo "else"  */
-    T_PIPE = 22,                    /**<  Symbol svislice "|"  */
-    T_LEFT_CURLY_BRACKET  = 23,     /**<  Symbol levé složené závorky "{"  */
-    T_RIGHT_CURLY_BRACKET = 24,     /**<  Symbol levé složené závorky "}"  */
-    T_WHILE  = 25,                  /**<  Klíčové slovo "while"  */
-    T_RETURN = 26,                  /**<  Klíčové slovo "return"  */
-    T_DOUBLE_EQUAL = 27,            /**<  Operátor rovnosti "=="  */
-    T_NOT_EQUAL    = 28,            /**<  Operátor nerovnosti "!="  */
-    T_LESS_THAN    = 29,            /**<  Operátor menší než "<"  */
-    T_GREATER_THAN = 30,            /**<  Operátor větší než ">"  */
-    T_LESS_THAN_OR_EQUAL    = 31,   /**<  Operátor menší rovno "<="  */
-    T_GREATER_THAN_OR_EQUAL = 32,   /**<  Operátor větší rovno ">=""  */
-    T_PLUS     = 33,                /**<  Operátor součtu "+"  */
-    T_MINUS    = 34,                /**<  Operátor rozdílu "-"  */
-    T_MULTIPLY = 35,                /**<  Operátor součinu "*"  */
-    T_DIVIDE   = 36,                /**<  Operátor podílu "/"  */
-    T_DOT      = 37,                /**<  Symbol tečky "."  */
-    T_INT_LITERAL    = 38,          /**<  Literál typu i32  */
-    T_FLOAT_LITERAL  = 39,          /**<  Literál typu i64  */
-    T_STRING_LITERAL = 40,          /**<  Literál typu []u8  */
-    T_NULL_LITERAL   = 41,          /**<  Literál typu NULL  */
-    T_EOF            = 42,          /**<  Signalizace, že nastal konec souboru  */
+    T_ID                    = 0,        /**<  Identifikátor  */
+    T_IMPORT                = 1,        /**<  Klíčové slovo "@import"  */
+    T_IFJ                   = 2,        /**<  Klíčové slovo "ifj"  */
+    T_PUB                   = 3,        /**<  Klíčové slovo "pub"  */
+    T_FN                    = 4,        /**<  Klíčové slovo "fn"  */
+    T_CONST                 = 5,        /**<  Klíčové slovo "const"  */
+    T_VAR                   = 6,        /**<  Klíčové slovo "var"  */
+    T_IF                    = 7,        /**<  Klíčové slovo "if"  */
+    T_ELSE                  = 8,        /**<  Klíčové slovo "else"  */
+    T_WHILE                 = 9,        /**<  Klíčové slovo "while"  */
+    T_RETURN                = 10,       /**<  Klíčové slovo "return"  */
+    T_ASSIGNMENT            = 11,       /**<  Operátor přiřazení "="  */
+    T_PLUS                  = 12,       /**<  Operátor součtu "+"  */
+    T_MINUS                 = 13,       /**<  Operátor rozdílu "-"  */
+    T_MULTIPLICATION        = 14,       /**<  Operátor součinu "*"  */
+    T_DIVISION              = 15,       /**<  Operátor podílu "/"  */
+    T_IDENTITY              = 16,       /**<  Operátor rovnosti "=="  */
+    T_NOT_EQUAL             = 17,       /**<  Operátor nerovnosti "!="  */
+    T_LESS_THAN             = 18,       /**<  Operátor menší než "<"  */
+    T_GREATER_THAN          = 19,       /**<  Operátor větší než ">"  */
+    T_LESS_THAN_OR_EQUAL    = 20,       /**<  Operátor menší rovno "<="  */
+    T_GREATER_THAN_OR_EQUAL = 21,       /**<  Operátor větší rovno ">=""  */
+    T_INT                   = 22,       /**<  Klíčové slovo "i32"  */
+    T_INT_OR_NULL           = 23,       /**<  Klíčové slovo "?i32"  */
+    T_FLOAT                 = 24,       /**<  Klíčové slovo "f64"  */
+    T_FLOAT_OR_NULL         = 25,       /**<  Klíčové slovo "?f64"  */
+    T_STRING                = 26,       /**<  Klíčové slovo "[]u8"  */
+    T_STRING_OR_NULL        = 27,       /**<  Klíčové slovo "?[]u8"  */
+    T_VOID                  = 28,       /**<  Klíčové slovo "void"  */
+    T_INT_LITERAL           = 29,       /**<  Literál typu i32  */
+    T_FLOAT_LITERAL         = 30,       /**<  Literál typu i64  */
+    T_STRING_LITERAL        = 31,       /**<  Literál typu []u8  */
+    T_NULL_LITERAL          = 32,       /**<  Literál typu NULL  */
+    T_DOT                   = 33,       /**<  Symbol tečky "."  */
+    T_COMMA                 = 34,       /**<  Symbol čárky ","  */
+    T_COLON                 = 35,       /**<  Symbol dvojtečky ":"  */
+    T_SEMICOLON             = 36,       /**<  Symbol středníku ";"  */
+    T_PIPE                  = 37,       /**<  Symbol svislice "|"  */
+    T_LEFT_BRACKET          = 38,       /**<  Symbol levé závorky ")"  */
+    T_RIGHT_BRACKET         = 39,       /**<  Symbol pravé závorky "("  */
+    T_LEFT_CURLY_BRACKET    = 40,       /**<  Symbol levé složené závorky "{"  */
+    T_RIGHT_CURLY_BRACKET   = 41,       /**<  Symbol levé složené závorky "}"  */
+    T_EOF                   = 42,       /**<  Signalizace, že nastal konec souboru  */
+    T_EPSILON               = 43,       /**<  Prázdný řetězec "epsilon"  */
 } Terminals;
 
 /**
@@ -281,6 +290,61 @@ typedef enum RuleSet {
     LITERAL_3   = 75,           /**<  <LITERAL> -> u8_literal                                           */
     LITERAL_4   = 76            /**<  <LITERAL> -> null_literal                                         */
 } RuleSet;
+
+/**
+ * @defgroup HashedTerminals Hashované terminály
+ * @brief Definice hashovaných terminálů sloužících jako klíče do tabulky symbolů.
+ *
+ * @details Každý hash představuje unikátní identifikátor terminálu, který se
+ *          používá v syntaktické analýze a LL tabulce.
+ * @{
+ */
+
+#define T_HASH_FN               5862297ULL              /**< Hash pro klíčové slovo "fn" */
+#define T_HASH_ID               5862386ULL              /**< Hash pro identifikátor */
+#define T_HASH_IF               5862388ULL              /**< Hash pro klíčové slovo "if" */
+#define T_HASH_DOT              193453740ULL            /**< Hash pro symbol tečky "." */
+#define T_HASH_EOF              193454815ULL            /**< Hash pro signalizaci konce souboru */
+#define T_HASH_IFJ              193458878ULL            /**< Hash pro klíčové slovo "ifj" */
+#define T_HASH_INT              193459152ULL            /**< Hash pro klíčové slovo "i32" */
+#define T_HASH_PUB              193466988ULL            /**< Hash pro klíčové slovo "pub" */
+#define T_HASH_VAR              193472878ULL            /**< Hash pro klíčové slovo "var" */
+#define T_HASH_ELSE             6384006126ULL           /**< Hash pro klíčové slovo "else" */
+#define T_HASH_PIPE             6384398067ULL           /**< Hash pro symbol svislice "|" */
+#define T_HASH_PLUS             6384401513ULL           /**< Hash pro operátor součtu "+" */
+#define T_HASH_VOID             6384619991ULL           /**< Hash pro klíčové slovo "void" */
+#define T_HASH_COLON            210669930912ULL         /**< Hash pro symbol dvojtečky ":" */
+#define T_HASH_COMMA            210669931922ULL         /**< Hash pro symbol čárky "," */
+#define T_HASH_CONST            210669933228ULL         /**< Hash pro klíčové slovo "const" */
+#define T_HASH_FLOAT            210673383675ULL         /**< Hash pro klíčové slovo "f64" */
+#define T_HASH_MINUS            210681576881ULL         /**< Hash pro operátor rozdílu "-" */
+#define T_HASH_WHILE            210693394398ULL         /**< Hash pro klíčové slovo "while" */
+#define T_HASH_IMPORT           6952340304576ULL        /**< Hash pro klíčové slovo "@import" */
+#define T_HASH_RETURN           6952683186021ULL        /**< Hash pro klíčové slovo "return" */
+#define T_HASH_STRING           6952740025148ULL        /**< Hash pro klíčové slovo "[]u8" */
+#define T_HASH_EPSILON          229422184920831ULL      /**< Hash pro prázdný řetězec "epsilon" */
+#define T_HASH_DIVISION         7570880561319978ULL     /**< Hash pro operátor podílu "/" */
+#define T_HASH_IDENTITY         7571086536859055ULL     /**< Hash pro operátor rovnosti "==" */
+#define T_HASH_LESS             249850135850301702ULL   /**< Hash pro operátor menší než "<" */
+#define T_HASH_NOT_EQUAL        249853376582133037ULL   /**< Hash pro operátor nerovnosti "!=" */
+#define T_HASH_SEMICOLON        249859972537086990ULL   /**< Hash pro symbol středníku ";" */
+#define T_HASH_FLOAT_LITERAL    1259126739841280167ULL  /**< Hash pro literál typu i64 */
+#define T_HASH_FLOAT_OR_NULL    1259126744081274805ULL  /**< Hash pro klíčové slovo "?f64" */
+#define T_HASH_LEFT_BRACKET     2663502761949992702ULL  /**< Hash pro symbol levé závorky ")" */
+#define T_HASH_ASSIGNMENT       8244563632591329534ULL  /**< Hash pro operátor přiřazení "=" */
+#define T_HASH_GREATER_OR_EQUAL 9421056868997489328ULL  /**< Hash pro operátor větší rovno ">=" */
+#define T_HASH_GREATER          13513236659805563001ULL /**< Hash pro operátor větší než ">" */
+#define T_HASH_RIGHT_BRACKET    13746110263706191467ULL /**< Hash pro symbol pravé závorky "(" */
+#define T_HASH_INT_LITERAL      13828205768324589692ULL /**< Hash pro literál typu i32 */
+#define T_HASH_INT_OR_NULL      13828205772564584330ULL /**< Hash pro klíčové slovo "?i32" */
+#define T_HASH_NULL_LITERAL     13871966970720415084ULL /**< Hash pro literál typu NULL */
+#define T_HASH_STRING_LITERAL   14265960969046774760ULL /**< Hash pro literál typu []u8 */
+#define T_HASH_STRING_OR_NULL   14265960973286769398ULL /**< Hash pro klíčové slovo "?[]u8" */
+#define T_HASH_LESS_OR_EQUAL       14898862961759019485ULL /**< Hash pro operátor menší rovno "<=" */
+#define T_HASH_LEFT_CURLY_BRACKET  15940418408625531884ULL /**< Hash pro symbol levé složené závorky "{" */
+#define T_HASH_RIGHT_CURLY_BRACKET 16850163782960150809ULL /**< Hash pro symbol pravé složené závorky "}" */
+#define T_HASH_MULTIPLICATION      17446494366210133363ULL /**< Hash pro operátor součinu "*" */
+/** @} */  // konec skupiny HashedTerminals
 
 
 /*******************************************************************************
