@@ -36,44 +36,43 @@
 // Definice různých typů tokenů
 typedef enum {
     TOKEN_IDENTIFIER = 1,
-    TOKEN_KEYWORD = 2,
-    TOKEN_INT = 3,
-    TOKEN_FLOAT = 4,
-    TOKEN_STRING = 5,
+    TOKEN_INT = 2,
+    TOKEN_FLOAT = 3,
+    TOKEN_STRING = 4,
     //SPECIAL SIMPLE
-    TOKEN_LEFT_PARENTHESIS = 6,
-    TOKEN_RIGHT_PARENTHESIS = 7,
-    TOKEN_ASTERISK = 8,
-    TOKEN_PLUS = 9,
-    TOKEN_COMMA = 10,
-    TOKEN_MINUS = 11,
-    TOKEN_COLON = 12,
-    TOKEN_SEMICOLON = 13,
-    TOKEN_LEFT_CURLY_BRACKET = 14,
-    TOKEN_VERTICAL_BAR = 15,
-    TOKEN_RIGHT_CURLY_BRACKET = 16,
+    TOKEN_LEFT_PARENTHESIS = 5,
+    TOKEN_RIGHT_PARENTHESIS = 6,
+    TOKEN_ASTERISK = 7,
+    TOKEN_PLUS = 8,
+    TOKEN_COMMA = 9,
+    TOKEN_MINUS = 10,
+    TOKEN_COLON = 11,
+    TOKEN_SEMICOLON = 12,
+    TOKEN_LEFT_CURLY_BRACKET = 13,
+    TOKEN_VERTICAL_BAR = 14,
+    TOKEN_RIGHT_CURLY_BRACKET = 15,
     //SPECIAL COMPLEX
-    TOKEN_PERIOD = 17,
-    TOKEN_EQUALITY_SIGN = 18,
-    TOKEN_SLASH = 19,
-    TOKEN_EQUAL_TO = 20,
-    TOKEN_NOT_EQUAL_TO = 21,
-    TOKEN_LESS_THAN = 22,
-    TOKEN_LESS_EQUAL_THAN = 23,
-    TOKEN_GREATER_THAN = 24,
-    TOKEN_GREATER_EQUAL_THAN = 25,
-    TOKEN_EOF = 26,
+    TOKEN_PERIOD = 16,
+    TOKEN_EQUALITY_SIGN = 17,
+    TOKEN_SLASH = 18,
+    TOKEN_EQUAL_TO = 19,
+    TOKEN_NOT_EQUAL_TO = 20,
+    TOKEN_LESS_THAN = 21,
+    TOKEN_LESS_EQUAL_THAN = 22,
+    TOKEN_GREATER_THAN = 23,
+    TOKEN_GREATER_EQUAL_THAN = 24,
+    TOKEN_EOF = 25,
     //KEYWORDS
-    TOKEN_K_const = 27,
-    TOKEN_K_var = 28,
-    TOKEN_K_i32 = 29,
-    TOKEN_K_f64 = 30,
-    TOKEN_K_u8 = 31,
-    TOKEN_K_Qi32 = 32,
-    TOKEN_K_Qf64 = 33,
-    TOKEN_K_Qu8 = 34,
-    TOKEN_K_pub = 35,
-    TOKEN_K_fn = 36,
+    TOKEN_K_const = 26,
+    TOKEN_K_var = 27,
+    TOKEN_K_i32 = 28,
+    TOKEN_K_f64 = 29,
+    TOKEN_K_u8 = 30,
+    TOKEN_K_Qi32 = 31,
+    TOKEN_K_Qf64 = 32,
+    TOKEN_K_Qu8 = 33,
+    TOKEN_K_pub = 34,
+    TOKEN_K_fn = 35,
     TOKEN_K_void = 36,
     TOKEN_K_return = 37,
     TOKEN_K_null = 38,
@@ -165,6 +164,25 @@ typedef enum {
     DOUBLE_BACKSLASH = 34
 } StateFSM;
 
+typedef enum {
+    KEY_IDENTIFIER = 1,
+    KEY_UNDERSCORE = 2,
+
+    KEY_const = 26,
+    KEY_var = 27,
+    KEY_i32 = 28,
+    KEY_f64 = 29,
+
+    KEY_pub = 34,
+    KEY_fn = 35,
+    KEY_void = 36,
+    KEY_return = 37,
+    KEY_null = 38,
+    KEY_if = 39,
+    KEY_else = 40,
+    KEY_while = 41,
+} Keywords;
+
 /* Každý token má typ, hodnotu (tj. dynamický řetězec) a informace o pozici
    tokenu ve zdrojovém kódu (řádek a sloupec) */
 typedef struct {
@@ -183,7 +201,7 @@ void scanner_ungetChar(char c);
 CharType scanner_charIdentity(char c);
 
 // Rozhodování o tom, jestli LETTERS je IDENTIFIKÁTOR, nebo KEYWORD
-bool scanner_isKeyword(DString *value);
+Keywords scanner_isKeyword(DString *value);
 
 // Vytvoří nový token
 Token scanner_tokenCreate(TokenType type, DString *value);
