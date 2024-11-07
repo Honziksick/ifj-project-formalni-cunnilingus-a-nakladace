@@ -119,6 +119,54 @@ CharType scanner_charIdentity(char c) {
     }
 }
 
+Keywords scanner_isKeyword(DString *value) {
+    if       (value->str == "const") {
+        return KEY_const;
+    } else if(value->str == "var") {
+        return KEY_var;
+    } else if(value->str == "i32") {
+        return KEY_i32;
+    } else if(value->str == "f64") {
+        return KEY_f64;
+    } else if(value->str == "pub") {
+        return KEY_pub;
+    } else if(value->str == "fn") {
+        return KEY_fn;
+    } else if(value->str == "void") {
+        return KEY_void;
+    } else if(value->str == "return") {
+        return KEY_return;
+    } else if(value->str == "null") {
+        return KEY_null;
+    } else if(value->str == "if") {
+        return KEY_if;
+    } else if(value->str == "else") {
+        return KEY_else;
+    } else if(value->str == "while") {
+        return KEY_while;
+    } else if(value->str == "_") {
+        return KEY_UNDERSCORE;
+    } else {
+        return KEY_IDENTIFIER;
+    }
+}
+
+Token scanner_tokenCreate(TokenType type, DString *value) {
+    Token token;
+    token.type = type;
+    token.value = value;
+    return token;
+}
+
+Token scanner_stringlessTokenCreate(TokenType type) {
+    Token token;
+    token.type = type;
+    token.value->str = NULL;
+    token.value->length = NULL;
+    token.value->allocatedSize = NULL;
+    return token;
+}
+
 Token scanner_FSM() {
     //Inicializace FSM po jednom volání Syntaktického analyzátoru
     char c;
@@ -336,67 +384,52 @@ Token scanner_FSM() {
                         string_append_char(str, c);
                         break;
                     case WHITE:                         //3/29
-                        //TODO
+                        int keytest = scanner_isKeyword(str);
+                        if(keytest == KEY_IDENTIFIER) {
+                            lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
+                            stopFSM = true;
+                        } else if (keytest == KEY_UNDERSCORE) {
+                            stopFSM = true;
+                            error_handle(ERROR_LEXICAL);    //ERROR - byl objeven IDENTIFIER '_'
+                        } else {
+                            lexToken = scanner_stringlessTokenCreate(keytest);
+                            stopFSM;
+                        }
                         break;
                     case NIL:                           //4/29
-                        break;
-                    case S_LEFT_PARENTHESIS:            //5/29
-                        break;
-                    case S_RIGHT_PARENTHESIS:           //6/29
-                        break;
-                    case S_ASTERISK:                    //7/29
-                        break;
-                    case S_PLUS:                        //8/29
-                        break;
-                    case S_COMMA:                       //9/29
-                        break;
-                    case S_MINUS:                       //10/29
-                        break;
-                    case S_COLON:                       //11/29
-                        break;
-                    case S_SEMICOLON:                   //12/29
-                        break;
-                    case S_LEFT_CURLY_BRACKET:          //13/29
-                        break;
-                    case S_VERTICAL_BAR:                //14/29
-                        break;
-                    case S_RIGHT_CURLY_BRACKET:         //15/29
-                        break;
-                    case C_EXCLAMATION_MARK:            //16/29
-                        break;
-                    case C_DOUBLE_QUOTE:                //17/29
-                        break;
-                    case C_PERIOD:                      //18/29
-                        break;
-                    case C_SLASH:                       //19/29
-                        break;
-                    case C_LESS_THAN:                   //20/29
-                        break;
-                    case C_EQUALITY_SIGN:               //21/29
-                        break;
-                    case C_GREATER_THAN:                //22/29
-                        break;
-                    case C_QUESTION_MARK:               //23/29
-                        break;
-                    case C_AT_SIGN:                     //24/29
-                        break;
-                    case C_LEFT_SQUARE_BRACKET:         //25/29
-                        break;
-                    case C_BACKSLASH:                   //26/29
-                        break;
-                    case C_RIGHT_SQUARE_BRACKET:        //27/29
+                        stopFSM = true;
+                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
                         break;
                     case C_EOL:                         //28/29
+                        int keytest = scanner_isKeyword(str);
+                        if(keytest == KEY_IDENTIFIER) {
+                            lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
+                            stopFSM = true;
+                        } else if (keytest == KEY_UNDERSCORE) {
+                            stopFSM = true;
+                            error_handle(ERROR_LEXICAL);    //ERROR - byl objeven IDENTIFIER '_'
+                        } else {
+                            lexToken = scanner_stringlessTokenCreate(keytest);
+                            stopFSM;
+                        }
                         break;
-                    case C_EOF:                         //29/29
-                        break;
-                    default:                            //KONEC
-                        stopFSM = true;
-                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří do základní ani rozšířené ASCII
+                    default:                            //5-27,29/29 (Special Simple, Special Complex)
+                        int keytest = scanner_isKeyword(str);
+                        if(keytest == KEY_IDENTIFIER) {
+                            lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
+                            stopFSM = true;
+                        } else if (keytest == KEY_UNDERSCORE) {
+                            stopFSM = true;
+                            error_handle(ERROR_LEXICAL);    //ERROR - byl objeven IDENTIFIER '_'
+                        } else {
+                            lexToken = scanner_stringlessTokenCreate(keytest);
+                            stopFSM;
+                        }
+                        scanner_ungetChar(c);
                         break;
                 }
                 break;
-
+            /*
             case DIGITS: //DIGITS
                 c = scanner_getNextChar();
                 switch (scanner_charIdentity(c)) {
@@ -486,6 +519,7 @@ Token scanner_FSM() {
                         break;
                 }
                 break;
+                */
             default: //stateFSM ERROR
                 stopFSM = true;
                 error_handle(ERROR_LEXICAL);
@@ -498,22 +532,8 @@ Token scanner_FSM() {
 }
 
 
-// Provizorní kód, pls dodělat popřípadě
-Token scanner_tokenCreate(TokenType type, DString *value) {
-    Token token;
-    token.type = type;
-    token.value = value;
-    return token;
-}
 
-Token scanner_stringlessTokenCreate(TokenType type) {
-    Token token;
-    token.type = type;
-    token.value->str = NULL;
-    token.value->length = NULL;
-    token.value->allocatedSize = NULL;
-    return token;
-}
+
 
 Token scanner_getNextToken() {  //Převaděč Tokenu pro Parser (vlastně nepotřebné, Token lze brát přímo z FSM)
     Token lexToken = scanner_FSM();
