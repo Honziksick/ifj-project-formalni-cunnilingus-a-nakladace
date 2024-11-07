@@ -94,6 +94,9 @@ TEST(LLtableTest, HashFunction) {
     EXPECT_EQ(LLtable_hashFunction(const_cast<char*>(terminalMap[T_FN])), T_HASH_FN);
     EXPECT_EQ(LLtable_hashFunction(const_cast<char*>(terminalMap[T_ID])), T_HASH_ID);
     EXPECT_EQ(LLtable_hashFunction(const_cast<char*>(terminalMap[T_IF])), T_HASH_IF);
+    EXPECT_EQ(LLtable_hashFunction(const_cast<char*>(terminalMap[T_CONST])), T_HASH_CONST);
+    EXPECT_EQ(LLtable_hashFunction(const_cast<char*>(terminalMap[T_COMMA])), T_HASH_COMMA);
+    EXPECT_EQ(LLtable_hashFunction(const_cast<char*>(terminalMap[T_MULTIPLICATION])), T_HASH_MULTIPLICATION);
 }
 
 /**

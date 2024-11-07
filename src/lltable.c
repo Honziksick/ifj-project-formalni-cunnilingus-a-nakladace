@@ -131,10 +131,10 @@ LLtable table[TERMINAL_COUNT] = {
 /**
  * @brief Vypočítá hash pro klíč do LL tabulky.
  */
-size_t LLtable_hashFunction(char *key) {
+size_t LLtable_hashFunction(char key[]) {
     size_t hash = HASH_SEED;
-    for(char *i = key; *i; i++) {
-        hash = ((hash << 5) + hash) + (unsigned char)(*i);
+    for(size_t i = 0; i < strlen(key); i++) {
+        hash = ((hash << 5) + hash) + (unsigned char)(key[i]);
     }
     return hash;
 } // LLtable_hashFunction()

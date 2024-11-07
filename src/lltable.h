@@ -34,6 +34,7 @@
 /** @endcond  */
 
 #include <stdlib.h>
+#include <string.h>
 #include "error.h"
 
 /*******************************************************************************
@@ -363,7 +364,7 @@ typedef enum RuleSet {
  * @param [in] key Ukazatel na řetězec, pro který se má vypočítat hash.
  * @return @c size_t Hash hodnota pro daný klíč.
  */
-size_t LLtable_hashFunction(char *key);
+size_t LLtable_hashFunction(char key[]);
 
 /**
  * @brief Najde pravidlo v LL tabulce na základě neterminálu a řetězce.
