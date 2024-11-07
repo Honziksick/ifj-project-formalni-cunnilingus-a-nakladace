@@ -6,7 +6,7 @@
  * Autor:            David Krejčí <xkrejcd00>                                  *
  *                                                                             *
  * Datum:            01.10.2024                                                *
- * Poslední změna:   6.11.2024                                                *
+ * Poslední změna:   7.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -40,7 +40,7 @@
  * @brief   Maximální naplnění tabulky před rozšířením
  * @details Jakmile je tabulka naplněna na 60 %, je rozšířena při dalším vložení.
  */
-#define MAX_FULLNESS_BEFORE_EXPAND 0.6
+#define MAX_FULLNESS_BEFORE_EXPAND 60
 
 /**
  * @brief Počáteční velikost tabulky symbolů při jejím vytvoření
