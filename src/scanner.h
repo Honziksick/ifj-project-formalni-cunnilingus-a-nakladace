@@ -3,11 +3,11 @@
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
  * Soubor:           scanner.h                                                 *
- * Autor:            Hýža Pavel         <xhyzapa00>                            *
- *                   Farkašovský Lukáš  <xfarkal00>                            *
+ * Autor:            Hýža Pavel         <xhyzapa00> (implementace)             *
+ *                   Farkašovský Lukáš  <xfarkal00> (minor edit)               *
  *                                                                             *
- * Datum:            6.10.2024                                                 *
- * Poslední změna:   29.10.2024                                                 *
+ * Datum:            06.10.2024                                                *
+ * Poslední změna:   08.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -18,19 +18,24 @@
  ******************************************************************************/
 /**
  * @file scanner.h
- * @author Hýža Pavel \<xhyzapa00>
- * @author Farkašovský Lukáš \<xfarkal00>
+ * @author Hýža Pavel \<xhyzapa00> (implementace)
+ * @author Farkašovský Lukáš \<xfarkal00> (minor edit)
  *
  * @brief Hlavičkový soubor pro implementaci funkcí modulu scanner.
  * @details Tento soubor obsahuje deklaraci funkcí a datových typů modulu
  *          scannner, které jsou implementovány v souboru scanner.c.
  */
 
+#ifndef SCANNER_H_
+/** @cond  */
+#define SCANNER_H_
+/** @endcond  */
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "dynamic_string.h"//Vlastní knihovny
+#include "dynamic_string.h"
 #include "error.h"
 
 // Definice různých typů tokenů
@@ -224,3 +229,7 @@ Token scanner_getNextToken();
    - kontrolovat, zda má lexém správnou strukturu (např. pavel%honza obsahuje neplatný znak )
    - ...
 */
+
+#endif  // SCANNER_H_
+
+/*** Konec souboru scanner.h ***/
