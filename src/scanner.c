@@ -33,11 +33,11 @@
 #include "scanner.h"
 
 
-char scanner_getNextChar() {      // Čte jeden znak ze souboru
+inline char scanner_getNextChar() {      // Čte jeden znak ze souboru
     return (char)getchar();
 }
 
-void scanner_ungetChar(char c) {    // Vrátí char zpět do vstupního proudu
+inline void scanner_ungetChar(char c) {    // Vrátí char zpět do vstupního proudu
     ungetc(c, stdin);
 }
 
@@ -51,68 +51,61 @@ CharType scanner_charIdentity(char c) {
     else if(c == 9 || c == 32) { //TAB or SPACE
         return WHITE;   //c je prázdný znak (WHITE)
     }
-    else if((c>= 0 && c <= 8) || (c>= 11 && c <= 31) || (c>= 35 && c <= 39) || c==96 || (c>= 126 && c <= 254)) { //Znak, co není v jazyce povolen
+    else if(c <= 8 || (c >= 11 && c <= 31) || (c >= 35 && c <= 39) || c == 96 || c >= 126) { //Znak, co není v jazyce povolen
         return NIL;     //c je znak, kerý nepatří do jazyka (NIL)
     }
     else {
         switch (c) {
             case 10:    // New Line (EOL - End of Line)
                 return C_EOL;
-
-            case 33:    // !
+            case 33:    // "!"
                 return C_EXCLAMATION_MARK;
             case 34:    // "
                 return C_DOUBLE_QUOTE;
-
-            case 40:    // (
+            case 40:    // "("
                 return S_LEFT_PARENTHESIS;
-            case 41:    // )
+            case 41:    // ")"
                 return S_RIGHT_PARENTHESIS;
-            case 42:    // *
+            case 42:    // "*"
                 return S_ASTERISK;
-            case 43:    // +
+            case 43:    // "+"
                 return S_PLUS;
-            case 44:    // ,
+            case 44:    // ","
                 return S_COMMA;
-            case 45:    // -
+            case 45:    // "-"
                 return S_MINUS;
-            case 46:    // .
+            case 46:    // "."
                 return C_PERIOD;
-            case 47:    // /
+            case 47:    // "/"
                 return C_SLASH;
-
-            case 58:    // :
+            case 58:    // ":"
                 return S_COLON;
-            case 59:    // ;
+            case 59:    // ";"
                 return S_SEMICOLON;
-            case 60:    // <
+            case 60:    // "<"
                 return C_LESS_THAN;
-            case 61:    // =
+            case 61:    // "="
                 return C_EQUALITY_SIGN;
-            case 62:    // >
+            case 62:    // ">"
                 return C_GREATER_THAN;
-            case 63:    // ?
+            case 63:    // "?"
                 return C_QUESTION_MARK;
-            case 64:    // @
+            case 64:    // "@"
                 return C_AT_SIGN;
-
-            case 91:    // [
+            case 91:    // "["
                 return C_LEFT_SQUARE_BRACKET;
-            case 92:    // \
+            case 92:    // "\"
                 return C_BACKSLASH;
-            case 93:    // ]
+            case 93:    // "]"
                 return C_RIGHT_SQUARE_BRACKET;
-
-            case 123:   // {
+            case 123:   // "{"
                 return S_LEFT_CURLY_BRACKET;
-            case 124:   // |
+            case 124:   // "|"
                 return S_VERTICAL_BAR;
-            case 125:   // }
+            case 125:   // "}"
                 return S_RIGHT_CURLY_BRACKET;
-
             case 255:   // EOF
                 return C_EOF;
-
             default:    // ERROR při identifikaci CHARu (nepatří mezi 0 - 255)
                 error_handle(ERROR_LEXICAL);
         }
@@ -120,31 +113,31 @@ CharType scanner_charIdentity(char c) {
 }
 
 Keywords scanner_isKeyword(DString *value) {
-    if       (value->str == "const") {
+    if(strcmp(value->str, "const") == 0) {
         return KEY_const;
-    } else if(value->str == "var") {
+    } else if(strcmp(value->str, "var") == 0) {
         return KEY_var;
-    } else if(value->str == "i32") {
+    } else if(strcmp(value->str, "i32") == 0) {
         return KEY_i32;
-    } else if(value->str == "f64") {
+    } else if(strcmp(value->str, "f64") == 0) {
         return KEY_f64;
-    } else if(value->str == "pub") {
+    } else if(strcmp(value->str, "pub") == 0) {
         return KEY_pub;
-    } else if(value->str == "fn") {
+    } else if(strcmp(value->str, "fn") == 0) {
         return KEY_fn;
-    } else if(value->str == "void") {
+    } else if(strcmp(value->str, "void") == 0) {
         return KEY_void;
-    } else if(value->str == "return") {
+    } else if(strcmp(value->str, "return") == 0) {
         return KEY_return;
-    } else if(value->str == "null") {
+    } else if(strcmp(value->str, "null") == 0) {
         return KEY_null;
-    } else if(value->str == "if") {
+    } else if(strcmp(value->str, "if") == 0) {
         return KEY_if;
-    } else if(value->str == "else") {
+    } else if(strcmp(value->str, "else") == 0) {
         return KEY_else;
-    } else if(value->str == "while") {
+    } else if(strcmp(value->str, "while") == 0) {
         return KEY_while;
-    } else if(value->str == "_") {
+    } else if(strcmp(value->str, "_") == 0) {
         return KEY_UNDERSCORE;
     } else {
         return KEY_IDENTIFIER;
@@ -161,9 +154,7 @@ Token scanner_tokenCreate(TokenType type, DString *value) {
 Token scanner_stringlessTokenCreate(TokenType type) {
     Token token;
     token.type = type;
-    token.value->str = NULL;
-    token.value->length = NULL;
-    token.value->allocatedSize = NULL;
+    token.value = NULL;
     return token;
 }
 
@@ -178,6 +169,8 @@ Token scanner_FSM() {
     //Běh FSM po jednom volání od Syntaktického analyzátoru
     while(stopFSM == false)
     {
+        int x = 0;
+        int keytest = 0;
         switch (state) {
             /*
             -------------
@@ -187,7 +180,7 @@ Token scanner_FSM() {
             case START:
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
-                    case LETTER:                        //1/29
+                    case LETTER:                 //1/29
                         string_append_char(str, c);
                         state = LETTERS;
                         break;
@@ -311,7 +304,7 @@ Token scanner_FSM() {
                         string_append_char(str, c);
                         break;
                     case WHITE:                         //3/29
-                        int keytest = scanner_isKeyword(str);
+                        keytest = scanner_isKeyword(str);
                         if(keytest == KEY_IDENTIFIER) {
                             lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                             stopFSM = true;
@@ -328,7 +321,7 @@ Token scanner_FSM() {
                         error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
                         break;
                     case C_EOL:                         //28/29
-                        int keytest = scanner_isKeyword(str);
+                        keytest = scanner_isKeyword(str);
                         if(keytest == KEY_IDENTIFIER) {
                             lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                             stopFSM = true;
@@ -341,7 +334,7 @@ Token scanner_FSM() {
                         }
                         break;
                     default:                            //5-27,29/29 (Special Simple, Special Complex(without 28-EOL))
-                        int keytest = scanner_isKeyword(str);
+                        keytest = scanner_isKeyword(str);
                         if(keytest == KEY_IDENTIFIER) {
                             lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                             stopFSM = true;
@@ -993,8 +986,6 @@ Token scanner_FSM() {
             -----------------
             */
             case ESCAPE_X:
-                int x = 0;
-
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
                 if((c >= 48 && c <= 57) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102)) {
                     if(c >= 48 && c <= 57) {    //0-9
@@ -1122,11 +1113,6 @@ Token scanner_FSM() {
     return lexToken;
 }
 
-
-
-
-
-Token scanner_getNextToken() {  //Převaděč Tokenu pro Parser (vlastně nepotřebné, Token lze brát přímo z FSM)
-    Token lexToken = scanner_FSM();
-    return lexToken;
+inline Token scanner_getNextToken() {  //Převaděč Tokenu pro Parser (vlastně nepotřebné, Token lze brát přímo z FSM)
+    return scanner_FSM();
 }
