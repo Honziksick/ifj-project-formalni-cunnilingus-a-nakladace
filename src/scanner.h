@@ -129,39 +129,39 @@ typedef enum {
     NON1a = 7,
     NON1b = 8,
     NON2a = 9,
-    NON2b = 11,
-    NON3a = 12,
-    NON3b = 13,
-    NON3c = 14,
+    NON2b = 10,
+    NON3a = 11,
+    NON3b = 12,
+    NON3c = 13,
     //[]u8 PATH
-    U1 = 15,
-    U2 = 16,
-    U3 = 17,
+    U1 = 14,
+    U2 = 15,
+    U3 = 16,
     //@import PATH
-    I1 = 18,
-    I2 = 19,
-    I3 = 20,
-    I4 = 21,
-    I5 = 22,
-    I6 = 23,
+    I1 = 17,
+    I2 = 18,
+    I3 = 19,
+    I4 = 20,
+    I5 = 21,
+    I6 = 22,
     //= OR == PATH
-    EQUAL = 24,
+    EQUAL = 23,
     //!= PATH
-    NOT_EQUAL = 25,
+    NOT_EQUAL = 24,
     //< OR <= PATH
-    LESS = 26,
+    LESS = 25,
     //> OR >= PATH
-    GREATER = 27,
+    GREATER = 26,
     //SLASH PATH
-    SLASH = 28,
-    DOUBLE_SLASH = 29,
+    SLASH = 27,
+    DOUBLE_SLASH = 28,
     //STRING PATH
-    DOUBLE_QUOTE = 30,
-    ESCAPE = 31,
-    ESCAPE_X = 32, //Tímto si nejsem jistý
+    DOUBLE_QUOTE = 29,
+    ESCAPE = 30,
+    ESCAPE_X = 31, //Tímto si nejsem jistý
     //BACKSLASH PATH
-    BACKSLASH = 33,
-    DOUBLE_BACKSLASH = 34
+    BACKSLASH = 32,
+    DOUBLE_BACKSLASH = 33
 } StateFSM;
 
 typedef enum {
