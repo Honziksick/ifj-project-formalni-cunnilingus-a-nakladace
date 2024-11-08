@@ -1,6 +1,7 @@
 {
     "version": "2.0.0",
-    "tasks": [
+    "configurations": [
+        // Main Commands
         {
             "label": "all",
             "type": "shell",
@@ -20,36 +21,9 @@
             "problemMatcher": []
         },
         {
-            "label": "help",
-            "type": "shell",
-            "command": "make -C \"${workspaceFolder}/src\" help",
-            "presentation": {
-                "reveal": "always"
-            },
-            "problemMatcher": []
-        },
-        {
             "label": "clean",
             "type": "shell",
             "command": "make -C \"${workspaceFolder}/src\" clean",
-            "presentation": {
-                "reveal": "always"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "test",
-            "type": "shell",
-            "command": "make -C \"${workspaceFolder}/src\" test",
-            "presentation": {
-                "reveal": "always"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "doc",
-            "type": "shell",
-            "command": "make -C \"${workspaceFolder}/src\" doc",
             "presentation": {
                 "reveal": "always"
             },
@@ -65,9 +39,47 @@
             "problemMatcher": []
         },
         {
+            "label": "doc",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" doc",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "help",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" help",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "pack",
             "type": "shell",
             "command": "make -C \"${workspaceFolder}/src\" pack",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+
+        // Clean Commands
+        {
+            "label": "clean-all",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" clean-all",
             "presentation": {
                 "reveal": "always"
             },
@@ -92,18 +104,18 @@
             "problemMatcher": []
         },
         {
-            "label": "clean-doc",
+            "label": "clean-coverage",
             "type": "shell",
-            "command": "make -C \"${workspaceFolder}/src\" clean-doc",
+            "command": "make -C \"${workspaceFolder}/src\" clean-coverage",
             "presentation": {
                 "reveal": "always"
             },
             "problemMatcher": []
         },
         {
-            "label": "clean-coverage",
+            "label": "clean-doc",
             "type": "shell",
-            "command": "make -C \"${workspaceFolder}/src\" clean-coverage",
+            "command": "make -C \"${workspaceFolder}/src\" clean-doc",
             "presentation": {
                 "reveal": "always"
             },
@@ -118,10 +130,12 @@
             },
             "problemMatcher": []
         },
+
+        // Build Modules and Submodules
         {
-            "label": "build-test",
+            "label": "build-ast",
             "type": "shell",
-            "command": "make -C \"${workspaceFolder}/src\" build-test",
+            "command": "make -C \"${workspaceFolder}/src\" build-ast",
             "presentation": {
                 "reveal": "always"
             },
@@ -131,6 +145,51 @@
             "label": "build-error",
             "type": "shell",
             "command": "make -C \"${workspaceFolder}/src\" build-error",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-frame-stack",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-frame-stack",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-lltable",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-lltable",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-parser",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-parser",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-scanner",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-scanner",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-semantic",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-semantic",
             "presentation": {
                 "reveal": "always"
             },
@@ -155,9 +214,130 @@
             "problemMatcher": []
         },
         {
-            "label": "build-scanner",
+            "label": "build-tac",
             "type": "shell",
-            "command": "make -C \"${workspaceFolder}/src\" build-scanner",
+            "command": "make -C \"${workspaceFolder}/src\" build-tac",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+
+        // Test Commands
+        {
+            "label": "build-ast-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-ast-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-error-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-error-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-lltable-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-lltable-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-parser-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-parser-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-scanner-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-scanner-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-semantic-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-semantic-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-stack-frame-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-stack-frame-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-string-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-string-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-symtable-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-symtable-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-tac-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-tac-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-test-libs",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-test-libs",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+
+        // Run Test Commands
+        {
+            "label": "run-ast-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" run-ast-test",
             "presentation": {
                 "reveal": "always"
             },
@@ -167,6 +347,51 @@
             "label": "run-error-test",
             "type": "shell",
             "command": "make -C \"${workspaceFolder}/src\" run-error-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "run-lltable-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" run-lltable-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "run-parser-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" run-parser-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "run-scanner-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" run-scanner-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "run-semantic-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" run-semantic-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "run-stack-frame-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" run-stack-frame-test",
             "presentation": {
                 "reveal": "always"
             },
@@ -191,9 +416,105 @@
             "problemMatcher": []
         },
         {
-            "label": "run-scanner-test",
+            "label": "run-tac-test",
             "type": "shell",
-            "command": "make -C \"${workspaceFolder}/src\" run-scanner-test",
+            "command": "make -C \"${workspaceFolder}/src\" run-tac-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+
+        // Code Coverage Commands
+        {
+            "label": "build-coverage",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-coverage",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "process-coverage",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" process-coverage",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "run-test-coverage",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" run-test-coverage",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+
+        // Install Dependencies Commands
+        {
+            "label": "dev-update-dep",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" dev-update-dep",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "install-cov-dep",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" install-cov-dep",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "install-dev-dep",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" install-dev-dep",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "install-doc-dep",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" install-doc-dep",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "install-help-dep",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" install-help-dep",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "install-pack-dep",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" install-pack-dep",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+
+        // Others
+        {
+            "label": "pack-prepare",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" pack-prepare",
             "presentation": {
                 "reveal": "always"
             },
