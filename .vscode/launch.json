@@ -2,6 +2,37 @@
     "version": "0.2.0",
     "configurations": [  
         {
+            "name": "(gdb) IFJ24 Compiler (deployment edition)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/ifj24_compiler",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip Google Test functions",
+                    "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "make: build"
+        },
+        {
             "name": "(gdb) test (all ifj24 tests)",
             "type": "cppdbg",
             "request": "launch",
@@ -21,6 +52,11 @@
                 {
                     "description": "Skip Google Test functions",
                     "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
                     "ignoreFailures": true
                 }
             ],
@@ -48,6 +84,11 @@
                     "description": "Skip Google Test functions",
                     "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
                     "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
+                    "ignoreFailures": true
                 }
             ],
             "miDebuggerPath": "/usr/bin/gdb",
@@ -73,6 +114,11 @@
                 {
                     "description": "Skip Google Test functions",
                     "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
                     "ignoreFailures": true
                 }
             ],
@@ -100,6 +146,11 @@
                     "description": "Skip Google Test functions",
                     "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
                     "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
+                    "ignoreFailures": true
                 }
             ],
             "miDebuggerPath": "/usr/bin/gdb",
@@ -126,10 +177,201 @@
                     "description": "Skip Google Test functions",
                     "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
                     "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
+                    "ignoreFailures": true
                 }
             ],
             "miDebuggerPath": "/usr/bin/gdb",
             "preLaunchTask": "make: build-scanner-test"
-        }
+        },
+        {
+            "name": "(gdb) run-ast-test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/build_test/ast_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip Google Test functions",
+                    "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "make: build-ast-test"
+        },
+        {
+            "name": "(gdb) run-parser-test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/build_test/parser_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip Google Test functions",
+                    "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "make: build-parser-test"
+        },
+        {
+            "name": "(gdb) run-lltable-test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/build_test/lltable_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip Google Test functions",
+                    "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "make: build-lltable-test"
+        },
+        {
+            "name": "(gdb) run-semantic-test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/build_test/semantic_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip Google Test functions",
+                    "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "make: build-semantic-test"
+        },
+        {
+            "name": "(gdb) run-stack-frame-test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/build_test/stack_frame_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip Google Test functions",
+                    "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "make: build-stack-frame-test"
+        },
+        {
+            "name": "(gdb) run-tac-test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/build_test/tac_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip Google Test functions",
+                    "text": "skip pair_getters::*, internal::*, variant_matcher::*, any_cast_matcher::*, no_adl::*, gmock::*, gtest::*, testing::*",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Skip stepping into .cc files",
+                    "text": "skip file *.cc",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "make: build-tac-test"
+        },
     ]
 }

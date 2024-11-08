@@ -17,9 +17,35 @@
             "pattern": "${workspaceFolder}/test/build_test/dynamic_string_test"
         },
         {
-            "name": "Symbol Table LibraryTests",
+            "name": "SymbTable Tests",
             "pattern": "${workspaceFolder}/test/build_test/symtable_test"
-        }
+        },
+        {
+            "name": "Syntactic Analyzer (parser) Tests",
+            "pattern": "${workspaceFolder}/test/build_test/parser_test"
+        },
+        {
+            "name": "Semantic Analyser Tests",
+            "pattern": "${workspaceFolder}/test/build_test/semantic_test"
+        },
+        {
+            "name": "Three-Adress Code Generator Tests",
+            "pattern": "${workspaceFolder}/test/build_test/tac_test"
+        },
+        {
+            "name": "LL-Table Tests",
+            "pattern": "${workspaceFolder}/test/build_test/lltable_test"
+        },
+        {
+            "name": "Abstract Syntactic Tree Library Tests",
+            "pattern": "${workspaceFolder}/test/build_test/ast_test"
+        },
+        {
+            "name": "Frame Stack Library Tests",
+            "pattern": "${workspaceFolder}/test/build_test/frame_stack_test"
+        },
     ],
-    "makefile.makefilePath": "${workspaceFolder}/src/Makefile"
+    "makefile.makefilePath": "${workspaceFolder}/src/Makefile",
+    "editor.inlayHints.fontFamily": "\"Consolas\",\"JetBrains Mono Nerd Fonts\"",
+    "editor.fontFamily": "\"Consolas\", \"JetBrains Mono Nerd Fonts\""
 }

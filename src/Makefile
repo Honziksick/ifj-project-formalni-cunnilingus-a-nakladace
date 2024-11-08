@@ -230,7 +230,7 @@ clean-all: clean-build clean-test clean-coverage clean-doc clean-pack
 clean-build:
 	rm -rf $(BUILD_DIR)
 
-### C # clean-build: # Odstraní adresář '../test/build-test' s unit testy překladače
+### C # clean-test: # Odstraní adresář '../test/build-test' s unit testy překladače
 clean-test:
 	rm -rf $(TEST_BUILD_DIR)
 
@@ -249,7 +249,7 @@ clean-pack:
 
 ################################################################################
 #                                                                              #
-#                         KOMPILACE CELÉHO PŘEKLADAČE                          #
+#                   KOMPILACE CELÉHO PŘEKLADAČE PRO NASAZENÍ                   #
 #                                                                              #
 ################################################################################
 
@@ -261,6 +261,22 @@ $(BUILD_DIR)/$(EXECUTABLE): $(OBJ_FILES)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
+
+################################################################################
+#                                                                              #
+#                 KOMPILACE CELÉHO PŘEKLADAČE PRO DEBUGGOVÁNÍ                  #
+#                                                                              #
+################################################################################
+
+# Pravidlo pro sestavení cílového programu
+$(BUILD_DIR)/$(EXECUTABLE): $(OBJ_FILES)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -o $@ $^
+
+# Pravidlo pro sestavení objektových souborů
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
 
 ################################################################################
