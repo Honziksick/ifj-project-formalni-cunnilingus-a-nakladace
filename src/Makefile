@@ -117,6 +117,7 @@ TEST_FILES = $(wildcard $(TEST_DIR)/*.cpp)
 # Seznam všech objektových souborů přeložených pro testování
 TEST_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(TEST_BUILD_DIR)/%.o,$(SRC_FILES))
 TEST_TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.cpp,$(TEST_BUILD_DIR)/%.o,$(TEST_FILES))
+TEST_C_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(TEST_BUILD_DIR)/%.o, $(SRC_FILES))
 
 # Seznam všech objektových souborů přeložených pro code coverage
 COV_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(COVERAGE_BUILD_DIR)/%.o,$(SRC_FILES))
@@ -270,11 +271,11 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 ################################################################################
 
 # Pravidlo pro sestavení cílového programu
-$(BUILD_DIR)/$(EXECUTABLE): $(OBJ_FILES)
+$(TEST_BUILD_DIR)/$(EXECUTABLE): $(TEST_C_OBJ_FILES)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -o $@ $^
 
 # Pravidlo pro sestavení objektových souborů
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(TEST_BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
