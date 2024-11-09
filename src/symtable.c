@@ -6,7 +6,7 @@
  * Autor:            David Krejčí <xkrejcd00>                                  *
  *                                                                             *
  * Datum:            01.10.2024                                                *
- * Poslední změna:   7.11.2024                                                *
+ * Poslední změna:   9.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -61,7 +61,7 @@ SymtablePtr symtable_init() {
 /**
  * @brief Přidá novou položku do tabulky symbolů
 */
-symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *out_item) {
+symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **out_item) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
@@ -86,7 +86,6 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
 
     // Procházíme tabulku dokud nenarazíme na prázdnou položku
     while(true) {
-        fflush(stderr);
         SymtableItemPtr item = &table->array[index];
         // Pokud je nalezeno prázdné místo, vkládáme novou položku
         if(item->symbol_state == SYMTABLE_SYMBOL_EMPTY ||
@@ -115,12 +114,12 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
             item->data = NULL;
             item->symbol_state = SYMTABLE_SYMBOL_UNKNOWN;
             item->constant = false;
-            item->declared = false;
+            item->defined = false;
             item->used = false;
             
             // Pokud je požadován odkaz na novou položku, vrátíme ho
             if(out_item != NULL) {
-                *out_item = *item;
+                *out_item = item;
             }
             return SYMTABLE_SUCCESS;
         }
@@ -131,7 +130,7 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
 
             // Vrátíme odkaz na existující položku a
             if(out_item != NULL) {
-                *out_item = *item;
+                *out_item = item;
             }
             return SYMTABLE_ITEM_ALREADY_EXISTS;
         }
@@ -143,14 +142,14 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
 /**
  * @brief Přidá novou položku do tabulky symbolů z tokenu
 */
-symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem *out_item){
+symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem **out_item){
     return symtable_addItem(table, token.value, out_item);
 }
 
 /**
  * @brief Vyhledá položku v tabulce symbolů
 */
-symtable_result symtable_findItem(Symtable *table, DString *searched_key, SymtableItem *out_item) {
+symtable_result symtable_findItem(Symtable *table, DString *searched_key, SymtableItem **out_item) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
@@ -163,21 +162,18 @@ symtable_result symtable_findItem(Symtable *table, DString *searched_key, Symtab
 
     // Vypočítáme index, na kterém by se měla hledaná položka nacházet
     size_t index = symtable_hashFunction(searched_key) % table->allocated_size;
-    if(index == SYMTABLE_ALLOCATION_FAIL){
-        return SYMTABLE_ALLOCATION_FAIL;
-    }
 
     // Vezmeme položku na indexu
-    SymtableItem item = table->array[index];
+    SymtableItemPtr item = &table->array[index];
     // Inkrement pro hledání
     size_t i = 0;
     // Procházíme položky dokud nenarazíme na prázdnou položku
-    while(item.symbol_state != SYMTABLE_SYMBOL_EMPTY) {
+    while(item->symbol_state != SYMTABLE_SYMBOL_EMPTY) {
 
         // Pokud je nalezena položka se stejným klíčem, vracíme ji
-        if(string_compare(item.key,searched_key) == STRING_EQUAL) {
+        if(string_compare(item->key,searched_key) == STRING_EQUAL) {
             if(out_item != NULL) {
-                out_item = &item;
+                *out_item = item;
             }
             return SYMTABLE_SUCCESS;
         }
@@ -188,7 +184,7 @@ symtable_result symtable_findItem(Symtable *table, DString *searched_key, Symtab
         if(new_index == index) {
             return SYMTABLE_ITEM_DOESNT_EXIST;
         }
-        item = table->array[new_index];
+        item = &table->array[new_index];
     }
     return SYMTABLE_ITEM_DOESNT_EXIST;
 }
@@ -208,7 +204,7 @@ symtable_result symtable_deleteItem(Symtable *table, DString *key) {
     }
 
     // Pokusíme se najít položku
-    SymtableItem item;
+    SymtableItemPtr item;
     symtable_result find_result = symtable_findItem(table,key,&item);
 
     // Při neúspěchu vracíme návratový kód
@@ -217,23 +213,31 @@ symtable_result symtable_deleteItem(Symtable *table, DString *key) {
     }
 
     // Při úspěchu položku odstraníme
-    
-    if(item.key != NULL){
-        string_free(item.key);
-        item.key = NULL;
+    if(item->key != NULL){
+        string_free(item->key);
+        item->key = NULL;
     }
-    if(item.data != NULL){
-        free(item.data);
-        item.data = NULL;
+    if(item->data != NULL){
+        // Pokud je položka funkce, uvolníme i její parametry
+        if(item->symbol_state == SYMTABLE_SYMBOL_FUNCTION){
+            SymtableFunctionData *data = (SymtableFunctionData *)item->data;
+            for(size_t i = 0; i < data->param_count; i++){
+                string_free(data->params[i].id);
+            }
+            free(data->params);
+        }
+        // Uvolníme data položky
+        free(item->data);
+        item->data = NULL;
     }
-    item.symbol_state = SYMTABLE_SYMBOL_DEAD;
+    item->symbol_state = SYMTABLE_SYMBOL_DEAD;
     return SYMTABLE_SUCCESS;
 }
 
 /**
  * @brief Vymaže všechny položky z tabulky symbolů
 */
-void symtable_deleteAll(Symtable *table) {
+void symtable_deleteAll(Symtable *table, bool keep_data) {
     // Pokud je tabulka NULL, nic se neprovede
     if(table == NULL) {
         return;
@@ -253,7 +257,16 @@ void symtable_deleteAll(Symtable *table) {
                 string_free(item.key);
                 item.key = NULL;
             }
-            if(item.data != NULL){
+            if(keep_data == false && item.data != NULL){
+                // Pokud je položka funkce, uvolníme i její parametry
+                if(item.symbol_state == SYMTABLE_SYMBOL_FUNCTION){
+                    SymtableFunctionData *data = (SymtableFunctionData *)item.data;
+                    for(size_t j = 0; j < data->param_count; j++){
+                        string_free(data->params[j].id);
+                    }
+                    free(data->params);
+                }
+                // Uvolníme data položky
                 free(item.data);
                 item.data = NULL;
             }
@@ -271,7 +284,7 @@ inline void symtable_destroyTable(Symtable *table) {
         return;
     }
     // Odstraníme všechny položky
-    symtable_deleteAll(table);
+    symtable_deleteAll(table, false);
     free(table->array);
     free(table);
 }
@@ -310,18 +323,18 @@ bool symtable_transfer(Symtable *out_table, Symtable *in_table) {
         }
 
         // Vytvoříme novou položku v cílové tabulce
-        SymtableItem new_location;
+        SymtableItemPtr new_location;
         symtable_result result = symtable_addItem(in_table, out_table->array[i].key, &new_location);
         // Pokud se nepodařilo přidat položku, vracíme false
         if(result != SYMTABLE_SUCCESS) {
             return false;
         }
         // Přeneseme data z jedné položky do druhé
-        new_location.data = out_table->array[i].data;
-        new_location.symbol_state = out_table->array->symbol_state;
-        new_location.constant = out_table->array->constant;
-        new_location.declared = out_table->array->declared;
-        new_location.used = out_table->array->used;
+        new_location->data = out_table->array[i].data;
+        new_location->symbol_state = out_table->array[i].symbol_state;
+        new_location->constant = out_table->array[i].constant;
+        new_location->defined = out_table->array[i].defined;
+        new_location->used = out_table->array[i].used;
     }
     return true;
 }
@@ -358,7 +371,7 @@ Symtable *symtable_resize(Symtable *table, size_t size) {
         return NULL;
     }
     // Uvolníme původní pole položek
-    symtable_deleteAll(table);
+    symtable_deleteAll(table, true);
     free(table->array);
     table->array = new_table->array;
     table->allocated_size = size;
@@ -384,10 +397,42 @@ inline SymtableItemPtr symtable_init_items(size_t size) {
         items[i].symbol_state = SYMTABLE_SYMBOL_EMPTY;
         items[i].data = NULL;
         items[i].constant = false;
-        items[i].declared = false;
+        items[i].defined = false;
         items[i].used = false;
     }
     return items;
+}
+
+SymtableFunctionData *symtable_init_function_data(size_t param_count){
+    // Alokujeme paměť pro strukturu
+    SymtableFunctionData *data = malloc(sizeof(SymtableFunctionData));
+    // Pokud se nepodařilo alokovat paměť, vracíme NULL
+    if(data == NULL){
+        return NULL;
+    }
+    // Pokud funkce nemá žádné parametry, inicializujeme strukturu a vracíme ji
+    if(param_count == 0){
+        data->param_count = 0;
+        data->params = NULL;
+        return data;
+    }
+
+    // Jinak alokujeme paměť pro pole parametrů
+    SymtableParamPair *params = malloc(param_count * sizeof(SymtableParamPair));
+    // Pokud se nepodařilo alokovat paměť, uvolníme data a vracíme NULL
+    if(params == NULL){
+        free(data);
+        return NULL;
+    }
+    // Inicializujeme parametry
+    for(size_t i = 0; i < param_count; i++){
+        params[i].id = NULL;
+        params[i].type = SYMTABLE_TYPE_UNKNOWN;
+    }
+    // Inicializujeme strukturu
+    data->param_count = param_count;
+    data->params = params;
+    return data;
 }
 
 /*** Konec souboru symtable.c ***/

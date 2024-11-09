@@ -151,7 +151,7 @@ void frameStack_pop(){
 /**
  * @brief Vyhledá položku v zásobníku rámců podle klíče.
  */
-frame_stack_result frameStack_findItem(DString *key, SymtableItem *out_item){
+frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item){
     // Pokud je klíč NULL, vrátíme chybu
     if(key == NULL){
         return FRAME_STACK_KEY_NULL;
@@ -186,7 +186,7 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem *out_item){
 /**
  * @brief Přidá novou položku do vrchního rámce zásobníku.
  */
-frame_stack_result frameStack_addItem(DString *key, SymtableItem *out_item){
+frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item){
 
     frame_stack_result result = frameStack_findItem(key, out_item);
     if(result == FRAME_STACK_SUCCESS){

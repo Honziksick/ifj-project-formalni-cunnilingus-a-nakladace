@@ -6,7 +6,7 @@
  * Autor:            David Krejčí <xkrejcd00>                                  *
  *                                                                             *
  * Datum:            01.10.2024                                                *
- * Poslední změna:   7.11.2024                                                *
+ * Poslední změna:   9.11.2024                                                 *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -79,7 +79,7 @@ typedef enum {
  *          (například při přidání nebo vyhledání položek).
  */
 typedef enum {
-    SYMTABLE_SUCCESS,                /**< Operace proběhla úspěšně */
+    SYMTABLE_SUCCESS = 0,            /**< Operace proběhla úspěšně */
     SYMTABLE_ALLOCATION_FAIL,        /**< Selhala alokace paměti */
     SYMTABLE_ITEM_ALREADY_EXISTS,    /**< Přidávaná položka již existuje */
     SYMTABLE_ITEM_DOESNT_EXIST,      /**< Hledaná položka není v tabulce */
@@ -87,6 +87,18 @@ typedef enum {
     SYMTABLE_RESIZE_FAIL,            /**< Chyba při zvětšení tabulky */
     SYMTABLE_KEY_NULL                /**< Předaný klíč je NULL */
 } symtable_result;
+
+
+typedef enum {
+    SYMTABLE_TYPE_UNKNOWN = 0,      /**< Neznámý typ */
+    SYMTABLE_TYPE_INT,              /**< Proměnná typu int */
+    SYMTABLE_TYPE_DOUBLE,           /**< Proměnná typu double */
+    SYMTABLE_TYPE_STRING,           /**< Proměnná typu string */
+    SYMTABLE_TYPE_INT_OR_NULL,      /**< Proměnná typu int nebo NULL */
+    SYMTABLE_TYPE_DOUBLE_OR_NULL,   /**< Proměnná typu double nebo NULL */
+    SYMTABLE_TYPE_STRING_OR_NULL,   /**< Proměnná typu string nebo NULL */
+    SYMTABLE_TYPE_VOID              /**< Funkce nic nevrací */
+} symtable_functionReturnType;
 
 
 /*******************************************************************************
@@ -102,13 +114,34 @@ typedef enum {
  *          signatura funkce).
  */
 typedef struct {
-    DString *key;                   /**< Klíč položky (identifikátor) */
-    unsigned char symbol_state;     /**< Stav symbolu dle výčtu `symtable_symbol_state` */
-    bool used;                      /**< Příznak, zda je položka použita */
-    bool declared;                  /**< Příznak, zda je položka deklarována */
-    bool constant;                  /**< Příznak, zda je položka konstantní */
-    void *data;                     /**< Ukazatel na data asociovaná s položkou */
+    DString *key;                       /**< Klíč položky (identifikátor) */
+    symtable_symbolState symbol_state;  /**< Stav symbolu dle výčtu `symtable_symbol_state` */
+    bool used;                          /**< Příznak, zda je položka použita */
+    bool defined;                       /**< Příznak, zda je položka definovaná */
+    bool constant;                      /**< Příznak, zda je položka konstantní */
+    void *data;                         /**< Ukazatel na data asociovaná s položkou */
 } SymtableItem, *SymtableItemPtr;
+
+/**
+ * @brief Struktura parametru funkce
+ */
+typedef struct {
+    DString *id;                        /**< Identifikátor parametru */
+    symtable_functionReturnType type;   /**< Typ parametru */
+} SymtableParamPair;
+
+/**
+ * @brief Struktura dat funkce
+ * @details Tato struktura obsahuje návratový typ funkce, počet parametrů
+ *          a pole s jednotlivými parametry.
+ */
+typedef struct {
+    symtable_functionReturnType return_type;    /**< Návratový typ funkce */
+    size_t param_count;                         /**< Počet parametrů funkce */
+    SymtableParamPair *params;                  /**< Pole parametrů funkce */
+} SymtableFunctionData;
+
+
 
 /**
  * @brief   Struktura hashovací tabulky
@@ -151,7 +184,8 @@ Symtable *symtable_init();
  *
  * @param [in] table Ukazatel na tabulku symbolů
  * @param [in] key Klíč nové položky
- * @param [in] out_item Ukazatel na přidanou položku (výstupní parametr)
+ * @param [in] out_item Ukazatel, kam se má vrátit přidaná položka (výstupní parametr)
+ *                  Pokud je NULL, položka není vrácena.
  * @return - @c SYMTABLE_SUCCESS při úspěšném vložení nové položky.
  *         - @c SYMTABLE_ITEM_ALREADY_EXISTS, pokud položka se zadaným klíčem
  *           již v tabulce existuje.
@@ -160,7 +194,7 @@ Symtable *symtable_init();
  *         - @c SYMTABLE_ALLOCATION_FAIL, pokud selhala alokace paměti pro nový prvek.
  *         - @c SYMTABLE_KEY_NULL, pokud byl předán klíč NULL.
  */
-symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *out_item);
+symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **out_item);
 
 /**
  * @brief Přidá novou položku do tabulky symbolů z tokenu
@@ -180,7 +214,7 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem *ou
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL.
  *         - @c SYMTABLE_RESIZE_FAIL, pokud selhalo rozšíření tabulky.
  */
-symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem *out_item);
+symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem **out_item);
 
 /**
  * @brief Vyhledá položku v tabulce symbolů
@@ -197,10 +231,9 @@ symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem *ou
  *         - @c SYMTABLE_ITEM_DOESNT_EXIST, pokud se položka s daným klíčem
  *           v tabulce nenachází.
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL
- *         - @c SYMTABLE_ALLOCATION_FAIL, pokud selhalo alokování paměti
  *         - @c SYMTABLE_KEY_NULL, pokud byl předán klíč NULL
  */
-symtable_result symtable_findItem(Symtable *table, DString *key, SymtableItem *out_item);
+symtable_result symtable_findItem(Symtable *table, DString *key, SymtableItem **out_item);
 
 /**
  * @brief Odstraní položku z tabulky symbolů
@@ -224,8 +257,10 @@ symtable_result symtable_deleteItem(Symtable *table, DString *key);
  * @details Vymaže všechny položky z tabulky symbolů a uvolní paměť položek.
  *
  * @param [in] table Ukazatel na tabulku symbolů
+ * @param [in] keep_data Pokud je `true`, data položek nebudou uvolněna (true při resize)
+ *                  
  */
-void symtable_deleteAll(Symtable *table);
+void symtable_deleteAll(Symtable *table, bool keep_data);
 
 /**
  * @brief Zničí tabulku symbolů a uvolní její paměť
@@ -236,6 +271,14 @@ void symtable_deleteAll(Symtable *table);
  */
 void symtable_destroyTable(Symtable *table);
 
+/**
+ * @brief Inicializuje novou strukturu pro data funkce
+ * 
+ * @details Alokuje místo pro data pro funkci s daným počtem parametrů
+ * 
+ * @param [in] param_count Počet parametrů funkce
+ */
+SymtableFunctionData *symtable_init_function_data(size_t param_count);
 
 /*******************************************************************************
  *                                                                             *
