@@ -7,7 +7,7 @@
  *                   David Krejčí <xkrejcd00> (návrh)                          *
  *                                                                             *
  * Datum:            30.10.2024                                                *
- * Poslední změna:   30.10.2024                                                *
+ * Poslední změna:   9.11.2024                                                 *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -42,6 +42,28 @@
 
 /*******************************************************************************
  *                                                                             *
+ *                             VÝČTOVÉ DATOVÉ TYPY                             *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief   Výčet návratových hodnot funkcí zásobníku rámců
+ * @details Tento výčet definuje různé návratové hodnoty,
+ *          které mohou některé funkce zásobníku rámců vrátit
+ *          (například při přidání nebo vyhledání položek).
+ */
+typedef enum {
+    FRAME_STACK_SUCCESS,                /**< Operace proběhla úspěšně       */
+    FRAME_STACK_ALLOCATION_FAIL,        /**< Selhala alokace paměti         */
+    FRAME_STACK_ITEM_ALREADY_EXISTS,    /**< Přidávaná položka již existuje */
+    FRAME_STACK_ITEM_DOESNT_EXIST,      /**< Hledaná položka není v rozsahu */
+    FRAME_STACK_NOT_INITIALIZED,        /**< Zásobník rámců není inicializován */
+    FRAME_STACK_KEY_NULL                /**< Předaný klíč je NULL           */
+} frame_stack_result;
+
+
+/*******************************************************************************
+ *                                                                             *
  *                             DEKLARACE STRUKTUR                              *
  *                                                                             *
  ******************************************************************************/
@@ -60,11 +82,18 @@ typedef struct Frame {
  * @brief Struktura představující zásobník rámců.
  */
 typedef struct FrameStack {
-    FramePtr top;            /**< Ukazatel na vrchol zásobníku rámců. */
-    FramePtr bottom;         /**< Ukazatel na spodní část zásobníku rámců. */
-    size_t currentID;        /**< Aktuální ID nejvyššího rámce. */
+    FramePtr top;            /**< Ukazatel na vrchol zásobníku rámců.       */
+    FramePtr bottom;         /**< Ukazatel na spodní část zásobníku rámců.  */
+    size_t currentID;        /**< Aktuální ID nejvyššího rámce.             */
 } FrameStack, *FrameStackPtr;
 
+/**
+ * @brief Struktura představující nafukovací pole rámců.
+ */
+typedef struct FrameArray {
+    size_t allocated;       /**< Velikost alokovaného pole.         */
+    FramePtr *array;        /**< Ukazatel na první položku pole.    */
+} FrameArray;
 
 /*******************************************************************************
  *                                                                             *
@@ -75,7 +104,12 @@ typedef struct FrameStack {
 /**
  * @brief Globální zásobník rámců používaný v celém překladači.
  */
-extern FrameStack *stack;
+extern FrameStack stack;
+
+/**
+ * @brief Globální pole všech vytvořených rámců.
+ */
+extern FrameArray frameArray;
 
 
 /*******************************************************************************
@@ -106,7 +140,7 @@ void frameStack_push(bool isFunction);
 /**
  * @brief Odstraní vrchní rámec ze zásobníku.
  *
- * @details Odstraní vrcholový rámec ze zásobníku a uvolní s ním spojené zdroje.
+ * @details Odstraní vrcholový rámec ze zásobníku, ale ponechá jej v poli.
  */
 void frameStack_pop();
 
@@ -117,36 +151,43 @@ void frameStack_pop();
  *          klíčem. Hledání se zastaví, pokud je v rámci nastaven @c searchStop
  *          na @c true.
  *
- * @param [in] key Klíč hledané položky.
- * @param [out] result Ukazatel pro uložení nalezené položky.
- * @return @c True pokud byla položka nalezena, jinak @c false.
+ * @param [in]  key Klíč hledané položky.
+ * @param [out] out_item Ukazatel pro uložení nalezené položky.
+ * @return - @c FRAME_STACK_SUCCESS při úspěchu.
+ *         - @c FRAME_STACK_ITEM_DOESNT_EXIST pokud se položka s daným klíčem
+ *           nenachází v rozsahu platnosti.
+ *         - @c FRAME_STACK_NOT_INITIALIZED pokud není inicializován globální
+ *           zásobník rámců
+ *         - @c FRAME_STACK_ALLOCATION_FAIL pokud selhalo alokování paměti
+ *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
-bool frameStack_findItem(DString key, SymtableItem *result);
+frame_stack_result frameStack_findItem(DString *key, SymtableItem *out_item);
 
 /**
  * @brief Přidá novou položku do vrchního rámce zásobníku.
  *
- * @details Přidá novou položku do tabulky symbolů ve vrcholovém rámci zásobníku.
+ * @details Přidá novou položku do tabulky symbolů ve vrcholovém rámci zásobníku. 
  *
- * @param [in] key Klíč nové položky.
- * @param [in] item Položka, která má být přidána.
- * @return @c True pokud byla položka úspěšně přidána, jinak @c false.
+ * @param [in]  key Klíč nové položky.
+ * @param [out] out_item Ukazatel pro uložení přidané položky nebo již
+ *                       existující položky nebo NULL,
+ *                       pokud není vrácení potřeba
+ * @return - @c FRAME_STACK_SUCCESS při úspěchu.
+ *         - @c FRAME_STACK_ITEM_ALREADY_EXISTS pokud už položka s daným klíčem
+ *           v rozsahu platnosti existuje.
+ *         - @c FRAME_STACK_NOT_INITIALIZED pokud není inicializován globální
+ *           zásobník rámců
+ *         - @c FRAME_STACK_ALLOCATION_FAIL pokud selhalo alokování paměti
+ *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
-bool frameStack_addSymtableItem(DString key, SymtableItem item);
+frame_stack_result frameStack_addItem(DString *key, SymtableItem *out_item);
+
 
 /**
- * @brief Získá vrcholový rámec zásobníku.
- *
- * @return Ukazatel na vrcholový rámec.
+ * @brief Uvolní všechny rámce v poli globálního ukazatele.
  */
-Frame *frameStack_top();
+void frameStack_destroyAll();
 
-/**
- * @brief Kontroluje, zda je zásobník rámců prázdný.
- *
- * @return @c True, pokud je zásobník prázdný, jinak @c false.
- */
-bool frameStack_isEmpty();
 
 #endif  // FRAME_STACK_H_
 
