@@ -161,6 +161,22 @@ int string_compare_const_str(DString *str, const char *strConst);
  */
 DString *string_resize(DString *str, size_t size);
 
+/**
+ * @brief Převede řetězec obsažený v DString na konstantní řetězec typu char.
+ *
+ * @details Tato funkce převede dynamický řetězec typu DString na konstantní
+ *          řetězec typu char. Před samotným řetězce dojde k aloakci paměti
+ *          pro nový konstantní řetězec a doplnění nulového znaku na konec
+ *          hodnoty DString.
+ *
+ * @param [in] str Ukazatel na DString, který chceme převést na char*.
+ *
+ * @return V případě, že požadovaný řetězec neexistuje, špatně se malokuje
+ *         vrací `NULL`.
+ *         V případě, že se vše povedlo, vrátí ukazatel na nový konstantní řetězec.
+ */
+char *string_toConstChar(DString *str);
+
 #endif  // DYNAMIC_STRING_H_
 
 /*** Konec souboru dynamic_string.h ***/
