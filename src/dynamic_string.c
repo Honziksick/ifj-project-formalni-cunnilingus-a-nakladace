@@ -56,11 +56,14 @@ DString *string_init() {
     }
 
     // Na začátku není v řetězci žádný znak a alokováno máme STRING_INIT_SIZE znaků
+    for(int i = 0; i < STRING_INIT_SIZE; i++){
+        stringCreated->str[i] = '\0';
+    }
     stringCreated->allocatedSize = STRING_INIT_SIZE;
     stringCreated->length = 0;
 
     return stringCreated;
-} /* konec *string_init() */
+} /* konec string_init() */
 
 /**
  * @brief Uvolnění paměti dynamického řetězce.
@@ -203,8 +206,30 @@ DString *string_resize(DString *string, size_t size) {
     // Aktualizace akazatele na pole znaků a velikost alokované paměti
     string->str = newStr;
     string->allocatedSize = resizeSize;
+    for(size_t i = string->length; i < resizeSize; i++){
+        string->str[i] = '\0';
+    }
 
     return string;
-} /* konec *string_resize() */
+} /* konec string_resize() */
+
+
+char *string_toConstChar(DString *string) {
+    // Pokud nemáme řetězec, nebo nemá hodnotu, tak vracíme NULL
+    if(string == NULL || string->str == NULL || string->length < 1) {
+        return NULL;
+    }
+
+    // Alokace paměti pro nový konstantní řetězec (+1 pro nulový znak)
+    char *constStr = (char *)malloc((string->length + 1) * sizeof(char));
+    if(constStr == NULL) {
+        return NULL;
+    }
+
+    // Kopírování hodnoty DString do nového řetězce
+    strcpy(constStr, string->str);
+
+    return constStr;
+} /* konec string_toConstChar() */
 
 /*** Konec souboru dynamic_string.c ***/

@@ -478,4 +478,77 @@ TEST(StringCompareConstStr, LongEqualStrings) {
     free(str2);
 }
 
+/**
+ * @brief Testuje funkci `string_toConstStr` pro prázdný řetězec
+ */
+TEST(StringToConstStr, EmptyString) {
+    DString *str = string_init();
+    ASSERT_NE(str, nullptr);
+
+    char *strConst = string_toConstChar(str);
+    EXPECT_EQ(strConst, nullptr);
+
+    string_free(str);
+    free(strConst);
+}
+
+/**
+ * @brief Testuje funkci `string_toConstStr` pro řetězec jednoho znaku
+ */
+TEST(StringToConstStr, OneCharString) {
+    DString *str = string_init();
+    ASSERT_NE(str, nullptr);
+    ASSERT_EQ(string_append_char(str, 'x'), STRING_SUCCESS);
+
+    char *strConst = string_toConstChar(str);
+    ASSERT_NE(strConst, nullptr);
+    ASSERT_STREQ("x", strConst);
+    ASSERT_EQ(strlen(str->str), strlen(strConst));
+
+    string_free(str);
+    free(strConst);
+}
+
+/**
+ * @brief Testuje funkci `string_toConstStr` pro dlouhý řetězec , který se rozšířil
+ */
+TEST(StringToConstStr, LongString) {
+    DString *str = string_init();
+    ASSERT_NE(str, nullptr);
+    ASSERT_EQ(string_append_char(str, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'c'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'd'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'e'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'f'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'g'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'h'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'i'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'j'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'k'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'm'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'n'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'o'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'p'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'q'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'r'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 's'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 't'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'u'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'v'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'w'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'x'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'y'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(str, 'z'), STRING_SUCCESS);
+
+    char *strConst = string_toConstChar(str);
+    ASSERT_NE(strConst, nullptr);
+    ASSERT_STREQ("abcdefghijklmnopqrstuvwxyz", strConst);
+    ASSERT_EQ(strlen(str->str), strlen(strConst));
+
+    string_free(str);
+    free(strConst);
+}
+
 /*** Konec souboru dynamic_string_test.cpp ***/
