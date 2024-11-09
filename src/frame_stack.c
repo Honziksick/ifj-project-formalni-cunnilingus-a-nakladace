@@ -151,7 +151,7 @@ void frameStack_pop(){
 /**
  * @brief Vyhledá položku v zásobníku rámců podle klíče.
  */
-frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item){
+frame_stack_result frameStack_findVariable(DString *key, SymtableItem **out_item){
     // Pokud je klíč NULL, vrátíme chybu
     if(key == NULL){
         return FRAME_STACK_KEY_NULL;
@@ -175,13 +175,27 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item){
             // Pokud položka nebyla nalezena a vynořili bychom se z funkce,
             // položka neexistuje
             if(frame->searchStop){
-                return FRAME_STACK_ITEM_DOESNT_EXIST;
+                // Pokud jsme na globálním rámci, položka neexistuje
+                if(frame->frameID == 0){
+                    return FRAME_STACK_ITEM_DOESNT_EXIST;
+                }
+                break;
             }
             // Jinak pokračujeme v prohledávání dalšího rámce
             frame = frame->next;
         }
     }
+    // Projdeme ještě globální rámec
+    symtable_result result = symtable_findItem(frameArray.array[0]->frame, key, out_item);
+    if(result == SYMTABLE_SUCCESS){
+        return FRAME_STACK_SUCCESS;
+    }else{
+        return FRAME_STACK_ITEM_DOESNT_EXIST;
+    }
+
 }
+
+
 
 /**
  * @brief Přidá novou položku do vrchního rámce zásobníku.
