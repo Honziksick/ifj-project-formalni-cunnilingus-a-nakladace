@@ -161,7 +161,7 @@ void frameStack_pop();
  *         - @c FRAME_STACK_ALLOCATION_FAIL pokud selhalo alokování paměti
  *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
-frame_stack_result frameStack_findItem(DString *key, SymtableItem *out_item);
+frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item);
 
 /**
  * @brief Přidá novou položku do vrchního rámce zásobníku.
@@ -180,7 +180,7 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem *out_item);
  *         - @c FRAME_STACK_ALLOCATION_FAIL pokud selhalo alokování paměti
  *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
-frame_stack_result frameStack_addItem(DString *key, SymtableItem *out_item);
+frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item);
 
 
 /**

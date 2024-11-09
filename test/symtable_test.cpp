@@ -3,10 +3,11 @@
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
  * Soubor:           symtable_test.cpp                                         *
- * Autor:            Farkašovský Lukáš  <xfarkal00>                            *
+ * Autor:            Farkašovský Lukáš  <xfarkal00> (hlavní testy)             *
+ *                   Krejčí David       <xkrejcd00> (doplnění testů)           *
  *                                                                             *
  * Datum:            06.11.2024                                                *
- * Poslední změna:   07.11.2024                                                *
+ * Poslední změna:   09.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -62,7 +63,7 @@ TEST(NoTable, SymDelAll) {
     SymtablePtr map = symtable_init();
     ASSERT_NE(map, nullptr);
 
-    symtable_deleteAll(map);
+    symtable_deleteAll(map, true);
 
     free(map->array);
     free(map);
@@ -138,6 +139,8 @@ TEST(Table, SymAddItems)
     ASSERT_NE(horse_val6, nullptr);
     DString* horse_val7 = string_init();
     ASSERT_NE(horse_val7, nullptr);
+    DString* horse_val8 = string_init();
+    ASSERT_NE(horse_val8, nullptr);
 
     SymtablePtr map = symtable_init();
     ASSERT_NE(map, nullptr);
@@ -156,6 +159,7 @@ TEST(Table, SymAddItems)
     const char *strConst5 = "horse5";
     const char *strConst6 = "horse6";
     const char *strConst7 = "horse7";
+    const char *strConst8 = "horse8";
 
     // Vložení slova do horse_val
     for(size_t i = 0; i < strlen(strConst); i++) {
@@ -170,6 +174,7 @@ TEST(Table, SymAddItems)
         ASSERT_EQ(string_append_char(horse_val5, strConst5[i]), STRING_SUCCESS);
         ASSERT_EQ(string_append_char(horse_val6, strConst6[i]), STRING_SUCCESS);
         ASSERT_EQ(string_append_char(horse_val7, strConst7[i]), STRING_SUCCESS);
+        ASSERT_EQ(string_append_char(horse_val8, strConst8[i]), STRING_SUCCESS);
     }
     
 
@@ -228,6 +233,11 @@ TEST(Table, SymAddItems)
     EXPECT_EQ(map->used_size, USED_SIZE + 8);
     EXPECT_EQ(map->allocated_size, SIZE*2);
 
+    symtable_addItem(map, horse_val8, NULL);
+
+    EXPECT_EQ(map->used_size, USED_SIZE + 9);
+    EXPECT_EQ(map->allocated_size, SIZE*2);
+
     symtable_destroyTable(map);
     string_free(horse_val);
     string_free(horse_val1);
@@ -237,6 +247,7 @@ TEST(Table, SymAddItems)
     string_free(horse_val5);
     string_free(horse_val6);
     string_free(horse_val7);
+    string_free(horse_val8);
 }
 
 /**
@@ -312,7 +323,7 @@ TEST(Table, SymDelALL){
     SymtablePtr map = symtable_init();
     ASSERT_NE(map, nullptr);
         
-    SymtableItem item;
+    SymtableItemPtr item;
         
     // Konstanty pro testování stringů
      const char *strConst  = "horse";
@@ -325,7 +336,7 @@ TEST(Table, SymDelALL){
      ASSERT_EQ(symtable_addItem(map, horse_val, &item), SYMTABLE_SUCCESS);
         
      // Odstranění položky
-     symtable_deleteAll(map);
+     symtable_deleteAll(map, true);
 
      // Free bordelu, co jsem s i v testu vytvořil
      free(map->array);
@@ -380,8 +391,6 @@ TEST(Table, SymTransfer){
     SymtablePtr map2 = symtable_init();
     ASSERT_NE(map2, nullptr);
 
-    SymtableItem item;
-    
     // Konstanty pro testování stringů
     const char *strConst  = "horse";
     
@@ -390,7 +399,7 @@ TEST(Table, SymTransfer){
     }
     
     // Přidání itemu do tabulky
-    ASSERT_EQ(symtable_addItem(map, horse_val, &item), SYMTABLE_SUCCESS);
+    ASSERT_EQ(symtable_addItem(map, horse_val, NULL), SYMTABLE_SUCCESS);
     
     // Přeneseme data z jedné položky do druhé
     EXPECT_TRUE(symtable_transfer(map, map2));
@@ -399,6 +408,8 @@ TEST(Table, SymTransfer){
     EXPECT_FALSE(symtable_transfer(NULL, map));
     EXPECT_FALSE(symtable_transfer(map, NULL));
     EXPECT_FALSE(symtable_transfer(map2, NULL));
+
+    EXPECT_EQ(symtable_findItem(map2, horse_val, NULL), SYMTABLE_SUCCESS);
     
     symtable_destroyTable(map);
     symtable_destroyTable(map2);
@@ -419,8 +430,6 @@ TEST(Table, SymTransferEmpty){
     SymtablePtr map2 = symtable_init();
     ASSERT_NE(map2, nullptr);
 
-    SymtableItem item;
-    
     // Konstanty pro testování stringů
     const char *strConst  = "horse";
     
@@ -429,7 +438,7 @@ TEST(Table, SymTransferEmpty){
     }
     
     // Přidání itemu do tabulky
-    ASSERT_EQ(symtable_addItem(map, horse_val, &item), SYMTABLE_SUCCESS);
+    ASSERT_EQ(symtable_addItem(map, horse_val, NULL), SYMTABLE_SUCCESS);
     
     // Přeneseme data z jedné položky do druhé
     EXPECT_TRUE(symtable_transfer(map2, map));
@@ -473,4 +482,158 @@ TEST(Table, SymResize){
     symtable_destroyTable(map);
     symtable_destroyTable(map2);
     string_free(horse_val);
+}
+
+/**
+ * @brief Testuje práci s daty proměnné v tabulce symbolů
+ */
+TEST(Table, ItemData){
+    SymtablePtr map = symtable_init();
+    ASSERT_NE(map, nullptr);
+
+    DString* horse_val = string_init();
+    ASSERT_NE(horse_val, nullptr);
+
+    // Konstanty pro testování stringů
+    const char *strConst  = "horseInt";
+    
+    for(size_t i = 0; i < strlen(strConst); i++) {
+        ASSERT_EQ(string_append_char(horse_val, strConst[i]), STRING_SUCCESS);
+    }
+
+
+    SymtableItemPtr item1;
+    ASSERT_EQ(symtable_addItem(map, horse_val, &item1), SYMTABLE_SUCCESS);
+    ASSERT_NE(item1, nullptr);
+    ASSERT_EQ(string_compare(item1->key, horse_val), STRING_EQUAL);
+
+    item1->constant = true;
+    item1->defined = true;
+    item1->used = false;
+    item1->symbol_state = SYMTABLE_SYMBOL_VARIABLE_INT;
+    item1->data = malloc(sizeof(int));
+    ASSERT_NE(item1->data, nullptr);
+    *((int*)item1->data) = 5;
+
+    SymtableItemPtr item2;
+    ASSERT_EQ(symtable_findItem(map, horse_val, &item2), SYMTABLE_SUCCESS);
+    ASSERT_EQ(item1->constant, item2->constant);
+    ASSERT_EQ(item1->defined, item2->defined);
+    ASSERT_EQ(item1->used, item2->used);
+    ASSERT_EQ(item1->symbol_state, item2->symbol_state);
+    ASSERT_EQ(*((int*)item2->data), 5);
+
+    symtable_destroyTable(map);
+    string_free(horse_val);
+}
+
+/**
+ * @brief Testuje práci s daty funkce v tabulce symbolů
+ */
+TEST(Table, FunctionData){
+    SymtablePtr map = symtable_init();
+    ASSERT_NE(map, nullptr);
+
+    DString* horse_val = string_init();
+    ASSERT_NE(horse_val, nullptr);
+
+    DString* a = string_init();
+    ASSERT_NE(a, nullptr);
+    ASSERT_EQ(string_append_char(a, 'a'), STRING_SUCCESS);
+    DString* b = string_init();
+    ASSERT_NE(b, nullptr);
+    ASSERT_EQ(string_append_char(b, 'b'), STRING_SUCCESS);
+    DString* c = string_init();
+    ASSERT_NE(c, nullptr);
+    ASSERT_EQ(string_append_char(c, 'c'), STRING_SUCCESS);
+    DString* d = string_init();
+    ASSERT_NE(d, nullptr);
+    ASSERT_EQ(string_append_char(d, 'd'), STRING_SUCCESS);
+    DString* e = string_init();
+    ASSERT_NE(e, nullptr);
+    ASSERT_EQ(string_append_char(e, 'e'), STRING_SUCCESS);
+    DString* f = string_init();
+    ASSERT_NE(f, nullptr);
+    ASSERT_EQ(string_append_char(f, 'f'), STRING_SUCCESS);
+    DString* g = string_init();
+    ASSERT_NE(g, nullptr);
+    ASSERT_EQ(string_append_char(g, 'g'), STRING_SUCCESS);
+    DString* h = string_init();
+    ASSERT_NE(h, nullptr);
+    ASSERT_EQ(string_append_char(h, 'h'), STRING_SUCCESS);
+    DString* i = string_init();
+    ASSERT_NE(i, nullptr);
+    ASSERT_EQ(string_append_char(i, 'i'), STRING_SUCCESS);
+
+
+    // Konstanty pro testování stringů
+    const char *strConst  = "morseFn";
+    
+    for(size_t k = 0; k < strlen(strConst); k++) {
+        ASSERT_EQ(string_append_char(horse_val, strConst[k]), STRING_SUCCESS);
+    }
+
+    // Přidání položky do tabulky
+    SymtableItemPtr item1;
+    ASSERT_EQ(symtable_addItem(map, horse_val, &item1), SYMTABLE_SUCCESS);
+
+    // Inicializace dat funkce
+    SymtableFunctionData *data = symtable_init_function_data(2);
+    ASSERT_NE(data, nullptr);
+    ASSERT_EQ(data->param_count, 2ULL);
+
+    data->return_type = SYMTABLE_TYPE_VOID;
+
+    // Nastavíme data 1. parametru
+    data->params[0].id = string_init();
+    ASSERT_NE(data->params[0].id, nullptr);
+    ASSERT_EQ(string_append_char(data->params[0].id, 'p'), STRING_SUCCESS);
+    data->params[0].type = SYMTABLE_TYPE_INT;
+
+    // Nastavíme data 2. parametru
+    data->params[1].id = string_init();
+    ASSERT_NE(data->params[1].id, nullptr);
+    ASSERT_EQ(string_append_char(data->params[1].id, 'l'), STRING_SUCCESS);
+    data->params[1].type = SYMTABLE_TYPE_STRING_OR_NULL;
+
+    // Přiřazení dat funkce do položky
+    item1->data = data;
+    item1->defined = true;
+    item1->symbol_state = SYMTABLE_SYMBOL_FUNCTION;
+    item1->used = false;
+
+    // Přidáme další položky do tabulky
+    ASSERT_EQ(symtable_addItem(map, a, NULL), SYMTABLE_SUCCESS);
+    ASSERT_EQ(symtable_addItem(map, b, NULL), SYMTABLE_SUCCESS);
+    ASSERT_EQ(symtable_addItem(map, c, NULL), SYMTABLE_SUCCESS);
+    ASSERT_EQ(symtable_addItem(map, d, NULL), SYMTABLE_SUCCESS);
+    ASSERT_EQ(symtable_addItem(map, e, NULL), SYMTABLE_SUCCESS);
+    ASSERT_EQ(symtable_addItem(map, f, NULL), SYMTABLE_SUCCESS);
+    ASSERT_EQ(symtable_addItem(map, g, NULL), SYMTABLE_SUCCESS);
+    ASSERT_EQ(symtable_addItem(map, h, NULL), SYMTABLE_SUCCESS);
+    ASSERT_EQ(symtable_addItem(map, i, NULL), SYMTABLE_SUCCESS);
+    
+    // Pokusíme se najít položku
+    ASSERT_EQ(symtable_findItem(map, horse_val, &item1), SYMTABLE_SUCCESS);
+    SymtableFunctionData *found_data = (SymtableFunctionData *)item1->data;
+    // Porovnáme data
+    ASSERT_NE(found_data, nullptr);
+    ASSERT_EQ(found_data->param_count, 2ULL);
+    ASSERT_EQ(found_data->return_type, SYMTABLE_TYPE_VOID);
+    ASSERT_EQ(string_compare_const_str(found_data->params[0].id, "p"), STRING_EQUAL);
+    ASSERT_EQ(found_data->params[0].type, SYMTABLE_TYPE_INT);
+    ASSERT_EQ(string_compare_const_str(found_data->params[1].id, "l"), STRING_EQUAL);
+    ASSERT_EQ(found_data->params[1].type, SYMTABLE_TYPE_STRING_OR_NULL);
+
+    symtable_destroyTable(map);
+    string_free(horse_val);
+    string_free(a);
+    string_free(b);
+    string_free(c);
+    string_free(d);
+    string_free(e);
+    string_free(f);
+    string_free(g);
+    string_free(h);
+    string_free(i);
 }
