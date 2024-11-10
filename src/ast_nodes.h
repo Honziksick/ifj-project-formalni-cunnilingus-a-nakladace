@@ -208,6 +208,7 @@ typedef struct AST_ArgOrParamNode {
  */
 typedef struct AST_StatementNode {
     enum   AST_NodeType      type;              /**< Typ uzlu (AST_STATEMENT_NODE) */
+           size_t            frameID;           /**< ID příslušného rámce */
     enum   AST_StatementType statementType;     /**< Typ příkazu */
            void              *statement;        /**< Ukazatel na uzel specifický pro daný příkaz */
     struct AST_StatementNode *next;             /**< Ukazatel na další příkaz */
@@ -248,7 +249,6 @@ typedef struct AST_WhileNode {
  * @brief Struktura pro výraz.
  *
  * @note Povolené typy pro `void *expression`:
- *       - @c AST_LiteralNode*
  *       - @c AST_VarNode*
  *       - @c AST_FunCallNode*
  *       - @c AST_BinaryOpNode*
@@ -270,24 +270,7 @@ typedef struct AST_BinOpNode {
 } AST_BinOpNode;
 
 /**
- * @brief Struktura pro literál.
- *
- * @details Pokud je typem literálu NULL literál, tak bude hodnota "*value" NULL.
- *
- * @note Povolené typy pro `void *value`:
- *       - Celé číslo: @c int*
- *       - Desetinné číslo: @c double*
- *       - Řetězec: @c char*
- *       - Null: @c NULL
- */
-typedef struct AST_LiteralNode {
-    enum AST_NodeType    type;                  /**< Typ uzlu (AST_LITERAL_NODE) */
-    enum AST_LiteralType literalType;           /**< Typ literálu */
-         void            *value;                /**< Ukazatel na hodnotu literálu */
-} AST_LiteralNode;
-
-/**
- * @brief Struktura pro proměnnou.
+ * @brief Struktura pro proměnnou nebo literál.
  *
  * @details Pokud je typem literálu NULL literál, tak bude hodnota "*value" NULL.
  *
@@ -299,7 +282,7 @@ typedef struct AST_LiteralNode {
  */
 typedef struct AST_VarNode {
     enum AST_NodeType    type;                  /**< Typ uzlu (AST_VAR_NODE) */
-         DString         *identifier;           /**< Identifikátor proměnné */
+         DString         *identifier;           /**< Identifikátor proměnné (pro literál NULL)*/
     enum AST_LiteralType literalType;           /**< Typ hodnoty */
          void            *value;                /**< Ukazatel na hodnotu literálu */
 } AST_VarNode;

@@ -80,13 +80,12 @@ void *AST_createNode(AST_NodeType type) {
         case AST_BIN_OP_NODE:
             return AST_createBinOpNode();
 
-        // Uzel pro literál
-        case AST_LITERAL_NODE:
-            return AST_createLiteralNode();
-
         // Uzel pro proměnnou
         case AST_VAR_NODE:
-            return AST_createVarNode();
+            return AST_createVarNode(AST_VAR_NODE);
+
+        case AST_LITERAL_NODE:
+            return AST_createVarNode(AST_LITERAL_NODE);
 
         // Jinak vracíme NULL
         default:
@@ -149,13 +148,9 @@ void AST_destroyNode(AST_NodeType type, void *node) {
             AST_destroyBinOpNode((AST_BinOpNode *)node);
             break;
 
-        // Uzel pro literál
-        case AST_LITERAL_NODE:
-            AST_destroyLiteralNode((AST_LiteralNode *)node);
-            break;
-
-        // Uzel pro proměnnou
+        // Uzel pro proměnnou/literál
         case AST_VAR_NODE:
+        case AST_LITERAL_NODE:
             AST_destroyVarNode((AST_VarNode *)node);
             break;
 
@@ -341,6 +336,7 @@ AST_StatementNode *AST_createStatementNode() {
 
     // Počáteční inicializace členů uzlu
     node->type = AST_STATEMENT_NODE;
+    node->frameID = AST_FRAME_ID_NOT_ASSIGNED;
     node->statementType = AST_STATEMENT_NOT_DEFINED;
     node->statement = NULL;
     node->next = NULL;
@@ -650,49 +646,9 @@ void AST_destroyBinOpNode(AST_BinOpNode *node) {
 } // AST_destroyBinOpNode()
 
 /**
- * @brief Vytvoří uzel pro literál.
- */
-AST_LiteralNode *AST_createLiteralNode() {
-    // Alokujeme paměť pro nový uzel typu "AST_LiteralNode"
-    AST_LiteralNode *node = (AST_LiteralNode *)malloc(sizeof(AST_LiteralNode));
-
-    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
-    if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
-        return NULL;
-    }
-
-    // Počáteční inicializace členů uzlu
-    node->type = AST_LITERAL_NODE;
-    node->literalType = AST_LITERAL_NOT_DEFINED;
-    node->value = NULL;
-
-    // Vracíme ukazatel na nový uzel
-    return node;
-} // AST_createLiteralNode()
-
-/**
- * @brief Uvolní paměť pro uzel literálu.
- */
-void AST_destroyLiteralNode(AST_LiteralNode *node) {
-    // Pokud je ukazatel na uzel neplatný, nic se nestane
-    if(node == NULL) {
-        return;
-    }
-
-    // Uvolníme paměť přidělenou hodnotě literálu
-    if(node->value != NULL) {
-        AST_destroyValue(node->literalType, node->value);
-    }
-
-    // Uvolníme uzel
-    free(node);
-} // AST_destroyLiteralNode()
-
-/**
  * @brief Vytvoří uzel pro proměnnou.
  */
-AST_VarNode *AST_createVarNode() {
+AST_VarNode *AST_createVarNode(AST_NodeType type) {
     // Alokujeme paměť pro nový uzel typu "AST_VarNode"
     AST_VarNode *node = (AST_VarNode *)malloc(sizeof(AST_VarNode));
 
@@ -703,7 +659,12 @@ AST_VarNode *AST_createVarNode() {
     }
 
     // Počáteční inicializace členů uzlu
-    node->type = AST_VAR_NODE;
+    if(type == AST_VAR_NODE) {
+        node->type = AST_VAR_NODE;
+    }
+    else {
+        node->type = AST_LITERAL_NODE;
+    }
     node->identifier = NULL;
     node->literalType = AST_LITERAL_NOT_DEFINED;
     node->value = NULL;
@@ -726,9 +687,37 @@ void AST_destroyVarNode(AST_VarNode *node) {
         string_free(node->identifier);
     }
 
-    // Uvolníme paměť přidělenou hodnotě proměnné
+    // Pokud je ukazatel na příslušnou hodnotu proměnné/literálu platný, ...
     if(node->value != NULL) {
-        AST_destroyValue(node->literalType, node->value);
+        // ...tak na základě jeho typu voláme specializovaný destruktor
+        switch(node->literalType) {
+            // Typ literálu nebyl definován
+            case AST_LITERAL_NOT_DEFINED:
+                break;
+
+            // Literál typu i32
+            case AST_LITERAL_INT:
+                free((int *)(node->value));
+                break;
+
+            // Literál typu f64
+            case AST_LITERAL_FLOAT:
+                free((double *)(node->value));
+                break;
+
+            // Literál typu []u8
+            case AST_LITERAL_STRING:
+                string_free((DString *)(node->value));
+                break;
+
+            // Literál typu NULL (pro ten nemusíme provádět žádnou operaci)
+            case AST_LITERAL_NULL:
+                break;
+
+            // Jinak se nic nestane
+            default:
+                return;
+        }
     }
 
     // Uvolníme uzel
@@ -786,44 +775,5 @@ void AST_destroyFunDefList(AST_FunDefNode *list) {
         currFunDefNode = nextFunDefNode;
     }
 } // AST_destroyFunDefList()
-
-/**
- * @brief Uvolní paměť hodnoty proměnné nebo literálu.
- */
-void AST_destroyValue(AST_LiteralType type, void *value) {
-
-    // Pokud je ukazatel na příslušnou hodnotu proměnné/literálu platný, ...
-    if(value != NULL) {
-        // ...tak na základě jeho typu voláme specializovaný destruktor
-        switch(type) {
-            // Typ literálu nebyl definován
-            case AST_LITERAL_NOT_DEFINED:
-                break;
-
-            // Literál typu i32
-            case AST_LITERAL_INT:
-                free((int *)value);
-                break;
-
-            // Literál typu f64
-            case AST_LITERAL_FLOAT:
-                free((double *)value);
-                break;
-
-            // Literál typu []u8
-            case AST_LITERAL_STRING:
-                string_free((DString *)value);
-                break;
-
-            // Literál typu NULL (pro ten nemusíme provádět žádnou operaci)
-            case AST_LITERAL_NULL:
-                break;
-
-            // Jinak se nic nestane
-            default:
-                return;
-        }
-    }
-} // AST_destroyValue()
 
 /*** Konec souboru ast_interface.c ***/
