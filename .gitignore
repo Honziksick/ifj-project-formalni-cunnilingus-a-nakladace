@@ -84,6 +84,7 @@ zig-out/
 **/pack/*
 **/odevzdani/*
 **/parsing_table/*
+!info/*.docx
 !parsing_table/**/*.h
 !parsing_table/**/*.cpp
 !ifj24_examples/**/*.out
