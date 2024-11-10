@@ -70,7 +70,7 @@ using namespace std;  /**< Jmenný prostor standardní knihovny C++ */
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
  * @return Zachycený výstup tisku jako řetězec.
  */
-string ASTutils_printCapturedOutput(AST_ProgramNode *node, bool useColors = false);
+string ASTutils_printCapturedOutput(AST_NodeType type, void *node, bool useColors = false);
 
 /**
  * @brief Vytiskne výstup testu a referenční výstup.
