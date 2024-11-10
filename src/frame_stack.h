@@ -58,7 +58,8 @@ typedef enum {
     FRAME_STACK_ITEM_ALREADY_EXISTS,    /**< Přidávaná položka již existuje */
     FRAME_STACK_ITEM_DOESNT_EXIST,      /**< Hledaná položka není v rozsahu */
     FRAME_STACK_NOT_INITIALIZED,        /**< Zásobník rámců není inicializován */
-    FRAME_STACK_KEY_NULL                /**< Předaný klíč je NULL           */
+    FRAME_STACK_KEY_NULL,               /**< Předaný klíč je NULL           */
+    FRAME_STACK_POP_GLOBAL              /**< Pokus o odstranění globálního rámce */
 } frame_stack_result;
 
 
@@ -142,7 +143,7 @@ void frameStack_push(bool isFunction);
  *
  * @details Odstraní vrcholový rámec ze zásobníku, ale ponechá jej v poli.
  */
-void frameStack_pop();
+frame_stack_result frameStack_pop();
 
 /**
  * @brief Vyhledá položku v zásobníku rámců podle klíče.
