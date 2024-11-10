@@ -115,8 +115,8 @@ int string_copy(DString *strCopied, DString *strTo) {
     // Uvolníme buňky řetězce, do kterého chceme kopírovat (vyčistíme ho)
     free(strTo->str);
 
-    // Alokujeme nový dynamický string
-    strTo->str = (char *)malloc(strCopied->length*sizeof(char));
+    // Alokujeme nový dynamický string (+1 pro nulový znak)
+    strTo->str = (char *)malloc((strCopied->length + 1) * sizeof(char));
     if(strTo->str == NULL) {
         return STRING_COPY_FAIL;
     }
@@ -124,8 +124,12 @@ int string_copy(DString *strCopied, DString *strTo) {
     // Zkopírujeme obsah zdrojového řetězce do cílového
     memcpy(strTo->str, strCopied->str, strCopied->length);
 
+    // Přidáme nulový znak na konec řetězce
+    strTo->str[strCopied->length] = '\0';
+
     // Délka i alokovaná paměť zkopírovaného řetězce odpovídá délce původního
-    strTo->length =  strTo->allocatedSize = strCopied->length;
+    strTo->length = strCopied->length;
+    strTo->allocatedSize = strCopied->length + 1;
 
     return STRING_SUCCESS;
 } /* konec string_copy() */
