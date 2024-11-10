@@ -40,6 +40,15 @@
 
 /*******************************************************************************
  *                                                                             *
+ *                              DEFINICE KONSTANT                              *
+ *                                                                             *
+ ******************************************************************************/
+
+#define AST_FRAME_ID_NOT_ASSIGNED 0   /**< Uzlu AST_StatementNode ještě nebylo přiřazeno frameID. */
+
+
+/*******************************************************************************
+ *                                                                             *
  *                       FUNKCE URČENÉ PRO VEŘEJNÉ UŽITÍ                       *
  *                                                                             *
  ******************************************************************************/
@@ -221,25 +230,13 @@ AST_BinOpNode *AST_createBinOpNode();
 void AST_destroyBinOpNode(AST_BinOpNode *node);
 
 /**
- * @brief Vytvoří uzel pro literál.
- *
- * @return Ukazatel na nový uzel `AST_LiteralNode`, nebo `NULL` při chybě alokace.
- */
-AST_LiteralNode *AST_createLiteralNode();
-
-/**
- * @brief Uvolní paměť pro uzel literálu.
- *
- * @param [in] node Ukazatel na `AST_LiteralNode` uzel, který má být uvolněn.
- */
-void AST_destroyLiteralNode(AST_LiteralNode *node);
-
-/**
  * @brief Vytvoří uzel pro proměnnou.
+ *
+ * @param [in] type Nastaví typ uzlu buď na `AST_VAR_NODE` nebo `AST_LITERAL_NODE`.
  *
  * @return Ukazatel na nový uzel `AST_VarNode`, nebo `NULL` při chybě alokace.
  */
-AST_VarNode *AST_createVarNode();
+AST_VarNode *AST_createVarNode(AST_NodeType type);
 
 /**
  * @brief Uvolní paměť pro uzel proměnné.
@@ -275,14 +272,6 @@ void AST_destroyStatementList(AST_StatementNode *list);
  * @param [in] list Ukazatel na seznam `AST_FunDefNode` uzlů, které mají být uvolněny.
  */
 void AST_destroyFunDefList(AST_FunDefNode *list);
-
-/**
- * @brief Uvolní paměť hodnoty proměnné nebo literálu.
- *
- * @param [in] type Typ dat literálu, která mají být uvolněna.
- * @param [in] value Ukazatel na data literálu, která mají být uvolněna.
- */
-void AST_destroyValue(AST_LiteralType type, void *value);
 
 #endif // AST_INTERFACE_H_
 
