@@ -6,7 +6,7 @@
  * Autor:            Farkašovský Lukáš <xfarkal00>                             *
  *                                                                             *
  * Datum:            08.10.2024                                                *
- * Poslední změna:   14.10.2024                                                *
+ * Poslední změna:   10.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *

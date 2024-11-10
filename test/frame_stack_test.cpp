@@ -28,12 +28,26 @@
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include <unistd.h>
+#include <fcntl.h>
 
 extern "C" {
 #include "frame_stack.h"
 }
 
 using namespace testing;
+
+#define MAKE_STRING(id, str)                                        \
+        DString* id = string_init();                                \
+        do{                                                         \
+            ASSERT_NE(id, nullptr);                                     \
+            const char *tmp_str = str;                                  \
+            for (size_t i = 0; i < strlen(tmp_str); i++) {              \
+                ASSERT_EQ(string_append_char(id, tmp_str[i]), STRING_SUCCESS); \
+            }                                                           \
+        }while(0);                                                      \
+
+
 
 /**
  * @brief Testuje funkci `frameStack_init` pro inicializaci zásobníku rámců
@@ -206,19 +220,8 @@ TEST(FrameStack, GlobalFind){
 TEST(FrameStack, Many){
     frameStack_init();
 
-    DString* key1 = string_init();
-    ASSERT_NE(key1, nullptr);
-
-    DString* key2 = string_init();
-    ASSERT_NE(key2, nullptr);
-
-    const char *horse = "horse";
-    const char *house = "house";
-
-    for(size_t i = 0; i < strlen(horse); i++) {
-        ASSERT_EQ(string_append_char(key1, horse[i]), STRING_SUCCESS);
-        ASSERT_EQ(string_append_char(key2, house[i]), STRING_SUCCESS);
-    }
+    MAKE_STRING(key1, "horse");
+    MAKE_STRING(key2, "house");
 
     SymtableItemPtr item;
     // Přidáme položku do globálního rámce
@@ -268,4 +271,144 @@ TEST(FrameStack, Many){
     frameStack_destroyAll();
     string_free(key1);
     string_free(key2);
+}
+
+TEST(FrameStack, print){
+    frameStack_init();
+
+    MAKE_STRING(key1, "horse");
+    MAKE_STRING(key2, "house");
+    MAKE_STRING(key3, "hose");
+    MAKE_STRING(key4, "hose");
+    MAKE_STRING(key5, "hound");
+    MAKE_STRING(key6, "plane");
+    MAKE_STRING(key7, "car");
+    MAKE_STRING(key8, "train");
+    MAKE_STRING(key9, "bus");
+    MAKE_STRING(key10, "bike");
+    MAKE_STRING(key11, "boat");
+    MAKE_STRING(key12, "ship");
+    MAKE_STRING(key13, "submarine");
+    MAKE_STRING(key14, "helicopter");
+    MAKE_STRING(key15, "airplane");
+    MAKE_STRING(key16, "rocket");
+    MAKE_STRING(key17, "space shuttle");
+    MAKE_STRING(key18, "satellite");
+    MAKE_STRING(key19, "moon");
+    MAKE_STRING(key20, "mars");
+
+    //const char *expected = " ";
+    // Přidáme položku do globálního rámce
+    ASSERT_EQ(frameStack_addItem(key1, NULL), FRAME_STACK_SUCCESS);
+
+
+    // Přidáme rámec
+    frameStack_push(false);
+    // Přidáme položku do rámce
+    ASSERT_EQ(frameStack_addItem(key2, NULL), FRAME_STACK_SUCCESS);
+
+    // Přidáme a odebereme množství rámců
+    frameStack_push(false);
+    ASSERT_EQ(frameStack_addItem(key3, NULL), FRAME_STACK_SUCCESS);
+    frameStack_pop();
+    frameStack_push(true);
+    ASSERT_EQ(frameStack_addItem(key4, NULL), FRAME_STACK_SUCCESS);
+    ASSERT_EQ(frameStack_addItem(key5, NULL), FRAME_STACK_SUCCESS);
+
+    frameStack_push(false);
+    ASSERT_EQ(frameStack_addItem(key6, NULL), FRAME_STACK_SUCCESS);
+    ASSERT_EQ(frameStack_addItem(key7, NULL), FRAME_STACK_SUCCESS);
+    frameStack_push(false);
+    ASSERT_EQ(frameStack_addItem(key8, NULL), FRAME_STACK_SUCCESS);
+    frameStack_pop();
+    frameStack_push(true);
+    ASSERT_EQ(frameStack_addItem(key9, NULL), FRAME_STACK_SUCCESS);
+
+    frameStack_push(false);
+    ASSERT_EQ(frameStack_addItem(key10, NULL), FRAME_STACK_SUCCESS);
+    frameStack_push(false);
+    ASSERT_EQ(frameStack_addItem(key11, NULL), FRAME_STACK_SUCCESS);
+    frameStack_pop();
+    frameStack_push(true);
+    ASSERT_EQ(frameStack_addItem(key12, NULL), FRAME_STACK_SUCCESS);
+    ASSERT_EQ(frameStack_addItem(key13, NULL), FRAME_STACK_SUCCESS);
+
+    frameStack_push(false);
+    ASSERT_EQ(frameStack_addItem(key14, NULL), FRAME_STACK_SUCCESS);
+    frameStack_push(false);
+    frameStack_pop();
+    frameStack_push(true);
+
+    frameStack_push(false);
+    frameStack_push(false);
+    ASSERT_EQ(frameStack_addItem(key15, NULL), FRAME_STACK_SUCCESS);
+    frameStack_pop();
+    frameStack_push(true);
+    ASSERT_EQ(frameStack_addItem(key16, NULL), FRAME_STACK_SUCCESS);
+    ASSERT_EQ(frameStack_addItem(key17, NULL), FRAME_STACK_SUCCESS);
+    ASSERT_EQ(frameStack_addItem(key18, NULL), FRAME_STACK_SUCCESS);
+    ASSERT_EQ(frameStack_addItem(key19, NULL), FRAME_STACK_SUCCESS);
+    SymtableItemPtr item;
+    ASSERT_EQ(frameStack_addItem(key20, &item), FRAME_STACK_SUCCESS);
+    item->symbol_state = SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL;
+    item->changed = true;
+    item->constant = true;
+    item->defined = true;
+    item->used = true;
+    item->data = (void*)malloc(sizeof(int));
+
+
+    /**
+     * Nastavíme prostředí na test stdout
+     */
+
+    // Uložíme originální stdout
+    int saved_stdout = dup(STDOUT_FILENO);
+
+    // Vyrobíme potrubí a přesměrujeme stdout na zápisový konec potrubí
+    int fds[2];
+    pipe(fds);
+    dup2(fds[1], STDOUT_FILENO);
+    close(fds[1]);
+
+    // Voláme funkci na print
+    frameStack_print(stdout, true, true);
+
+    // Obnovíme stdout
+    fflush(stdout);
+    dup2(saved_stdout, STDOUT_FILENO);
+    close(saved_stdout);
+
+    // Přečteme výstup z potrubí
+    char buffer[1];
+    ssize_t n = read(fds[0], buffer, sizeof(buffer));
+    close(fds[0]);
+
+    // Otestujeme, že se něco zapsalo
+    EXPECT_GT(n, 0);
+
+    
+    // Vše uvolníme
+    frameStack_destroyAll();
+    string_free(key1);
+    string_free(key2);
+    string_free(key3);
+    string_free(key4);
+    string_free(key5);
+    string_free(key6);
+    string_free(key7);
+    string_free(key8);
+    string_free(key9);
+    string_free(key10);
+    string_free(key11);
+    string_free(key12);
+    string_free(key13);
+    string_free(key14);
+    string_free(key15);
+    string_free(key16);
+    string_free(key17);
+    string_free(key18);
+    string_free(key19);
+    string_free(key20);
+
 }

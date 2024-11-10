@@ -119,6 +119,7 @@ typedef struct {
     bool used;                          /**< Příznak, zda je položka použita */
     bool defined;                       /**< Příznak, zda je položka definovaná */
     bool constant;                      /**< Příznak, zda je položka konstantní */
+    bool changed;                       /**< Příznak, zda byla hodnota položky změněna */
     void *data;                         /**< Ukazatel na data asociovaná s položkou */
 } SymtableItem, *SymtableItemPtr;
 
@@ -279,6 +280,17 @@ void symtable_destroyTable(Symtable *table);
  * @param [in] param_count Počet parametrů funkce
  */
 SymtableFunctionData *symtable_init_function_data(size_t param_count);
+
+/**
+ * @brief Vytiskne obsah tabulky symbolů
+ * 
+ * @details Tato funkce vytiskne obsah tabulky symbolů do souboru.
+ * @param [in] table Ukazatel na tabulku symbolů
+ * @param [in] file Ukazatel na soubor, kam se má tisknout
+ * @param [in] print_data Pokud je `true`, vytisknou se i data položek jinak pouze klíče
+ * @param [in] cut_data Pokud je `true`, data budou zkrácena, aby se vešla do sloupců
+ */
+void symtable_print(Symtable *table, FILE *file, bool print_data, bool cut_data);
 
 /*******************************************************************************
  *                                                                             *
