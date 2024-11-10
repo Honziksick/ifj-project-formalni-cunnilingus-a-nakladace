@@ -697,12 +697,12 @@ void AST_destroyVarNode(AST_VarNode *node) {
 
             // Literál typu i32
             case AST_LITERAL_INT:
-                free((int *)(node->value));
+                free(node->value);
                 break;
 
             // Literál typu f64
             case AST_LITERAL_FLOAT:
-                free((double *)(node->value));
+                free(node->value);
                 break;
 
             // Literál typu []u8
@@ -719,7 +719,6 @@ void AST_destroyVarNode(AST_VarNode *node) {
                 return;
         }
     }
-
     // Uvolníme uzel
     free(node);
 } // AST_destroyVarNode()
