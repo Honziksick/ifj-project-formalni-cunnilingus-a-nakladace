@@ -522,16 +522,20 @@ void printHashPairs(vector<HashPair>& hashPairs) {
 }
 
 void printLLtable(vector<HashPair>& hashPairs, OutputSets& output, bool readable) {
+    // Seřazení hashPairs podle terminálů
+    std::sort(hashPairs.begin(), hashPairs.end(), [](const HashPair& a, const HashPair& b) {
+        return terminalOrder[a.terminal] < terminalOrder[b.terminal];
+    });
+
     // print header
-    cout << "LLtable table[TERMINAL_COUNT] = {" << endl << "\t";
+    cout << "LLtable table[LL_TERMINAL_COUNT] = {" << endl << "    ";
 
     // for each terminal
     for(auto& pair : hashPairs) {
         if(readable) {
-            cout << "{" << invTerminalMap[pair.terminal] << "," << setw(36 - (invTerminalMap[pair.terminal].length() + 2)) << setfill(' ') << "{"; 
-
+            cout << "{ " << invTerminalMap[pair.terminal] << "," << setw(28 - (invTerminalMap[pair.terminal].length() + 2)) << setfill(' ') << "{"; 
         } else {
-            cout << "{" << pair.hash_value << "ULL, {";
+            cout << "{ " << pair.hash_value << "ULL, {";
         }
 
         // for each non-terminal
@@ -551,9 +555,9 @@ void printLLtable(vector<HashPair>& hashPairs, OutputSets& output, bool readable
                 rulecouter++;
             }
             if(added == 0) {
-                cout << setfill(' ') << setw(20) << (readable ? valueMap[-1] : "-1");
+                cout << setfill(' ') << setw(17) << (readable ? valueMap[-1] : "-1");
             } else if(added == 1) {
-                cout << setfill(' ') << setw(20) << (readable ? valueMap[added_rule_num[0]] : to_string(added_rule_num[0]));
+                cout << setfill(' ') << setw(17) << (readable ? valueMap[added_rule_num[0]] : to_string(added_rule_num[0]));
             } else {
                 cout << " ERROR( ";
                 for(auto& num : added_rule_num) {
@@ -569,14 +573,13 @@ void printLLtable(vector<HashPair>& hashPairs, OutputSets& output, bool readable
                 cout << ", ";
             }
         }
-        cout << "}}";
+        cout << " } }";
         if(pair == hashPairs.back()) {
-            cout << endl << "};" << endl;
+            cout << "," << endl << "};" << endl;
         } else {
-            cout << "," << endl << "\t";
+            cout << "," << endl << "    ";
         }
     }
-
 }
 
 
