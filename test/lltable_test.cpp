@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            07.11.2024                                                *
- * Poslední změna:   08.11.2024                                                *
+ * Poslední změna:   10.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -404,7 +404,7 @@ TEST(LLTable, FindRule_ARG) {
 }
 
 /**
- * @brief Testovací případ pro funkci `LLtable_findRule` pro přijetí neplatného hashe.
+ * @brief Testovací případ pro funkci `LLtable_findRule` pro přijetí neplatného kódu terminálu.
  */
 TEST(LLTable, FindRule_Index_Failure) {
     // Test pro NExistující pravidlo

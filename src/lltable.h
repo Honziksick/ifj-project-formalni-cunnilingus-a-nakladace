@@ -9,7 +9,7 @@
  *                                             tvorba množin)                  *
  *                                                                             *
  * Datum:            24.10.2024                                                *
- * Poslední změna:   08.11.2024                                                *
+ * Poslední změna:   10.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -35,8 +35,6 @@
 #define LLTABLE_H_
 /** @endcond  */
 
-#include <stdlib.h>
-#include <string.h>
 #include "error.h"
 
 /*******************************************************************************
@@ -60,11 +58,15 @@
  *
  * @details Tato struktura obsahuje klíč a pole hodnot, které reprezentují
  *          pravidla pro přechody mezi stavy na základě aktuálního ne/terminálu.
+ *
+ * @note V tabulce je příslušný řádek pro každý terminál, jejichž kódem je tabulka
+ *       indexována. Sloupce tabulky odpovídají jednotlivým NEterminálům.
+ *       Souřadnice [Terminál, NEterminál] určují aplikaci příslušného pravidla.
  */
-typedef struct {
+struct LLtable{
     int key;                           /**<  Klíč pro identifikaci neterminálu v tabulce  */
     int value[LL_NON_TERMINAL_COUNT];  /**<  Pole hodnot reprezentující pravidla pro přechody mezi stavy  */
-} LLtable;
+};
 
 
 /*******************************************************************************
@@ -76,11 +78,12 @@ typedef struct {
 /**
  * @brief Externí deklarace LL-tabulky.
  *
- * @details Tato tabulka je použita pro LL syntaktickou analýzu. Obsahuje
- *          pravidla pro přechody mezi stavy. Každý řádek tabulky obsahuje hash
- *          klíč a pole hodnot pro neterminály
+ * @details V tabulce je příslušný řádek pro každý terminál, jejichž kódem je
+ *          tabulka indexována. Sloupce tabulky odpovídají jednotlivým
+ *          NEterminálům. Souřadnice [Terminál, NEterminál] určují aplikaci
+ *          příslušného pravidla.
  */
-extern LLtable table[LL_TERMINAL_COUNT];
+extern struct LLtable LLtable[LL_TERMINAL_COUNT];
 
 
 /*******************************************************************************
@@ -241,15 +244,15 @@ typedef enum LLRuleSet {
 /**
  * @brief Najde pravidlo v LL tabulce na základě neterminálu a kódu terminálu.
  *
- * @details Tato funkce používá přidaný kód neterminálu a terminálu k vyhledání
+ * @details Tato funkce používá kód neterminálu a terminálu k vyhledání
  *          odpovídajícího pravidla v LL tabulce.
  *
- * @param [in] nonTerminal Neterminál, pro který se má najít pravidlo.
- * @param [in] terminal Kód terminálu složící jako index dd LLtabulky.
+ * @param[in] nonTerminal Neterminál, pro který se má najít pravidlo.
+ * @param[in] terminal Kód terminálu sloužící jako index do LL tabulky.
  *
  * @return Index nalezeného pravidla nebo hlásí chybu, pokud pravidlo není nalezeno.
  *
- * @note Pokud získal funkcí find hash pro naprosto neočekávaný řádek tabulky,
+ * @note Pokud funkce najde naprosto neočekávaný řádek tabulky,
  *       zahlásí `ERROR_INTERNAL`.
  */
 int LLtable_findRule(int nonTerminal, int terminal);
