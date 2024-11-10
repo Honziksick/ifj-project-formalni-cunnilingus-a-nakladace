@@ -189,6 +189,25 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item);
  */
 void frameStack_destroyAll();
 
+/**
+ * @brief Vytiskne obsah zásobníku rámců
+ * 
+ * @details Tato funkce vytiskne obsah zásobníku rámců podle parametrů
+ * @param [in] file Ukazatel na soubor, kam se má tisknout
+ * @param [in] print_data Pokud je `true`, vytisknou se i data položek jinak pouze klíče a indexy
+ * @param [in] cut_data Pokud je `true`, data mohou být oříznuta aby se vešla do sloupců
+ */
+void frameStack_print(FILE *file, bool print_data, bool cut_data);
+
+/**
+ * @brief Vytiskne obsah zásobníku rámců
+ * 
+ * @details Volá funkci frameStack_print s parametry stdout, print_data = false, cut_data = true
+ *          Vytiskne obsah zásobníku rámců na stdout bez dat,
+ *          a s ořezaním dat, aby byly krásně ve sloupcích.
+ */
+void frameStack_printSimple();
+
 
 #endif  // FRAME_STACK_H_
 

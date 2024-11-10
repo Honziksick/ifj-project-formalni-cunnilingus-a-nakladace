@@ -116,6 +116,7 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **o
             item->constant = false;
             item->defined = false;
             item->used = false;
+            item->changed = false;
             
             // Pokud je požadován odkaz na novou položku, vrátíme ho
             if(out_item != NULL) {
@@ -290,6 +291,119 @@ inline void symtable_destroyTable(Symtable *table) {
 }
 
 /**
+ * @brief Vytiskne obsah tabulky symbolů
+ */
+void symtable_print(Symtable *table, FILE *file, bool print_data, bool cut_data) {
+    // Pokud je tabulka NULL, tak se vrátíme
+    if(table == NULL){
+        return;
+    }
+
+    // Procházíme všechny položky v tabulce
+    bool empty = true;
+    for(size_t i = 0; i < table->allocated_size; i++){
+        // Pokud je položka prázdná nebo mrtvá, pokračujeme
+        SymtableItem item = table->array[i];
+        if(item.symbol_state == SYMTABLE_SYMBOL_EMPTY ||
+           (item.symbol_state == SYMTABLE_SYMBOL_DEAD)) {
+            continue;
+        }
+        if(empty){
+            fprintf(file, "\n|Key|               |Index|   ");
+            if(print_data){
+                fprintf(file, "|state|                  |const|       |defined|     |used|        |changed|    |dataAddr|");
+            }
+            fprintf(file, "\n");
+            empty = false;
+        }
+
+        // Vytiskneme klíč
+        char *key = string_toConstChar(item.key);
+        if(cut_data){
+            fprintf(file, "%-20.20s", key);
+        }else{
+            fprintf(file, "%-20s", key);
+        }
+        free(key);
+
+        // Vytiskneme index
+        fprintf(file, "%-10zu", i);
+        
+        // Vytiskneme data
+        if(print_data){
+            // Vytiskneme stav položky
+            switch(item.symbol_state){
+                case SYMTABLE_SYMBOL_UNKNOWN:
+                    fprintf(file, "unknown                  ");
+                    break;
+                case SYMTABLE_SYMBOL_VARIABLE_INT:
+                    fprintf(file, "var_int                  ");
+                    break;
+                case SYMTABLE_SYMBOL_VARIABLE_INT_OR_NULL:
+                    fprintf(file, "var_int_or_null          ");
+                    break;
+                case SYMTABLE_SYMBOL_VARIABLE_DOUBLE:
+                    fprintf(file, "var_double               ");
+                    break;
+                case SYMTABLE_SYMBOL_VARIABLE_DOUBLE_OR_NULL:
+                    fprintf(file, "var_double_or_null       ");
+                    break;
+                case SYMTABLE_SYMBOL_VARIABLE_STRING:
+                    fprintf(file, "var_string               ");
+                    break;
+                case SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL:
+                    fprintf(file, "var_string_or_null       ");
+                    break;
+                case SYMTABLE_SYMBOL_FUNCTION:
+                    fprintf(file, "function                 ");
+                    break;
+                default:
+                    fprintf(file, "something wrong          ");
+                    break;
+            }
+            // Vytiskneme konstantnost
+            if(item.constant){
+                fprintf(file, "const         ");
+            }else{
+                fprintf(file, "non-const     ");
+            }
+            // Vytiskneme definovanost
+            if(item.defined){
+                fprintf(file, "defined       ");
+            }else{
+                fprintf(file, "undefined     ");
+            }
+            // Vytiskneme použitost
+            if(item.used){
+                fprintf(file, "used          ");
+            }else{
+                fprintf(file, "unused        ");
+            }
+            // Vytiskneme změnu
+            if(item.changed){
+                fprintf(file, "changed       ");
+            }else{
+                fprintf(file, "unchanged     ");
+            }
+            // Vytiskneme adresu dat
+            if(item.data == NULL){
+                fprintf(file, "NULL");
+            }else{
+                fprintf(file, "%p", item.data);
+            }
+        }
+        // 
+        fprintf(file, "\n");
+    }
+    if(empty){
+        fprintf(file, "Table is empty\n");
+    }
+}
+
+
+
+
+/**
  * @brief Hashovací funkce pro výpočet hashe z klíče
 */
 size_t symtable_hashFunction(DString *key) {
@@ -335,6 +449,7 @@ bool symtable_transfer(Symtable *out_table, Symtable *in_table) {
         new_location->constant = out_table->array[i].constant;
         new_location->defined = out_table->array[i].defined;
         new_location->used = out_table->array[i].used;
+        new_location->changed = out_table->array[i].changed;
     }
     return true;
 }
@@ -399,6 +514,7 @@ inline SymtableItemPtr symtable_init_items(size_t size) {
         items[i].constant = false;
         items[i].defined = false;
         items[i].used = false;
+        items[i].changed = false;
     }
     return items;
 }

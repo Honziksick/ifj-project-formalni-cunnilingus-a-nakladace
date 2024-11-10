@@ -7,7 +7,7 @@
  *                   Kalina Jan         <xkalinj00> (edit)                     *
  *                                                                             *
  * Datum:            08.10.2024                                                *
- * Poslední změna:   15.10.2024                                                *
+ * Poslední změna:   10.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -227,7 +227,11 @@ char *string_toConstChar(DString *string) {
     }
 
     // Kopírování hodnoty DString do nového řetězce
-    strcpy(constStr, string->str);
+    for(size_t i = 0; i < string->length; i++) {
+        constStr[i] = string->str[i];
+    }
+    // Nulový znak na konec řetězce
+    constStr[string->length] = '\0';
 
     return constStr;
 } /* konec string_toConstChar() */

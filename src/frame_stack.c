@@ -260,4 +260,34 @@ void frameStack_destroyAll(){
 }
 
 
+/**
+ * @brief Vytiskne obsah zásobníku rámců
+ */
+void frameStack_print(FILE *file, bool print_data, bool cut_data){
+    // Pokud není zásobník inicializován, vrátíme se
+    if(stack.top == NULL){
+        return;
+    }
+    // Vytiskneme všechny rámce
+    FramePtr frame = stack.top;
+    while(frame != NULL){
+        fprintf(file, "Frame ID: %-10zu", frame->frameID);
+        if(frame->searchStop){
+            fprintf(file, "is searchStop frame");
+        }
+        fprintf(file, "\n");
+        symtable_print(frame->frame, file, print_data, cut_data);
+        fprintf(file, "\n");
+        frame = frame->next;
+    }
+}
+
+/**
+ * @brief Vytiskne obsah zásobníku rámců
+ */
+void frameStack_printSimple(){
+    frameStack_print(stdout, false, true);
+}
+
+
 /*** Konec souboru frame_stack.h ***/
