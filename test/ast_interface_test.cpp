@@ -38,873 +38,1137 @@ using namespace std;
 using namespace testing;
 using namespace internal;
 
+/** 
+ * @brief Definice makra pro zapnutí/vypnutí výpisu stromu.
+*/
+#define PRINT_TREE_OUTPUT 1
+
+#if PRINT_TREE_OUTPUT
+#define PRINT_TREE(type, node) \
+    do { \
+        const ::testing::TestInfo* test_info = ::testing::UnitTest::GetInstance()->current_test_info(); \
+        string output = ASTutils_printCapturedOutput(type, (void *)node, true); \
+        cerr << endl << COLOR_PINK << "Output Tree for " << test_info->test_case_name() << "." << test_info->name() << ":" << COLOR_RESET << endl; \
+        cerr << output << endl; \
+    } while (0)
+#else
+#define PRINT_TREE(node) do {} while (0)
+#endif
+
+
 /**
  * @brief Globální kořen abstraktního syntaktického stromu.
  */
 AST_ProgramNode *ASTroot;
 
 /**
- * @brief Test stromu, kde je pouze neinicializovaný kořenový uzel.
+ * @brief Test kořene, kde je pouze neinicializovaný kořenový uzel.
  */
-TEST(ASTPrintTest, AST_OnlyRoot) {
-    // Vytvoření kořenového uzlu stromu
+TEST(ASTtest_Root, UnInitRoot) {
+    AST_ProgramNode *root = (AST_ProgramNode *)AST_createNode(AST_PROGRAM_NODE);
+
+    ASSERT_NE(root, nullptr);
+    ASSERT_EQ(root->type, AST_PROGRAM_NODE);
+    ASSERT_EQ(root->importedFile, nullptr);
+    ASSERT_EQ(root->functionList, nullptr);
+
+    PRINT_TREE(root->type, root);
+
+    AST_destroyNode(AST_PROGRAM_NODE, root);
+}
+
+/**
+ * @brief Test kořene, kde je pouze jednodušše inicializovaný kořenový uzel.
+ */
+TEST(ASTtest_Root, InitRoot) {
     AST_createTree();
+    ASSERT_NE(ASTroot, nullptr);
+    ASTroot->importedFile = string_init();
+    ASSERT_NE(ASTroot->importedFile, nullptr);
+    ASSERT_EQ(string_append_char(ASTroot->importedFile, 'i'), STRING_SUCCESS);
+    ASSERT_EQ(ASTroot->type, AST_PROGRAM_NODE);
+    ASSERT_EQ(ASTroot->functionList, nullptr);
 
-    // Získání vytvořeného stromu
-    string output = ASTutils_printCapturedOutput(ASTroot);
+    PRINT_TREE(ASTroot->type, ASTroot);
 
-    // Referenční strom
-    string reference =
-        "Program Node\n"
-        "├── Imported File: (null)\n"
-        "└── Function List: (null)\n";
-
-    // Porovnání získaného stromu s referenčním a jejich výpis
-    EXPECT_STREQ(output.c_str(), reference.c_str());
-    ASTutils_printDiff(output, reference);
-
-    // Uvolnění paměti celého stromu
     AST_destroyTree();
 }
 
 /**
- * @brief Test stromu, kde je pouze inicializovaný kořenový uzel.
+ * @brief Test kořene, který odkazuje na několik zlinkovaných definici funkcí.
  */
-TEST(ASTPrintTest, AST_InicializedRoot) {
-    // Vytvoření kořenového uzlu stromu
-    AST_createTree();
+TEST(ASTtest_Root, ManyFuncLinkedRoot) {
+    AST_ProgramNode *root = (AST_ProgramNode *)AST_createNode(AST_PROGRAM_NODE);
+    ASSERT_NE(root, nullptr);
+    root->importedFile = string_init();
+    ASSERT_NE(root->importedFile, nullptr);
+    ASSERT_EQ(string_append_char(root->importedFile, 'i'), STRING_SUCCESS);
 
-    // Inicializace stromu
-    DString *dynStr = string_init();
-    ASSERT_NE(dynStr, nullptr);
-    ASSERT_EQ(string_append_char(dynStr, 'i'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(dynStr, 'f'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(dynStr, 'j'), STRING_SUCCESS);
-    ASTroot->importedFile = dynStr;
+    AST_FunDefNode *func1 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
+    ASSERT_NE(func1, nullptr);
+    func1->identifier = string_init();
+    ASSERT_NE(func1->identifier, nullptr);
+    ASSERT_EQ(string_append_char(func1->identifier, 'f'), STRING_SUCCESS);
+    func1->returnType = AST_DATA_TYPE_INT;
 
-    // Získání vytvořeného stromu
-    string output = ASTutils_printCapturedOutput(ASTroot);
+    AST_FunDefNode *func2 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
+    ASSERT_NE(func2, nullptr);
+    func2->identifier = string_init();
+    ASSERT_NE(func2->identifier, nullptr);
+    ASSERT_EQ(string_append_char(func2->identifier, 'g'), STRING_SUCCESS);
+    func2->returnType = AST_DATA_TYPE_FLOAT;
 
-    // Referenční strom
-    string reference =
-        "Program Node\n"
-        "├── Imported File: ifj\n"
-        "└── Function List: (null)\n";
+    func1->next = func2;
+    root->functionList = func1;
 
-    // Porovnání získaného stromu s referenčním a jejich výpis
-    EXPECT_STREQ(output.c_str(), reference.c_str());
-    ASTutils_printDiff(output, reference);
+    ASSERT_EQ(root->functionList, func1);
+    ASSERT_EQ(root->functionList->next, func2);
 
-    // Uvolnění paměti celého stromu
-    AST_destroyTree();
+    PRINT_TREE(root->type, root);
+
+    AST_destroyNode(AST_PROGRAM_NODE, root);
 }
 
 /**
- * @brief Test stromu, kde je pouze kořenový uzel.
- * @note Referenční program v jazyce C:
- * ```
- *    const ifj = @import("ifj24.zig");
+ * @brief Test AST_FunDefNode, který je NEinicializovaný.
+ */
+TEST(ASTtest_FunDefNode, UnInitFunDefNode) {
+    AST_FunDefNode *node = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->type, AST_FUN_DEF_NODE);
+    ASSERT_EQ(node->identifier, nullptr);
+    ASSERT_EQ(node->parameters, nullptr);
+    ASSERT_EQ(node->returnType, AST_DATA_TYPE_NOT_DEFINED);
+    ASSERT_EQ(node->body, nullptr);
+    ASSERT_EQ(node->next, nullptr);
+
+    PRINT_TREE(node->type, node);
+    
+    AST_destroyNode(AST_FUN_DEF_NODE, node);
+}
+
+/**
+ * @brief Test AST_FunDefNode, který je jednodušše inicializovaný.
+ */
+TEST(ASTtest_FunDefNode, InitFunDefNode) {
+    AST_FunDefNode *node = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
+    ASSERT_NE(node, nullptr);
+    node->identifier = string_init();
+    ASSERT_NE(node->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node->identifier, 'f'), STRING_SUCCESS);
+    node->returnType = AST_DATA_TYPE_INT;
+    ASSERT_EQ(node->type, AST_FUN_DEF_NODE);
+    ASSERT_EQ(node->parameters, nullptr);
+    ASSERT_EQ(node->body, nullptr);
+    ASSERT_EQ(node->next, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_FUN_DEF_NODE, node);
+}
+
+/**
+ * @brief Test AST_FunDefNode, který odkazuje na několik dalších funkcí.
+ */
+TEST(ASTtest_FunDefNode, LinkedFunDefNode) {
+    AST_FunDefNode *node1 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
+    ASSERT_NE(node1, nullptr);
+    node1->identifier = string_init();
+    ASSERT_NE(node1->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node1->identifier, 'f'), STRING_SUCCESS);
+    node1->returnType = AST_DATA_TYPE_INT;
+
+    AST_FunDefNode *node2 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
+    ASSERT_NE(node2, nullptr);
+    node2->identifier = string_init();
+    ASSERT_NE(node2->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node2->identifier, 'g'), STRING_SUCCESS);
+    node2->returnType = AST_DATA_TYPE_FLOAT;
+
+    node1->next = node2;
+
+    ASSERT_EQ(node1->next, node2);
+
+    PRINT_TREE(node1->type, node1);
+    PRINT_TREE(node2->type, node2);
+
+    AST_destroyNode(AST_FUN_DEF_NODE, node1);
+    AST_destroyNode(AST_FUN_DEF_NODE, node2);
+}
+
+/**
+ * @brief Test AST_FunDefNode, který má komplexní těle AST_StatementNode.
+ */
+TEST(ASTtest_FunDefNode, ComplexStatFunDefNode) {
+    AST_FunDefNode *node = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
+    ASSERT_NE(node, nullptr);
+    node->identifier = string_init();
+    ASSERT_NE(node->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node->identifier, 'f'), STRING_SUCCESS);
+    node->returnType = AST_DATA_TYPE_INT;
+
+    AST_StatementNode *stmt = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(stmt, nullptr);
+    stmt->statementType = AST_STATEMENT_VAR_DEF;
+    node->body = stmt;
+
+    ASSERT_EQ(node->body, stmt);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_FUN_DEF_NODE, node);
+}
+
+/**
+ * @brief Test AST_ArgOrParamNode, který je NEinicializovaný.
+ */
+TEST(ASTtest_ArgOrParamNode, UnInitArgOrParamNode) {
+    AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->type, AST_ARG_OR_PARAM_NODE);
+    ASSERT_EQ(node->identifier, nullptr);
+    ASSERT_EQ(node->variable, nullptr);
+    ASSERT_EQ(node->next, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
+}
+
+/**
+ * @brief Test AST_ArgOrParamNode, který je jednodušše inicializovaný.
+ */
+TEST(ASTtest_ArgOrParamNode, InitArgOrParamNode) {
+    AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    ASSERT_NE(node, nullptr);
+    node->identifier = string_init();
+    ASSERT_NE(node->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(node->type, AST_ARG_OR_PARAM_NODE);
+    ASSERT_EQ(node->variable, nullptr);
+    ASSERT_EQ(node->next, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
+}
+
+/**
+ * @brief Test AST_ArgOrParamNode, který odkazuje na několik dalších funkcí.
+ */
+TEST(ASTtest_ArgOrParamNode, LinkedArgOrParamNode) {
+    AST_ArgOrParamNode *node1 = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    ASSERT_NE(node1, nullptr);
+    node1->identifier = string_init();
+    ASSERT_NE(node1->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node1->identifier, 'a'), STRING_SUCCESS);
+
+    AST_ArgOrParamNode *node2 = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    ASSERT_NE(node2, nullptr);
+    node2->identifier = string_init();
+    ASSERT_NE(node2->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node2->identifier, 'b'), STRING_SUCCESS);
+
+    node1->next = node2;
+
+    ASSERT_EQ(node1->next, node2);
+
+    PRINT_TREE(node1->type, node1);
+    PRINT_TREE(node2->type, node2);
+
+    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node1);
+    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node2);
+}
+
+/**
+ * @brief Test AST_ArgOrParamNode, který obsahuje proměnnou typu INT.
+ */
+TEST(ASTtest_ArgOrParamNode, IntegerVarArgOrParamNode) {
+    AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    ASSERT_NE(node, nullptr);
+    node->identifier = string_init();
+    ASSERT_NE(node->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
+
+    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(var, nullptr);
+    var->literalType = AST_LITERAL_INT;
+    int *value = (int *)malloc(sizeof(int));
+    *value = 42;
+    var->value = value;
+    node->variable = var;
+
+    ASSERT_EQ(node->variable, var);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
+}
+
+/**
+ * @brief Test AST_ArgOrParamNode, který obsahuje proměnnou typu FLOAT.
+ */
+TEST(ASTtest_ArgOrParamNode, FloatVarArgOrParamNode) {
+    AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    ASSERT_NE(node, nullptr);
+    node->identifier = string_init();
+    ASSERT_NE(node->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
+
+    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(var, nullptr);
+    var->literalType = AST_LITERAL_FLOAT;
+    double *value = (double *)malloc(sizeof(double));
+    *value = 3.14;
+    var->value = value;
+    node->variable = var;
+
+    ASSERT_EQ(node->variable, var);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
+}
+
+/**
+ * @brief Test AST_ArgOrParamNode, který obsahuje proměnnou typu STRING (Dstring).
+ */
+TEST(ASTtest_ArgOrParamNode, StringVarArgOrParamNode) {
+    AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    ASSERT_NE(node, nullptr);
+    node->identifier = string_init();
+    ASSERT_NE(node->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
+
+    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(var, nullptr);
+    var->literalType = AST_LITERAL_STRING;
+    var->value = string_init();
+    ASSERT_NE(var->value, nullptr);
+    ASSERT_EQ(string_append_char((DString *)var->value, 'H'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)var->value, 'e'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)var->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)var->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)var->value, 'o'), STRING_SUCCESS);
+    node->variable = var;
+
+    ASSERT_EQ(node->variable, var);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
+}
+
+/**
+ * @brief Test AST_ArgOrParamNode, který obsahuje literál typu INT.
+ */
+TEST(ASTtest_ArgOrParamNode, IntegerLitArgOrParamNode) {
+    AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    ASSERT_NE(node, nullptr);
+    node->identifier = string_init();
+    ASSERT_NE(node->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
+
+    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(var, nullptr);
+    var->literalType = AST_LITERAL_INT;
+    int *value = (int *)malloc(sizeof(int));
+    *value = 42;
+    var->value = value;
+    node->variable = var;
+
+    ASSERT_EQ(node->variable, var);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
+}
+
+/**
+ * @brief Test AST_ArgOrParamNode, který obsahuje literál typu FLOAT.
+ */
+TEST(ASTtest_ArgOrParamNode, FloatLitArgOrParamNode) {
+    AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    ASSERT_NE(node, nullptr);
+    node->identifier = string_init();
+    ASSERT_NE(node->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
+
+    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(var, nullptr);
+    var->literalType = AST_LITERAL_FLOAT;
+    double *value = (double *)malloc(sizeof(double));
+    *value = 3.14;
+    var->value = value;
+    node->variable = var;
+
+    ASSERT_EQ(node->variable, var);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
+}
+
+/**
+ * @brief Test AST_ArgOrParamNode, který obsahuje literál typu STRING (Dstring).
+ */
+TEST(ASTtest_ArgOrParamNode, StringLitArgOrParamNode) {
+    AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    ASSERT_NE(node, nullptr);
+    node->identifier = string_init();
+    ASSERT_NE(node->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
+
+    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(var, nullptr);
+    var->literalType = AST_LITERAL_STRING;
+    var->value = string_init();
+    ASSERT_NE(var->value, nullptr);
+    ASSERT_EQ(string_append_char((DString *)var->value, 'H'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)var->value, 'e'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)var->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)var->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)var->value, 'o'), STRING_SUCCESS);
+    node->variable = var;
+
+    ASSERT_EQ(node->variable, var);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
+}
+
+/**
+ * @brief Test AST_ArgOrParamNode, který obsahuje literál typu NULL.
+ */
+TEST(ASTtest_ArgOrParamNode, NullLitArgOrParamNode) {
+    AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    ASSERT_NE(node, nullptr);
+    node->identifier = string_init();
+    ASSERT_NE(node->identifier, nullptr);
+    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
+
+    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(var, nullptr);
+    var->literalType = AST_LITERAL_NULL;
+    var->value = nullptr;
+    node->variable = var;
+
+    ASSERT_EQ(node->variable, var);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
+}
+
+/**
+ * @brief Test AST_StatementNode, který je NEinicializovaný.
+ */
+TEST(ASTtest_StatementNode, UnInitStatementNode) {
+    AST_StatementNode *node = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->type, AST_STATEMENT_NODE);
+    ASSERT_EQ(node->statementType, AST_STATEMENT_NOT_DEFINED);
+    ASSERT_EQ(node->statement, nullptr);
+    ASSERT_EQ(node->next, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_STATEMENT_NODE, node);
+}
+
+/**
+ * @brief Test AST_StatementNode, který je jednodušše inicializovaný.
+ */
+TEST(ASTtest_StatementNode, InitStatementNode) {
+    AST_StatementNode *node = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(node, nullptr);
+    node->statementType = AST_STATEMENT_VAR_DEF;
+    ASSERT_EQ(node->type, AST_STATEMENT_NODE);
+    ASSERT_EQ(node->statement, nullptr);
+    ASSERT_EQ(node->next, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_STATEMENT_NODE, node);
+}
+
+/**
+ * @brief Test AST_StatementNode, který odkazuje na AST_ExprNode.
+ */
+TEST(ASTtest_StatementNode, ExprStatementNode) {
+    AST_StatementNode *node = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(node, nullptr);
+    node->statementType = AST_STATEMENT_EXPR;
+
+    AST_ExprNode *expr = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(expr, nullptr);
+    expr->exprType = AST_EXPR_LITERAL;
+    node->statement = expr;
+
+    ASSERT_EQ(node->statement, expr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_STATEMENT_NODE, node);
+}
+
+/**
+ * @brief Test AST_StatementNode, který odkazuje na AST_FunCallNode.
+ */
+TEST(ASTtest_StatementNode, FunCallStatementNode) {
+    AST_StatementNode *node = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(node, nullptr);
+    node->statementType = AST_STATEMENT_FUN_CALL;
+
+    AST_FunCallNode *funCall = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
+    ASSERT_NE(funCall, nullptr);
+    funCall->identifier = string_init();
+    ASSERT_NE(funCall->identifier, nullptr);
+    ASSERT_EQ(string_append_char(funCall->identifier, 'f'), STRING_SUCCESS);
+    node->statement = funCall;
+
+    ASSERT_EQ(node->statement, funCall);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_STATEMENT_NODE, node);
+}
+
+/**
+ * @brief Test AST_StatementNode, který odkazuje na AST_IfNode.
+ */
+TEST(ASTtest_StatementNode, IfStatementNode) {
+    AST_StatementNode *node = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(node, nullptr);
+    node->statementType = AST_STATEMENT_IF;
+
+    AST_IfNode *ifNode = (AST_IfNode *)AST_createNode(AST_IF_NODE);
+    ASSERT_NE(ifNode, nullptr);
+    node->statement = ifNode;
+
+    ASSERT_EQ(node->statement, ifNode);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_STATEMENT_NODE, node);
+}
+
+/**
+ * @brief Test AST_StatementNode, který odkazuje na AST_WhileNode.
+ */
+TEST(ASTtest_StatementNode, WhileStatementNode) {
+    AST_StatementNode *node = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(node, nullptr);
+    node->statementType = AST_STATEMENT_WHILE;
+
+    AST_WhileNode *whileNode = (AST_WhileNode *)AST_createNode(AST_WHILE_NODE);
+    ASSERT_NE(whileNode, nullptr);
+    node->statement = whileNode;
+
+    ASSERT_EQ(node->statement, whileNode);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_STATEMENT_NODE, node);
+}
+
+/**
+ * @brief Test AST_IfNode, který je NEinicializovaný.
+ */
+TEST(ASTtest_IfNode, UnInitIfNode) {
+    AST_IfNode *node = (AST_IfNode *)AST_createNode(AST_IF_NODE);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->type, AST_IF_NODE);
+    ASSERT_EQ(node->condition, nullptr);
+    ASSERT_EQ(node->nullCondition, nullptr);
+    ASSERT_EQ(node->thenBranch, nullptr);
+    ASSERT_EQ(node->elseBranch, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_IF_NODE, node);
+}
+
+/**
+ * @brief Test AST_IfNode, který je jednodušše inicializovaný.
+ */
+TEST(ASTtest_IfNode, InitIfNode) {
+    AST_IfNode *node = (AST_IfNode *)AST_createNode(AST_IF_NODE);
+    ASSERT_NE(node, nullptr);
+    node->condition = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node->condition, nullptr);
+    node->condition->exprType = AST_EXPR_LITERAL;
+    ASSERT_EQ(node->type, AST_IF_NODE);
+    ASSERT_EQ(node->nullCondition, nullptr);
+    ASSERT_EQ(node->thenBranch, nullptr);
+    ASSERT_EQ(node->elseBranch, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_IF_NODE, node);
+}
+
+/**
+ * @brief Test AST_IfNode, který má plně inicializovanou NullCondition.
+ */
+TEST(ASTtest_IfNode, NullCondIfNode) {
+    AST_IfNode *node = (AST_IfNode *)AST_createNode(AST_IF_NODE);
+    ASSERT_NE(node, nullptr);
+    node->condition = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node->condition, nullptr);
+    node->condition->exprType = AST_EXPR_LITERAL;
+
+    AST_VarNode *nullCond = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(nullCond, nullptr);
+    nullCond->literalType = AST_LITERAL_NULL;
+    node->nullCondition = nullCond;
+
+    ASSERT_EQ(node->nullCondition, nullCond);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_IF_NODE, node);
+}
+
+/**
+ * @brief Test AST_IfNode, který je velmi komplexní.
  * 
- *    pub fn main() void {
- *        var a: i32 = 5;
- *        var b: i64 = 3.14;
- *        var s = ifj.string("Hello");
- *        var n: ?i32 = null;
- *
- *        if(a < 10) {
- *            a = a + 1;
- *        } else {
- *            a = a - 1;
- *        }
- *
- *        while(b > 0) {
- *            b = b - 0.1;
- *        }
- *
- *        if(n == null) {
- *            n = 0;
- *        }
- *
- *        var c: i32 = add(a, 10);
- *        return c;
- *    }
- *
- *    pub fn add(x: i32, y: i32) i32 {
- *        return x + y;
- *    }
- * ``` 
+ * @details Plně inicializovanou podmínku, nemá NullCondition, má ThenBranch
+ *          a ElseBranch s třemi příkazy.
  */
+TEST(ASTtest_IfNode, ComplexIfNode) {
+    AST_IfNode *node = (AST_IfNode *)AST_createNode(AST_IF_NODE);
+    ASSERT_NE(node, nullptr);
+    node->condition = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node->condition, nullptr);
+    node->condition->exprType = AST_EXPR_BINARY_OP;
+    node->condition->expression = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    ASSERT_NE(node->condition->expression, nullptr);
+    ((AST_BinOpNode *)node->condition->expression)->op = AST_OP_LESS_THAN;
 
-TEST(ASTPrintTest, AST_Example2_FactorialRecursive) {
-    /***************************************************************************/
-    /*                            Vytvoření stromu                             */
-    /***************************************************************************/
+    node->thenBranch = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(node->thenBranch, nullptr);
+    node->thenBranch->statementType = AST_STATEMENT_EXPR;
+    node->thenBranch->statement = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node->thenBranch->statement, nullptr);
 
-    // Alokace kořene stromu
+    node->elseBranch = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(node->elseBranch, nullptr);
+    node->elseBranch->statementType = AST_STATEMENT_EXPR;
+    node->elseBranch->statement = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node->elseBranch->statement, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_IF_NODE, node);
+}
+
+/**
+ * @brief Test AST_WhileNode, který je NEinicializovaný.
+ */
+TEST(ASTtest_WhileNode, UnInitWhileNode) {
+    AST_WhileNode *node = (AST_WhileNode *)AST_createNode(AST_WHILE_NODE);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->type, AST_WHILE_NODE);
+    ASSERT_EQ(node->condition, nullptr);
+    ASSERT_EQ(node->nullCondition, nullptr);
+    ASSERT_EQ(node->body, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_WHILE_NODE, node);
+}
+
+/**
+ * @brief Test AST_WhileNode, který je jednodušše inicializovaný.
+ */
+TEST(ASTtest_WhileNode, InitWhileNode) {
+    AST_WhileNode *node = (AST_WhileNode *)AST_createNode(AST_WHILE_NODE);
+    ASSERT_NE(node, nullptr);
+    node->condition = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node->condition, nullptr);
+    node->condition->exprType = AST_EXPR_LITERAL;
+    ASSERT_EQ(node->type, AST_WHILE_NODE);
+    ASSERT_EQ(node->nullCondition, nullptr);
+    ASSERT_EQ(node->body, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_WHILE_NODE, node);
+}
+
+/**
+ * @brief Test AST_WhileNode, který má plně inicializovanou NullCondition.
+ */
+TEST(ASTtest_WhileNode, NullCondWhileNode) {
+    AST_WhileNode *node = (AST_WhileNode *)AST_createNode(AST_WHILE_NODE);
+    ASSERT_NE(node, nullptr);
+    node->condition = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node->condition, nullptr);
+    node->condition->exprType = AST_EXPR_LITERAL;
+
+    AST_VarNode *nullCond = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(nullCond, nullptr);
+    nullCond->literalType = AST_LITERAL_NULL;
+    node->nullCondition = nullCond;
+
+    ASSERT_EQ(node->nullCondition, nullCond);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_WHILE_NODE, node);
+}
+
+/**
+ * @brief Test AST_WhileNode, který je velmi komplexní.
+ * 
+ * @details Plně inicializovanou podmínku, nemá NullCondition, má ThenBranch
+ *          a ElseBranch s třemi příkazy.
+ */
+TEST(ASTtest_WhileNode, ComplexWhileNode) {
+    AST_WhileNode *node = (AST_WhileNode *)AST_createNode(AST_WHILE_NODE);
+    ASSERT_NE(node, nullptr);
+    node->condition = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node->condition, nullptr);
+    node->condition->exprType = AST_EXPR_BINARY_OP;
+    node->condition->expression = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    ASSERT_NE(node->condition->expression, nullptr);
+    ((AST_BinOpNode *)node->condition->expression)->op = AST_OP_GREATER_THAN;
+
+    node->body = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(node->body, nullptr);
+    node->body->statementType = AST_STATEMENT_EXPR;
+    node->body->statement = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node->body->statement, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_WHILE_NODE, node);
+}
+
+/**
+ * @brief Test AST_ExprNode, který je NEinicializovaný.
+ */
+TEST(ASTtest_ExprNode, UnInitExprNode) {
+    AST_ExprNode *node = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->type, AST_EXPR_NODE);
+    ASSERT_EQ(node->exprType, AST_EXPR_NOT_DEFINED);
+    ASSERT_EQ(node->expression, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_EXPR_NODE, node);
+}
+
+/**
+ * @brief Test AST_ExprNode, který je jednodušše inicializovaný.
+ */
+TEST(ASTtest_ExprNode, InitExprNode) {
+    AST_ExprNode *node = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node, nullptr);
+    node->exprType = AST_EXPR_LITERAL;
+    ASSERT_EQ(node->type, AST_EXPR_NODE);
+    ASSERT_EQ(node->expression, nullptr);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_EXPR_NODE, node);
+}
+
+/**
+ * @brief Test AST_ExprNode s plně komplexně inicializovaným AST_BinOpNode.
+ */
+TEST(ASTtest_ExprNode, BinOpExprNode) {
+    AST_ExprNode *node = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node, nullptr);
+    node->exprType = AST_EXPR_BINARY_OP;
+    node->expression = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    ASSERT_NE(node->expression, nullptr);
+    ((AST_BinOpNode *)node->expression)->op = AST_OP_ADD;
+    ASSERT_EQ(node->type, AST_EXPR_NODE);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_EXPR_NODE, node);
+}
+
+/**
+ * @brief Test AST_ExprNode s plně komplexně inicializovaným AST_FunCallNode.
+ */
+TEST(ASTtest_ExprNode, FunCallExprNode) {
+    AST_ExprNode *node = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node, nullptr);
+    node->exprType = AST_EXPR_FUN_CALL;
+    node->expression = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
+    ASSERT_NE(node->expression, nullptr);
+    ASSERT_EQ(node->type, AST_EXPR_NODE);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_EXPR_NODE, node);
+}
+
+/**
+ * @brief Test AST_ExprNode s plně komplexně inicializovaným AST_VarNodeNode.
+ */
+TEST(ASTtest_ExprNode, VarNodeExprNode) {
+    AST_ExprNode *node = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node, nullptr);
+    node->exprType = AST_EXPR_VARIABLE;
+    node->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(node->expression, nullptr);
+    ASSERT_EQ(node->type, AST_EXPR_NODE);
+
+    PRINT_TREE(node->type, node);
+
+    AST_destroyNode(AST_EXPR_NODE, node);
+}
+
+/**
+ * @brief Test jednoduchého stromu s jednou funkcí a jedním příkazem.
+ */
+TEST(ASTtest_Tree, SimpleTree) {
+    // Vytvoření kořene stromu
+    AST_ProgramNode *root = (AST_ProgramNode *)AST_createNode(AST_PROGRAM_NODE);
+    ASSERT_NE(root, nullptr);
+    root->importedFile = string_init();
+    ASSERT_NE(root->importedFile, nullptr);
+    ASSERT_EQ(string_append_char(root->importedFile, 'i'), STRING_SUCCESS);
+
+    // Vytvoření funkce
+    AST_FunDefNode *func = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
+    ASSERT_NE(func, nullptr);
+    func->identifier = string_init();
+    ASSERT_NE(func->identifier, nullptr);
+    ASSERT_EQ(string_append_char(func->identifier, 'f'), STRING_SUCCESS);
+    func->returnType = AST_DATA_TYPE_INT;
+
+    // Vytvoření příkazu
+    AST_StatementNode *stmt = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(stmt, nullptr);
+    stmt->statementType = AST_STATEMENT_VAR_DEF;
+    func->body = stmt;
+
+    // Přidání funkce do kořene
+    root->functionList = func;
+
+    // Ověření struktury stromu
+    ASSERT_EQ(root->functionList, func);
+    ASSERT_EQ(root->functionList->body, stmt);
+
+    // Vypíš strom do terminálu
+    PRINT_TREE(root->type, root);
+
+    // Uvolnění stromu
+    AST_destroyNode(AST_PROGRAM_NODE, root);
+}
+
+/**
+ * @brief Test komplexnějšího stromu s více funkcemi, příkazy a výrazy.
+ */
+TEST(ASTtest_Tree, MoreComplexTree) {
+    // Vytvoření kořene stromu
+    AST_ProgramNode *root = (AST_ProgramNode *)AST_createNode(AST_PROGRAM_NODE);
+    ASSERT_NE(root, nullptr);
+    root->importedFile = string_init();
+    ASSERT_NE(root->importedFile, nullptr);
+    ASSERT_EQ(string_append_char(root->importedFile, 'i'), STRING_SUCCESS);
+
+    // Vytvoření první funkce
+    AST_FunDefNode *func1 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
+    ASSERT_NE(func1, nullptr);
+    func1->identifier = string_init();
+    ASSERT_NE(func1->identifier, nullptr);
+    ASSERT_EQ(string_append_char(func1->identifier, 'f'), STRING_SUCCESS);
+    func1->returnType = AST_DATA_TYPE_INT;
+
+    // Vytvoření druhé funkce
+    AST_FunDefNode *func2 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
+    ASSERT_NE(func2, nullptr);
+    func2->identifier = string_init();
+    ASSERT_NE(func2->identifier, nullptr);
+    ASSERT_EQ(string_append_char(func2->identifier, 'g'), STRING_SUCCESS);
+    func2->returnType = AST_DATA_TYPE_FLOAT;
+
+    // Vytvoření příkazu pro první funkci
+    AST_StatementNode *stmt1 = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(stmt1, nullptr);
+    stmt1->statementType = AST_STATEMENT_VAR_DEF;
+    func1->body = stmt1;
+
+    // Vytvoření příkazu pro druhou funkci
+    AST_StatementNode *stmt2 = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(stmt2, nullptr);
+    stmt2->statementType = AST_STATEMENT_EXPR;
+    func2->body = stmt2;
+
+    // Vytvoření výrazu pro druhý příkaz
+    AST_ExprNode *expr = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(expr, nullptr);
+    expr->exprType = AST_EXPR_BINARY_OP;
+    expr->expression = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    ASSERT_NE(expr->expression, nullptr);
+    ((AST_BinOpNode *)expr->expression)->op = AST_OP_ADD;
+    stmt2->statement = expr;
+
+    // Přidání funkcí do kořene
+    func1->next = func2;
+    root->functionList = func1;
+
+    // Ověření struktury stromu
+    ASSERT_EQ(root->functionList, func1);
+    ASSERT_EQ(root->functionList->next, func2);
+    ASSERT_EQ(root->functionList->body, stmt1);
+    ASSERT_EQ(root->functionList->next->body, stmt2);
+    ASSERT_EQ(((AST_StatementNode *)root->functionList->next->body)->statement, expr);
+
+    // Vypíš strom do terminálu
+    PRINT_TREE(root->type, root);
+
+    // Uvolnění stromu
+    AST_destroyNode(AST_PROGRAM_NODE, root);
+}
+
+/**
+ * @brief Test komplexního stromu podobajícího se funkci main s if, while a výrazem.
+ */
+TEST(ASTtest_Tree, ComplexTree) {
+    // Vytvoření kořene stromu
     AST_createTree();
+    ASSERT_NE(ASTroot, nullptr);
+    ASTroot->importedFile = string_init();
+    ASSERT_NE(ASTroot->importedFile, nullptr);
+    ASSERT_EQ(string_append_char(ASTroot->importedFile, 'i'), STRING_SUCCESS);
 
+    // Vytvoření funkce main
+    AST_FunDefNode *mainFunc = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
+    ASSERT_NE(mainFunc, nullptr);
+    mainFunc->identifier = string_init();
+    ASSERT_NE(mainFunc->identifier, nullptr);
+    ASSERT_EQ(string_append_char(mainFunc->identifier, 'm'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(mainFunc->identifier, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(mainFunc->identifier, 'i'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char(mainFunc->identifier, 'n'), STRING_SUCCESS);
+    mainFunc->returnType = AST_DATA_TYPE_INT;
 
-    /***************************************************************************/
-    /*                            Vytvoření prologu                            */
-    /***************************************************************************/
+    // Vytvoření příkazu if
+    AST_IfNode *ifNode = (AST_IfNode *)AST_createNode(AST_IF_NODE);
+    ASSERT_NE(ifNode, nullptr);
+    ifNode->condition = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(ifNode->condition, nullptr);
+    ifNode->condition->exprType = AST_EXPR_BINARY_OP;
+    ifNode->condition->expression = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    ASSERT_NE(ifNode->condition->expression, nullptr);
+    ((AST_BinOpNode *)ifNode->condition->expression)->op = AST_OP_LESS_THAN;
 
-    // Importovaným souborem bude "ifj.zig"
-    DString *prolog = string_init();
-    ASSERT_NE(prolog, nullptr);
-    ASSERT_EQ(string_append_char(prolog, 'i'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(prolog, 'f'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(prolog, 'j'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(prolog, '.'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(prolog, 'z'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(prolog, 'i'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(prolog, 'g'), STRING_SUCCESS);
-    ASTroot->importedFile = prolog;
-    EXPECT_STREQ(prolog->str, "ifj.zig");
+    // Nastavení levého operandu podmínky if
+    AST_ExprNode *leftOperandIf = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(leftOperandIf, nullptr);
+    leftOperandIf->exprType = AST_EXPR_VARIABLE;
+    leftOperandIf->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(leftOperandIf->expression, nullptr);
+    ((AST_VarNode *)leftOperandIf->expression)->identifier = string_init();
+    ASSERT_NE(((AST_VarNode *)leftOperandIf->expression)->identifier, nullptr);
+    ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandIf->expression)->identifier, 'a'), STRING_SUCCESS);
 
+    // Nastavení pravého operandu podmínky if
+    AST_ExprNode *rightOperandIf = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(rightOperandIf, nullptr);
+    rightOperandIf->exprType = AST_EXPR_LITERAL;
+    rightOperandIf->expression = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(rightOperandIf->expression, nullptr);
+    ((AST_VarNode *)rightOperandIf->expression)->literalType = AST_LITERAL_INT;
+    int *ifValue = (int *)malloc(sizeof(int));
+    *ifValue = 10;
+    ((AST_VarNode *)rightOperandIf->expression)->value = ifValue;
 
-    /***************************************************************************/
-    /*                        Vytvoření funkce 'add()'                         */
-    /***************************************************************************/
-    
-    // Vytvoření uzlu funkce 'add()'
-    AST_FunDefNode *addFun = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
-    ASSERT_NE(addFun, nullptr);
-    
-    // Nastavení identifikátoru
-    DString *addFunID = string_init();
-    ASSERT_NE(addFun, nullptr);
-    ASSERT_EQ(string_append_char(addFunID, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(addFunID, 'd'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(addFunID, 'd'), STRING_SUCCESS);
-    addFun->identifier = addFunID;
-    
-    // Nastavení návratového typu
-    addFun->returnType = AST_DATA_TYPE_INT;
-    
-    // Vytvoření parametrů 'x' a 'y'
-    AST_ArgOrParamNode *paramX = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    ASSERT_NE(paramX, nullptr);
-    DString *paramXID = string_init();
-    ASSERT_NE(paramXID, nullptr);
-    ASSERT_EQ(string_append_char(paramXID, 'x'), STRING_SUCCESS);
-    paramX->identifier = paramXID;
-    addFun->parameters = paramX;
+    ((AST_BinOpNode *)ifNode->condition->expression)->left = leftOperandIf;
+    ((AST_BinOpNode *)ifNode->condition->expression)->right = rightOperandIf;
 
-    AST_ArgOrParamNode *paramY = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    ASSERT_NE(paramY, nullptr);
-    DString *paramYID = string_init();
-    ASSERT_NE(paramYID, nullptr);
-    ASSERT_EQ(string_append_char(paramYID, 'y'), STRING_SUCCESS);
-    paramX->identifier = paramYID;
-    paramX->next = paramY;
-    
+    // Vytvoření then větve if
+    AST_StatementNode *thenStmt = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(thenStmt, nullptr);
+    thenStmt->statementType = AST_STATEMENT_EXPR;
+    thenStmt->statement = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(thenStmt->statement, nullptr);
+    ((AST_ExprNode *)thenStmt->statement)->exprType = AST_EXPR_BINARY_OP;
+    ((AST_ExprNode *)thenStmt->statement)->expression = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    ASSERT_NE(((AST_ExprNode *)thenStmt->statement)->expression, nullptr);
+    ((AST_BinOpNode *)((AST_ExprNode *)thenStmt->statement)->expression)->op = AST_OP_ADD;
 
-    /***************************************************************************/
-    /*           Vytvoření funkce těla funkce 'add': 'return x + y;'           */
-    /***************************************************************************/
-    
-    // Levý operand: proměnná 'x'
-    AST_ExprNode *exprVarX = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    exprVarX->exprType = AST_EXPR_VARIABLE;
-    ASSERT_NE(exprVarX, nullptr);
-    AST_VarNode *varX = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varX, nullptr);
-    DString *varXID = string_init();
-    ASSERT_NE(varXID, nullptr);
-    ASSERT_EQ(string_append_char(varXID, 'x'), STRING_SUCCESS);
-    varX->identifier = varXID;
-    exprVarX->expression = varX;
-    
-    // Pravý operand: proměnná 'y'
-    AST_ExprNode *exprVarY = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    exprVarY->exprType = AST_EXPR_VARIABLE;
-    ASSERT_NE(exprVarY, nullptr);
-    AST_VarNode *varY = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varY, nullptr);
-    DString *varYID = string_init();
-    ASSERT_NE(varYID, nullptr);
-    ASSERT_EQ(string_append_char(varYID, 'y'), STRING_SUCCESS);
-    varY->identifier = varYID;
-    exprVarY->expression = varY;
-    
-    // Binární operace '+'
-    AST_BinOpNode *binOpAdd = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    ASSERT_NE(binOpAdd, nullptr);
-    binOpAdd->op = AST_OP_ADD;
-    binOpAdd->left = exprVarX;
-    binOpAdd->right = exprVarY;
-    
-    AST_ExprNode *exprAdd = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(exprAdd, nullptr);
-    exprAdd->exprType = AST_EXPR_BINARY_OP;
-    exprAdd->expression = binOpAdd;
-    
-    // Vytvoření návratového příkazu
+    // Nastavení operandů pro then větev if
+    AST_ExprNode *leftOperandThen = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(leftOperandThen, nullptr);
+    leftOperandThen->exprType = AST_EXPR_VARIABLE;
+    leftOperandThen->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(leftOperandThen->expression, nullptr);
+    ((AST_VarNode *)leftOperandThen->expression)->identifier = string_init();
+    ASSERT_NE(((AST_VarNode *)leftOperandThen->expression)->identifier, nullptr);
+    ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandThen->expression)->identifier, 'a'), STRING_SUCCESS);
+
+    AST_ExprNode *rightOperandThen = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(rightOperandThen, nullptr);
+    rightOperandThen->exprType = AST_EXPR_LITERAL;
+    rightOperandThen->expression = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(rightOperandThen->expression, nullptr);
+    ((AST_VarNode *)rightOperandThen->expression)->literalType = AST_LITERAL_INT;
+    int *thenValue = (int *)malloc(sizeof(int));
+    *thenValue = 1;
+    ((AST_VarNode *)rightOperandThen->expression)->value = thenValue;
+
+    ((AST_BinOpNode *)((AST_ExprNode *)thenStmt->statement)->expression)->left = leftOperandThen;
+    ((AST_BinOpNode *)((AST_ExprNode *)thenStmt->statement)->expression)->right = rightOperandThen;
+
+    // Vytvoření else větve if
+    AST_StatementNode *elseStmt = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(elseStmt, nullptr);
+    elseStmt->statementType = AST_STATEMENT_EXPR;
+    elseStmt->statement = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(elseStmt->statement, nullptr);
+    ((AST_ExprNode *)elseStmt->statement)->exprType = AST_EXPR_BINARY_OP;
+    ((AST_ExprNode *)elseStmt->statement)->expression = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    ASSERT_NE(((AST_ExprNode *)elseStmt->statement)->expression, nullptr);
+    ((AST_BinOpNode *)((AST_ExprNode *)elseStmt->statement)->expression)->op = AST_OP_SUBTRACT;
+
+    // Nastavení operandů pro else větev if
+    AST_ExprNode *leftOperandElse = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(leftOperandElse, nullptr);
+    leftOperandElse->exprType = AST_EXPR_VARIABLE;
+    leftOperandElse->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(leftOperandElse->expression, nullptr);
+    ((AST_VarNode *)leftOperandElse->expression)->identifier = string_init();
+    ASSERT_NE(((AST_VarNode *)leftOperandElse->expression)->identifier, nullptr);
+    ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandElse->expression)->identifier, 'a'), STRING_SUCCESS);
+
+    AST_ExprNode *rightOperandElse = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(rightOperandElse, nullptr);
+    rightOperandElse->exprType = AST_EXPR_LITERAL;
+    rightOperandElse->expression = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(rightOperandElse->expression, nullptr);
+    ((AST_VarNode *)rightOperandElse->expression)->literalType = AST_LITERAL_INT;
+    int *elseValue = (int *)malloc(sizeof(int));
+    *elseValue = 1;
+    ((AST_VarNode *)rightOperandElse->expression)->value = elseValue;
+
+    ((AST_BinOpNode *)((AST_ExprNode *)elseStmt->statement)->expression)->left = leftOperandElse;
+    ((AST_BinOpNode *)((AST_ExprNode *)elseStmt->statement)->expression)->right = rightOperandElse;
+
+    ifNode->thenBranch = thenStmt;
+    ifNode->elseBranch = elseStmt;
+
+    // Vytvoření příkazu while
+    AST_WhileNode *whileNode = (AST_WhileNode *)AST_createNode(AST_WHILE_NODE);
+    ASSERT_NE(whileNode, nullptr);
+    whileNode->condition = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(whileNode->condition, nullptr);
+    whileNode->condition->exprType = AST_EXPR_BINARY_OP;
+    whileNode->condition->expression = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    ASSERT_NE(whileNode->condition->expression, nullptr);
+    ((AST_BinOpNode *)whileNode->condition->expression)->op = AST_OP_GREATER_THAN;
+
+    // Nastavení operandů pro podmínku while
+    AST_ExprNode *leftOperandWhile = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(leftOperandWhile, nullptr);
+    leftOperandWhile->exprType = AST_EXPR_VARIABLE;
+    leftOperandWhile->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(leftOperandWhile->expression, nullptr);
+    ((AST_VarNode *)leftOperandWhile->expression)->identifier = string_init();
+    ASSERT_NE(((AST_VarNode *)leftOperandWhile->expression)->identifier, nullptr);
+    ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandWhile->expression)->identifier, 'b'), STRING_SUCCESS);
+
+    AST_ExprNode *rightOperandWhile = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(rightOperandWhile, nullptr);
+    rightOperandWhile->exprType = AST_EXPR_LITERAL;
+    rightOperandWhile->expression = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(rightOperandWhile->expression, nullptr);
+    ((AST_VarNode *)rightOperandWhile->expression)->literalType = AST_LITERAL_FLOAT;
+    double *whileValue = (double *)malloc(sizeof(double));
+    *whileValue = 0.0;
+    ((AST_VarNode *)rightOperandWhile->expression)->value = whileValue;
+
+    ((AST_BinOpNode *)whileNode->condition->expression)->left = leftOperandWhile;
+    ((AST_BinOpNode *)whileNode->condition->expression)->right = rightOperandWhile;
+
+    // Vytvoření těla while
+    AST_StatementNode *whileBody = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(whileBody, nullptr);
+    whileBody->statementType = AST_STATEMENT_EXPR;
+    whileBody->statement = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(whileBody->statement, nullptr);
+    ((AST_ExprNode *)whileBody->statement)->exprType = AST_EXPR_BINARY_OP;
+    ((AST_ExprNode *)whileBody->statement)->expression = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    ASSERT_NE(((AST_ExprNode *)whileBody->statement)->expression, nullptr);
+    ((AST_BinOpNode *)((AST_ExprNode *)whileBody->statement)->expression)->op = AST_OP_SUBTRACT;
+
+    // Nastavení operandů pro tělo while
+    AST_ExprNode *leftOperandWhileBody = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(leftOperandWhileBody, nullptr);
+    leftOperandWhileBody->exprType = AST_EXPR_VARIABLE;
+    leftOperandWhileBody->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(leftOperandWhileBody->expression, nullptr);
+    ((AST_VarNode *)leftOperandWhileBody->expression)->identifier = string_init();
+    ASSERT_NE(((AST_VarNode *)leftOperandWhileBody->expression)->identifier, nullptr);
+    ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandWhileBody->expression)->identifier, 'b'), STRING_SUCCESS);
+
+    AST_ExprNode *rightOperandWhileBody = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(rightOperandWhileBody, nullptr);
+    rightOperandWhileBody->exprType = AST_EXPR_LITERAL;
+    rightOperandWhileBody->expression = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(rightOperandWhileBody->expression, nullptr);
+    ((AST_VarNode *)rightOperandWhileBody->expression)->literalType = AST_LITERAL_FLOAT;
+    double *whileBodyValue = (double *)malloc(sizeof(double));
+    *whileBodyValue = 0.1;
+    ((AST_VarNode *)rightOperandWhileBody->expression)->value = whileBodyValue;
+
+    ((AST_BinOpNode *)((AST_ExprNode *)whileBody->statement)->expression)->left = leftOperandWhileBody;
+    ((AST_BinOpNode *)((AST_ExprNode *)whileBody->statement)->expression)->right = rightOperandWhileBody;
+
+    whileNode->body = whileBody;
+
+    // Vytvoření příkazu return
     AST_StatementNode *returnStmt = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
     ASSERT_NE(returnStmt, nullptr);
     returnStmt->statementType = AST_STATEMENT_RETURN;
-    returnStmt->statement = exprAdd;
-    
-    // Přiřazení těla funkce 'add'
-    addFun->body = returnStmt;
-    
-    // Přidání funkce 'add' do seznamu funkcí programu
-    addFun->next = ASTroot->functionList;
-    ASTroot->functionList = addFun;
-    
-    /***************************************************************************/
-    /*                        Vytvoření funkce 'main'                          */
-    /***************************************************************************/
-    
-    // Vytvoření uzlu funkce 'main'
-    AST_FunDefNode *mainFun = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
-    ASSERT_NE(mainFun, nullptr);
-    
-    // Nastavení identifikátoru
-    DString *mainFunID = string_init();
-    ASSERT_NE(mainFunID, nullptr);
-    ASSERT_EQ(string_append_char(mainFunID, 'm'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(mainFunID, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(mainFunID, 'i'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(mainFunID, 'n'), STRING_SUCCESS);
-    mainFun->identifier = mainFunID;
-    
-    // Nastavení návratového typu
-    mainFun->returnType = AST_DATA_TYPE_VOID;
-    
-    // Vytvoření těla funkce 'main'
-    AST_StatementNode *mainBody = NULL;
-    AST_StatementNode **currentStmt = &mainBody;
-    
-    // 1. var a: i32 = 5;
-    AST_VarNode *varA = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varA, nullptr);
-    DString *varAID = string_init();
-    ASSERT_NE(varAID, nullptr);
-    ASSERT_EQ(string_append_char(varAID, 'a'), STRING_SUCCESS);
-    varA->identifier = varAID;
-    varA->literalType = AST_LITERAL_INT;
-    
-    // Vytvoření literálu '5'
-    AST_VarNode *literal5 = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(literal5, nullptr);
-    literal5->literalType = AST_LITERAL_INT;
-    int *value5 = (int *)malloc(sizeof(int));
-    *value5 = 5;
-    literal5->value = value5;
-    literal5->identifier = NULL;
-    varA->value = literal5;
-    
-    // Vytvoření příkazu 'var a: i32 = 5;'
-    AST_StatementNode *stmtVarA = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    ASSERT_NE(stmtVarA, nullptr);
-    stmtVarA->statementType = AST_STATEMENT_VAR_DEF;
-    stmtVarA->statement = varA;
-    
-    // Přidání příkazu do těla funkce
-    *currentStmt = stmtVarA;
-    currentStmt = &stmtVarA->next;
-    
-    // 2. var b: i64 = 3.14;
-    AST_VarNode *varB = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varB, nullptr);
-    DString *varBID = string_init();
-    ASSERT_NE(varBID, nullptr);
-    ASSERT_EQ(string_append_char(varBID, 'b'), STRING_SUCCESS);
-    varB->identifier = varBID;
-    varB->literalType = AST_LITERAL_FLOAT;
-    
-    // Vytvoření literálu '3.14'
-    AST_VarNode *literalPi = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(literalPi, nullptr);
-    literalPi->literalType = AST_LITERAL_FLOAT;
-    double *valuePi = (double *)malloc(sizeof(double));
-    *valuePi = 3.14;
-    literalPi->identifier = NULL;
-    literalPi->value = valuePi;
-    varB->value = literalPi;
-    
-    // Vytvoření příkazu 'var b: i64 = 3.14;'
-    AST_StatementNode *stmtVarB = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    ASSERT_NE(stmtVarB, nullptr);
-    stmtVarB->statementType = AST_STATEMENT_VAR_DEF;
-    stmtVarB->statement = varB;
-    
-    // Přidání příkazu do těla funkce
-    *currentStmt = stmtVarB;
-    currentStmt = &stmtVarB->next;
-    
-    // 3. var s = ifj.string("Hello");
-    AST_VarNode *varS = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varS, nullptr);
-    DString *varSID = string_init();
-    ASSERT_NE(varSID, nullptr);
-    ASSERT_EQ(string_append_char(varSID, 's'), STRING_SUCCESS);
-    varS->identifier = varSID;
-    DString *helloStr = string_init();
-    ASSERT_NE(helloStr, nullptr);
-    ASSERT_EQ(string_append_char(helloStr, 'H'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(helloStr, 'e'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(helloStr, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(helloStr, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(helloStr, 'o'), STRING_SUCCESS);
-    varS->literalType = AST_LITERAL_STRING; 
-    varS->value = helloStr;
+    returnStmt->statement = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(returnStmt->statement, nullptr);
+    ((AST_ExprNode *)returnStmt->statement)->exprType = AST_EXPR_LITERAL;
+    ((AST_ExprNode *)returnStmt->statement)->expression = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(((AST_ExprNode *)returnStmt->statement)->expression, nullptr);
+    ((AST_VarNode *)((AST_ExprNode *)returnStmt->statement)->expression)->literalType = AST_LITERAL_INT;
+    int *returnValue = (int *)malloc(sizeof(int));
+    *returnValue = 0;
+    ((AST_VarNode *)((AST_ExprNode *)returnStmt->statement)->expression)->value = returnValue;
 
-    // Proměnná pro argument volání funkce
-    AST_VarNode *literalHello = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(literalHello, nullptr);
-    DString *literalHelloVal = string_init();
-    ASSERT_NE(literalHelloVal, nullptr);
-    ASSERT_EQ(string_append_char(literalHelloVal, 'H'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(literalHelloVal, 'e'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(literalHelloVal, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(literalHelloVal, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(literalHelloVal, 'o'), STRING_SUCCESS);
-    literalHello->identifier = NULL;
-    literalHello->literalType = AST_LITERAL_STRING;
-    literalHello->value = literalHelloVal;
-    
-    // Vytvoření argumentu pro funkci
-    AST_ArgOrParamNode *argHello = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    ASSERT_NE(argHello, nullptr);
-    DString *argHelloID = string_init();
-    ASSERT_EQ(string_copy(helloStr, argHelloID), STRING_SUCCESS);
-    argHello->identifier = argHelloID;
-    argHello->next = NULL;
-    argHello->variable = literalHello; // Přidáme výraz jako argument
-    
-    // Vytvoření volání funkce 'ifj.string("Hello")'
-    AST_FunCallNode *funCallString = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
-    ASSERT_NE(funCallString, nullptr);
-    DString *funID = string_init();
-    ASSERT_NE(funID, nullptr);
-    ASSERT_EQ(string_append_char(funID, 's'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(funID, 't'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(funID, 'r'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(funID, 'i'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(funID, 'n'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(funID, 'g'), STRING_SUCCESS);
-    funCallString->identifier = funID;
-    funCallString->isBuiltIn = true;
-    funCallString->arguments = argHello;
-    
-    // Vytvoření výrazu pro volání funkce
-    AST_ExprNode *exprFunCallString = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(exprFunCallString, nullptr);
-    exprFunCallString->exprType = AST_EXPR_FUN_CALL;
-    exprFunCallString->expression = funCallString;
-    
-    // Nastavení value proměnné 's' na výsledek volání funkce
-    varS->value = exprFunCallString;
-    
-    // Vytvoření příkazu 'var s = ifj.string("Hello");'
-    AST_StatementNode *stmtVarS = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    ASSERT_NE(stmtVarS, nullptr);
-    stmtVarS->statementType = AST_STATEMENT_VAR_DEF;
-    stmtVarS->statement = varS;
-    
-    // Přidání příkazu do těla funkce
-    *currentStmt = stmtVarS;
-    currentStmt = &stmtVarS->next;
+    // Vytvoření těla funkce main
+    AST_StatementNode *mainBody = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(mainBody, nullptr);
+    mainBody->statementType = AST_STATEMENT_IF;
+    mainBody->statement = ifNode;
+    mainBody->next = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    ASSERT_NE(mainBody->next, nullptr);
+    mainBody->next->statementType = AST_STATEMENT_WHILE;
+    mainBody->next->statement = whileNode;
+    mainBody->next->next = returnStmt;
 
-    // 4. var n: ?i32 = null;
-    AST_VarNode *varN = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varN, nullptr);
-    DString *varNID = string_init();
-    ASSERT_NE(varNID, nullptr);
-    ASSERT_EQ(string_append_char(varNID, 'n'), STRING_SUCCESS);
-    varN->identifier = varNID;
-    varN->literalType = AST_LITERAL_NULL;
-    varN->value = nullptr;
+    mainFunc->body = mainBody;
 
-    // Vytvoření příkazu 'var n: ?i32 = null;'
-    AST_StatementNode *stmtVarN = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    ASSERT_NE(stmtVarN, nullptr);
-    stmtVarN->statementType = AST_STATEMENT_VAR_DEF;
-    stmtVarN->statement = varN;
+    // Přidání funkce main do kořene
+    ASTroot->functionList = mainFunc;
 
-    // Přidání příkazu do těla funkce
-    *currentStmt = stmtVarN;
-    currentStmt = &stmtVarN->next;
+    // Ověření struktury stromu
+    ASSERT_EQ(ASTroot->functionList, mainFunc);
+    ASSERT_EQ(ASTroot->functionList->body, mainBody);
+    ASSERT_EQ(((AST_StatementNode *)ASTroot->functionList->body)->statement, ifNode);
+    ASSERT_EQ(((AST_StatementNode *)ASTroot->functionList->body)->next->statement, whileNode);
+    ASSERT_EQ(((AST_StatementNode *)ASTroot->functionList->body)->next->next, returnStmt);
 
-    // 5. if(a < 10) { a = a + 1; } else { a = a - 1; }
-    AST_IfNode *ifNode = (AST_IfNode *)AST_createNode(AST_IF_NODE);
-    ASSERT_NE(ifNode, nullptr);
+    // Vypíš strom do terminálu
+    PRINT_TREE(ASTroot->type, ASTroot);
 
-    // Podmínka: a < 10
-    AST_ExprNode *exprVarA = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    exprVarA->exprType = AST_EXPR_VARIABLE;
-    ASSERT_NE(exprVarA, nullptr);
-    AST_VarNode *varACond = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varACond, nullptr);
-    DString *varACondID = string_init();
-    ASSERT_NE(varACondID, nullptr);
-    ASSERT_EQ(string_append_char(varACondID, 'a'), STRING_SUCCESS);
-    varACond->identifier = varACondID;
-    exprVarA->expression = varACond;
-
-    AST_VarNode *literal10 = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(literal10, nullptr);
-    literal10->literalType = AST_LITERAL_INT;
-    int *value10 = (int *)malloc(sizeof(int));
-    *value10 = 10;
-    literal10->value = value10;
-    literal10->identifier = NULL;
-
-    AST_BinOpNode *binOpLessThan = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    ASSERT_NE(binOpLessThan, nullptr);
-    binOpLessThan->op = AST_OP_LESS_THAN;
-    binOpLessThan->left = exprVarA;
-    binOpLessThan->right = (AST_ExprNode *)literal10;
-
-    AST_ExprNode *exprLessThan = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(exprLessThan, nullptr);
-    exprLessThan->exprType = AST_EXPR_BINARY_OP;
-    exprLessThan->expression = binOpLessThan;
-    ifNode->condition = exprLessThan;
-
-    // Větev 'then': a = a + 1
-    AST_ExprNode *exprVarAThen = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    exprVarAThen->exprType = AST_EXPR_VARIABLE;
-    ASSERT_NE(exprVarAThen, nullptr);
-    AST_VarNode *varAThen = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varAThen, nullptr);
-    varAThen->identifier = varACondID;
-    exprVarAThen->expression = varAThen;
-
-    AST_VarNode *literal1 = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(literal1, nullptr);
-    literal1->literalType = AST_LITERAL_INT;
-    int *value1 = (int *)malloc(sizeof(int));
-    *value1 = 1;
-    literal1->value = value1;
-    literal1->identifier = NULL;
-
-    AST_BinOpNode *binOpAdd1 = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    ASSERT_NE(binOpAdd1, nullptr);
-    binOpAdd1->op = AST_OP_ADD;
-    binOpAdd1->left = exprVarAThen;
-    binOpAdd1->right = (AST_ExprNode *)literal1;
-
-    AST_ExprNode *exprAdd1 = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(exprAdd1, nullptr);
-    exprAdd1->exprType = AST_EXPR_BINARY_OP;
-    exprAdd1->expression = binOpAdd1;
-
-    AST_StatementNode *stmtAssignAThen = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    ASSERT_NE(stmtAssignAThen, nullptr);
-    stmtAssignAThen->statementType = AST_STATEMENT_EXPR;
-    stmtAssignAThen->statement = exprAdd1;
-
-    ifNode->thenBranch = stmtAssignAThen;
-
-    // Větev 'else': a = a - 1
-    AST_ExprNode *exprVarAElse = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    exprVarAElse->exprType = AST_EXPR_VARIABLE;
-    ASSERT_NE(exprVarAElse, nullptr);
-    AST_VarNode *varAElse = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varAElse, nullptr);
-    varAElse->identifier = varACondID;
-    exprVarAElse->expression = varAElse;
-
-    AST_BinOpNode *binOpSub1 = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    ASSERT_NE(binOpSub1, nullptr);
-    binOpSub1->op = AST_OP_SUBTRACT;
-    binOpSub1->left = exprVarAElse;
-    binOpSub1->right = (AST_ExprNode *)literal1;
-
-    AST_ExprNode *exprSub1 = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(exprSub1, nullptr);
-    exprSub1->exprType = AST_EXPR_BINARY_OP;
-    exprSub1->expression = binOpSub1;
-
-    AST_StatementNode *stmtAssignAElse = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    ASSERT_NE(stmtAssignAElse, nullptr);
-    stmtAssignAElse->statementType = AST_STATEMENT_EXPR;
-    stmtAssignAElse->statement = exprSub1;
-
-    ifNode->elseBranch = stmtAssignAElse;
-
-    // Vytvoření příkazu 'if(a < 10) { a = a + 1; } else { a = a - 1; }'
-    AST_StatementNode *stmtIf = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    ASSERT_NE(stmtIf, nullptr);
-    stmtIf->statementType = AST_STATEMENT_IF;
-    stmtIf->statement = ifNode;
-
-    // Přidání příkazu do těla funkce
-    *currentStmt = stmtIf;
-    currentStmt = &stmtIf->next;
-
-    // 6. while(b > 0) { b = b - 0.1; }
-    AST_WhileNode *whileNode = (AST_WhileNode *)AST_createNode(AST_WHILE_NODE);
-    ASSERT_NE(whileNode, nullptr);
-
-    // Podmínka: b > 0
-    AST_ExprNode *exprVarB = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    exprVarB->exprType = AST_EXPR_VARIABLE;
-    ASSERT_NE(exprVarB, nullptr);
-    AST_VarNode *varBCond = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varBCond, nullptr);
-    DString *varBCondID = string_init();
-    ASSERT_NE(varBCondID, nullptr);
-    ASSERT_EQ(string_append_char(varBCondID, 'b'), STRING_SUCCESS);
-    varBCond->identifier = varBCondID;
-    exprVarB->expression = varBCond;
-
-    AST_VarNode *literal0 = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(literal0, nullptr);
-    literal0->literalType = AST_LITERAL_FLOAT;
-    double *value0 = (double *)malloc(sizeof(double));
-    *value0 = 0.0;
-    literal0->value = value0;
-    literal0->identifier = NULL;
-
-    AST_BinOpNode *binOpGreaterThan = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    ASSERT_NE(binOpGreaterThan, nullptr);
-    binOpGreaterThan->op = AST_OP_GREATER_THAN;
-    binOpGreaterThan->left = exprVarB;
-    binOpGreaterThan->right = (AST_ExprNode *)literal0;
-
-    AST_ExprNode *exprGreaterThan = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(exprGreaterThan, nullptr);
-    exprGreaterThan->exprType = AST_EXPR_BINARY_OP;
-    exprGreaterThan->expression = binOpGreaterThan;
-    whileNode->condition = exprGreaterThan;
-
-    // Tělo cyklu: b = b - 0.1
-    AST_ExprNode *exprVarBBody = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    exprVarBBody->exprType = AST_EXPR_VARIABLE;
-    ASSERT_NE(exprVarBBody, nullptr);
-    AST_VarNode *varBBody = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varBBody, nullptr);
-    varBBody->identifier = varBCondID;
-    exprVarBBody->expression = varBBody;
-
-    AST_VarNode *literal01 = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(literal01, nullptr);
-    literal01->literalType = AST_LITERAL_FLOAT;
-    double *value01 = (double *)malloc(sizeof(double));
-    *value01 = 0.1;
-    literal01->value = value01;
-    literal01->identifier = NULL;
-
-    AST_BinOpNode *binOpSub01 = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    ASSERT_NE(binOpSub01, nullptr);
-    binOpSub01->op = AST_OP_SUBTRACT;
-    binOpSub01->left = exprVarBBody;
-    binOpSub01->right = (AST_ExprNode *)literal01;
-
-    AST_ExprNode *exprSub01 = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(exprSub01, nullptr);
-    exprSub01->exprType = AST_EXPR_BINARY_OP;
-    exprSub01->expression = binOpSub01;
-
-    AST_StatementNode *stmtAssignB = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    ASSERT_NE(stmtAssignB, nullptr);
-    stmtAssignB->statementType = AST_STATEMENT_EXPR;
-    stmtAssignB->statement = exprSub01;
-
-    whileNode->body = stmtAssignB;
-
-    // Vytvoření příkazu 'while(b > 0) { b = b - 0.1; }'
-    AST_StatementNode *stmtWhile = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    ASSERT_NE(stmtWhile, nullptr);
-    stmtWhile->statementType = AST_STATEMENT_WHILE;
-    stmtWhile->statement = whileNode;
-
-    // Přidání příkazu do těla funkce
-    *currentStmt = stmtWhile;
-    currentStmt = &stmtWhile->next;
-
-    // 7. if(n == null) { n = 0; }
-    AST_IfNode *ifNodeNull = (AST_IfNode *)AST_createNode(AST_IF_NODE);
-    ASSERT_NE(ifNodeNull, nullptr);
-
-    // Podmínka: n == null
-    AST_ExprNode *exprVarN = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    exprVarN->exprType = AST_EXPR_VARIABLE;
-    ASSERT_NE(exprVarN, nullptr);
-    AST_VarNode *varNCond = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varNCond, nullptr);
-    DString *varNCondID = string_init();
-    ASSERT_NE(varNCondID, nullptr);
-    ASSERT_EQ(string_append_char(varNCondID, 'n'), STRING_SUCCESS);
-    varNCond->identifier = varNCondID;
-    exprVarN->expression = varNCond;
-
-    AST_VarNode *literalNull = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(literalNull, nullptr);
-    literalNull->literalType = AST_LITERAL_NULL;
-    literalNull->value = nullptr;
-    literalNull->identifier = NULL;
-
-    AST_BinOpNode *binOpEqualNull = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    ASSERT_NE(binOpEqualNull, nullptr);
-    binOpEqualNull->op = AST_OP_EQUAL;
-    binOpEqualNull->left = exprVarN;
-    binOpEqualNull->right = (AST_ExprNode *)literalNull;
-
-    AST_ExprNode *exprEqualNull = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(exprEqualNull, nullptr);
-    exprEqualNull->exprType = AST_EXPR_BINARY_OP;
-    exprEqualNull->expression = binOpEqualNull;
-    ifNodeNull->condition = exprEqualNull;
-
-    // Větev 'then': n = 0
-    AST_ExprNode *exprVarNThen = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    exprVarNThen->exprType = AST_EXPR_VARIABLE;
-    ASSERT_NE(exprVarNThen, nullptr);
-    AST_VarNode *varNThen = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varNThen, nullptr);
-    varNThen->identifier = varNCondID;
-    exprVarNThen->expression = varNThen;
-
-    AST_VarNode *literal0Int = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(literal0Int, nullptr);
-    literal0Int->literalType = AST_LITERAL_INT;
-    int *value0Int = (int *)malloc(sizeof(int));
-    *value0Int = 0;
-    literal0Int->value = value0Int;
-    literal0Int->identifier = NULL;
-
-    AST_BinOpNode *binOpAssign0 = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    ASSERT_NE(binOpAssign0, nullptr);
-    binOpAssign0->op = AST_OP_ASSIGNEMENT;
-    binOpAssign0->left = exprVarNThen;
-    binOpAssign0->right = (AST_ExprNode *)literal0Int;
-
-    AST_ExprNode *exprAssign0 = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(exprAssign0, nullptr);
-    exprAssign0->exprType = AST_EXPR_BINARY_OP;
-    exprAssign0->expression = binOpAssign0;
-
-    AST_StatementNode *stmtAssignNThen = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    ASSERT_NE(stmtAssignNThen, nullptr);
-    stmtAssignNThen->statementType = AST_STATEMENT_EXPR;
-    stmtAssignNThen->statement = exprAssign0;
-
-    ifNodeNull->thenBranch = stmtAssignNThen;
-
-    // Vytvoření příkazu 'if(n == null) { n = 0; }'
-    AST_StatementNode *stmtIfNull = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    ASSERT_NE(stmtIfNull, nullptr);
-    stmtIfNull->statementType = AST_STATEMENT_IF;
-    stmtIfNull->statement = ifNodeNull;
-
-    // Přidání příkazu do těla funkce
-    *currentStmt = stmtIfNull;
-    currentStmt = &stmtIfNull->next;
-
-    // 8. var c: i32 = add(a, 10);
-    AST_VarNode *varC = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varC, nullptr);
-    DString *varCID = string_init();
-    ASSERT_NE(varCID, nullptr);
-    ASSERT_EQ(string_append_char(varCID, 'c'), STRING_SUCCESS);
-    varC->identifier = varCID;
-
-    // Vytvoření argumentu 'a'
-    AST_ExprNode *exprVarAArg = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    exprVarAArg->exprType = AST_EXPR_VARIABLE;
-    ASSERT_NE(exprVarAArg, nullptr);
-    AST_VarNode *varAArg = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(varAArg, nullptr);
-    varAArg->identifier = varACondID;
-    exprVarAArg->expression = varAArg;
-
-    // Vytvoření argumentu '10'
-    AST_VarNode *literal10Arg = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(literal10Arg, nullptr);
-    literal10Arg->literalType = AST_LITERAL_INT;
-    int *value10Arg = (int *)malloc(sizeof(int));
-    *value10Arg = 10;
-    literal10Arg->value = value10Arg;
-    literal10Arg->identifier = NULL;
-
-    // Vytvoření volání funkce 'add(a, 10)'
-    AST_FunCallNode *funCallAdd = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
-    ASSERT_NE(funCallAdd, nullptr);
-    DString *funAddID = string_init();
-    ASSERT_NE(funAddID, nullptr);
-    ASSERT_EQ(string_append_char(funAddID, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(funAddID, 'd'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(funAddID, 'd'), STRING_SUCCESS);
-    funCallAdd->identifier = funAddID;
-    funCallAdd->isBuiltIn = false;
-
-    AST_ArgOrParamNode *argA = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    ASSERT_NE(argA, nullptr);
-    argA->identifier = varACondID;
-    argA->variable = varAArg;
-
-    AST_ArgOrParamNode *arg10 = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    ASSERT_NE(arg10, nullptr);
-    arg10->identifier = NULL;
-    arg10->variable = literal10Arg;
-    argA->next = arg10;
-
-    funCallAdd->arguments = argA;
-
-    // Vytvoření výrazu pro volání funkce
-    AST_ExprNode *exprFunCallAdd = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(exprFunCallAdd, nullptr);
-    exprFunCallAdd->exprType = AST_EXPR_FUN_CALL;
-    exprFunCallAdd->expression = funCallAdd;
-
-    // Nastavení value proměnné 'c' na výsledek volání funkce
-   
-
-
-    
-    // Na závěr přiřadíme tělo funkce 'main'
-    mainFun->body = mainBody;
-    
-    // Přidání funkce 'main' do seznamu funkcí programu
-    mainFun->next = ASTroot->functionList;
-    ASTroot->functionList = mainFun;
-    
-    /***************************************************************************/
-    /*                              Výpis AST stromu                           */
-    /***************************************************************************/
-    
-    // Získání vytvořeného stromu
-    string output = ASTutils_printCapturedOutput(ASTroot);
-    
-    // Výpis AST stromu
-    cout << output << std::endl;
-    
-    // Referenční strom (zde je potřeba vytvořit očekávaný výstup)
-    string reference =
-        "Program Node\n"
-        "├── Imported File: ifj.zig\n"
-        "├── Function Definition: main\n"
-        "│   ├── Parameters: (null)\n"
-        "│   ├── Return Type: 7\n"
-        "│   └── Function Body:\n"
-        "│       ├── Statement: Variable Definition\n"
-        "│       │   └── Variable: a\n"
-        "│       │       └── Value:\n"
-        "│       │           └── Literal: Integer, Value: 5\n"
-        "│       ├── Statement: Variable Definition\n"
-        "│       │   └── Variable: b\n"
-        "│       │       └── Value:\n"
-        "│       │           └── Literal: Float, Value: 3.14\n"
-        "│       ├── Statement: Variable Definition\n"
-        "│       │   └── Variable: s\n"
-        "│       │       └── Value:\n"
-        "│       │           └── Expression: Function Call\n"
-        "│       │               └── Function Call: string\n"
-        "│       │                   └── Arguments:\n"
-        "│       │                       └── Parameter: Hello\n"
-        "│       │                           └── Variable: (null)\n"
-        "│       │                               └── Value:\n"
-        "│       │                                   └── Unknown Value Type\n"
-        "│       ├── Statement: Variable Definition\n"
-        "│       │   └── Variable: n\n"
-        "│       │       └── Value: (null)\n"
-        "│       ├── Statement: If Statement\n"
-        "│       │   └── If Statement\n"
-        "│       │       ├── Condition:\n"
-        "│       │       │   └── Expression: Binary Operation\n"
-        "│       │       │       └── Operator: <\n"
-        "│       │       │           ├── Left Operand:\n"
-        "│       │       │           │   └── Expression: Variable\n"
-        "│       │       │           │       └── Variable: a\n"
-        "│       │       │           │           └── Value: (null)\n"
-        "│       │       │           └── Right Operand:\n"
-        "│       │       │               └── Expression: Unknown Expression Type\n"
-        "│       │       ├── Then Branch:\n"
-        "│       │       │   └── Statement: Expression\n"
-        "│       │       │       └── Expression: Binary Operation\n"
-        "│       │       │           └── Operator: +\n"
-        "│       │       │               ├── Left Operand:\n"
-        "│       │       │               │   └── Expression: Variable\n"
-        "│       │       │               │       └── Variable: a\n"
-        "│       │       │               │           └── Value: (null)\n"
-        "│       │       │               └── Right Operand:\n"
-        "│       │       │                   └── Expression: Unknown Expression Type\n"
-        "│       │       └── Else Branch:\n"
-        "│       │           └── Statement: Expression\n"
-        "│       │               └── Expression: Binary Operation\n"
-        "│       │                   └── Operator: -\n"
-        "│       │                       ├── Left Operand:\n"
-        "│       │                       │   └── Expression: Variable\n"
-        "│       │                       │       └── Variable: a\n"
-        "│       │                       │           └── Value: (null)\n"
-        "│       │                       └── Right Operand:\n"
-        "│       │                           └── Expression: Unknown Expression Type\n"
-        "│       ├── Statement: While Loop\n"
-        "│       │   └── While Loop\n"
-        "│       │       ├── Condition:\n"
-        "│       │       │   └── Expression: Binary Operation\n"
-        "│       │       │       └── Operator: >\n"
-        "│       │       │           ├── Left Operand:\n"
-        "│       │       │           │   └── Expression: Variable\n"
-        "│       │       │           │       └── Variable: b\n"
-        "│       │       │           │           └── Value: (null)\n"
-        "│       │       │           └── Right Operand:\n"
-        "│       │       │               └── Expression: Unknown Expression Type\n"
-        "│       │       └── Body:\n"
-        "│       │           └── Statement: Expression\n"
-        "│       │               └── Expression: Binary Operation\n"
-        "│       │                   └── Operator: -\n"
-        "│       │                       ├── Left Operand:\n"
-        "│       │                       │   └── Expression: Variable\n"
-        "│       │                       │       └── Variable: b\n"
-        "│       │                       │           └── Value: (null)\n"
-        "│       │                       └── Right Operand:\n"
-        "│       │                           └── Expression: Unknown Expression Type\n"
-        "│       └── Statement: If Statement\n"
-        "│           └── If Statement\n"
-        "│               ├── Condition:\n"
-        "│               │   └── Expression: Binary Operation\n"
-        "│               │       └── Operator: ==\n"
-        "│               │           ├── Left Operand:\n"
-        "│               │           │   └── Expression: Variable\n"
-        "│               │           │       └── Variable: n\n"
-        "│               │           │           └── Value: (null)\n"
-        "│               │           └── Right Operand:\n"
-        "│               │               └── Expression: Unknown Expression Type\n"
-        "│               ├── Then Branch:\n"
-        "│               │   └── Statement: Expression\n"
-        "│               │       └── Expression: Binary Operation\n"
-        "│               │           └── Operator: =\n"
-        "│               │               ├── Left Operand:\n"
-        "│               │               │   └── Expression: Variable\n"
-        "│               │               │       └── Variable: n\n"
-        "│               │               │           └── Value: (null)\n"
-        "│               │               └── Right Operand:\n"
-        "│               │                   └── Expression: Unknown Expression Type\n"
-        "│               └── Else Branch: (null)\n"
-        "└── Function Definition: add\n"
-        "    ├── Parameters:\n"
-        "    │   ├── Parameter: y\n"
-        "    │   │   └── Variable/Expression: (null)\n"
-        "    │   └── Parameter: (null)\n"
-        "    │       └── Variable/Expression: (null)\n"
-        "    ├── Return Type: 1\n"
-        "    └── Function Body:\n"
-        "        └── Statement: Return Statement\n"
-        "            └── Expression: Binary Operation\n"
-        "                └── Operator: +\n"
-        "                    ├── Left Operand:\n"
-        "                    │   └── Expression: Variable\n"
-        "                    │       └── Variable: x\n"
-        "                    │           └── Value: (null)\n"
-        "                    └── Right Operand:\n"
-        "                        └── Expression: Variable\n"
-        "                            └── Variable: y\n"
-        "                                └── Value: (null)\n";
-    
-    // Porovnání získaného stromu s referenčním a jejich výpis
-    EXPECT_STREQ(output.c_str(), reference.c_str());
-    ASTutils_printDiff(output, reference);
-    
-    // Uvolnění paměti celého stromu
+    // Uvolnění stromu
     AST_destroyTree();
 }
 
-
-
-/*** Konec souboru ast_test.cpp ***/
+/*** Konec souboru ast_interface_test.cpp ***/

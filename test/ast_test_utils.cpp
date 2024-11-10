@@ -31,6 +31,15 @@
 using namespace std;
 
 
+// Příklad debug výpisu
+void debug_print_levels(const vector<bool> &levels) {
+    cerr << "Current levels: ";
+    for(auto level : levels) {
+        cerr << level << " ";
+    }
+    cerr << endl;
+}
+
 /*******************************************************************************
  *                                                                             *
  *                 IMPLEMENTACE VEŘEJNÝCH FUNKCÍ PRO VÝPIS AST                 *
@@ -38,12 +47,49 @@ using namespace std;
  ******************************************************************************/
 
 /**
- * @brief Zachytí výstup tisku uzlu AST_NODE_PROGRAM.
+ * @brief Zachytí výstup tisku uzlu AST daného typu.
  */
-string ASTutils_printCapturedOutput(AST_ProgramNode *node, bool useColors) {
+string ASTutils_printCapturedOutput(AST_NodeType type, void *node, bool useColors) {
     stringstream buffer;
-    vector<bool>  levels;
-    ASTutils_printProgramNode(node, buffer, 0, useColors, levels, true);
+    vector<bool> levels;
+
+    switch (type) {
+        case AST_PROGRAM_NODE:
+            ASTutils_printProgramNode((AST_ProgramNode *)node, buffer, 0, useColors, levels, true);
+            break;
+        case AST_FUN_DEF_NODE:
+            ASTutils_printFunDefNode((AST_FunDefNode *)node, buffer, 0, useColors, levels, true);
+            break;
+        case AST_ARG_OR_PARAM_NODE:
+            ASTutils_printArgOrParamNode((AST_ArgOrParamNode *)node, buffer, 0, useColors, levels);
+            break;
+        case AST_STATEMENT_NODE:
+            ASTutils_printStatementNode((AST_StatementNode *)node, buffer, 0, useColors, levels);
+            break;
+        case AST_FUN_CALL_NODE:
+            ASTutils_printFunCallNode((AST_FunCallNode *)node, buffer, 0, useColors, levels, true);
+            break;
+        case AST_IF_NODE:
+            ASTutils_printIfNode((AST_IfNode *)node, buffer, 0, useColors, levels, true);
+            break;
+        case AST_WHILE_NODE:
+            ASTutils_printWhileNode((AST_WhileNode *)node, buffer, 0, useColors, levels, true);
+            break;
+        case AST_EXPR_NODE:
+            ASTutils_printExprNode((AST_ExprNode *)node, buffer, 0, useColors, levels, true);
+            break;
+        case AST_BIN_OP_NODE:
+            ASTutils_printBinOpNode((AST_BinOpNode *)node, buffer, 0, useColors, levels, true);
+            break;
+        case AST_VAR_NODE:
+        case AST_LITERAL_NODE:
+            ASTutils_printLiteralNode((AST_VarNode *)node, buffer, 0, useColors, levels, true);
+            break;
+        default:
+            buffer << "Unknown node type" << endl;
+            break;
+    }
+
     return buffer.str();
 }  // ASTutils_printCapturedOutput()
 
@@ -91,14 +137,17 @@ void ASTutils_printProgramNode(AST_ProgramNode *node, ostream &out, int indent, 
         free(importedFile);
     } else {
         ASTutils_printIndent(indent + 1, out, levels, false);
-        out << "Imported File: (null)" << endl;
+        if (useColors)
+            out << COLOR_BLUE << "Imported File: " << COLOR_RESET << "(null)" << endl;
+        else
+            out << "Imported File: " << "(null)" << endl;
     }
 
     // Iterace přes seznam funkcí a tisk každé funkce
     AST_FunDefNode *func = node->functionList;
     if (func == nullptr) {
         ASTutils_printIndent(indent + 1, out, levels, true);
-        out << "Function List: (null)" << endl;
+        out << COLOR_BLUE << "Function List: " << COLOR_RESET << "(null)" << endl;
     } else {
         while (func != nullptr) {
             ASTutils_printFunDefNode(func, out, indent + 1, useColors, levels, func->next == nullptr);
@@ -123,13 +172,13 @@ void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bo
     if (node->identifier != nullptr && node->identifier->str != nullptr) { 
         char *identifier = string_toConstChar(node->identifier);
         if (useColors)
-            out << COLOR_GOLD << "Function Definition: " << COLOR_RESET << identifier << endl;
+            out << COLOR_BLUE << "Function Definition: " << COLOR_RESET << COLOR_GOLD << identifier << COLOR_RESET << endl;
         else
             out << "Function Definition: " << identifier << endl;
         free(identifier);
     } else {
         // Pokud `identifier` nebo `identifier->str` není platný, ošetříme výstup
-        out << "Function Definition: (null)" << endl;
+        out << COLOR_BLUE << "Function Definition: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Aktualizace vektoru úrovní
@@ -146,7 +195,7 @@ void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bo
     } else {
         // Pokud parametry neexistují
         ASTutils_printIndent(indent + 1, out, levels, false);
-        out << "Parameters: (null)" << endl;
+        out << COLOR_BLUE << "Parameters: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Výpis návratového typu funkce
@@ -167,7 +216,7 @@ void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bo
     } else {
         // Pokud tělo funkce neexistuje
         ASTutils_printIndent(indent + 1, out, levels, true);
-        out << "Function Body: (null)" << endl;
+        out << COLOR_BLUE << "Function Body: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Odstranit současnou úroveň z vektoru pro tisk svislice
@@ -193,13 +242,13 @@ void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int in
         if (node->identifier != nullptr && node->identifier->str != nullptr) { 
             char *identifier = string_toConstChar(node->identifier);
             if (useColors)
-                out << COLOR_BLUE << "Parameter: " << COLOR_RESET << identifier << endl;
+                out << COLOR_BLUE << "Parameter: " << COLOR_RESET << COLOR_GOLD << identifier << COLOR_RESET << endl;
             else
                 out << "Parameter: " << identifier << endl;
             free(identifier);
         } else {
             // Pokud `identifier` nebo `identifier->str` není platný, ošetříme výstup
-            out << "Parameter: (null)" << endl;
+            out << COLOR_BLUE << "Parameter: " << COLOR_RESET << "(null)" << endl;
         }
         
         // Výpis proměnné, pokud existuje
@@ -208,7 +257,7 @@ void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int in
         } else {
             // Pokud proměnná ani výraz neexistuje
             ASTutils_printIndent(indent + 1, out, levels, true);
-            out << "Variable/Expression: (null)" << endl;
+            out << COLOR_BLUE << "Variable/Expression: " << COLOR_RESET << "(null)" << endl;
         }
 
         // Odstranit současnou úroveň z vektoru pro tisk svislice
@@ -249,7 +298,7 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                     ASTutils_printVarNode((AST_VarNode*)node->statement, out, indent + 1, useColors, levels, true);
                 } else {
                     ASTutils_printIndent(indent + 1, out, levels, true);
-                    out << "Variable Definition: (null)" << endl;
+                    out << COLOR_BLUE << "Variable Definition: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
             case AST_STATEMENT_EXPR:
@@ -261,7 +310,7 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                     ASTutils_printExprNode((AST_ExprNode*)node->statement, out, indent + 1, useColors, levels, true);
                 } else {
                     ASTutils_printIndent(indent + 1, out, levels, true);
-                    out << "Expression: (null)" << endl;
+                    out << COLOR_BLUE << "Expression: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
             case AST_STATEMENT_FUN_CALL:
@@ -273,7 +322,7 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                     ASTutils_printFunCallNode((AST_FunCallNode*)node->statement, out, indent + 1, useColors, levels, true);
                 } else {
                     ASTutils_printIndent(indent + 1, out, levels, true);
-                    out << "Function Call: (null)" << endl;
+                    out << COLOR_BLUE << "Function Call: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
             case AST_STATEMENT_IF:
@@ -285,7 +334,7 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                     ASTutils_printIfNode((AST_IfNode*)node->statement, out, indent + 1, useColors, levels, true);
                 } else {
                     ASTutils_printIndent(indent + 1, out, levels, true);
-                    out << "If Statement: (null)" << endl;
+                    out << COLOR_BLUE << "If Statement: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
             case AST_STATEMENT_WHILE:
@@ -297,7 +346,7 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                     ASTutils_printWhileNode((AST_WhileNode*)node->statement, out, indent + 1, useColors, levels, true);
                 } else {
                     ASTutils_printIndent(indent + 1, out, levels, true);
-                    out << "While Loop: (null)" << endl;
+                    out << COLOR_BLUE << "While Loop: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
             case AST_STATEMENT_RETURN:
@@ -309,14 +358,11 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                     ASTutils_printExprNode((AST_ExprNode*)node->statement, out, indent + 1, useColors, levels, true);
                 } else {
                     ASTutils_printIndent(indent + 1, out, levels, true);
-                    out << "Return Statement: (null)" << endl;
+                    out << COLOR_BLUE << "Return Statement: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
             default:
-                if (useColors)
-                    out << COLOR_GOLD << "Unknown Statement Type" << COLOR_RESET << endl;
-                else
-                    out << "Unknown Statement Type" << endl;
+                out << "(null)" << endl;
                 break;
         }
         levels.pop_back();
@@ -344,7 +390,7 @@ void ASTutils_printFunCallNode(AST_FunCallNode *node, ostream &out, int indent, 
         free(identifier);
     } else {
         // Pokud `identifier` nebo `identifier->str` není platný, ošetříme výstup
-        out << "Function Call: (null)" << endl;
+        out << COLOR_BLUE << "Function Call: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Aktualizace vektoru úrovní
@@ -361,7 +407,7 @@ void ASTutils_printFunCallNode(AST_FunCallNode *node, ostream &out, int indent, 
     } else {
         // Pokud argumenty neexistují
         ASTutils_printIndent(indent + 1, out, levels, true);
-        out << "Arguments: (null)" << endl;
+        out << COLOR_BLUE << "Arguments: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Odstranit současnou úroveň z vektoru pro tisk svislice
@@ -395,7 +441,7 @@ void ASTutils_printIfNode(AST_IfNode *node, ostream &out, int indent, bool useCo
     } else {
         // Pokud podmínka neexistuje
         ASTutils_printIndent(indent + 1, out, levels, false);
-        out << "Condition: (null)" << endl;
+        out << COLOR_BLUE << "Condition: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Výpis větve 'then'
@@ -409,7 +455,7 @@ void ASTutils_printIfNode(AST_IfNode *node, ostream &out, int indent, bool useCo
     } else {
         // Pokud 'then' větev neexistuje
         ASTutils_printIndent(indent + 1, out, levels, false);
-        out << "Then Branch: (null)" << endl;
+        out << COLOR_BLUE << "Then Branch: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Výpis větve 'else', pokud existuje
@@ -423,7 +469,7 @@ void ASTutils_printIfNode(AST_IfNode *node, ostream &out, int indent, bool useCo
     } else {
         // Pokud 'else' větev neexistuje
         ASTutils_printIndent(indent + 1, out, levels, true);
-        out << "Else Branch: (null)" << endl;
+        out << COLOR_BLUE << "Else Branch: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Odstranit současnou úroveň z vektoru pro tisk svislice
@@ -457,7 +503,7 @@ void ASTutils_printWhileNode(AST_WhileNode *node, ostream &out, int indent, bool
     } else {
         // Pokud podmínka neexistuje
         ASTutils_printIndent(indent + 1, out, levels, false);
-        out << "Condition: (null)" << endl;
+        out << COLOR_BLUE << "Condition: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Výpis těla cyklu
@@ -471,7 +517,7 @@ void ASTutils_printWhileNode(AST_WhileNode *node, ostream &out, int indent, bool
     } else {
         // Pokud tělo cyklu neexistuje
         ASTutils_printIndent(indent + 1, out, levels, true);
-        out << "Body: (null)" << endl;
+        out << COLOR_BLUE << "Body: (null)" << COLOR_RESET << "(null)" << endl;
     }
 
     // Odstranit současnou úroveň z vektoru pro tisk svislice
@@ -481,7 +527,7 @@ void ASTutils_printWhileNode(AST_WhileNode *node, ostream &out, int indent, bool
 /**
  * @brief Vytiskne uzel AST_NODE_EXPR.
  */
-void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool useColors, vector<bool>  &levels, bool isLastChild) {
+void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild) {
     if(node == nullptr) return;
 
     // Tisknutí odsazení a typu výrazu
@@ -507,7 +553,7 @@ void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool u
                 ASTutils_printLiteralNode((AST_VarNode*)node->expression, out, indent + 1, useColors, levels, true);
             } else {
                 ASTutils_printIndent(indent + 1, out, levels, true);
-                out << "Literal: (null)" << endl;
+                out << COLOR_BLUE << "Literal: " << COLOR_RESET << "(null)" << endl;
             }
             break;
         case AST_EXPR_VARIABLE:
@@ -521,7 +567,7 @@ void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool u
                 ASTutils_printVarNode((AST_VarNode*)node->expression, out, indent + 1, useColors, levels, true);
             } else {
                 ASTutils_printIndent(indent + 1, out, levels, true);
-                out << "Variable: (null)" << endl;
+                out << COLOR_BLUE << "Variable: " << COLOR_RESET << "(null)" << endl;
             }
             break;
         case AST_EXPR_FUN_CALL:
@@ -535,7 +581,7 @@ void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool u
                 ASTutils_printFunCallNode((AST_FunCallNode*)node->expression, out, indent + 1, useColors, levels, true);
             } else {
                 ASTutils_printIndent(indent + 1, out, levels, true);
-                out << "Function Call: (null)" << endl;
+                out << COLOR_BLUE << "Function Call: " << COLOR_RESET << "(null)" << endl;
             }
             break;
         case AST_EXPR_BINARY_OP:
@@ -549,15 +595,12 @@ void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool u
                 ASTutils_printBinOpNode((AST_BinOpNode*)node->expression, out, indent + 1, useColors, levels, true);
             } else {
                 ASTutils_printIndent(indent + 1, out, levels, true);
-                out << "Binary Operation: (null)" << endl;
+                out << COLOR_BLUE << "Binary Operation: " << COLOR_RESET << "(null)" << endl;
             }
             break;
         default:
             // Neznámý typ výrazu
-            if (useColors)
-                out << COLOR_GOLD << "Unknown Expression Type" << COLOR_RESET << endl;
-            else
-                out << "Unknown Expression Type" << endl;
+            out << "(null)" << endl;
             break;
     }
 
@@ -662,10 +705,7 @@ void ASTutils_printBinOpNode(AST_BinOpNode *node, ostream &out, int indent, bool
             break;
         default:
             // Neznámý operátor
-            if (useColors)
-                out << COLOR_GOLD << "Unknown Operator" << COLOR_RESET << endl;
-            else
-                out << "Unknown Operator" << endl;
+            out << "(null)" << endl;
             break;
     }
 
@@ -677,11 +717,12 @@ void ASTutils_printBinOpNode(AST_BinOpNode *node, ostream &out, int indent, bool
             out << COLOR_BLUE << "Left Operand:" << COLOR_RESET << endl;
         else
             out << "Left Operand:" << endl;
+        // **Změna zde:** isLastChild = false pro levý operand
         ASTutils_printExprNode(node->left, out, indent + 2, useColors, levels, true);
     } else {
         // Pokud levý operand neexistuje
         ASTutils_printIndent(indent + 1, out, levels, false);
-        out << "Left Operand: (null)" << endl;
+        out << COLOR_BLUE << "Left Operand: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Výpis pravého operandu, pokud existuje
@@ -691,11 +732,12 @@ void ASTutils_printBinOpNode(AST_BinOpNode *node, ostream &out, int indent, bool
             out << COLOR_BLUE << "Right Operand:" << COLOR_RESET << endl;
         else
             out << "Right Operand:" << endl;
+        // **Změna zde:** isLastChild = true pro pravý operand
         ASTutils_printExprNode(node->right, out, indent + 2, useColors, levels, true);
     } else {
         // Pokud pravý operand neexistuje
         ASTutils_printIndent(indent + 1, out, levels, true);
-        out << "Right Operand: (null)" << endl;
+        out << COLOR_BLUE << "Right Operand: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Odstranit současnou úroveň z vektoru pro tisk svislice
@@ -713,39 +755,70 @@ void ASTutils_printLiteralNode(AST_VarNode *node, ostream &out, int indent, bool
 
     // Tisknutí typu literálu
     if (useColors)
-        out << COLOR_GOLD << "Literal: " << COLOR_RESET;
+        out << COLOR_BLUE << "Literal: " << COLOR_RESET;
     else
         out << "Literal: ";
 
     // Aktualizace vektoru úrovní
     levels.push_back(!isLastChild);
 
+    char *str;
     // Rozlišení typu literálu pomocí switch
     switch(node->literalType) {
         case AST_LITERAL_INT:
             // Literál typu integer
-            if (node->value != nullptr)
-                out << "Integer, Value: " << *(int*)(node->value) << endl;
-            else
-                out << "Integer, Value: (null)" << endl;
+            if(useColors) {
+                if (node->value != nullptr)
+                    out << COLOR_GOLD << "Integer: " << COLOR_RESET << *(int*)(node->value) << endl;
+                else
+                    out << COLOR_GOLD << "Integer: " << COLOR_RESET << "(null)" << endl;
+            } else {
+                if (node->value != nullptr)
+                    out << "Integer:  " << *(int*)(node->value) << endl;
+                else
+                    out << "Integer: (null)" << endl;
+            }
             break;
         case AST_LITERAL_FLOAT:
             // Literál typu float
-            if (node->value != nullptr)
-                out << "Float, Value: " << *(double*)(node->value) << endl;
-            else
-                out << "Float, Value: (null)" << endl;
+            if(useColors) {
+                if (node->value != nullptr)
+                    out << COLOR_GOLD << "Float: " << COLOR_RESET << *(double*)(node->value) << endl;
+                else
+                    out << COLOR_GOLD << "Float: " << COLOR_RESET << "(null)" << endl;
+            } else {
+                if (node->value != nullptr)
+                    out << "Float: " << *(float*)(node->value) << endl;
+                else
+                    out << "Float: (null)" << endl;
+            }
             break;
         case AST_LITERAL_STRING:
+            str = string_toConstChar((DString*)node->value);
             // Literál typu string
-            if (node->value != nullptr)
-                out << "String, Value: " << (char*)(node->value) << endl;
-            else
-                out << "String, Value: (null)" << endl;
+            if(useColors) {
+                if (node->value != nullptr)
+                    out << COLOR_GOLD << "String: " << COLOR_RESET << str << endl;
+                else
+                    out << COLOR_GOLD << "String: " << COLOR_RESET << "(null)" << endl;
+            } else {
+                if (node->value != nullptr)
+                    out << "String: " << str << endl;
+                else
+                    out << "String: (null)" << endl;
+            }
+            free(str);
             break;
         case AST_LITERAL_NULL:
             // Literál typu null
-            out << "Null" << endl;
+            if(useColors) {
+                out << COLOR_GOLD << "Null" << COLOR_RESET << endl;
+            } else {
+                if (node->value != nullptr)
+                    out << "Integer, Value: " << *(int*)(node->value) << endl;
+                else
+                    out << "Integer, Value: (null)" << endl;
+            }
             break;
         default:
             // Neznámý typ literálu
@@ -771,13 +844,13 @@ void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool use
     if (node->identifier != nullptr && node->identifier->str != nullptr) { 
         char *identifier = string_toConstChar(node->identifier);
         if (useColors)
-            out << COLOR_GOLD << "Variable: " << COLOR_RESET << identifier << endl;
+            out << COLOR_BLUE << "Variable: " << COLOR_RESET << COLOR_GOLD << identifier << COLOR_RESET << endl;
         else
             out << "Variable: " << identifier << endl;
         free(identifier);
     } else {
         // Pokud `identifier` nebo `identifier->str` není platný, ošetříme výstup
-        out << "Variable: (null)" << endl;
+        out << COLOR_BLUE << "Variable: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Aktualizace vektoru úrovní
@@ -790,14 +863,13 @@ void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool use
             out << COLOR_BLUE << "Value:" << COLOR_RESET << endl;
         else
             out << "Value:" << endl;
-        // Zjistíme typ hodnoty a podle toho zavoláme příslušnou funkci
-        AST_NodeType valueType = *((AST_NodeType*)(node->value)); // Assume the first field is the type
-        switch(valueType) {
-            case AST_LITERAL_NODE:
-                ASTutils_printLiteralNode((AST_VarNode*)node->value, out, indent + 2, useColors, levels, true);
-                break;
-            case AST_EXPR_NODE:
-                ASTutils_printExprNode((AST_ExprNode*)node->value, out, indent + 2, useColors, levels, true);
+
+        switch(node->literalType) {
+            case AST_LITERAL_INT:
+            case AST_LITERAL_FLOAT:
+            case AST_LITERAL_STRING:
+            case AST_LITERAL_NULL:
+                ASTutils_printLiteralNode(node, out, indent + 2, useColors, levels, true);
                 break;
             default:
                 ASTutils_printIndent(indent + 2, out, levels, true);
@@ -807,7 +879,7 @@ void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool use
     } else {
         // Pokud `value` není platný, ošetříme výstup
         ASTutils_printIndent(indent + 1, out, levels, true);
-        out << "Value: (null)" << endl;
+        out << COLOR_BLUE << "Value: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Odstranit současnou úroveň z vektoru pro tisk svislice
@@ -818,21 +890,23 @@ void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool use
  * @brief Pomocná funkce pro výpis odsazení
  */
 void ASTutils_printIndent(int indent, ostream &out, const vector<bool> &levels, bool isLastChild) {
-    for (int i = 0; i < indent; ++i) {
-        if ((size_t)i < levels.size()) {
+    // Iterujte přes všechny úrovně kromě aktuální a předposlední
+    for (int i = 0; i < indent-1; ++i) {
+        if (i < (int)levels.size()) {
             if (levels[i])
                 out << "│   ";
             else
                 out << "    ";
-           //out << "│   ";
-        } else {
+        }
+        else {
             out << "    ";
         }
     }
-    if (indent > 0) {
-        out << (isLastChild ? "└── " : "├── ");
-    } 
-} // ASTutils_printIndent()
 
+    if (indent > 0) {
+        // Tiskněte aktuální uzel jako poslední nebo ne
+        out << (isLastChild ? "└── " : "├── ");
+    }
+} // ASTutils_printIndent()
 
 /*** Konec souboru ast_test_utils.cpp ***/
