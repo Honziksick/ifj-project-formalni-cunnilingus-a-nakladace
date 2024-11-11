@@ -172,7 +172,7 @@ void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bo
     if (node->identifier != nullptr && node->identifier->str != nullptr) { 
         char *identifier = string_toConstChar(node->identifier);
         if (useColors)
-            out << COLOR_BLUE << "Function Definition: " << COLOR_RESET << COLOR_GOLD << identifier << COLOR_RESET << endl;
+            out << COLOR_BLUE << "Function Definition: " << COLOR_RESET << identifier << endl;
         else
             out << "Function Definition: " << identifier << endl;
         free(identifier);
@@ -242,7 +242,7 @@ void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int in
         if (node->identifier != nullptr && node->identifier->str != nullptr) { 
             char *identifier = string_toConstChar(node->identifier);
             if (useColors)
-                out << COLOR_BLUE << "Parameter: " << COLOR_RESET << COLOR_GOLD << identifier << COLOR_RESET << endl;
+                out << COLOR_BLUE << "Parameter: " << COLOR_RESET << identifier << endl;
             else
                 out << "Parameter: " << identifier << endl;
             free(identifier);
@@ -844,13 +844,13 @@ void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool use
     if (node->identifier != nullptr && node->identifier->str != nullptr) { 
         char *identifier = string_toConstChar(node->identifier);
         if (useColors)
-            out << COLOR_BLUE << "Variable: " << COLOR_RESET << COLOR_GOLD << identifier << COLOR_RESET << endl;
+            out << COLOR_BLUE << "Variable/Literal: " << COLOR_RESET << identifier << endl;
         else
-            out << "Variable: " << identifier << endl;
+            out << "Variable/Literal: " << identifier << endl;
         free(identifier);
     } else {
         // Pokud `identifier` nebo `identifier->str` není platný, ošetříme výstup
-        out << COLOR_BLUE << "Variable: " << COLOR_RESET << "(null)" << endl;
+        out << COLOR_BLUE << "Variable/Literal: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Aktualizace vektoru úrovní

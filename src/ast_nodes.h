@@ -277,7 +277,7 @@ typedef struct AST_BinOpNode {
  * @note Povolené typy pro `void *value`:
  *       - Celé číslo: @c int*
  *       - Desetinné číslo: @c double*
- *       - Řetězec: @c char*
+ *       - Řetězec: @c DString*
  *       - Null: @c NULL
  */
 typedef struct AST_VarNode {
