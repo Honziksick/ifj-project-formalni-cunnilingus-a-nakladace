@@ -54,10 +54,11 @@ using namespace internal;
             }                                                           \
         }while(0);
 
+
+
 #define TEST_HASH_FUNCTION(keyword, expected_hash) \
     MAKE_STRING(str_##keyword, #keyword); \
     EXPECT_EQ(symtable_hashFunction(str_##keyword), expected_hash); \
-    fprintf(stderr, "Hash of %s is index %zu\n", #keyword, symtable_hashFunction(str_##keyword)%KEYWORD_COUNT); \
     string_free(str_##keyword);
 
 
@@ -69,6 +70,46 @@ void testTokenType(TokenType expected_type){
     EXPECT_EQ(token.type, expected_type);
     if(token.value != NULL) {
         string_free(token.value);
+    }
+    if(token.type != expected_type){
+        exit(2);
+    }
+}
+
+/**
+ * @brief Funkce na testování typu tokenů
+ */
+void testTokenString(const char* expected_string){
+    Token token = scanner_FSM();
+    EXPECT_EQ(token.type, TOKEN_STRING);
+    if(token.value != NULL) {
+        if(string_compare_const_str(token.value, expected_string) != STRING_EQUAL){
+            char *actual_string = string_toConstChar(token.value);
+
+            // Find the first mismatch position
+            size_t mismatch_index = 0;
+            while (expected_string[mismatch_index] != '\0' && actual_string[mismatch_index] != '\0' &&
+                expected_string[mismatch_index] == actual_string[mismatch_index]) {
+                mismatch_index++;
+            }
+
+            cerr << "Strings differ at position " << mismatch_index << ":\n";
+            cerr << "Expected:\n" << expected_string << endl;
+            cerr << "Got:\n" << actual_string << endl;
+            cerr << "Expected character at position: '" << expected_string[mismatch_index] << "'\n";
+            cerr << "Got character at position:      '" << actual_string[mismatch_index] << "'\n\n";
+
+            // Clean up and exit
+            string_free(token.value);
+            free(actual_string);
+            exit(2);
+        }
+        string_free(token.value);
+    }else{
+        exit(2);
+    }
+    if(token.type != TOKEN_STRING){
+        exit(2);
     }
 }
 
@@ -568,9 +609,9 @@ TEST(FSM, FSM_OPERATOR_ERROR_2){
 /**
  * @brief Testuje lexikální analyzátor pro vstupní program
  * 
- * @details Testuje výstup lexikálního analyzátoru pro krátký korektní vstupní program
+ * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example1.zig
  */
-TEST(Lex, Simple_Correct){
+TEST(Lex, Example1){
     FILE* f = fopen("../ifj24_examples/ifj24_programs/example1.zig", "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -659,7 +700,10 @@ TEST(Lex, Simple_Correct){
         TOKEN_RIGHT_CURLY_BRACKET,
 
         // }
-        TOKEN_RIGHT_CURLY_BRACKET
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // EOF
+        TOKEN_EOF
     };
 
     for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
@@ -704,6 +748,328 @@ TEST(Lex, Simple_Correct){
     fclose(f);
 }
 
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program multiline.zig
+ */
+TEST(Lex, Multiline){
+    FILE* f = fopen("../ifj24_examples/ifj24_programs/multiline.zig", "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // Ukazka prace s retezci a vestavenymi funkcemi 
+        // const ifj = @import("ifj24.zig");
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        
+        // pub fn main() void {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET,
+        
+        // const s1 : []u8 = ifj.string( 
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_u8, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS,
+
+        // Multiline string
+        TOKEN_STRING,
+
+        // );
+        TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write(s1);
+        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // EOF
+        TOKEN_EOF
+    };
+
+    const char* expected_strings[] = {
+        "ifj24.zig",
+        "Toto \n je \n\n nejaky \n text  // ve viceradkovem retezcovem literalu nelze mit komentar"
+    };
+
+    for (unsigned long i = 0, j = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Uložíme si pozici vstupu
+        long int current_pos = ftell(stdin);
+        
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Potomek zavolá testTokenType a ukončí se
+            if(expected_arr[i] == TOKEN_STRING){
+                if(j > sizeof(expected_strings) / sizeof(char*)){
+                    cerr << "Error in token " << i << endl;
+                    cerr << "Expected strings is too small: " << endl;
+                    FAIL();
+                }
+                testTokenString(expected_strings[j]);
+            } else {
+                testTokenType(expected_arr[i]);
+            }
+
+            exit(0);
+        } else {
+            // Rodičovský proces čeká na potomka
+            int status;
+            waitpid(pid, &status, 0);
+            if(WEXITSTATUS(status) == 0){
+                if(expected_arr[i] == TOKEN_STRING){
+                    j++;
+                }
+                continue;
+            }else if (WEXITSTATUS(status) == 2) {
+                // Potomek failnul testy, ale ne lex chybou
+                ADD_FAILURE();
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+            }else if (WEXITSTATUS(status) == 1) {
+                // Potomek skončil s lex chybou
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Vypíšeme zbytek vstupu
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+                
+                FAIL();
+            }
+            if(expected_arr[i] == TOKEN_STRING){
+                j++;
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+
+
+}
+
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi.zig
+ */
+TEST(Lex, lex_test_multi){
+    FILE* f = fopen("../ifj24_examples/ifj24_programs/lex_test_multi.zig", "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // Ukazka prace s retezci a vestavenymi funkcemi 
+        // const ifj = @import("ifj24.zig");
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        
+        // pub fn main() void {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET,
+        
+        // const s1 : []u8 = ifj.string( 
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_u8, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS,
+
+        // Multiline string
+        TOKEN_STRING,
+
+        // );
+        TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write(s1);
+        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // EOF
+        TOKEN_EOF
+    };
+
+    const char* expected_strings[] = {
+        "ifj24.zig",
+        "Toto\nje\nnejaky\ntext  // ve viceradkovem retezcovem literalu nelze mit komentar"
+    };
+
+    for (unsigned long i = 0, j = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Uložíme si pozici vstupu
+        long int current_pos = ftell(stdin);
+        
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Potomek zavolá testTokenType a ukončí se
+            if(expected_arr[i] == TOKEN_STRING){
+                if(j > sizeof(expected_strings) / sizeof(char*)){
+                    cerr << "Error in token " << i << endl;
+                    cerr << "Expected strings is too small: " << endl;
+                    FAIL();
+                }
+                testTokenString(expected_strings[j]);
+            } else {
+                testTokenType(expected_arr[i]);
+            }
+
+            exit(0);
+        } else {
+            // Rodičovský proces čeká na potomka
+            int status;
+            waitpid(pid, &status, 0);
+            if(WEXITSTATUS(status) == 0){
+                if(expected_arr[i] == TOKEN_STRING){
+                    j++;
+                }
+                continue;
+            }else if (WEXITSTATUS(status) == 2) {
+                // Potomek failnul testy, ale ne lex chybou
+                ADD_FAILURE();
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+            }else if (WEXITSTATUS(status) == 1) {
+                // Potomek skončil s lex chybou
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Vypíšeme zbytek vstupu
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+                
+                FAIL();
+            }
+            if(expected_arr[i] == TOKEN_STRING){
+                j++;
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+
+}
+
+
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi2.zig
+ */
+TEST(Lex, lex_test_multi2){
+    FILE* f = fopen("../ifj24_examples/ifj24_programs/lex_test_multi2.zig", "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // ifj.concat(
+        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS,
+
+        // první multiline
+        TOKEN_STRING,
+
+        // ,
+        TOKEN_COMMA,
+
+        // druhý multiline
+        TOKEN_STRING,
+
+        // );
+        TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+    };
+
+    const char* expected_strings[] = {
+        "prvni\nparametr",
+        "druhy\nparametr"
+    };
+
+
+    /**
+     * @brief TESTOVACÍ STRUKTURA PRO NAČÍTÁNÍ MNOŽINY TOKENŮ S VALUE U STRINGŮ
+     */
+    for (unsigned long i = 0, j = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Uložíme si pozici vstupu
+        long int current_pos = ftell(stdin);
+        
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Potomek zavolá testTokenType a ukončí se
+            if(expected_arr[i] == TOKEN_STRING){
+                if(j > sizeof(expected_strings) / sizeof(char*)){
+                    cerr << "Error in token " << i << endl;
+                    cerr << "Expected strings is too small: " << endl;
+                    FAIL();
+                }
+                testTokenString(expected_strings[j]);
+            } else {
+                testTokenType(expected_arr[i]);
+            }
+
+            exit(0);
+        } else {
+            // Rodičovský proces čeká na potomka
+            int status;
+            waitpid(pid, &status, 0);
+            if(WEXITSTATUS(status) == 0){
+                if(expected_arr[i] == TOKEN_STRING){
+                    j++;
+                }
+                continue;
+            }else if (WEXITSTATUS(status) == 2) {
+                // Potomek failnul testy, ale ne lex chybou
+                ADD_FAILURE();
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+            }else if (WEXITSTATUS(status) == 1) {
+                // Potomek skončil s lex chybou
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Vypíšeme zbytek vstupu
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+                
+                FAIL();
+            }
+            if(expected_arr[i] == TOKEN_STRING){
+                j++;
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+
+}
 
 
 
