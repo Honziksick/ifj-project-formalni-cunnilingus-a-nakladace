@@ -45,7 +45,7 @@ using namespace testing;
             for (size_t i = 0; i < strlen(tmp_str); i++) {              \
                 ASSERT_EQ(string_append_char(id, tmp_str[i]), STRING_SUCCESS); \
             }                                                           \
-        }while(0);                                                      \
+        }while(0);
 
 
 
