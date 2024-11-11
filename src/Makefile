@@ -589,6 +589,7 @@ $(TEST_BUILD_DIR)/$(SYMTABLE).o: $(SRC_DIR)/$(SYMTABLE).c
 $(TEST_BUILD_DIR)/$(SCANNER)_test: $(TEST_BUILD_DIR)/$(SCANNER)_test.o \
 											$(TEST_BUILD_DIR)/$(SCANNER).o \
 											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
+											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
 											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
 											$(TEST_BUILD_DIR)/gtest_main.a \
 											$(TEST_BUILD_DIR)/gtest.a
