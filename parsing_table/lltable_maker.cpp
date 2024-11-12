@@ -528,7 +528,7 @@ void printLLtable(vector<HashPair>& hashPairs, OutputSets& output, bool readable
     });
 
     // print header
-    cout << "LLtable table[LL_TERMINAL_COUNT] = {" << endl << "    ";
+    cout << "const struct LLtable LLtable[LL_TERMINAL_COUNT] = {" << endl << "    ";
 
     // for each terminal
     for(auto& pair : hashPairs) {
