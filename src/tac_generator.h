@@ -3,10 +3,10 @@
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
  * Soubor:           tac_generator.h                                           *
- * Autor:            XXX XXXXXX   <xplagia00>                                  *
+ * Autor:            Lukáš Farkašovský   <xfarkal00>                           *
  *                                                                             *
- * Datum:            XX.XX.2024                                                *
- * Poslední změna:   XX.XX.2024                                                *
+ * Datum:            12.11.2024                                                *
+ * Poslední změna:   12.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -17,7 +17,7 @@
  ******************************************************************************/
 /**
  * @file tac_generator.h
- * @author XXX XXXXX \<xplagia00>
+ * @author Lukáš Farkašovský \<xfarkal00>
  *
  * @brief Hlavičkový soubor pro generátor vnitřního kódu (3AK).
  * @details XXX
@@ -131,12 +131,16 @@ typedef struct TAC_InstructionList {
 /**
  * @brief Inicializuje nový prázdný seznam tříadresných instrukcí.
  *
- * @return Ukazatel na prázdný seznam instrukcí.
+ * @details Alokuje paměť pro nový seznam instrukcí a inicializuje ho.
+ *
+ * @return @c list Ukazatel na prázdný seznam instrukcí, jinak NULL při chybě alokace.
  */
 TAC_InstructionList *TAC_createInstructionList();
 
 /**
  * @brief Vytvoří novou tříadresnou instrukci.
+ *
+ * @details Vytvoří novou instrukci s danou operací a s danými operandy.
  *
  * @param op Typ operace instrukce.
  * @param dest Cílový operand.
@@ -144,11 +148,15 @@ TAC_InstructionList *TAC_createInstructionList();
  * @param src2 Druhý zdrojový operand.
  *
  * @return Ukazatel na nově vytvořenou instrukci.
+ *         NULL, pokud selže alokace paměti.
  */
 TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_Operand src1, TAC_Operand src2);
 
 /**
  * @brief Přidá instrukci na konec seznamu instrukcí.
+ *
+ * @details Přidá novou instrukci na konec seznamu instrukcí, jedná se o jednosměrně vázaný seznam,
+ *          s ukazatelem na poslední prvek.
  *
  * @param list Ukazatel na seznam tříadresných instrukcí.
  * @param instr Ukazatel na instrukci, která má být přidána.
@@ -163,7 +171,7 @@ void TAC_appendInstruction(TAC_InstructionList *list, TAC_Instruction *instr);
  *
  * @return `true`, pokud generování kódu proběhlo úspěšně, jinak `false`.
  */
-bool TAC_generateProgramCode(AST_NodeProgram *programNode, TAC_InstructionList *tacList);
+bool TAC_generateProgramCode(AST_ProgramNode *programNode, TAC_InstructionList *tacList);
 
 /**
  * @brief Generuje tříadresný kód pro definici funkce.
@@ -173,7 +181,17 @@ bool TAC_generateProgramCode(AST_NodeProgram *programNode, TAC_InstructionList *
  *
  * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
  */
-bool TAC_generateFunctionDefinition(AST_NodeFunDef *funDefNode, TAC_InstructionList *tacList);
+bool TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode, TAC_InstructionList *tacList);
+
+/**
+ * @brief Generuje tříadresný kód pro argument nebo parametr.
+ *
+ * @param argOrParamNode Ukazatel na uzel argumentu nebo parametru.
+ * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
+ *
+ * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
+ */
+bool TAC_generateArgOrParam(AST_ArgOrParamNode *argOrParamNode, TAC_InstructionList *tacList);
 
 /**
  * @brief Generuje tříadresný kód pro příkaz.
@@ -183,27 +201,17 @@ bool TAC_generateFunctionDefinition(AST_NodeFunDef *funDefNode, TAC_InstructionL
  *
  * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
  */
-bool TAC_generateStatement(AST_NodeStatement *statementNode, TAC_InstructionList *tacList);
+bool TAC_generateStatement(AST_StatementNode *statementNode, TAC_InstructionList *tacList);
 
 /**
- * @brief Generuje tříadresný kód pro výraz.
+ * @brief Generuje tříadresný kód pro volání funkce.
  *
- * @param expressionNode Ukazatel na uzel výrazu.
+ * @param funCallNode Ukazatel na uzel volání funkce.
  * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
  *
- * @return TAC_Operand Výstupní operand reprezentující výsledek výrazu.
+ * @return Výstupní operand reprezentující výsledek volání funkce.
  */
-TAC_Operand TAC_generateExpression(AST_NodeExpression *expressionNode, TAC_InstructionList *tacList);
-
-/**
- * @brief Generuje tříadresný kód pro přiřazení.
- *
- * @param assignmentNode Ukazatel na uzel přiřazení.
- * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
- *
- * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
- */
-bool TAC_generateAssignment(AST_DataAssignment *assignmentNode, TAC_InstructionList *tacList);
+bool TAC_generateFunctionCall(AST_FunCallNode *funCallNode, TAC_InstructionList *tacList);
 
 /**
  * @brief Generuje tříadresný kód pro podmíněný příkaz "if".
@@ -213,7 +221,7 @@ bool TAC_generateAssignment(AST_DataAssignment *assignmentNode, TAC_InstructionL
  *
  * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
  */
-bool TAC_generateIfStatement(AST_DataIf *ifNode, TAC_InstructionList *tacList);
+bool TAC_generateIfStatement(AST_IfNode *ifNode, TAC_InstructionList *tacList);
 
 /**
  * @brief Generuje tříadresný kód pro smyčku "while".
@@ -223,7 +231,27 @@ bool TAC_generateIfStatement(AST_DataIf *ifNode, TAC_InstructionList *tacList);
  *
  * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
  */
-bool TAC_generateWhileLoop(AST_DataWhile *whileNode, TAC_InstructionList *tacList);
+bool TAC_generateWhileLoop(AST_WhileNode *whileNode, TAC_InstructionList *tacList);
+
+/**
+ * @brief Generuje tříadresný kód pro výraz.
+ *
+ * @param expressionNode Ukazatel na uzel výrazu.
+ * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
+ *
+ * @return TAC_Operand Výstupní operand reprezentující výsledek výrazu.
+ */
+TAC_Operand TAC_generateExpression(AST_ExprNode *expressionNode, TAC_InstructionList *tacList);
+
+/**
+ * @brief Generuje tříadresný kód pro binární operaci.
+ *
+ * @param binOpNode Ukazatel na uzel binární operace.
+ * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
+ *
+ * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
+ */
+bool TAC_generateBinOp(AST_BinOpNode *binOpNode, TAC_InstructionList *tacList);
 
 /**
  * @brief Generuje tříadresný kód pro návratový příkaz.
@@ -232,8 +260,18 @@ bool TAC_generateWhileLoop(AST_DataWhile *whileNode, TAC_InstructionList *tacLis
  * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
  *
  * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
+
+bool TAC_generateReturnStatement(AST_DataReturn *returnNode, TAC_InstructionList *tacList);*/
+
+/**
+ * @brief Generuje tříadresný kód pro proměnnou.
+ *
+ * @param varNode Ukazatel na uzel proměnné.
+ * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
+ *
+ * @return Výstupní operand reprezentující hodnotu proměnné.
  */
-bool TAC_generateReturnStatement(AST_DataReturn *returnNode, TAC_InstructionList *tacList);
+bool TAC_generateVariable(AST_VarNode *varNode, TAC_InstructionList *tacList);
 
 /**
  * @brief Uvolní všechny instrukce v seznamu tříadresného kódu.
