@@ -5,11 +5,10 @@
  * Soubor:           lltable.h                                                 *
  * Autor:            Jan Kalina   <xkalinj00> (návrh LL-gramatiky,             *
  *                                             implementace LL-tabulky)        *
- *                   David Krejčí <xkrejcd00> (návrh LL-tabulky,               *
- *                                             tvorba množin)                  *
+ *                   David Krejčí <xkrejcd00> (tvorba množin)                  *
  *                                                                             *
  * Datum:            24.10.2024                                                *
- * Poslední změna:   10.11.2024                                                *
+ * Poslední změna:   12.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -21,7 +20,7 @@
 /**
  * @file lltable.h
  * @author Jan Kalina   \<xkalinj00> (návrh LL-gramatiky, implementace LL-tabulky)
- * @author David Krejčí \<xkrejcd00> (návrh LL-tabulky, tvorba množin)
+ * @author David Krejčí \<xkrejcd00> (tvorba množin)
  *
  * @brief Hlavičkový soubor pro správu LL tabulky.
  * @details Tento hlavičkový soubor obsahuje deklarace výčtových typů, funkcí
@@ -83,7 +82,7 @@ struct LLtable{
  *          NEterminálům. Souřadnice [Terminál, NEterminál] určují aplikaci
  *          příslušného pravidla.
  */
-extern struct LLtable LLtable[LL_TERMINAL_COUNT];
+extern const struct LLtable LLtable[LL_TERMINAL_COUNT];
 
 
 /*******************************************************************************
@@ -93,7 +92,6 @@ extern struct LLtable LLtable[LL_TERMINAL_COUNT];
  ******************************************************************************/
 
 /**
- * @enum LLTerminals
  * @brief Výčet terminálů používaných v LL syntaktické analýze.
  *
  * @details Tento výčet obsahuje všechny terminály, které mohou být použity
@@ -135,7 +133,6 @@ typedef enum LLTerminals {
 } LLTerminals;
 
 /**
- * @enum NonTerminals
  * @brief Výčet neterminálů používaných v LL syntaktické analýze.
  *
  * @details Tento výčet obsahuje všechny neterminály, které mohou být použity
@@ -172,7 +169,6 @@ typedef enum LLNonTerminals {
 } LLNonTerminals;
 
 /**
- * @enum RuleSet
  * @brief Enum pro pravidla LL-gramatiky syntaktického analyzátoru.
  *
  * @details Tento `enum` obsahuje identifikátory pravidel LL-gramatiky parseru.
@@ -214,24 +210,22 @@ typedef enum LLRuleSet {
     POSSIBLE_TYPE_1   = 30,     /**<  <POSSIBLE_TYPE> -> : <DATA_TYPE>                                  */
     POSSIBLE_TYPE_2   = 31,     /**<  <POSSIBLE_TYPE> -> ε                                              */
     STATEMENT_REST_1  = 32,     /**<  <STATEMENT_REST> -> = [precedence_expr]                           */
-    STATEMENT_REST_2  = 33,     /**<  <STATEMENT_REST> -> ( <ARGUMENTS> )                               */
-    STATEMENT_REST_3  = 34,     /**<  <STATEMENT_REST> -> ifj . id ( <ARGUMENTS> )                      */
-    THROW_AWAY_1      = 35,     /**<  <THROW_AWAY> -> [precedence_expr]                                 */
-    THROW_AWAY_2      = 36,     /**<  <THROW_AWAY> -> ( <ARGUMENTS> )                                   */
-    THROW_AWAY_3      = 37,     /**<  <THROW_AWAY> -> ifj . id ( <ARGUMENTS> )                          */
-    IF                = 38,     /**<  <IF> -> if ( [precedence_expr] ) <NULL_COND> <SEQUENCE> else <SEQUENCE> */
-    NULL_COND_1       = 39,     /**<  <NULL_COND> -> | id |                                             */
-    NULL_COND_2       = 40,     /**<  <NULL_COND> -> ε                                                  */
-    SEQUENCE          = 41,     /**<  <SEQUENCE> -> { <STATEMENT_LIST> }                                */
-    WHILE             = 42,     /**<  <WHILE> -> while ( [precedence_expr] ) <NULL_COND> <SEQUENCE>     */
-    RETURN            = 43,     /**<  <RETURN> -> return <RETURN_REST>                                  */
-    RETURN_REST_1     = 44,     /**<  <RETURN_REST> -> [precedence_expr]                                */
-    RETURN_REST_2     = 45,     /**<  <RETURN_REST> -> ε                                                */
-    ARGUMENTS_1       = 46,     /**<  <ARGUMENTS> -> <ARG_LIST>                                         */
-    ARGUMENTS_2       = 47,     /**<  <ARGUMENTS> -> ε                                                  */
-    ARG_LIST          = 48,     /**<  <ARG_LIST> -> [precedence_expr] <ARG>                             */
-    ARG_1             = 49,     /**<  <ARG> -> , [precedence_expr] <ARG>                                */
-    ARG_2             = 50,     /**<  <ARG> -> ε                                                        */
+    STATEMENT_REST_2  = 33,     /**<  <STATEMENT_REST> -> ( [precedence_expr] )                         */
+    STATEMENT_REST_3  = 34,     /**<  <STATEMENT_REST> -> ifj . id ( [precedence_expr] )                */
+    THROW_AWAY        = 35,     /**<  <THROW_AWAY> -> [precedence_expr]                                 */
+    IF                = 36,     /**<  <IF> -> if ( [precedence_expr] ) <NULL_COND> <SEQUENCE> else <SEQUENCE> */
+    NULL_COND_1       = 37,     /**<  <NULL_COND> -> | id |                                             */
+    NULL_COND_2       = 38,     /**<  <NULL_COND> -> ε                                                  */
+    SEQUENCE          = 39,     /**<  <SEQUENCE> -> { <STATEMENT_LIST> }                                */
+    WHILE             = 40,     /**<  <WHILE> -> while ( [precedence_expr] ) <NULL_COND> <SEQUENCE>     */
+    RETURN            = 41,     /**<  <RETURN> -> return <RETURN_REST>                                  */
+    RETURN_REST_1     = 42,     /**<  <RETURN_REST> -> [precedence_expr]                                */
+    RETURN_REST_2     = 43,     /**<  <RETURN_REST> -> ε                                                */
+    ARGUMENTS_1       = 44,     /**<  <ARGUMENTS> -> <ARG_LIST>                                         */
+    ARGUMENTS_2       = 45,     /**<  <ARGUMENTS> -> ε                                                  */
+    ARG_LIST          = 46,     /**<  <ARG_LIST> -> [precedence_expr] <ARG>                             */
+    ARG_1             = 47,     /**<  <ARG> -> , [precedence_expr] <ARG>                                */
+    ARG_2             = 48,     /**<  <ARG> -> ε                                                        */
 } LLRuleSet;
 
 
