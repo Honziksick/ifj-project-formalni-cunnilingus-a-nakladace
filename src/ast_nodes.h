@@ -283,6 +283,7 @@ typedef struct AST_BinOpNode {
 typedef struct AST_VarNode {
     enum AST_NodeType    type;                  /**< Typ uzlu (AST_VAR_NODE) */
          DString         *identifier;           /**< Identifikátor proměnné (pro literál NULL)*/
+         size_t          frameID;               /**< ID rámce, kde je proměnná definovaná */
     enum AST_LiteralType literalType;           /**< Typ hodnoty */
          void            *value;                /**< Ukazatel na hodnotu literálu */
 } AST_VarNode;
