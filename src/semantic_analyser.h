@@ -3,10 +3,10 @@
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
  * Soubor:           semantic_analyser.h                                       *
- * Autor:            XXX XXXXXX   <xplagia00>                                  *
+ * Autor:            Krejčí David   <xkrejcd00>                                *
  *                                                                             *
- * Datum:            XX.XX.2024                                                *
- * Poslední změna:   XX.XX.2024                                                *
+ * Datum:            11.11.2024                                                *
+ * Poslední změna:   12.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -17,10 +17,10 @@
  ******************************************************************************/
 /**
  * @file semantic_analyser.h
- * @author XXX XXXXX \<xplagia00>
+ * @author Krejčí David \<xkrejcd00>
  *
  * @brief Hlavičkový soubor pro sémantický analyzátor.
- * @details XXX
+ * @details Obsahuje definice funkcí pro sémantickou analýzu
  */
 
 #ifndef SEMANTIC_ANALYSER_H_
@@ -33,129 +33,79 @@
 #include "parser.h"
 #include "ast_nodes.h"
 #include "ast_interface.h"
+#include "frame_stack.h"
 #include "symtable.h"
 #include "error.h"
 
 /**
- * @brief Zpracuje kořenový uzel programu a zahájí sémantickou analýzu.
- * @details Tato funkce prochází všechny definice funkcí v kořenovém uzlu
- *          programu a provádí nad nimi sémantickou analýzu.
- *
- * @param programNode Ukazatel na kořenový uzel programu.
- *
- * @return `true`, pokud sémantická analýza programu proběhla úspěšně, jinak `false`.
+ * @brief Provede sémantickou analýzu celého programu.
+ * 
+ * @details Volá funkce pro dílčí sémantické analýzy programu:
+ *          - semantic_checkProgramStructure()
+ *          - semantic_checkFunctionDefinitions()
+ *          - semantic_checkVariables()
  */
-bool semantic_analyseProgramNode(AST_NodeProgram *programNode);
+void semantic_analyseProgram();
+
 
 /**
- * @brief Provede sémantickou analýzu funkce.
- * @details Zpracuje parametry, tělo a návratový typ funkce, kontroluje
- *          jejich platnost a konzistenci s deklarovanými typy.
- *
- * @param funDefNode Ukazatel na uzel definice funkce.
- *
- * @return `true`, pokud analýza proběhla úspěšně, jinak `false`.
+ * @brief Provede sémantickou analýzu základní struktury programu
+ * 
+ * @details Ověří, že existuje funkce main s návratovým typem void a bez parametrů
+ *          Dále ověří sprvánost literálů v prologu programu
+ * 
+ * @return `true`, pokud je sémantická analýza struktury programu v pořádku, jinak `false`
  */
-bool semantic_analyseFunctionDefinition(AST_NodeFunDef *funDefNode);
+ErrorType semantic_analyseProgramStructure();
+
 
 /**
- * @brief Kontroluje parametry funkce v uzlu funkce.
- * @details Prochází seznam parametrů funkce a zajišťuje jejich platnost
- *          a unikátnost jmen v rámci funkce.
- *
- * @param parameterNode Ukazatel na uzel parametru.
- *
- * @return `true`, pokud jsou parametry funkce správně, jinak `false`.
+ * @brief Provede sémantickou analýzu definic funkcí
+ * 
+ * @details Projde strom a pro každou definici funkce zavolá sémantickou sondu
+ *          ()
+ * 
+ * @return `true`, pokud je sémantická analýza funkcí v pořádku, jinak `false`
  */
-bool semantic_analyseFunctionParameters(AST_NodeParameter *parameterNode);
+ErrorType semantic_analyseFunctionDefinitions();
+
 
 /**
- * @brief Zpracuje příkaz v rámci těla funkce.
- * @details Kontroluje platnost a typovou kompatibilitu všech příkazů ve funkci.
- *
- * @param statementNode Ukazatel na uzel příkazu.
- *
- * @return `true`, pokud je příkaz platný, jinak `false`.
+ * @brief Provede sémantickou analýzu všech proměnných v programu
+ * 
+ * @details Projde všechny rámce v globálním poli a zkontroluje,
+ *          že každá proměnná je využita,
+ *          že každá nekonstantní proměnná je změněna,
+ *          že žádná konstantní proměnná není změněna
+ * 
+ * @return `true`, pokud je sémantická analýza proměnných v pořádku, jinak `false`
  */
-bool semantic_analyseStatement(AST_NodeStatement *statementNode);
+ErrorType semantic_analyseVariables();
+
 
 /**
- * @brief Ověřuje definici proměnné.
- * @details Kontroluje, zda je proměnná správně deklarována s daným typem
- *          a případně inicializována.
- *
- * @param varDefNode Ukazatel na uzel definice proměnné.
- *
- * @return `true`, pokud je definice platná, jinak `false`.
+ * @brief Provede sémantickou analýzu bloku funkce
+ * 
+ * @details Prochází blok příkaz po příkazu a podle typu volá další
+ *          pomocné funkce podle typu příkazu.
+ *          
  */
-bool semantic_analyseVariableDefinition(AST_DataVarDef *varDefNode);
+ErrorType semantic_probeFunction(AST_FunDefNode *node);
 
 /**
- * @brief Ověřuje platnost příkazu přiřazení.
- * @details Kontroluje kompatibilitu datových typů mezi proměnnou a
- *          přiřazovaným výrazem.
- *
- * @param assignmentNode Ukazatel na uzel přiřazení.
- *
- * @return `true`, pokud je přiřazení platné, jinak `false`.
+ * @brief 
  */
-bool semantic_analyseAssignment(AST_DataAssignment *assignmentNode);
+ErrorType semantic_probeBlock(DString *FunId, AST_StatementNode *statement, bool* returned);
 
-/**
- * @brief Provede kontrolu nad voláním funkce.
- * @details Ověřuje, zda jsou argumenty funkce konzistentní s deklarací funkce
- *          v symbolové tabulce.
- *
- * @param funCallNode Ukazatel na uzel volání funkce.
- *
- * @return `true`, pokud je volání funkce správné, jinak `false`.
- */
-bool semantic_analyseFunctionCall(AST_DataFunCall *funCallNode);
+ErrorType semantic_analyseVarDef();
 
-/**
- * @brief Zpracuje podmíněný příkaz "if".
- * @details Analyzuje podmínku a větve příkazu "if" z hlediska typové
- *          kompatibility.
- *
- * @param ifNode Ukazatel na uzel podmíněného příkazu "if".
- *
- * @return `true`, pokud je podmínka platná, jinak `false`.
- */
-bool semantic_analyseIfStatement(AST_DataIf *ifNode);
+ErrorType semantic_analyseFunCallStatement();
 
-/**
- * @brief Provede kontrolu nad smyčkou "while".
- * @details Kontroluje, zda je podmínka platná a kompatibilní s příkazy
- *          uvnitř cyklu.
- *
- * @param whileNode Ukazatel na uzel smyčky "while".
- *
- * @return `true`, pokud je smyčka platná, jinak `false`.
- */
-bool semantic_analyseWhileLoop(AST_DataWhile *whileNode);
+ErrorType semantic_analyseIf();
 
-/**
- * @brief Provede kontrolu návratového příkazu.
- * @details Zajišťuje, že návratový typ je kompatibilní s návratovým
- *          typem funkce.
- *
- * @param returnNode Ukazatel na uzel návratového příkazu.
- *
- * @return `true`, pokud je návrat správný, jinak `false`.
- */
-bool semantic_analyseReturnStatement(AST_DataReturn *returnNode);
+ErrorType semantic_analyseWhile();
 
-/**
- * @brief Ověří typovou kompatibilitu ve výrazu.
- * @details Prochází binární operace a kontroluje, zda typy operandů odpovídají
- *          operátorům.
- *
- * @param binaryOpNode Ukazatel na uzel binární operace.
- *
- * @return `true`, pokud jsou typy kompatibilní, jinak `false`.
- */
-bool semantic_analyseBinaryOperation(AST_DataBinaryOperator *binaryOpNode);
-
+ErrorType semantic_analyseReturn();
 #endif // SEMANTIC_ANALYSER_H_
 
-/*** Konec souboru semantic_anal.h ***/
+/*** Konec souboru semantic_analyser.h ***/
