@@ -240,4 +240,46 @@ char *string_toConstChar(DString *string) {
     return constStr;
 } /* konec string_toConstChar() */
 
+
+/**
+ * @brief Vytvoří nový dynamický řetězec z konstantního řetězce
+ */
+DString *string_charToDString(const char *strConst){
+    // Pokud nemáme řetězec, nebo nemá hodnotu, tak vracíme NULL
+    if(strConst == NULL || strlen(strConst) < 1) {
+        return NULL;
+    }
+
+    size_t length = strlen(strConst);
+
+    // Vytvoříme nový string
+    DString *stringCreated = (DString *)malloc(sizeof(DString));
+
+    // Pokud se špatně alokovala paměť, vrátíme NULL
+    if(stringCreated == NULL) {
+        return NULL;
+    }
+
+    // Vytvoříme buňky pro znaky
+    stringCreated->str = (char *)malloc(length * sizeof(char));
+
+    // Pokud se špatně alokovala paměť, vrátíme NULL
+    if(stringCreated->str == NULL) {
+        free(stringCreated);
+        return NULL;
+    }
+
+    // Nastavíme délku a alokovanou paměť
+    stringCreated->length = length;
+    stringCreated->allocatedSize = length;
+
+    // Překopírujeme obsah konstantního řetězce do dynamického
+    memcpy(stringCreated->str, strConst, length*sizeof(char));
+
+
+    return stringCreated;
+
+
+} /* konec string_charToString() */
+
 /*** Konec souboru dynamic_string.c ***/

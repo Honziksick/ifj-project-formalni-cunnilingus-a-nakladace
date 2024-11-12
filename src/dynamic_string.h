@@ -177,6 +177,20 @@ DString *string_resize(DString *str, size_t size);
  */
 char *string_toConstChar(DString *str);
 
+/**
+ * @brief Vytvoří nový dynamický řetězec z konstantního řetězce
+ * 
+ * @details Tato funkce vytvoří nový dynamický řetězec z konstantního řetězce.
+ *          Velikost a alokovaná paměť se nastaví na délku konstantního řetězce
+ *          BEZ ukončujícího znaku '\0'.
+ * 
+ * @param [in] strConst Konstantní řetězec, ze kterého vytvoříme dynamický řetězec
+ * 
+ * @return V případě, že se nepovede alokace paměti, vrací `NULL`.
+ *        V případě, že se vše povedlo, vrátí ukazatel na nový dynamický řetězec.
+ */
+DString *string_charToDString(const char *strConst);
+
 #endif  // DYNAMIC_STRING_H_
 
 /*** Konec souboru dynamic_string.h ***/
