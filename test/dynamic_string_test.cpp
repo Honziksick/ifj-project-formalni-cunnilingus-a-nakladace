@@ -551,4 +551,18 @@ TEST(StringToConstStr, LongString) {
     free(strConst);
 }
 
+TEST(ConstStrToDString, ShortString){
+    DString *str = string_charToDString("abc");
+    ASSERT_NE(str, nullptr);
+
+    ASSERT_EQ(str->length, 3ULL);
+    ASSERT_EQ(str->allocatedSize, 3ULL);
+    ASSERT_EQ(string_append_char(str, 'd'), STRING_SUCCESS);
+
+    ASSERT_EQ(str->length, 4ULL);
+    ASSERT_GT(str->allocatedSize, 4ULL);
+
+    string_free(str);
+}
+
 /*** Konec souboru dynamic_string_test.cpp ***/
