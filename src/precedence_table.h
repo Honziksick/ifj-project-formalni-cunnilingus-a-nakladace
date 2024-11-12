@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            10.11.2024                                                *
- * Poslední změna:   10.11.2024                                                *
+ * Poslední změna:   12.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -30,6 +30,8 @@
 #define PREC_TABLE_H_
 /** @endcond  */
 
+#include <stdbool.h>
+#include "lltable.h"
 #include "error.h"
 
 /*******************************************************************************
@@ -38,7 +40,9 @@
  *                                                                             *
  ******************************************************************************/
 
-#define PREC_TERMINAL_COUNT 20  /**<  Celkový počet terminálů v precedenční SA. */
+#define PREC_TERMINAL_COUNT 21          /**<  Celkový počet terminálů v precedenční SA */
+#define FOLLOW_NON_TERMINALS_COUNT 6    /**<  Počet NEterminálů, ze kterých jde přejít do precedenční SA */
+#define CURRENT_DOLLAR_UNDEFINED -1     /**<  Aktuální ukončovací terminál je zatím neznámý */
 
 
 /*******************************************************************************
@@ -63,6 +67,17 @@ struct PrecedenceTable{
     int value[PREC_TERMINAL_COUNT];    /**<  Pole hodnot reprezentující precedence mezi terminály  */
 };
 
+/**
+ * @brief Struktura reprezentující FOLOW množinu pro NEterminál.
+ *
+ * @details Tato struktura obsahuje NEterminál, počet terminálů v konkrétní
+ *          FOLOW množině a pole terminálů, které tvoří FOLOW množinu.
+ */
+typedef struct PrecDollars {
+    LLNonTerminals fromNonTerminal;     /**< NEterminál, ze kterého je FOLOW množina určena */
+    LLTerminals dollarTerminal;         /**< Terminál předávající řízení zpět LL parseru */
+} PrecDollars;
+
 
 /*******************************************************************************
  *                                                                             *
@@ -78,7 +93,26 @@ struct PrecedenceTable{
  *          terminálům. Souřadnice [Terminál na vrcholu zásobníku, Terminál na vstupu]
  *          určují vztah precedence mezi dvěma terminály.
  */
-extern struct PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT];
+extern const struct PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT];
+
+/**
+ * @brief Pole FOLLOW množin pro všechny NEterminály, ze kterých se dá předat
+ *        řízení precedenčnímu syntaktickému analyzátoru.
+ *
+ * @details Toto pole obsahuje FOLOW množiny pro všechny NEterminály, ze kterýCH
+ *          se dá předat řízení precedenčnímu SA, s explicitním počtem symbolů
+ *          v každé množině.
+ */
+extern const struct PrecDollars followSets[FOLLOW_NON_TERMINALS_COUNT];
+
+/**
+ * @brief Globální proměnná pro aktuální dollar terminál.
+ *
+ * @details Tato proměnná uchovává aktuální dollar terminál, který je
+ *          používán precedenčním parserem. Je inicializována na `SYNTAX_ERROR`
+ *          a aktualizována během precedenční syntaktické analýzy.
+ */
+extern LLTerminals currentDollar;
 
 
 /*******************************************************************************
@@ -88,7 +122,6 @@ extern struct PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT];
  ******************************************************************************/
 
 /**
- * @enum PrecTerminals
  * @brief Výčet terminálů používaných v precedenční syntaktické analýze.
  *
  * @details Tento výčet obsahuje všechny terminály, které mohou být použity
@@ -113,12 +146,12 @@ typedef enum PrecTerminals {
     T_PREC_LESS_THAN             = 15,       /**<  Operátor menší než "<"  */
     T_PREC_GREATER_THAN          = 16,       /**<  Operátor větší než ">"  */
     T_PREC_LESS_THAN_OR_EQUAL    = 17,       /**<  Operátor menší rovno "<="  */
-    T_PREC_GREATER_THAN_OR_EQUAL = 18,       /**<  Operátor větší rovno ">=""  */
-    T_PREC_CALL_LL               = 19,       /**<  Řízení parsování předáno LL parseru */
+    T_PREC_GREATER_THAN_OR_EQUAL = 18,       /**<  Operátor větší rovno ">="  */
+    T_PREC_COMMA                 = 19,       /**<  Symbol čárky "," uvnitř argumentů volání funkce  */
+    T_PREC_DOLLAR                = 20,       /**<  Řízení parsování předáno LL parseru */
 } PrecTerminals;
 
 /**
- * @enum Precedence
  * @brief Precedence operandů a operátorů používané při precedenční syntaktické analýze.
  *
  * @details Tento výčtový typ definuje různé hodnoty precedence, které se používají
@@ -146,15 +179,29 @@ typedef enum Precedence {
  *
  * @param[in] stackTopTerminal Terminál na vrcholu zásobníku sloužící jako index
  *                             do precedenční tabulky.
- * @param[in] inputTerminal Terminál na vstupu.
+ * @param [in] inputTerminal Terminál na vstupu.
  *
- * @return Hodnota precedence pro dané terminály nebo hlásí chybu, pokud pravidlo
- *         není nalezeno.
+ * @return Hodnota precedence pro dané terminály nebo hlásí chybu, pokud precedence
+ *         není nalezena.
  *
  * @note Pokud funkce najde naprosto neočekávaný řádek tabulky,
- *       zahlásí `ERROR_INTERNAL`.
+ *       zahlásí @c ERROR_INTERNAL.
  */
-int PrecTable_findRule(int stackTopTerminal, int inputTerminal);
+int PrecTable_findPrecedence(int stackTopTerminal, int inputTerminal);
+
+
+/**
+ * @brief Získá FOLOW množinu pro daný NEterminál pomocí binárního vyhledávání
+ *        a aktualizuje globální proměnnou.
+ *
+ * @param [in] fromNonTerminal NEterminál, pro který se získává FOLOW množina.
+ *
+ * @return @c True, pokud byla FOLOW množina nalezena, jinak, pokud množina
+ *         není nalezena, zahlásí @c ERROR_INTERNAL stav a funkce vrátí @c false.
+ *
+ * @note Funkce aktualizuje globální proměnnou @c currentFollowSet.
+ */
+bool PrecTable_getFollowSet(LLNonTerminals fromNonTerminal);
 
 #endif  // PREC_TABLE_H_
 

@@ -258,9 +258,7 @@ TEST(LLTable, FindRule_STATEMENT_REST) {
  */
 TEST(LLTable, FindRule_THROW_AWAY) {
     // Test pro existující pravidlo
-    EXPECT_EQ(LLtable_findRule(NT_THROW_AWAY, T_CALL_PRECEDENCE), THROW_AWAY_1);
-    EXPECT_EQ(LLtable_findRule(NT_THROW_AWAY, T_LEFT_BRACKET), THROW_AWAY_2);
-    EXPECT_EQ(LLtable_findRule(NT_THROW_AWAY, T_IFJ), THROW_AWAY_3);
+    EXPECT_EQ(LLtable_findRule(NT_THROW_AWAY, T_CALL_PRECEDENCE), THROW_AWAY);
 
     // Test pro NExistující pravidlo
     EXPECT_EXIT(LLtable_findRule(NT_THROW_AWAY, T_RIGHT_BRACKET), ExitedWithCode(2), "");
