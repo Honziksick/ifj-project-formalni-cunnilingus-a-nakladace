@@ -340,18 +340,22 @@ LLTABLE = lltable
 PRECTABLE = precedence_table
 FRAME_STACK_LIB = frame_stack
 AST_LIB = ast_interface
+PRECSTACK = precedence_stack
 PARSER = parser
 PARSER_SRC = $(SRC_DIR)/$(LLTABLE).c $(SRC_DIR)/$(PRECTABLE).c \
              $(SRC_DIR)/$(FRAME_STACK_LIB).c $(SRC_DIR)/$(AST_LIB).c \
              $(SRC_DIR)/ll$(PARSER).c $(SRC_DIR)/precedence_$(PARSER).c \
 			 $(SRC_DIR)/$(ERROR_LIB).c $(SRC_DIR)/$(DYNAMIC_STRING_LIB).c \
-			 $(SRC_DIR)/$(SCANNER).c $(SRC_DIR)/$(SYMTABLE).c
+			 $(SRC_DIR)/$(SCANNER).c $(SRC_DIR)/$(SYMTABLE).c $(SRC_DIR)/$(PRECSTACK).c
 
 ### B # build-lltable: # Sestaví LL-tabulky využívanou parserem
 build-lltable: $(BUILD_DIR)/$(LLTABLE).o
 
 ### B # build-prectable: # Sestaví LL-tabulky využívanou parserem
 build-prectable: $(BUILD_DIR)/$(PRECTABLE).o
+
+### B # build-prectable: # Sestaví LL-tabulky využívanou parserem
+build-precstack: $(BUILD_DIR)/$(PRECSTACK).o
 
 ### B # build-frame-stack: # Sestaví knihovnu pro zásobník rámců využívný parserem
 build-frame-stack: $(BUILD_DIR)/$(FRAME_STACK_LIB).o
@@ -368,6 +372,10 @@ $(BUILD_DIR)/$(LLTABLE).o: $(SRC_DIR)/$(LLTABLE).c
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
 $(BUILD_DIR)/$(PRECTABLE).o: $(SRC_DIR)/$(PRECTABLE).c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
+$(BUILD_DIR)/$(PRECSTACK).o: $(SRC_DIR)/$(PRECSTACK).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
@@ -514,6 +522,13 @@ build-prectable-test: $(TEST_BUILD_DIR)/$(PRECTABLE)_test
 run-prectable-test: $(TEST_BUILD_DIR)/$(PRECTABLE)_test
 	$(TEST_BUILD_DIR)/$(PRECTABLE)_test
 
+### T # build-precstack-test: # Sestaví testy aplikace pravidel LL-tabulky
+build-precstack-test: $(TEST_BUILD_DIR)/$(PRECSTACK)_test
+
+### T # run-precstack-test: # Spustí testy aplikace pravidel LL-tabulky
+run-precstack-test: $(TEST_BUILD_DIR)/$(PRECSTACK)_test
+	$(TEST_BUILD_DIR)/$(PRECSTACK)_test
+
 ### T # build-stack-frame-test: # Sestaví testy zásobíku rámců
 build-stack-frame-test: $(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test
 
@@ -656,6 +671,26 @@ $(TEST_BUILD_DIR)/$(PRECTABLE)_test.o: $(TEST_DIR)/$(PRECTABLE)_test.cpp
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
 
 $(TEST_BUILD_DIR)/$(PRECTABLE).o: $(SRC_DIR)/$(PRECTABLE).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(PRECSTACK)_test: $(TEST_BUILD_DIR)/$(PRECSTACK)_test.o \
+											$(TEST_BUILD_DIR)/$(PRECSTACK).o \
+											$(TEST_BUILD_DIR)/$(PRECTABLE).o \
+											$(TEST_BUILD_DIR)/$(LLTABLE).o \
+											$(TEST_BUILD_DIR)/ll$(PARSER).o \
+											$(TEST_BUILD_DIR)/$(AST_LIB).o \
+											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
+											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/gtest_main.a \
+											$(TEST_BUILD_DIR)/gtest.a
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
+
+$(TEST_BUILD_DIR)/$(PRECSTACK)_test.o: $(TEST_DIR)/$(PRECSTACK)_test.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(PRECSTACK).o: $(SRC_DIR)/$(PRECSTACK).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
