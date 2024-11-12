@@ -26,9 +26,11 @@ enum Terminal {
     T_PREC_GREATER_THAN,
     T_PREC_LESS_THAN_OR_EQUAL,
     T_PREC_GREATER_THAN_OR_EQUAL,
-    T_PREC_CALL_LL, // End of input
-    TERMINAL_COUNT  // Number of terminals used in precedence parsing
+    T_PREC_COMMA,       // Symbol čárky ","
+    T_PREC_DOLLAR,      // Symbol konce vstupu "$"
+    TERMINAL_COUNT       // Počet terminálů použité v precedenční syntaktické analýze
 };
+
 
 enum Precedence {
     SYNTAX_ERROR,
@@ -88,35 +90,46 @@ vector<OperatorPrecedence> operatorPrecedences = {
     {T_PREC_LESS_THAN, 1},
     {T_PREC_GREATER_THAN, 1},
     {T_PREC_LESS_THAN_OR_EQUAL, 1},
-    {T_PREC_GREATER_THAN_OR_EQUAL, 1}
+    {T_PREC_GREATER_THAN_OR_EQUAL, 1},
+    {T_PREC_COMMA, 0}           // Přidání čárky s nejnižší precedencí
 };
+
 
 PrecedenceTableEntry precedenceTable[TERMINAL_COUNT];
 
 void initializePrecedenceTable() {
-    // Initialize all entries to SYNTAX_ERROR
+    // Inicializace všech položek na SYNTAX_ERROR
     for (int i = 0; i < TERMINAL_COUNT; ++i) {
-        precedenceTable[i].key = static_cast<Terminal>(i);
+        precedenceTable[i].key = (Terminal)i;
         for (int j = 0; j < TERMINAL_COUNT; ++j) {
             precedenceTable[i].value[j] = SYNTAX_ERROR;
         }
     }
 
-    // Set precedence relations for operands
-    for (Terminal a : operands) {
-        // After operand, operators can follow
-        for (OperatorPrecedence op : operatorPrecedences) {
-            precedenceTable[a].value[op.terminal] = PREC_LESS;
-        }
-        // After operand, right parenthesis or dollar may follow
-        precedenceTable[a].value[T_PREC_RIGHT_BRACKET] = PREC_GREATER;
-        precedenceTable[a].value[T_PREC_CALL_LL] = PREC_GREATER;
-        // For member access and function calls
-        precedenceTable[a].value[T_PREC_DOT] = PREC_LESS;
-        precedenceTable[a].value[T_PREC_LEFT_BRACKET] = PREC_LESS;
-    }
+    // Definice operátorů a jejich precedencí
+    // Vyšší číslo = vyšší precedence
+    struct OperatorPrecedence {
+        Terminal terminal;
+        int precedenceLevel;
+    };
 
-    // Set precedence relations for operators
+    vector<OperatorPrecedence> operatorPrecedences = {
+        {T_PREC_DOT, 4},               // Operátor tečka má vysokou precedenci
+        {T_PREC_LEFT_BRACKET, 4},      // Operátor volání funkce má stejnou precedenci jako tečka
+        {T_PREC_MULTIPLICATION, 3},
+        {T_PREC_DIVISION, 3},
+        {T_PREC_PLUS, 2},
+        {T_PREC_MINUS, 2},
+        {T_PREC_IDENTITY, 1},
+        {T_PREC_NOT_EQUAL, 1},
+        {T_PREC_LESS_THAN, 1},
+        {T_PREC_GREATER_THAN, 1},
+        {T_PREC_LESS_THAN_OR_EQUAL, 1},
+        {T_PREC_GREATER_THAN_OR_EQUAL, 1},
+        {T_PREC_COMMA, 0}              // Čárka má nejnižší precedenci
+    };
+
+    // Nastavení precedenčních vztahů pro operátory
     for (OperatorPrecedence op1 : operatorPrecedences) {
         Terminal a = op1.terminal;
         for (OperatorPrecedence op2 : operatorPrecedences) {
@@ -126,67 +139,163 @@ void initializePrecedenceTable() {
             } else if (op1.precedenceLevel < op2.precedenceLevel) {
                 precedenceTable[a].value[b] = PREC_LESS;
             } else {
-                // Same precedence level, left-associative operators reduce
+                // Stejná precedence, levostranná asociativita
                 precedenceTable[a].value[b] = PREC_GREATER;
             }
         }
-        // Operators before operands
+        // Operátory před operandy
         for (Terminal b : operands) {
             precedenceTable[a].value[b] = PREC_LESS;
         }
-        // Operators before left parenthesis
+        // Operátory před levou závorkou
         precedenceTable[a].value[T_PREC_LEFT_BRACKET] = PREC_LESS;
-        // Operators before right parenthesis and dollar
+        // Operátory před pravou závorkou a koncem vstupu
         precedenceTable[a].value[T_PREC_RIGHT_BRACKET] = PREC_GREATER;
-        precedenceTable[a].value[T_PREC_CALL_LL] = PREC_GREATER;
-        // Operators before dot (higher precedence)
-        precedenceTable[a].value[T_PREC_DOT] = PREC_LESS;
+        precedenceTable[a].value[T_PREC_DOLLAR] = PREC_GREATER;
+        // Operátory před čárkou
+        precedenceTable[a].value[T_PREC_COMMA] = PREC_GREATER;
+        // Zakázání tečky a 'ifj' po operátorech
+        precedenceTable[a].value[T_PREC_DOT] = SYNTAX_ERROR;
+        precedenceTable[a].value[T_PREC_IFJ] = SYNTAX_ERROR;
     }
 
-    // Set precedence relations for T_DOT
+    // Nastavení precedenčních vztahů pro operandy
+    for (Terminal a : operands) {
+        // Po operandu mohou následovat operátory
+        for (OperatorPrecedence op : operatorPrecedences) {
+            precedenceTable[a].value[op.terminal] = PREC_LESS;
+        }
+        // Po operandu může následovat pravá závorka nebo konec vstupu
+        precedenceTable[a].value[T_PREC_RIGHT_BRACKET] = PREC_GREATER;
+        precedenceTable[a].value[T_PREC_DOLLAR] = PREC_GREATER;
+        // Po operandu může následovat čárka (oddělení argumentů)
+        precedenceTable[a].value[T_PREC_COMMA] = PREC_GREATER;
+        // Zakázání tečky a levé závorky po operandu
+        precedenceTable[a].value[T_PREC_DOT] = SYNTAX_ERROR;
+        precedenceTable[a].value[T_PREC_LEFT_BRACKET] = SYNTAX_ERROR;
+        // Zakázání 'ifj' po operandu
+        precedenceTable[a].value[T_PREC_IFJ] = SYNTAX_ERROR;
+    }
+
+    // Nastavení precedenčních vztahů pro 'ifj'
+    // Po 'ifj' může následovat pouze tečka
+    precedenceTable[T_PREC_IFJ].value[T_PREC_DOT] = PREC_EQUAL;
+    // Zakázání ostatních tokenů po 'ifj'
+    for (int j = 0; j < TERMINAL_COUNT; ++j) {
+        if (j != T_PREC_DOT) {
+            precedenceTable[T_PREC_IFJ].value[j] = SYNTAX_ERROR;
+        }
+    }
+
+    // Nastavení precedenčních vztahů pro tečku '.'
+    // Po '.' musí následovat 'id'
     precedenceTable[T_PREC_DOT].value[T_PREC_ID] = PREC_EQUAL;
-    precedenceTable[T_PREC_DOT].value[T_PREC_IFJ] = PREC_EQUAL;
-    precedenceTable[T_PREC_DOT].value[T_PREC_DOT] = PREC_GREATER;
-    // Dot before operators and right parenthesis
-    for (OperatorPrecedence op : operatorPrecedences) {
-        precedenceTable[T_PREC_DOT].value[op.terminal] = PREC_GREATER;
+    // Zakázání ostatních tokenů po '.'
+    for (int j = 0; j < TERMINAL_COUNT; ++j) {
+        if (j != T_PREC_ID) {
+            precedenceTable[T_PREC_DOT].value[j] = SYNTAX_ERROR;
+        }
     }
-    precedenceTable[T_PREC_DOT].value[T_PREC_RIGHT_BRACKET] = PREC_GREATER;
-    precedenceTable[T_PREC_DOT].value[T_PREC_CALL_LL] = PREC_GREATER;
-    // Dot before left parenthesis (method call)
-    precedenceTable[T_PREC_DOT].value[T_PREC_LEFT_BRACKET] = PREC_LESS;
 
-    // Set precedence relations for T_LEFT_PARENTHESIS
-    precedenceTable[T_PREC_LEFT_BRACKET].value[T_PREC_LEFT_BRACKET] = PREC_LESS;
+    // Nastavení precedenčních vztahů pro 'id'
+    // Po 'id' může následovat levá závorka (volání funkce) nebo operátor
+    precedenceTable[T_PREC_ID].value[T_PREC_LEFT_BRACKET] = PREC_LESS;
+    // Po 'id' mohou následovat operátory
+    for (OperatorPrecedence op : operatorPrecedences) {
+        precedenceTable[T_PREC_ID].value[op.terminal] = PREC_LESS;
+    }
+    // Po 'id' může následovat pravá závorka nebo konec vstupu
+    precedenceTable[T_PREC_ID].value[T_PREC_RIGHT_BRACKET] = PREC_GREATER;
+    precedenceTable[T_PREC_ID].value[T_PREC_DOLLAR] = PREC_GREATER;
+    // Po 'id' může následovat čárka
+    precedenceTable[T_PREC_ID].value[T_PREC_COMMA] = PREC_GREATER;
+    // Zakázání 'ifj' a '.' po 'id'
+    precedenceTable[T_PREC_ID].value[T_PREC_IFJ] = SYNTAX_ERROR;
+    precedenceTable[T_PREC_ID].value[T_PREC_DOT] = SYNTAX_ERROR;
+
+    // Nastavení precedenčních vztahů pro levou závorku '('
+    // Po '(' mohou následovat operandy, 'ifj' a další '('
     for (Terminal b : operands) {
         precedenceTable[T_PREC_LEFT_BRACKET].value[b] = PREC_LESS;
     }
-    precedenceTable[T_PREC_LEFT_BRACKET].value[T_PREC_RIGHT_BRACKET] = PREC_EQUAL;
+    precedenceTable[T_PREC_LEFT_BRACKET].value[T_PREC_IFJ] = PREC_LESS;
+    precedenceTable[T_PREC_LEFT_BRACKET].value[T_PREC_LEFT_BRACKET] = PREC_LESS;
+    // Zakázání ostatních tokenů po '('
+    for (int j = 0; j < TERMINAL_COUNT; ++j) {
+        if (!(std::find(operands.begin(), operands.end(), (Terminal)j) != operands.end() ||
+              j == T_PREC_IFJ ||
+              j == T_PREC_LEFT_BRACKET)) {
+            precedenceTable[T_PREC_LEFT_BRACKET].value[j] = SYNTAX_ERROR;
+        }
+    }
+
+    // Nastavení precedenčních vztahů pro pravou závorku ')'
+    // Po ')' mohou následovat operátory, pravá závorka, čárka nebo konec vstupu
     for (OperatorPrecedence op : operatorPrecedences) {
-        precedenceTable[T_PREC_LEFT_BRACKET].value[op.terminal] = PREC_LESS;
+        precedenceTable[T_PREC_RIGHT_BRACKET].value[op.terminal] = PREC_LESS;
+    }
+    // Pravá závorka může být následována pravou závorkou, čárkou nebo koncem vstupu
+    precedenceTable[T_PREC_RIGHT_BRACKET].value[T_PREC_RIGHT_BRACKET] = PREC_GREATER;
+    precedenceTable[T_PREC_RIGHT_BRACKET].value[T_PREC_COMMA] = PREC_GREATER;
+    precedenceTable[T_PREC_RIGHT_BRACKET].value[T_PREC_DOLLAR] = PREC_GREATER;
+    // Zakázání 'ifj' a '.' po ')'
+    precedenceTable[T_PREC_RIGHT_BRACKET].value[T_PREC_IFJ] = SYNTAX_ERROR;
+    precedenceTable[T_PREC_RIGHT_BRACKET].value[T_PREC_DOT] = SYNTAX_ERROR;
+    precedenceTable[T_PREC_RIGHT_BRACKET].value[T_PREC_LEFT_BRACKET] = SYNTAX_ERROR;
+    precedenceTable[T_PREC_RIGHT_BRACKET].value[T_PREC_ID] = SYNTAX_ERROR;
+
+    // Nastavení precedenčních vztahů pro čárku ','
+    // Čárka má nízkou precedenci, umožňuje oddělení argumentů
+    // Po čárce očekáváme výraz (operand), 'ifj', nebo '('
+    precedenceTable[T_PREC_COMMA].value[T_PREC_ID] = PREC_LESS;
+    precedenceTable[T_PREC_COMMA].value[T_PREC_IFJ] = PREC_LESS;
+    precedenceTable[T_PREC_COMMA].value[T_PREC_LEFT_BRACKET] = PREC_LESS;
+    precedenceTable[T_PREC_COMMA].value[T_PREC_COMMA] = PREC_LESS;
+    // Po čárce může následovat pravá závorka (volitelná čárka)
+    precedenceTable[T_PREC_COMMA].value[T_PREC_RIGHT_BRACKET] = PREC_GREATER;
+    precedenceTable[T_PREC_COMMA].value[T_PREC_DOLLAR] = PREC_GREATER;
+    // Zakázání '.' a dalších operátorů po čárce
+    precedenceTable[T_PREC_COMMA].value[T_PREC_DOT] = SYNTAX_ERROR;
+    precedenceTable[T_PREC_COMMA].value[T_PREC_IFJ] = SYNTAX_ERROR;
+    // Další zakázané tokeny po čárce
+    for (int j = 0; j < TERMINAL_COUNT; ++j) {
+        if (j != T_PREC_ID && j != T_PREC_IFJ && j != T_PREC_LEFT_BRACKET && j != T_PREC_COMMA && j != T_PREC_RIGHT_BRACKET && j != T_PREC_DOLLAR) {
+            precedenceTable[T_PREC_COMMA].value[j] = SYNTAX_ERROR;
+        }
     }
 
-    // Set precedence relations for T_RIGHT_PARENTHESIS
-    for (int i = 0; i < TERMINAL_COUNT; ++i) {
-        precedenceTable[i].value[T_PREC_RIGHT_BRACKET] = (precedenceTable[i].value[T_PREC_RIGHT_BRACKET] == SYNTAX_ERROR) ? SYNTAX_ERROR : precedenceTable[i].value[T_PREC_RIGHT_BRACKET];
-    }
-    precedenceTable[T_PREC_RIGHT_BRACKET].value[T_PREC_CALL_LL] = PREC_GREATER;
-
-    // Set precedence relations for T_DOLLAR
+    // Nastavení precedenčních vztahů pro konec vstupu '$'
+    // Počáteční tokeny mohou být operandy, 'ifj', '(' a čárka (pro prázdné argumenty)
     for (Terminal b : operands) {
-        precedenceTable[T_PREC_CALL_LL].value[b] = PREC_LESS;
+        precedenceTable[T_PREC_DOLLAR].value[b] = PREC_LESS;
     }
-    precedenceTable[T_PREC_CALL_LL].value[T_PREC_LEFT_BRACKET] = PREC_LESS;
+    precedenceTable[T_PREC_DOLLAR].value[T_PREC_IFJ] = PREC_LESS;
+    precedenceTable[T_PREC_DOLLAR].value[T_PREC_LEFT_BRACKET] = PREC_LESS;
+    precedenceTable[T_PREC_DOLLAR].value[T_PREC_COMMA] = PREC_LESS;
+    // Konec vstupu může být následován pouze koncem vstupu
+    precedenceTable[T_PREC_DOLLAR].value[T_PREC_DOLLAR] = PREC_EQUAL;
+    // Zakázání ostatních tokenů po '$'
+    for (int j = 0; j < TERMINAL_COUNT; ++j) {
+        if (!(std::find(operands.begin(), operands.end(), (Terminal)j) != operands.end() ||
+              j == T_PREC_IFJ ||
+              j == T_PREC_LEFT_BRACKET ||
+              j == T_PREC_COMMA)) {
+            precedenceTable[T_PREC_DOLLAR].value[j] = SYNTAX_ERROR;
+        }
+    }
 
-    // Set precedence relations for T_IFJ
-    precedenceTable[T_PREC_IFJ].value[T_PREC_DOT] = PREC_LESS;
-    precedenceTable[T_PREC_IFJ].value[T_PREC_LEFT_BRACKET] = PREC_LESS;
-    for (OperatorPrecedence op : operatorPrecedences) {
-        precedenceTable[T_PREC_IFJ].value[op.terminal] = SYNTAX_ERROR;
+    // Zakázání použití 'ifj' a '.' mimo povolenou kombinaci
+    for (int i = 0; i < TERMINAL_COUNT; ++i) {
+        if ((Terminal)i != T_PREC_IFJ) {
+            precedenceTable[i].value[T_PREC_IFJ] = SYNTAX_ERROR;
+        }
+        if ((Terminal)i != T_PREC_DOT) {
+            precedenceTable[i].value[T_PREC_DOT] = SYNTAX_ERROR;
+        }
     }
-    precedenceTable[T_PREC_IFJ].value[T_PREC_RIGHT_BRACKET] = PREC_GREATER;
-    precedenceTable[T_PREC_IFJ].value[T_PREC_CALL_LL] = PREC_GREATER;
 }
+
+
 
 string terminalToString(Terminal t) {
     switch(t) {
@@ -209,7 +318,8 @@ string terminalToString(Terminal t) {
         case T_PREC_GREATER_THAN: return "T_PREC_GREATER_THAN";
         case T_PREC_LESS_THAN_OR_EQUAL: return "T_PREC_LESS_THAN_OR_EQUAL";
         case T_PREC_GREATER_THAN_OR_EQUAL: return "T_PREC_GREATER_THAN_OR_EQUAL";
-        case T_PREC_CALL_LL: return "T_PREC_CALL_LL";
+        case T_PREC_COMMA: return "T_PREC_COMMA";
+        case T_PREC_DOLLAR: return "T_PREC_DOLLAR";
         default: return "UNKNOWN_TERMINAL";
     }
 }
@@ -224,8 +334,9 @@ string precedenceToString(Precedence p) {
     }
 }
 
+
 void printPrecedenceTable() {
-    cout << "struct PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT] = {" << endl << "    ";
+    cout << "const struct PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT] = {" << endl << "    ";
     for (int i = 0; i < TERMINAL_COUNT; ++i) {
         Terminal key = precedenceTable[i].key;
         cout << "{ " << terminalToString(key) << "," << setw(36 - (terminalToString(key).length() + 2)) << setfill(' ') << "{ ";
