@@ -38,6 +38,17 @@
 #include <stdbool.h>
 #include "symtable.h"
 #include "dynamic_string.h"
+#include "error.h"
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                              DEFINICE KONSTANT                              *
+ *                                                                             *
+ ******************************************************************************/
+
+#define FRAME_ARRAY_INIT_SIZE 10        /**< Počáteční velikost pole rámců. */
+#define FRAME_ARRAY_EXPAND_FACTOR 2     /**< Při rozšíření pole rámců se velikost pole násobí tímto faktorem. */
 
 
 /*******************************************************************************
@@ -95,6 +106,7 @@ typedef struct FrameArray {
     size_t allocated;       /**< Velikost alokovaného pole.         */
     FramePtr *array;        /**< Ukazatel na první položku pole.    */
 } FrameArray;
+
 
 /*******************************************************************************
  *                                                                             *
@@ -167,7 +179,7 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item);
 /**
  * @brief Přidá novou položku do vrchního rámce zásobníku.
  *
- * @details Přidá novou položku do tabulky symbolů ve vrcholovém rámci zásobníku. 
+ * @details Přidá novou položku do tabulky symbolů ve vrcholovém rámci zásobníku.
  *
  * @param [in]  key Klíč nové položky.
  * @param [out] out_item Ukazatel pro uložení přidané položky nebo již
@@ -183,15 +195,20 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item);
  */
 frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item);
 
-
 /**
- * @brief Uvolní všechny rámce v poli globálního ukazatele.
+ * @brief Uvolní všechny rámce v zásobníku a uvede zásobník do počátečního stavu.
+ *
+ * @details Tato funkce uvolní všechny rámce uložené v zásobníku, včetně
+ *          uvolnění paměti pro tabulky symbolů a jednotlivé rámce. Poté
+ *          nastaví zásobník a pole rámců do jejich počátečního stavu.
+ *          Pokud zásobník není inicializován (je prázdný), funkce se
+ *          okamžitě vrátí.
  */
 void frameStack_destroyAll();
 
 /**
  * @brief Vytiskne obsah zásobníku rámců
- * 
+ *
  * @details Tato funkce vytiskne obsah zásobníku rámců podle parametrů
  * @param [in] file Ukazatel na soubor, kam se má tisknout
  * @param [in] print_data Pokud je `true`, vytisknou se i data položek jinak pouze klíče a indexy
@@ -201,13 +218,12 @@ void frameStack_print(FILE *file, bool print_data, bool cut_data);
 
 /**
  * @brief Vytiskne obsah zásobníku rámců
- * 
+ *
  * @details Volá funkci frameStack_print s parametry stdout, print_data = false, cut_data = true
  *          Vytiskne obsah zásobníku rámců na stdout bez dat,
  *          a s ořezaním dat, aby byly krásně ve sloupcích.
  */
 void frameStack_printSimple();
-
 
 #endif  // FRAME_STACK_H_
 

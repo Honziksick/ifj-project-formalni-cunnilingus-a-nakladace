@@ -17,7 +17,7 @@
  ******************************************************************************/
 /**
  * @file frame_stack.c
- * @author David Krejčí <xkrejcd00>    
+ * @author David Krejčí \<xkrejcd00>
  *
  * @brief Implementační funkcí pro práci se zásobníkem rámců.
  * @details Tento implementační soubor obsahuje definice funkcí a datových struktur
@@ -28,48 +28,50 @@
  */
 
 #include "frame_stack.h"
-#include "symtable.h"
-#include "dynamic_string.h"
-#include "error.h"
 
-
-/**
- * @brief Počáteční velikost pole rámců.
- */
-#define FRAME_ARRAY_INIT_SIZE 10
+/*******************************************************************************
+ *                                                                             *
+ *                POČÁTEČNÍ INICIALIZACE GLOBÁLNÍCH PROMĚNNÝCH                 *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
- * @brief Při rozšíření pole rámců se velikost pole násobí tímto faktorem.
+ * @brief Globální zásobník rámců používaný v celém překladači.
  */
-#define FRAME_ARRAY_EXPAND_FACTOR 2
-
-// Globální zásobník rámců používaný v celém překladači
 FrameStack stack = {NULL, NULL, 0};
 
-// Globální pole všech vytvořených rámců
+/**
+ * @brief Globální pole všech vytvořených rámců.
+ */
 FrameArray frameArray = {0, NULL};
 
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Inicializuje zásobník rámců.
  */
-void frameStack_init(){
+void frameStack_init() {
     // Alokujeme místo pro globální rámec
     FramePtr frame = malloc(sizeof(Frame));
-    if(frame == NULL){
+    if(frame == NULL) {
         error_handle(ERROR_INTERNAL);
     }
 
     // Vytvoříme tabulku symbolů pro globální rámec
     frame->frame = symtable_init();
-    if(frame->frame == NULL){
+    if(frame->frame == NULL) {
         free(frame);
         error_handle(ERROR_INTERNAL);
     }
 
     // Alokujeme pole rámců
     frameArray.array = malloc(FRAME_ARRAY_INIT_SIZE * sizeof(FramePtr));
-    if(frameArray.array == NULL){
+    if(frameArray.array == NULL) {
         free(frame->frame);
         free(frame);
         error_handle(ERROR_INTERNAL);
@@ -87,34 +89,33 @@ void frameStack_init(){
     // Inicializujeme pole rámců
     frameArray.allocated = FRAME_ARRAY_INIT_SIZE;
     frameArray.array[frame->frameID] = frame;
-
-}
+} // frameStack_init()
 
 /**
  * @brief Vloží nový rámec na zásobník.
  */
-void frameStack_push(bool isFunction){
+void frameStack_push(bool isFunction) {
     // Pokud není zásobník inicializován, skončíme s chybou
-    if(stack.top == NULL){
+    if(stack.top == NULL) {
         error_handle(ERROR_INTERNAL);
     }
 
     // Alokujeme místo pro rámec
     FramePtr frame = malloc(sizeof(Frame));
-    if(frame == NULL){
+    if(frame == NULL) {
         error_handle(ERROR_INTERNAL);
     }
 
     // Vytvoříme tabulku symbolů rámce
     frame->frame = symtable_init();
-    if(frame->frame == NULL){
+    if(frame->frame == NULL) {
         free(frame);
         error_handle(ERROR_INTERNAL);
     }
 
     // Aktualizujeme nejvyšší ID
     stack.currentID++;
-    
+
     // Nastavíme hodnoty rámce
     frame->frameID = stack.currentID;
     frame->next = stack.top;
@@ -122,12 +123,12 @@ void frameStack_push(bool isFunction){
 
     // Nastavíme vrchol zásobníku
     stack.top = frame;
-    
+
     // Pokud došla kapacita pole rámců, tak jej rozšíříme
-    if(stack.currentID +1 > frameArray.allocated){
+    if(stack.currentID +1 > frameArray.allocated) {
         // Vytvoříme nové pole s dvojnásobnou kapacitou
         FramePtr *new_array = malloc(frameArray.allocated * FRAME_ARRAY_EXPAND_FACTOR * sizeof(FramePtr));
-        if(new_array == NULL){
+        if(new_array == NULL) {
             free(frame->frame);
             free(frame);
             error_handle(ERROR_INTERNAL);
@@ -135,8 +136,10 @@ void frameStack_push(bool isFunction){
 
         // Překopírujeme položky
         memcpy(new_array, frameArray.array, frameArray.allocated * sizeof(FramePtr));
+
         // Uvolníme staré pole
         free(frameArray.array);
+
         // Nastavíme novou velikost a ukazatel na pole
         frameArray.allocated *= FRAME_ARRAY_EXPAND_FACTOR;
         frameArray.array = new_array;
@@ -144,106 +147,119 @@ void frameStack_push(bool isFunction){
 
     // Přidáme rámec do globálního pole
     frameArray.array[frame->frameID] = frame;
-
-}
+} // frameStack_push()
 
 /**
  * @brief Odstraní vrchní rámec ze zásobníku.
  */
-frame_stack_result frameStack_pop(){
-    if(stack.top == NULL){
+frame_stack_result frameStack_pop() {
+    if(stack.top == NULL) {
         return FRAME_STACK_NOT_INITIALIZED;
     }
-    if(stack.top->next == NULL){
+
+    if(stack.top->next == NULL) {
         return FRAME_STACK_POP_GLOBAL;
     }
+
     stack.top = stack.top->next;
+
     return FRAME_STACK_SUCCESS;
-}
+} // frameStack_pop()
 
 /**
  * @brief Vyhledá položku v zásobníku rámců podle klíče.
  */
-frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item){
+frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item) {
     // Pokud je klíč NULL, vrátíme chybu
-    if(key == NULL){
+    if(key == NULL) {
         return FRAME_STACK_KEY_NULL;
     }
 
     // Pokud není zásobník inicializován, vrátíme chybu
-    if(stack.top == NULL){
+    if(stack.top == NULL) {
         return FRAME_STACK_NOT_INITIALIZED;
     }
 
     // Nastavíme začátek prohledávání na vrchol zásobníku
     FramePtr frame = stack.top;
+
     // Cyklus prohledávání rámců
-    while(true){
+    while(true) {
         // Prohledáme rámec
         symtable_result result = symtable_findItem(frame->frame, key, out_item);
-        if(result == SYMTABLE_SUCCESS){
+        if(result == SYMTABLE_SUCCESS) {
             // Pokud byla položka nalezena, vrátíme úspěch
             return FRAME_STACK_SUCCESS;
-        }else{
+        }
+        else {
             // Pokud položka nebyla nalezena a vynořili bychom se z funkce,
             // položka neexistuje
-            if(frame->searchStop){
+            if(frame->searchStop) {
                 // Pokud jsme na globálním rámci, položka neexistuje
-                if(frame->frameID == 0){
+                if(frame->frameID == 0) {
                     return FRAME_STACK_ITEM_DOESNT_EXIST;
                 }
                 break;
             }
+
             // Jinak pokračujeme v prohledávání dalšího rámce
             frame = frame->next;
         }
     }
+
     // Projdeme ještě globální rámec
     symtable_result result = symtable_findItem(frameArray.array[0]->frame, key, out_item);
-    if(result == SYMTABLE_SUCCESS){
+    if(result == SYMTABLE_SUCCESS) {
         return FRAME_STACK_SUCCESS;
-    }else{
+    }
+    else {
         return FRAME_STACK_ITEM_DOESNT_EXIST;
     }
-
-}
-
-
+} // frameStack_findItem()
 
 /**
  * @brief Přidá novou položku do vrchního rámce zásobníku.
  */
-frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item){
+frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item) {
     // Voláme findItem, abychom zjistili, zda položka již existuje
     // Zároveň získáme ukazatel na položku, pokud existuje
     // Funkce se zároveň postará o chybové stavy
     frame_stack_result result = frameStack_findItem(key, out_item);
+
     // Pokud položka již existuje, vracíme tuto informaci
-    if(result == FRAME_STACK_SUCCESS){
+    if(result == FRAME_STACK_SUCCESS) {
         return FRAME_STACK_ITEM_ALREADY_EXISTS;
     }
+
     // Pokud položka neexistuje, přidáme ji
-    if(result == FRAME_STACK_ITEM_DOESNT_EXIST){
+    if(result == FRAME_STACK_ITEM_DOESNT_EXIST) {
         symtable_result sym_result = symtable_addItem(stack.top->frame, key, out_item);
+
         // Pokud se položka podařilo přidat, vrátíme úspěch
-        if(sym_result == SYMTABLE_SUCCESS){
+        if(sym_result == SYMTABLE_SUCCESS) {
             return FRAME_STACK_SUCCESS;
-        }else{
+        }
+        else {
             // Pokud selhalo přidání položky, vrátíme chybu
             return FRAME_STACK_ALLOCATION_FAIL;
         }
     }
+
     // Pokud došlo k chybě při hledání, vrátíme chybu
     return result;
-}
+} // frameStack_addItem()
 
-void frameStack_destroyAll(){
+/**
+ * @brief Uvolní všechny rámce v zásobníku a uvede zásobník do počátečního stavu.
+ */
+void frameStack_destroyAll() {
     // Pokud není zásobník inicializován, vrátíme se
-    if(stack.top == NULL){
+    if(stack.top == NULL) {
         return;
     }
+
     // Uvolníme všechny rámce
-    for(size_t i = 0; i <= stack.currentID; i++){
+    for(size_t i = 0; i <= stack.currentID; i++) {
         symtable_destroyTable(frameArray.array[i]->frame);
         free(frameArray.array[i]);
     }
@@ -257,37 +273,38 @@ void frameStack_destroyAll(){
     // Nastavíme pole rámců na původní stav
     frameArray.allocated = 0;
     frameArray.array = NULL;
-}
-
+} // frameStack_destroyAll()
 
 /**
  * @brief Vytiskne obsah zásobníku rámců
  */
-void frameStack_print(FILE *file, bool print_data, bool cut_data){
+void frameStack_print(FILE *file, bool print_data, bool cut_data) {
     // Pokud není zásobník inicializován, vrátíme se
-    if(stack.top == NULL){
+    if(stack.top == NULL) {
         return;
     }
     // Vytiskneme všechny rámce
     FramePtr frame = stack.top;
-    while(frame != NULL){
+    while(frame != NULL) {
         fprintf(file, "Frame ID: %-10zu", frame->frameID);
-        if(frame->searchStop){
+
+        if(frame->searchStop) {
             fprintf(file, "is searchStop frame");
         }
+
         fprintf(file, "\n");
         symtable_print(frame->frame, file, print_data, cut_data);
         fprintf(file, "\n");
+
         frame = frame->next;
     }
-}
+} // frameStack_print()
 
 /**
  * @brief Vytiskne obsah zásobníku rámců
  */
-void frameStack_printSimple(){
+inline void frameStack_printSimple() {
     frameStack_print(stdout, false, true);
-}
-
+} // frameStack_printSimple()
 
 /*** Konec souboru frame_stack.h ***/
