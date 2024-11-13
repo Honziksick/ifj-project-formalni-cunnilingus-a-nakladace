@@ -22,11 +22,11 @@
  * @author Jan Kalina   \<xkalinj00> (návrh LL-gramatiky, implementace LL-tabulky)
  * @author David Krejčí \<xkrejcd00> (tvorba množin)
  *
- * @brief Implementační soubor pro správu LL tabulky.
- * @details Tento implementační soubor obsahuje definice funkcí a datových
- *          struktur potřebných pro správu LL tabulky v překladači.
- *          LL tabulka je používána pro LL syntaktickou analýzu a obsahuje
- *          pravidla pro přechody mezi stavy.
+ * @brief Implementace LL tabulky.
+ * @details Obsahuje implementaci LL tabulky a funkcí pro správu LL tabulky,
+ *          která určuje pravidla pro syntaktickou analýzu podle LL gramatiky.
+ *          Implementace zajišťuje, že analyzátor provádí přechody mezi stavy
+ *          podle daných pravidel a umožňuje správné parsování.
  */
 
 #include "lltable.h"
