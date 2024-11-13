@@ -114,7 +114,7 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **o
             item->data = NULL;
             item->symbol_state = SYMTABLE_SYMBOL_UNKNOWN;
             item->constant = false;
-            item->defined = false;
+            item->known_value = false;
             item->used = false;
             item->changed = false;
             
@@ -311,7 +311,7 @@ void symtable_print(Symtable *table, FILE *file, bool print_data, bool cut_data)
         if(empty){
             fprintf(file, "\n|Key|               |Index|   ");
             if(print_data){
-                fprintf(file, "|state|                  |const|       |defined|     |used|        |changed|    |dataAddr|");
+                fprintf(file, "|state|                  |const|       |known value|      |used|        |changed|    |dataAddr|");
             }
             fprintf(file, "\n");
             empty = false;
@@ -368,10 +368,10 @@ void symtable_print(Symtable *table, FILE *file, bool print_data, bool cut_data)
                 fprintf(file, "non-const     ");
             }
             // Vytiskneme definovanost
-            if(item.defined){
-                fprintf(file, "defined       ");
+            if(item.known_value){
+                fprintf(file, "known              ");
             }else{
-                fprintf(file, "undefined     ");
+                fprintf(file, "unknown            ");
             }
             // Vytiskneme použitost
             if(item.used){
@@ -447,7 +447,7 @@ bool symtable_transfer(Symtable *out_table, Symtable *in_table) {
         new_location->data = out_table->array[i].data;
         new_location->symbol_state = out_table->array[i].symbol_state;
         new_location->constant = out_table->array[i].constant;
-        new_location->defined = out_table->array[i].defined;
+        new_location->known_value = out_table->array[i].known_value;
         new_location->used = out_table->array[i].used;
         new_location->changed = out_table->array[i].changed;
     }
@@ -512,7 +512,7 @@ inline SymtableItemPtr symtable_init_items(size_t size) {
         items[i].symbol_state = SYMTABLE_SYMBOL_EMPTY;
         items[i].data = NULL;
         items[i].constant = false;
-        items[i].defined = false;
+        items[i].known_value = false;
         items[i].used = false;
         items[i].changed = false;
     }
