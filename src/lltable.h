@@ -22,11 +22,12 @@
  * @author Jan Kalina   \<xkalinj00> (návrh LL-gramatiky, implementace LL-tabulky)
  * @author David Krejčí \<xkrejcd00> (tvorba množin)
  *
- * @brief Hlavičkový soubor pro správu LL tabulky.
- * @details Tento hlavičkový soubor obsahuje deklarace výčtových typů, funkcí
- *          a datových struktur potřebných pro správu LL tabulky v překladači.
- *          LL tabulka je používána pro LL syntaktickou analýzu a obsahuje
- *          pravidla pro přechody mezi stavy.
+ * @brief Hlavičkový soubor pro LL tabulku.
+ * @details Tento soubor deklaruje datové struktury, výčtové typy a funkce
+ *          potřebné pro práci s LL tabulkou, která je klíčová pro řízení
+ *          přechodů v LL syntaktické analýze. LL tabulka obsahuje pravidla
+ *          pro přechody mezi stavy analyzátoru na základě aktuálního
+ *          neterminálu a tokenu na vstupu.
  */
 
 #ifndef LLTABLE_H_
@@ -34,6 +35,7 @@
 #define LLTABLE_H_
 /** @endcond  */
 
+#include "parser.h"
 #include "error.h"
 
 /*******************************************************************************
