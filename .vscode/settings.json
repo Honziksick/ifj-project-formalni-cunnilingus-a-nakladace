@@ -25,6 +25,14 @@
             "pattern": "${workspaceFolder}/test/build_test/parser_test"
         },
         {
+            "name": "Precedence Table Tests",
+            "pattern": "${workspaceFolder}/test/build_test/precedence_table_test"
+        },
+        {
+            "name": "Precedence Stack Tests",
+            "pattern": "${workspaceFolder}/test/build_test/precedence_stack_test"
+        },
+        {
             "name": "Semantic Analyser Tests",
             "pattern": "${workspaceFolder}/test/build_test/semantic_test"
         },
