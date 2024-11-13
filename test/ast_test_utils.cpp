@@ -856,6 +856,14 @@ void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool use
     // Aktualizace vektoru úrovní
     levels.push_back(!isLastChild);
 
+    ASTutils_printIndent(indent + 1, out, levels, false);
+
+    // Výpis FrameID
+    if(useColors)
+        out << COLOR_BLUE << "Frame ID: " << COLOR_RESET << node->frameID << endl;
+    else
+        out << "Frame ID: " << node->frameID << endl;
+
     // Výpis hodnoty proměnné, pokud existuje
     if(node->value != nullptr) {
         ASTutils_printIndent(indent + 1, out, levels, true);
