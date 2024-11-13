@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            10.11.2024                                                *
- * Poslední změna:   12.11.2024                                                *
+ * Poslední změna:   13.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -19,10 +19,11 @@
  * @file precedence_table.c
  * @author Jan Kalina \<xkalinj00>
  *
- * @brief Implementační soubor pro správu precedenční tabulky pro precedenční SA.
- * @details Tento implementační soubor obsahuje definice funkcí a datových
- *          struktur potřebných pro správu precedenční tabulky pro precedenční SA.
- *          Precedenční tabulka obsahuje pravidla pro zpracování výrazů.
+ * @brief Implementace správy precedenční tabulky.
+ * @details Obsahuje definice funkcí a struktury pro správu precedenční tabulky,
+ *          která slouží k vyhodnocování precedencí a pravidel pro operátory
+ *          v jazyce IFJ24. Tento modul zajišťuje, že výrazy jsou analyzovány
+ *          podle stanovených pravidel precedenční syntaktické analýzy.
  */
 
 #include "precedence_table.h"
@@ -67,24 +68,27 @@ const struct PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT] = {
 }; // PrecedenceTable precTable[];
 
 /*
- * Toto pole obsahuje FOLOW množiny pro všechny NEterminály, ze kterýCH se dá
+ * Toto pole obsahuje FOLOW množiny pro všechny NEterminály, ze kterých se dá
  * předat řízení precedenčnímu SA, s explicitním počtem symbolů v každé množině.
 */
 const struct PrecDollars precDollars[FOLLOW_NON_TERMINALS_COUNT] = {
-    { NT_STATEMENT_REST, T_SEMICOLON },
-    { NT_THROW_AWAY,     T_SEMICOLON },
-    { NT_VAR_DEF,        T_SEMICOLON },
-    { NT_IF,             T_RIGHT_BRACKET },
-    { NT_WHILE,          T_RIGHT_BRACKET },
-    { NT_RETURN,         T_SEMICOLON },
-}; // PrecFollowSet PrecDollars[];
+    { CALL_PREC_NT_STATEMENT_REST, { DOLLAR_T_SEMICOLON,     CURRENT_DOLLAR_UNDEFINED } },
+    { CALL_PREC_NT_THROW_AWAY,     { DOLLAR_T_SEMICOLON,     CURRENT_DOLLAR_UNDEFINED } },
+    { CALL_PREC_NT_VAR_DEF,        { DOLLAR_T_SEMICOLON,     CURRENT_DOLLAR_UNDEFINED } },
+    { CALL_PREC_NT_IF,             { DOLLAR_T_RIGHT_BRACKET, CURRENT_DOLLAR_UNDEFINED } },
+    { CALL_PREC_NT_WHILE,          { DOLLAR_T_RIGHT_BRACKET, CURRENT_DOLLAR_UNDEFINED } },
+    { CALL_PREC_NT_RETURN_REST,    { DOLLAR_T_SEMICOLON,     CURRENT_DOLLAR_UNDEFINED } },
+    { CALL_PREC_NT_ARGUMENTS,      { DOLLAR_T_RIGHT_BRACKET, CURRENT_DOLLAR_UNDEFINED } },
+    { CALL_PREC_NT_ARG_LIST,       { DOLLAR_T_COMMA,         DOLLAR_T_RIGHT_BRACKET   } },
+    { CALL_PREC_NT_ARG,            { DOLLAR_T_COMMA,         DOLLAR_T_RIGHT_BRACKET   } },
+}; // PrecDollars precDollars[];
 
 /*
  * Tato proměnná uchovává ukazatel na aktuální FOLOW množinu, která je používána
  * precedenčním parserem. Je aktualizována při zahájení precedenční syntaktické
  * analýzy a deinicializována při vrácení řízení zpět do LL parseru.
  */
-LLTerminals currentDollar = CURRENT_DOLLAR_UNDEFINED;
+DollarTerminals currentDollar[MAX_DOLLARS_IN_SET] = { CURRENT_DOLLAR_UNDEFINED, CURRENT_DOLLAR_UNDEFINED };
 
 
 /*******************************************************************************
@@ -96,7 +100,7 @@ LLTerminals currentDollar = CURRENT_DOLLAR_UNDEFINED;
 /**
  * @brief Najde pravidlo v precedenční tabulce na základě terminálů.
  */
-int PrecTable_findPrecedence(int stackTopTerminal, int inputTerminal) {
+void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, Precedence *precedence) {
     // Nastavení indexů pro binární vyhledávání
     int left = 0;
     int right = PREC_TERMINAL_COUNT - 1;
@@ -114,16 +118,17 @@ int PrecTable_findPrecedence(int stackTopTerminal, int inputTerminal) {
             }
             // Jinak pravidlo existuje a vrátíme ho
             else {
-                return precedenceTable[mid].value[inputTerminal];
+                *precedence = precedenceTable[mid].value[inputTerminal];
+                return;
             }
         }
 
+        // Hledaný index je vyšší, posouváme levý index doprava
         if(precedenceTable[mid].key < stackTopTerminal) {
-            // Hledaný index je vyšší, posouváme levý index doprava
             left = mid + 1;
         }
+        // Hledaný index je nižší, posouváme pravý index doleva
         else {
-            // Hledaný index je nižší, posouváme pravý index doleva
             right = mid - 1;
         }
     }
@@ -131,37 +136,117 @@ int PrecTable_findPrecedence(int stackTopTerminal, int inputTerminal) {
     // Vrací interní chybový kód, pokud terminál není nalezen v tabulce
     // (aka něco je velmi špatně, protože toto by nikdy nemělo nastat)
     error_handle(ERROR_INTERNAL);
-    return ERROR_INTERNAL;
-} // PrecTable_findRule()
+} // PrecTable_findPrecedence()
 
 
 /**
  * @brief Získá FOLOW množinu pro daný NEterminál pomocí binárního vyhledávání
  *        a aktualizuje globální proměnnou.
  */
-bool PrecTable_getFollowSet(LLNonTerminals fromNonTerminal) {
+void PrecTable_getFollowSet(LLNonTerminals fromNonTerminal) {
+    // Nastavení indexů pro binární vyhledávání
     int left = 0;
     int right = FOLLOW_NON_TERMINALS_COUNT - 1;
     int mid;
 
+    // Namapujeme obdržený LL neterminál na precedenční "follow" neterminál
+    CallPrecNonTerminals followNonTerminal = CALL_PREC_NT_UNDEFINED;
+    PrecTable_mapFollowNonTerminal(fromNonTerminal, &followNonTerminal);
+
+    // Binární vyhledávání
     while(left <= right) {
         mid = left + (right - left) / 2;
 
-        if(precDollars[mid].fromNonTerminal == fromNonTerminal) {
-            currentDollar = precDollars[mid].dollarTerminal;
-            return true;
+        // Pokud najdeme odpovídající index, nastavíme aktuální množinu "dolar" terminálů
+        if(precDollars[mid].fromNonTerminal == followNonTerminal) {
+            memcpy(currentDollar, precDollars[mid].followSet, sizeof(precDollars[mid].followSet));
+            return;
         }
 
-        if(precDollars[mid].fromNonTerminal < fromNonTerminal) {
+        // Hledaný index je vyšší, posouváme levý index doprava
+        if(precDollars[mid].fromNonTerminal < followNonTerminal) {
             left = mid + 1;
         }
+        // Hledaný index je nižší, posouváme pravý index doleva
         else {
             right = mid - 1;
         }
     }
 
+    // Pokud nebyla množina FOLLOW nalezena, hlásíme interní chybu překladače
     error_handle(ERROR_INTERNAL);
-    return false;
 } // PrecTable_getFollowSet()
+
+/**
+ * @brief Kontroluje, zda je daný terminál v aktuální FOLLOW množině.
+ */
+bool PrecTable_isInFollowSet(DollarTerminals terminal) {
+    // Prohledáváme pole "dollar" terminálů do jeho konce nebo nalezení 'CURRENT_DOLLAR_UNDEFINED'
+    for (int i = 0; i < MAX_DOLLARS_IN_SET; i++) {
+        // "Dolar" terminál nalezen
+        if (currentDollar[i] == terminal) {
+            return true;
+        }
+        // "Dolar" terminál NEnalezen - došli jsme na neinicializovanou část pole
+        else if(currentDollar[i] == CURRENT_DOLLAR_UNDEFINED) {
+            return false;
+        }
+    }
+
+    // "Dolar" terminál NEnalezen - prošli jsme celé pole, ale nebyl tam
+    return false;
+} // PrecTable_isInFollowSet()
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE INTERNÍCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
+
+
+/**
+ * @brief Mapuje neterminál z LL syntaktické analýzy na neterminál pro předání
+ *        řízení precedenčnímu syntaktickému analyzátoru.
+ */
+void PrecTable_mapFollowNonTerminal(LLNonTerminals fromNonTerminal, CallPrecNonTerminals *followNonTerminal) {
+    // Pokud byl předán neplatný ukazatel, hlásíme interní chybu
+    if (followNonTerminal == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return;
+    }
+
+    // Mapování LL neterminálů na precedenční "follow" neterminály
+    switch(fromNonTerminal) {
+        case NT_STATEMENT_REST:
+            *followNonTerminal = CALL_PREC_NT_STATEMENT_REST;
+            break;
+        case NT_THROW_AWAY:
+            *followNonTerminal = CALL_PREC_NT_THROW_AWAY;
+            break;
+        case NT_VAR_DEF:
+            *followNonTerminal = CALL_PREC_NT_VAR_DEF;
+            break;
+        case NT_IF:
+            *followNonTerminal = CALL_PREC_NT_IF;
+            break;
+        case NT_WHILE:
+            *followNonTerminal = CALL_PREC_NT_WHILE;
+            break;
+        case NT_RETURN_REST:
+            *followNonTerminal = CALL_PREC_NT_RETURN_REST;
+            break;
+        case NT_ARG_LIST:
+            *followNonTerminal = CALL_PREC_NT_ARG_LIST;
+            break;
+        case NT_ARG:
+            *followNonTerminal = CALL_PREC_NT_ARG;
+            break;
+        // Pokud se nejednalo ani o jeden case výše, došlo k interní chybě (nemělo by nikdy nastat)
+        default:
+            error_handle(ERROR_INTERNAL);
+            break;
+    }
+} // PrecTable_mapFollowNonTerminal()
 
 /*** Konec souboru precedence_table.c ***/
