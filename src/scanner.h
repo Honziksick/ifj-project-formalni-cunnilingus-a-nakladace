@@ -3,11 +3,10 @@
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
  * Soubor:           scanner.h                                                 *
- * Autor:            Hýža Pavel         <xhyzapa00> (implementace)             *
- *                   Farkašovský Lukáš  <xfarkal00> (minor edit)               *
+ * Autor:            Hýža Pavel         <xhyzapa00>                            *
  *                                                                             *
  * Datum:            06.10.2024                                                *
- * Poslední změna:   11.11.2024                                                *
+ * Poslední změna:   14.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -18,8 +17,7 @@
  ******************************************************************************/
 /**
  * @file scanner.h
- * @author Hýža Pavel \<xhyzapa00> (implementace)
- * @author Farkašovský Lukáš \<xfarkal00> (minor edit)
+ * @author Hýža Pavel \<xhyzapa00>
  *
  * @brief Hlavičkový soubor pro implementaci funkcí modulu scanner.
  * @details Tento soubor obsahuje deklaraci funkcí a datových typů modulu
@@ -37,30 +35,6 @@
 
 #include "dynamic_string.h"
 #include "error.h"
-
-// Definice hashů pro klíčová slova
-
-#define KEYWORD_UNDERSCORE_HASH     177668ULL
-#define KEYWORD_FN_HASH             5863385ULL
-#define KEYWORD_IF_HASH             5863476ULL
-#define KEYWORD_F64_HASH            193489909ULL
-#define KEYWORD_I32_HASH            193493075ULL
-#define KEYWORD_PUB_HASH            193502924ULL
-#define KEYWORD_VAR_HASH            193508814ULL
-#define KEYWORD_QF64_HASH           6383817844ULL
-#define KEYWORD_QI32_HASH           6383821010ULL
-#define KEYWORD_U8_HASH             6384816362ULL
-#define KEYWORD_ELSE_HASH           6385192046ULL
-#define KEYWORD_NULL_HASH           6385525056ULL
-#define KEYWORD_VOID_HASH           6385805911ULL
-#define KEYWORD_QU8_HASH            210665638217ULL
-#define KEYWORD_CONST_HASH          210709068620ULL
-#define KEYWORD_WHILE_HASH          210732529790ULL
-#define KEYWORD_RETURN_HASH         6953974653989ULL
-#define KEYWORD_IMPORT_HASH         229416738240608ULL
-#define KEYWORD_COUNT 18
-
-
 
 // Definice různých typů tokenů
 typedef enum {
@@ -117,32 +91,34 @@ typedef enum {
     LETTER = 1,
     NUMBER = 2,
     WHITE = 3,      //WHITESPACE
+    NIL = 4,        //NOT IN LANGUAGE
     //SPECIAL SIMPLE
-    S_LEFT_PARENTHESIS = 4,
-    S_RIGHT_PARENTHESIS = 5,
-    S_ASTERISK = 6,
-    S_PLUS = 7,
-    S_COMMA = 8,
-    S_MINUS = 9,
-    S_COLON = 10,
-    S_SEMICOLON = 11,
-    S_LEFT_CURLY_BRACKET = 12,
-    S_VERTICAL_BAR = 13,
-    S_RIGHT_CURLY_BRACKET = 14,
+    S_LEFT_PARENTHESIS = 5,
+    S_RIGHT_PARENTHESIS = 6,
+    S_ASTERISK = 7,
+    S_PLUS = 8,
+    S_COMMA = 9,
+    S_MINUS = 10,
+    S_COLON = 11,
+    S_SEMICOLON = 12,
+    S_LEFT_CURLY_BRACKET = 13,
+    S_VERTICAL_BAR = 14,
+    S_RIGHT_CURLY_BRACKET = 15,
     //SPECIAL COMPLEX
-    C_EXCLAMATION_MARK = 15,
-    C_DOUBLE_QUOTE = 16,
-    C_PERIOD = 17,
-    C_SLASH = 18,
-    C_LESS_THAN = 19,
-    C_EQUALITY_SIGN = 20,
-    C_GREATER_THAN = 21,
-    C_QUESTION_MARK = 22,
-    C_AT_SIGN = 23,
-    C_LEFT_SQUARE_BRACKET = 24,
-    C_BACKSLASH = 25,
-    C_RIGHT_SQUARE_BRACKET = 26,
-    C_EOF = 27
+    C_EXCLAMATION_MARK = 16,
+    C_DOUBLE_QUOTE = 17,
+    C_PERIOD = 18,
+    C_SLASH = 19,
+    C_LESS_THAN = 20,
+    C_EQUALITY_SIGN = 21,
+    C_GREATER_THAN = 22,
+    C_QUESTION_MARK = 23,
+    C_AT_SIGN = 24,
+    C_LEFT_SQUARE_BRACKET = 25,
+    C_BACKSLASH = 26,
+    C_RIGHT_SQUARE_BRACKET = 27,
+    C_EOL = 28,
+    C_EOF = 29
 } CharType;
 
 // Definice stavů FSM lexikálního analyzátoru
@@ -192,6 +168,24 @@ typedef enum {
     DOUBLE_BACKSLASH = 33
 } StateFSM;
 
+typedef enum {
+    KEY_IDENTIFIER = 1,
+
+    KEY_const = 26,
+    KEY_var = 27,
+    KEY_i32 = 28,
+    KEY_f64 = 29,
+
+    KEY_pub = 34,
+    KEY_fn = 35,
+    KEY_void = 36,
+    KEY_return = 37,
+    KEY_null = 38,
+    KEY_if = 39,
+    KEY_else = 40,
+    KEY_while = 41,
+    KEY_underscore = 43
+} Keywords;
 
 /* Každý token má typ, hodnotu (tj. dynamický řetězec) a informace o pozici
    tokenu ve zdrojovém kódu (řádek a sloupec) */
@@ -200,24 +194,18 @@ typedef struct {
     DString* value;
 } Token;
 
-// Definice struktury pro pár KeywordHash - TokenType
-typedef struct {
-    size_t hash;
-    TokenType type;
-} Keyword;
-
 // Práce se znaky na vstupu
 // Přečte další znak ze zdrojového kódu
-int scanner_getNextChar();
+char scanner_getNextChar();
 
 // Vrácí znak zpět do vstupu (backtracking)
-void scanner_ungetChar(int c);
+void scanner_ungetChar(char c);
 
 // Rozhodování o typu znaku na vstupu
-CharType scanner_charIdentity(int c);
+CharType scanner_charIdentity(char c);
 
 // Rozhodování o tom, jestli LETTERS je IDENTIFIKÁTOR, nebo KEYWORD
-TokenType scanner_isKeyword(DString *value);
+Keywords scanner_isKeyword(DString *value);
 
 // Vytvoří nový token
 Token scanner_tokenCreate(TokenType type, DString *value);

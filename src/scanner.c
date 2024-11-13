@@ -4,10 +4,9 @@
  *                                                                             *
  * Soubor:           scanner.c                                                 *
  * Autor:            Hýža Pavel         <xhyzapa00>                            *
- *                   Farkašovský Lukáš  <xfarkal00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   11.11.2024                                                *
+ * Poslední změna:   14.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -19,7 +18,6 @@
 /**
  * @file scanner.c
  * @author Hýža Pavel \<xhyzapa00>
- * @author Farkašovský Lukáš \<xfarkal00>
  *
  * @brief Definice a implementace funkcí modulu scanner.
  * @details Tento soubor obsahuje deklaraci funkcí a datových typů modulu
@@ -31,133 +29,117 @@
 #include <ctype.h>
 
 #include "scanner.h"
-#include "symtable.h"
 
 
-
-inline int scanner_getNextChar() {      // Čte jeden znak ze souboru
-    return getchar();
+inline char scanner_getNextChar() {      // Čte jeden znak ze souboru
+    return (char)getchar();
 }
 
-inline void scanner_ungetChar(int c) {    // Vrátí char zpět do vstupního proudu
+inline void scanner_ungetChar(char c) {    // Vrátí char zpět do vstupního proudu
     ungetc(c, stdin);
 }
 
-CharType scanner_charIdentity(int c) {
-    if(isalpha(c) || c == '_') {  //65 - 90, 97 - 122
+CharType scanner_charIdentity(char c) {
+    if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {  //65 - 90, 97 - 122
         return LETTER;  //c je písmeno (LETTER)
     }
-    else if(isdigit(c)) { //48 - 57
+    else if(c >= '0' && c <= '9') { //48 - 57
         return NUMBER;  //c je číslo (NUMBER)
     }
-    else if(isspace(c)) { //TAB or SPACE or NEW LINE
+    else if(c == 9 || c == 32) { //TAB or SPACE
         return WHITE;   //c je prázdný znak (WHITE)
     }
-    else { //c je něco jiného
+    else if(c <= 8 || (c >= 11 && c <= 31) || (c >= 35 && c <= 39) || c == 96 || c >= 126) { //Znak, co není v jazyce povolen
+        return NIL;     //c je znak, kerý nepatří do jazyka (NIL)
+    }
+    else {
         switch (c) {
-            case '!':    // "!"
+            case 10:    // New Line (EOL - End of Line)
+                return C_EOL;
+            case 33:    // "!"
                 return C_EXCLAMATION_MARK;
-            case '"':    // "
+            case 34:    // "
                 return C_DOUBLE_QUOTE;
-            case '(':    // "("
+            case 40:    // "("
                 return S_LEFT_PARENTHESIS;
-            case ')':    // ")"
+            case 41:    // ")"
                 return S_RIGHT_PARENTHESIS;
-            case '*':    // "*"
+            case 42:    // "*"
                 return S_ASTERISK;
-            case '+':    // "+"
+            case 43:    // "+"
                 return S_PLUS;
-            case ',':    // ","
+            case 44:    // ","
                 return S_COMMA;
-            case '-':    // "-"
+            case 45:    // "-"
                 return S_MINUS;
-            case '.':    // "."
+            case 46:    // "."
                 return C_PERIOD;
-            case '/':    // "/"
+            case 47:    // "/"
                 return C_SLASH;
-            case ':':    // ":"
+            case 58:    // ":"
                 return S_COLON;
-            case ';':    // ";"
+            case 59:    // ";"
                 return S_SEMICOLON;
-            case '<':    // "<"
+            case 60:    // "<"
                 return C_LESS_THAN;
-            case '=':    // "="
+            case 61:    // "="
                 return C_EQUALITY_SIGN;
-            case '>':    // ">"
+            case 62:    // ">"
                 return C_GREATER_THAN;
-            case '?':    // "?"
+            case 63:    // "?"
                 return C_QUESTION_MARK;
-            case '@':    // "@"
+            case 64:    // "@"
                 return C_AT_SIGN;
-            case '[':    // "["
+            case 91:    // "["
                 return C_LEFT_SQUARE_BRACKET;
-            case '\\':   // "\"
+            case 92:    // "\"
                 return C_BACKSLASH;
-            case ']':    // "]"
+            case 93:    // "]"
                 return C_RIGHT_SQUARE_BRACKET;
-            case '{':    // "{"
+            case 123:   // "{"
                 return S_LEFT_CURLY_BRACKET;
-            case '|':    // "|"
+            case 124:   // "|"
                 return S_VERTICAL_BAR;
-            case '}':    // "}"
+            case 125:   // "}"
                 return S_RIGHT_CURLY_BRACKET;
-            case EOF:   // EOF
+            case 255:   // EOF
                 return C_EOF;
-            default:    // ERROR při identifikaci CHARu (neplatný znak)
+            default:    // ERROR při identifikaci CHARu (nepatří mezi 0 - 255)
                 error_handle(ERROR_LEXICAL);
         }
     }
-    // Nemělo by nikdy nastat, ale nelze přeložit bez návratové hodnoty
-    return C_EOF;
 }
 
-TokenType scanner_isKeyword(DString *value) {
-    // Tabulka hashovacích klíčů pro klíčová slova
-    static const Keyword keywords[KEYWORD_COUNT] = {
-        { KEYWORD_UNDERSCORE_HASH, TOKEN_K_underscore },
-        { KEYWORD_FN_HASH, TOKEN_K_fn },
-        { KEYWORD_IF_HASH, TOKEN_K_if },
-        { KEYWORD_F64_HASH, TOKEN_K_f64 },
-        { KEYWORD_I32_HASH, TOKEN_K_i32 },
-        { KEYWORD_PUB_HASH, TOKEN_K_pub },
-        { KEYWORD_VAR_HASH, TOKEN_K_var },
-        { KEYWORD_QF64_HASH, TOKEN_K_Qf64 },
-        { KEYWORD_QI32_HASH, TOKEN_K_Qi32 },
-        { KEYWORD_U8_HASH, TOKEN_K_u8 },
-        { KEYWORD_ELSE_HASH, TOKEN_K_else },
-        { KEYWORD_NULL_HASH, TOKEN_K_null },
-        { KEYWORD_VOID_HASH, TOKEN_K_void },
-        { KEYWORD_QU8_HASH, TOKEN_K_Qu8 },
-        { KEYWORD_CONST_HASH, TOKEN_K_const },
-        { KEYWORD_WHILE_HASH, TOKEN_K_while },
-        { KEYWORD_RETURN_HASH, TOKEN_K_return },
-        { KEYWORD_IMPORT_HASH, TOKEN_K_import },   
-    };
-
-    // Pokud je délka stringu větší než nejdelší klíčové slovo
-    if(value->length > 7){
-        return TOKEN_IDENTIFIER;
+Keywords scanner_isKeyword(DString *value) {
+    if(strcmp(value->str, "const") == 0) {
+        return KEY_const;
+    } else if(strcmp(value->str, "var") == 0) {
+        return KEY_var;
+    } else if(strcmp(value->str, "i32") == 0) {
+        return KEY_i32;
+    } else if(strcmp(value->str, "f64") == 0) {
+        return KEY_f64;
+    } else if(strcmp(value->str, "pub") == 0) {
+        return KEY_pub;
+    } else if(strcmp(value->str, "fn") == 0) {
+        return KEY_fn;
+    } else if(strcmp(value->str, "void") == 0) {
+        return KEY_void;
+    } else if(strcmp(value->str, "return") == 0) {
+        return KEY_return;
+    } else if(strcmp(value->str, "null") == 0) {
+        return KEY_null;
+    } else if(strcmp(value->str, "if") == 0) {
+        return KEY_if;
+    } else if(strcmp(value->str, "else") == 0) {
+        return KEY_else;
+    } else if(strcmp(value->str, "while") == 0) {
+        return KEY_while;
+    } else if(strcmp(value->str, "_") == 0) {
+        return KEY_underscore;
+    } else {
+        return KEY_IDENTIFIER;
     }
-
-    // Jinak binárně vyhledáme klíčové slovo
-    size_t left = 0;
-    size_t right = KEYWORD_COUNT - 1;
-    size_t middle;
-    size_t hash = symtable_hashFunction(value);
-
-    while(left <= right) {
-        middle = (left + right) / 2;
-        if(keywords[middle].hash == hash) {
-            return keywords[middle].type;
-        }
-        else if(keywords[middle].hash < hash) {
-            left = middle + 1;
-        }
-        else {
-            right = middle - 1;
-        }
-    }
-    return TOKEN_IDENTIFIER;
 }
 
 Token scanner_tokenCreate(TokenType type, DString *value) {
@@ -176,7 +158,7 @@ Token scanner_stringlessTokenCreate(TokenType type) {
 
 Token scanner_FSM() {
     //Inicializace FSM po jednom volání Syntaktického analyzátoru
-    int c;
+    char c;
     bool stopFSM = false;
     StateFSM state = START;
     DString *str = string_init();
@@ -196,15 +178,19 @@ Token scanner_FSM() {
             case START:
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
-                    case LETTER:                 //1/29
-                        string_append_char(str, (char)c);
+                    case LETTER:                        //1/29
+                        string_append_char(str, c);
                         state = LETTERS;
                         break;
                     case NUMBER:                        //2/29
-                        string_append_char(str, (char)c);
+                        string_append_char(str, c);
                         state = NUMBERS;
                         break;
                     case WHITE:                         //3/29
+                        break;
+                    case NIL:                           //4/29
+                        stopFSM = true;
+                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
                         break;
                     case S_LEFT_PARENTHESIS:            //5/29
                         lexToken = scanner_stringlessTokenCreate(TOKEN_LEFT_PARENTHESIS);
@@ -288,6 +274,8 @@ Token scanner_FSM() {
                         stopFSM = true;
                         error_handle(ERROR_LEXICAL);        //ERROR - byl načten znak ']', který před sebou neměl znak '[', což v jazyce není možné
                         break;
+                    case C_EOL:                         //28/29
+                        break;
                     case C_EOF:                         //29/29
                         lexToken = scanner_stringlessTokenCreate(TOKEN_EOF);
                         scanner_ungetChar(c);
@@ -308,14 +296,28 @@ Token scanner_FSM() {
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case LETTER:                        //1/29
-                        string_append_char(str, (char)c);
+                        string_append_char(str, c);
                         break;
                     case NUMBER:                        //2/29
-                        string_append_char(str, (char)c);
+                        string_append_char(str, c);
                         break;
                     case WHITE:                         //3/29
                         keytest = scanner_isKeyword(str);
-                        if(keytest == TOKEN_IDENTIFIER) {
+                        if(keytest == KEY_IDENTIFIER) {
+                            lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
+                            stopFSM = true;
+                        } else {
+                            lexToken = scanner_stringlessTokenCreate(keytest);
+                            stopFSM = true;
+                        }
+                        break;
+                    case NIL:                           //4/29
+                        stopFSM = true;
+                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        break;
+                    case C_EOL:                         //28/29
+                        keytest = scanner_isKeyword(str);
+                        if(keytest == KEY_IDENTIFIER) {
                             lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                             stopFSM = true;
                         } else {
@@ -325,7 +327,7 @@ Token scanner_FSM() {
                         break;
                     default:                            //5-27,29/29 (Special Simple, Special Complex(without 28-EOL))
                         keytest = scanner_isKeyword(str);
-                        if(keytest == TOKEN_IDENTIFIER) {
+                        if(keytest == KEY_IDENTIFIER) {
                             lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                             stopFSM = true;
                         } else {
@@ -349,15 +351,23 @@ Token scanner_FSM() {
                         error_handle(ERROR_LEXICAL);        //ERROR - načteno písmeno do tokenu čísla
                         break;
                     case NUMBER:                        //2/29
-                        string_append_char(str, (char)c);
+                        string_append_char(str, c);
                         break;
                     case WHITE:                         //3/29
                         lexToken = scanner_tokenCreate(TOKEN_INT, str);
                         stopFSM = true;
                         break;
+                    case NIL:                           //4/29
+                        stopFSM = true;
+                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        break;
                     case C_PERIOD:                      //18/29
-                        string_append_char(str, (char)c);
+                        string_append_char(str, c);
                         state = FLOAT_UNREADY;
+                        break;
+                    case C_EOL:                         //28/29
+                        lexToken = scanner_tokenCreate(TOKEN_INT, str);
+                        stopFSM = true;
                         break;
                     default:                            //5-17,19-27,29/29 (Special Simple, Special Complex(without 18-PERIOD, 28-EOL))
                         lexToken = scanner_tokenCreate(TOKEN_INT, str);
@@ -375,7 +385,7 @@ Token scanner_FSM() {
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case NUMBER:                        //2/29
-                        string_append_char(str, (char)c);
+                        string_append_char(str, c);
                         state = FLOAT_READY;
                         break;
                     default:                            //1,3-29/29 (NOT 2-NUMBER)
@@ -397,15 +407,23 @@ Token scanner_FSM() {
                         error_handle(ERROR_LEXICAL);        //ERROR - načteno písmeno do tokenu čísla
                         break;
                     case NUMBER:                        //2/29
-                        string_append_char(str, (char)c);
+                        string_append_char(str, c);
                         break;
                     case WHITE:                         //3/29
                         lexToken = scanner_tokenCreate(TOKEN_FLOAT, str);
                         stopFSM = true;
                         break;
+                    case NIL:                           //4/29
+                        stopFSM = true;
+                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        break;
                     case C_PERIOD:                      //18/29
                         stopFSM = true;
                         error_handle(ERROR_LEXICAL);        //ERROR - načtena druhá tečka do tokenu floatu
+                        break;
+                    case C_EOL:                         //28/29
+                        lexToken = scanner_tokenCreate(TOKEN_FLOAT, str);
+                        stopFSM = true;
                         break;
                     default:                            //5-17,19-27,29/29 (Special Simple, Special Complex(without 18-PERIOD, 28-EOL))
                         lexToken = scanner_tokenCreate(TOKEN_FLOAT, str);
@@ -746,8 +764,16 @@ Token scanner_FSM() {
                         lexToken = scanner_stringlessTokenCreate(TOKEN_EQUALITY_SIGN);
                         stopFSM = true;
                         break;
+                    case NIL:                           //4/29
+                        stopFSM = true;
+                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        break;
                     case C_EQUALITY_SIGN:               //21/29
                         lexToken = scanner_stringlessTokenCreate(TOKEN_EQUAL_TO);
+                        stopFSM = true;
+                        break;
+                    case C_EOL:                         //28/29
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_EQUALITY_SIGN);
                         stopFSM = true;
                         break;
                     default:                            //1,2,5-20,22-27,29/29 (Letters, Numbers, Special Simple, Special Complex(without 21-EQUALITY_SIGN, 28-EOL))
@@ -787,8 +813,16 @@ Token scanner_FSM() {
                         lexToken = scanner_stringlessTokenCreate(TOKEN_LESS_THAN);
                         stopFSM = true;
                         break;
+                    case NIL:                           //4/29
+                        stopFSM = true;
+                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        break;
                     case C_EQUALITY_SIGN:               //21/29
                         lexToken = scanner_stringlessTokenCreate(TOKEN_LESS_EQUAL_THAN);
+                        stopFSM = true;
+                        break;
+                    case C_EOL:                         //28/29
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_LESS_THAN);
                         stopFSM = true;
                         break;
                     default:                            //1,2,5-20,22-27,29/29 (Letters, Numbers, Special Simple, Special Complex(without 21-EQUALITY_SIGN, 28-EOL))
@@ -810,8 +844,16 @@ Token scanner_FSM() {
                         lexToken = scanner_stringlessTokenCreate(TOKEN_GREATER_THAN);
                         stopFSM = true;
                         break;
+                    case NIL:                           //4/29
+                        stopFSM = true;
+                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        break;
                     case C_EQUALITY_SIGN:               //21/29
                         lexToken = scanner_stringlessTokenCreate(TOKEN_GREATER_EQUAL_THAN);
+                        stopFSM = true;
+                        break;
+                    case C_EOL:                         //28/29
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_GREATER_THAN);
                         stopFSM = true;
                         break;
                     default:                            //1,2,5-20,22-27,29/29 (Letters, Numbers, Special Simple, Special Complex(without 21-EQUALITY_SIGN, 28-EOL))
@@ -833,8 +875,16 @@ Token scanner_FSM() {
                         lexToken = scanner_stringlessTokenCreate(TOKEN_SLASH);
                         stopFSM = true;
                         break;
+                    case NIL:                           //4/29
+                        stopFSM = true;
+                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        break;
                     case C_SLASH:                       //19/29
                         state = DOUBLE_SLASH;
+                        break;
+                    case C_EOL:                         //28/29
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_SLASH);
+                        stopFSM = true;
                         break;
                     default:                            //1,2,5-18,20-27,29/29 (Letters, Numbers, Special Simple, Special Complex(without 19-SLASH, 28-EOL))
                         lexToken = scanner_stringlessTokenCreate(TOKEN_SLASH);
@@ -850,8 +900,12 @@ Token scanner_FSM() {
             */
             case DOUBLE_SLASH:
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
-                if(c == '\n') { //EOL   // Pokud je znak nový řádek, tak se vracíme do stavu START
-                    state = START;
+                switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
+                    case C_EOL:                         //28/29
+                        state = START;
+                        break;
+                    default:                            //1-27,29 (NOT EOL))
+                        break;
                 }
                 break;
             /*
@@ -874,7 +928,7 @@ Token scanner_FSM() {
                         error_handle(ERROR_LEXICAL);        //ERROR - do tokenu stringu se načítá EOF
                         break;
                     default:                            //1-16,18-25,27,28 (NOT ",\,EOF))
-                        string_append_char(str, (char)c);
+                        string_append_char(str, c);
                         break;
                 }
                 break;
@@ -1021,17 +1075,14 @@ Token scanner_FSM() {
                             scanner_ungetChar(c);
                         }
                         break;
-                    case WHITE:                         //28/29
-                        if(c != '\n'){
-                            string_append_char(str, (char)c);
-                        }
+                    case C_EOL:                         //28/29
                         break;
                     case C_EOF:                         //29/29
                         stopFSM = true;
                         error_handle(ERROR_LEXICAL);    //ERROR - načten EOF do tokenu stringu
                         break;
                     default:                            //1-5,7-25,27 (NOT ),\,EOL,EOF))
-                        string_append_char(str, (char)c);
+                        string_append_char(str, c);
                         break;
                 }
                 break;
@@ -1046,9 +1097,8 @@ Token scanner_FSM() {
                 break;
         }
     }
-    if(lexToken.value == NULL) {
-        string_free(str);
-    }
+
+    string_free(str);
     return lexToken;
 }
 
