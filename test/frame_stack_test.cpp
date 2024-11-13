@@ -353,7 +353,7 @@ TEST(FrameStack, print){
     item->symbol_state = SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL;
     item->changed = true;
     item->constant = true;
-    item->defined = true;
+    item->known_value = true;
     item->used = true;
     item->data = (void*)malloc(sizeof(int));
 
