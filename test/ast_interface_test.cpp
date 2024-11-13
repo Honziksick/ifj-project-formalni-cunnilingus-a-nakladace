@@ -38,24 +38,6 @@ using namespace std;
 using namespace testing;
 using namespace internal;
 
-/** 
- * @brief Definice makra pro zapnutí/vypnutí výpisu stromu.
-*/
-#define PRINT_TREE_OUTPUT 1
-
-#if PRINT_TREE_OUTPUT
-#define PRINT_TREE(type, node) \
-    do { \
-        const ::testing::TestInfo* test_info = ::testing::UnitTest::GetInstance()->current_test_info(); \
-        string output = ASTutils_printCapturedOutput(type, (void *)node, true); \
-        cerr << endl << COLOR_PINK << "Output Tree for " << test_info->test_case_name() << "." << test_info->name() << ":" << COLOR_RESET << endl; \
-        cerr << output << endl; \
-    } while (0)
-#else
-#define PRINT_TREE(node) do {} while (0)
-#endif
-
-
 /**
  * @brief Globální kořen abstraktního syntaktického stromu.
  */

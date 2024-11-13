@@ -55,6 +55,31 @@ using namespace std;  /**< Jmenný prostor standardní knihovny C++ */
 #define COLOR_GOLD    "\033[38;5;220m"  /**< ANSI escape sekvence pro zlatou barvu */
 #define COLOR_BLUE    "\033[34m"        /**< ANSI escape sekvence pro modrou barvu */
 #define COLOR_PINK    "\033[35m"        /**< ANSI escape sekvence pro růžovou barvu */
+#define COLOR_RED     "\033[91m"        /**< ANSI escape sekvence pro červenou barvu */
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                               SPECIÁLNÍ MAKRA                               *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Definice makra pro zapnutí/vypnutí výpisu stromu.
+*/
+#define PRINT_TREE_OUTPUT 1
+
+#if PRINT_TREE_OUTPUT
+#define PRINT_TREE(type, node) \
+    do { \
+        const ::testing::TestInfo* test_info = ::testing::UnitTest::GetInstance()->current_test_info(); \
+        string output = ASTutils_printCapturedOutput(type, (void *)node, true); \
+        cerr << endl << COLOR_PINK << "Output Tree for " << test_info->test_case_name() << "." << test_info->name() << ":" << COLOR_RESET << endl; \
+        cerr << output << endl; \
+    } while (0)
+#else
+#define PRINT_TREE(type, node) do {} while (0)
+#endif
 
 /*******************************************************************************
  *                                                                             *
