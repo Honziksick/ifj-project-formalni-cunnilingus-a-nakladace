@@ -283,6 +283,7 @@ typedef struct AST_BinOpNode {
 typedef struct AST_VarNode {
     enum AST_NodeType    type;                  /**< Typ uzlu (AST_VAR_NODE) */
          DString         *identifier;           /**< Identifikátor proměnné (pro literál NULL)*/
+         size_t          frameID;               /**< ID rámce, kde je proměnná definovaná */
     enum AST_LiteralType literalType;           /**< Typ hodnoty */
          void            *value;                /**< Ukazatel na hodnotu literálu */
 } AST_VarNode;
@@ -301,6 +302,9 @@ typedef struct AST_VarNode {
  *          stromu (AST), který je vytvářen během syntaktické analýzy. AST je
  *          používán pro reprezentaci struktury programu a je generován parserem.
  *          Dále je využíván k sémantické analýze a generování 3AK.
+ *
+ * @note Ukazatel na kořen abstraktního syntaktického stromu bude před svou
+ *       skutečnou inicializací inicializován na @c NULL.
  */
 extern AST_ProgramNode *ASTroot;
 

@@ -508,7 +508,7 @@ TEST(Table, ItemData){
     ASSERT_EQ(string_compare(item1->key, horse_val), STRING_EQUAL);
 
     item1->constant = true;
-    item1->defined = true;
+    item1->known_value = true;
     item1->used = false;
     item1->symbol_state = SYMTABLE_SYMBOL_VARIABLE_INT;
     item1->data = malloc(sizeof(int));
@@ -518,7 +518,7 @@ TEST(Table, ItemData){
     SymtableItemPtr item2;
     ASSERT_EQ(symtable_findItem(map, horse_val, &item2), SYMTABLE_SUCCESS);
     ASSERT_EQ(item1->constant, item2->constant);
-    ASSERT_EQ(item1->defined, item2->defined);
+    ASSERT_EQ(item1->known_value, item2->known_value);
     ASSERT_EQ(item1->used, item2->used);
     ASSERT_EQ(item1->symbol_state, item2->symbol_state);
     ASSERT_EQ(*((int*)item2->data), 5);
@@ -598,7 +598,7 @@ TEST(Table, FunctionData){
 
     // Přiřazení dat funkce do položky
     item1->data = data;
-    item1->defined = true;
+    item1->known_value = true;
     item1->symbol_state = SYMTABLE_SYMBOL_FUNCTION;
     item1->used = false;
 

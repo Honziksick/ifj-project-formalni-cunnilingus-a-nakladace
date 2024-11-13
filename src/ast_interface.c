@@ -666,6 +666,7 @@ AST_VarNode *AST_createVarNode(AST_NodeType type) {
         node->type = AST_LITERAL_NODE;
     }
     node->identifier = NULL;
+    node->frameID = AST_FRAME_ID_NOT_ASSIGNED;
     node->literalType = AST_LITERAL_NOT_DEFINED;
     node->value = NULL;
 

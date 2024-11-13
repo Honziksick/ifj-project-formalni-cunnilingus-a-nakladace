@@ -117,7 +117,7 @@ typedef struct {
     DString *key;                       /**< Klíč položky (identifikátor) */
     symtable_symbolState symbol_state;  /**< Stav symbolu dle výčtu `symtable_symbol_state` */
     bool used;                          /**< Příznak, zda je položka použita */
-    bool defined;                       /**< Příznak, zda je položka definovaná */
+    bool known_value;                   /**< Příznak, zda má položka hodnotu známou při překladu */
     bool constant;                      /**< Příznak, zda je položka konstantní */
     bool changed;                       /**< Příznak, zda byla hodnota položky změněna */
     void *data;                         /**< Ukazatel na data asociovaná s položkou */

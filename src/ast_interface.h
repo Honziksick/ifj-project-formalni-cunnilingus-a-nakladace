@@ -36,6 +36,7 @@
 
 #include <stdlib.h>
 #include "ast_nodes.h"
+#include "parser.h"
 #include "error.h"
 
 /*******************************************************************************
