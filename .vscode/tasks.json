@@ -160,6 +160,15 @@
             "problemMatcher": []
         },
         {
+            "label": "llparser",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-llparser",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "build-lltable",
             "type": "shell",
             "command": "make -C \"${workspaceFolder}/src\" build-lltable",
@@ -172,6 +181,33 @@
             "label": "build-parser",
             "type": "shell",
             "command": "make -C \"${workspaceFolder}/src\" build-parser",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-precparser",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-precparser",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-precstack",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-precstack",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-prectable",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-prectable",
             "presentation": {
                 "reveal": "always"
             },
@@ -252,6 +288,24 @@
             "problemMatcher": []
         },
         {
+            "label": "build-precstack-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-precstack-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build-prectable-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" build-prectable-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "build-parser-test",
             "type": "shell",
             "command": "make -C \"${workspaceFolder}/src\" build-parser-test",
@@ -279,9 +333,9 @@
             "problemMatcher": []
         },
         {
-            "label": "build-stack-frame-test",
+            "label": "build-frame-stack-test",
             "type": "shell",
-            "command": "make -C \"${workspaceFolder}/src\" build-stack-frame-test",
+            "command": "make -C \"${workspaceFolder}/src\" build-frame-stack-test",
             "presentation": {
                 "reveal": "always"
             },
@@ -371,6 +425,24 @@
             "problemMatcher": []
         },
         {
+            "label": "run-precstack-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" run-precstack-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "run-prectable-test",
+            "type": "shell",
+            "command": "make -C \"${workspaceFolder}/src\" run-prectable-test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "run-scanner-test",
             "type": "shell",
             "command": "make -C \"${workspaceFolder}/src\" run-scanner-test",
@@ -389,9 +461,9 @@
             "problemMatcher": []
         },
         {
-            "label": "run-stack-frame-test",
+            "label": "run-frame-stack-test",
             "type": "shell",
-            "command": "make -C \"${workspaceFolder}/src\" run-stack-frame-test",
+            "command": "make -C \"${workspaceFolder}/src\" run-frame-stack-test",
             "presentation": {
                 "reveal": "always"
             },

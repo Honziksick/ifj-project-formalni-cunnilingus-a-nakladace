@@ -300,19 +300,12 @@ build-error: $(BUILD_DIR)/$(ERROR_LIB).o
 ### B # build-string: # Sestaví knihovnu operací nad dynamickým stringem
 build-string: $(BUILD_DIR)/$(DYNAMIC_STRING_LIB).o
 
-### B # build-symtable: # Sestaví knihovnu operací nad tabulkou symbolů typu TRP-izp
-build-symtable: $(BUILD_DIR)/$(SYMTABLE).o
-
 # Stavba objekotvých souborů jednotlivých podpůrných submodulů a knihoven
 $(BUILD_DIR)/$(ERROR_LIB).o: $(SRC_DIR)/$(ERROR_LIB).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
 $(BUILD_DIR)/$(DYNAMIC_STRING_LIB).o: $(SRC_DIR)/$(DYNAMIC_STRING_LIB).c
-	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
-
-$(BUILD_DIR)/$(SYMTABLE).o: $(SRC_DIR)/$(SYMTABLE).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
@@ -338,35 +331,51 @@ $(BUILD_DIR)/$(SCANNER).o: $(SRC_DIR)/$(SCANNER).c
 
 LLTABLE = lltable
 PRECTABLE = precedence_table
-FRAME_STACK_LIB = frame_stack
+FRAME_STACK = frame_stack
 AST_LIB = ast_interface
 PRECSTACK = precedence_stack
 PARSER = parser
-PARSER_SRC = $(SRC_DIR)/$(LLTABLE).c $(SRC_DIR)/$(PRECTABLE).c \
-             $(SRC_DIR)/$(FRAME_STACK_LIB).c $(SRC_DIR)/$(AST_LIB).c \
-             $(SRC_DIR)/ll$(PARSER).c $(SRC_DIR)/precedence_$(PARSER).c \
-			 $(SRC_DIR)/$(ERROR_LIB).c $(SRC_DIR)/$(DYNAMIC_STRING_LIB).c \
-			 $(SRC_DIR)/$(SCANNER).c $(SRC_DIR)/$(SYMTABLE).c $(SRC_DIR)/$(PRECSTACK).c
 
-### B # build-lltable: # Sestaví LL-tabulky využívanou parserem
+### B # build-parser: # Sestaví obecné funkce využívané ve všech submodulech parseru
+build-parser: $(BUILD_DIR)/$(PARSER).o
+
+### B # build-llparser: # Sestaví funkce pro LL syntaktický analyzátor
+build-llparser: $(BUILD_DIR)/ll$(PARSER).o
+
+### B # build-precparser: # Sestaví funkce pro precedenční syntaktický analyzátor
+build-precparser: $(BUILD_DIR)/precedence_$(PARSER).o
+
+### B # build-lltable: # Sestaví LL-tabulku využívanou LL parserem
 build-lltable: $(BUILD_DIR)/$(LLTABLE).o
 
-### B # build-prectable: # Sestaví LL-tabulky využívanou parserem
+### B # build-prectable: # Sestaví precedenční tabulku využívanou precedenčním parserem
 build-prectable: $(BUILD_DIR)/$(PRECTABLE).o
 
-### B # build-prectable: # Sestaví LL-tabulky využívanou parserem
+### B # build-precstack: # Sestaví precedenční zásobník využívaný precedenčním parserem
 build-precstack: $(BUILD_DIR)/$(PRECSTACK).o
 
 ### B # build-frame-stack: # Sestaví knihovnu pro zásobník rámců využívný parserem
-build-frame-stack: $(BUILD_DIR)/$(FRAME_STACK_LIB).o
+build-frame-stack: $(BUILD_DIR)/$(FRAME_STACK).o
 
 ### B # build-ast: # Sestaví knihovnu pro abstraktní syntaktický strom (AST)
 build-ast: $(BUILD_DIR)/$(AST_LIB).o
 
-### B # build-parser: # Sestaví syntaktický analyzátor alias 'parser'
-build-parser: $(BUILD_DIR)/$(PARSER).o
+### B # build-symtable: # Sestaví knihovnu operací nad tabulkou symbolů typu TRP-izp
+build-symtable: $(BUILD_DIR)/$(SYMTABLE).o
 
-# Stavba objektových souborů jednotlivých modulů překladače
+# Stavba objektových souborů jednotlivých modulů parseru
+$(BUILD_DIR)/$(PARSER).o: $(SRC_DIR)/$(PARSER).c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
+$(BUILD_DIR)/ll$(PARSER).o: $(SRC_DIR)/ll$(PARSER).c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
+$(BUILD_DIR)/precedence_$(PARSER).o: $(SRC_DIR)/precedence_$(PARSER).c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
 $(BUILD_DIR)/$(LLTABLE).o: $(SRC_DIR)/$(LLTABLE).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
@@ -379,7 +388,7 @@ $(BUILD_DIR)/$(PRECSTACK).o: $(SRC_DIR)/$(PRECSTACK).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
-$(BUILD_DIR)/$(FRAME_STACK_LIB).o: $(SRC_DIR)/$(FRAME_STACK_LIB).c
+$(BUILD_DIR)/$(FRAME_STACK).o: $(SRC_DIR)/$(FRAME_STACK).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
@@ -387,7 +396,7 @@ $(BUILD_DIR)/$(AST_LIB).o: $(SRC_DIR)/$(AST_LIB).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
-$(BUILD_DIR)/$(PARSER).o: $(PARSER_SRC)
+$(BUILD_DIR)/$(SYMTABLE).o: $(SRC_DIR)/$(SYMTABLE).c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
@@ -487,76 +496,6 @@ build-string-test: $(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test
 run-string-test: $(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test
 	$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test
 
-### T # build-symtable-test: # Sestaví test knihovny operací nad tabulkou symbolů
-build-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test
-
-### T # run-symtable-test: # Spustí test knihovny operací nad tabulkou symbolů
-run-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test
-	$(TEST_BUILD_DIR)/$(SYMTABLE)_test
-
-### T # build-scanner-test: # Sestaví testy lexikálního analyzátoru alias 'scanneru'
-build-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER)_test
-
-### T # run-scanner-test: # Spustí testy lexikálního analyzátoru alias 'scanneru'
-run-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER)_test
-	$(TEST_BUILD_DIR)/$(SCANNER)_test
-
-### T # build-parser-test: # Sestaví testy syntaktického analyzátoru alias 'parser'
-build-parser-test: $(TEST_BUILD_DIR)/$(PARSER)_test
-
-### T # run-parser-test: # Spustí testy syntaktického analyzátoru alias 'parseru'
-run-parser-test: $(TEST_BUILD_DIR)/$(PARSER)_test
-	$(TEST_BUILD_DIR)/$(PARSER)_test
-
-### T # build-lltable-test: # Sestaví testy aplikace pravidel LL-tabulky
-build-lltable-test: $(TEST_BUILD_DIR)/$(LLTABLE)_test
-
-### T # run-lltable-test: # Spustí testy aplikace pravidel LL-tabulky
-run-lltable-test: $(TEST_BUILD_DIR)/$(LLTABLE)_test
-	$(TEST_BUILD_DIR)/$(LLTABLE)_test
-
-### T # build-prectable-test: # Sestaví testy aplikace pravidel LL-tabulky
-build-prectable-test: $(TEST_BUILD_DIR)/$(PRECTABLE)_test
-
-### T # run-prectable-test: # Spustí testy aplikace pravidel LL-tabulky
-run-prectable-test: $(TEST_BUILD_DIR)/$(PRECTABLE)_test
-	$(TEST_BUILD_DIR)/$(PRECTABLE)_test
-
-### T # build-precstack-test: # Sestaví testy aplikace pravidel LL-tabulky
-build-precstack-test: $(TEST_BUILD_DIR)/$(PRECSTACK)_test
-
-### T # run-precstack-test: # Spustí testy aplikace pravidel LL-tabulky
-run-precstack-test: $(TEST_BUILD_DIR)/$(PRECSTACK)_test
-	$(TEST_BUILD_DIR)/$(PRECSTACK)_test
-
-### T # build-stack-frame-test: # Sestaví testy zásobíku rámců
-build-stack-frame-test: $(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test
-
-### T # run-stack-frame-test: # Spustí testy zásobníku rámců
-run-stack-frame-test: $(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test
-	$(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test
-
-### T # build-ast-test: # Sestaví testy rozhraní pro uzly AST
-build-ast-test: $(TEST_BUILD_DIR)/$(AST_LIB)_test
-
-### T # run-ast-test: # Spustí testy rozhraní pro uzly AST
-run-ast-test: $(TEST_BUILD_DIR)/$(AST_LIB)_test
-	$(TEST_BUILD_DIR)/$(AST_LIB)_test
-
-### T # build-semantic-test: # Sestaví testy sémantického analyzátoru
-build-semantic-test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test
-
-### T # run-semantic-test: # Spustí testy sémantického analyzátoru
-run-semantic-test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test
-	$(TEST_BUILD_DIR)/$(SEMANTIC)_test
-
-### T # build-tac-test: # Sestaví testy generátoru tříadresného kódu (3AK)
-build-tac-test: $(TEST_BUILD_DIR)/$(TAC)_test
-
-### T # run-tac-test: # Spustí testy generátoru tříadresného kódu (3AK)
-run-tac-test: $(TEST_BUILD_DIR)/$(TAC)_test
-	$(TEST_BUILD_DIR)/$(TAC)_test
-
 # Stavba testů podpůrných knihoven a submodulů
 $(TEST_BUILD_DIR)/$(ERROR_LIB)_test: $(TEST_BUILD_DIR)/$(ERROR_LIB)_test.o \
 											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
@@ -586,21 +525,19 @@ $(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o: $(SRC_DIR)/$(DYNAMIC_STRING_LIB).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
-$(TEST_BUILD_DIR)/$(SYMTABLE)_test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test.o \
-											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
-											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
-$(TEST_BUILD_DIR)/$(SYMTABLE)_test.o: $(TEST_DIR)/$(SYMTABLE)_test.cpp
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+###                                                                          ###
+#           TESTY submodulů lexikálního analyzátoru alias "scanneru"            #
+###                                                                          ###
 
-$(TEST_BUILD_DIR)/$(SYMTABLE).o: $(SRC_DIR)/$(SYMTABLE).c
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+### T # build-scanner-test: # Sestaví testy lexikálního analyzátoru alias 'scanneru'
+build-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER)_test
 
+### T # run-scanner-test: # Spustí testy lexikálního analyzátoru alias 'scanneru'
+run-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER)_test
+	$(TEST_BUILD_DIR)/$(SCANNER)_test
+
+# Stavba testů pro lexikální analyzátor
 $(TEST_BUILD_DIR)/$(SCANNER)_test: $(TEST_BUILD_DIR)/$(SCANNER)_test.o \
 											$(TEST_BUILD_DIR)/$(SCANNER).o \
 											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
@@ -618,14 +555,73 @@ $(TEST_BUILD_DIR)/$(SCANNER).o: $(SRC_DIR)/$(SCANNER).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
+
+###                                                                          ###
+#          TESTY submodulů syntaktického analyzátoru alias "parseru"           #
+###                                                                          ###
+
+### T # build-parser-test: # Sestaví testy syntaktického analyzátoru alias 'parseru'
+build-parser-test: $(TEST_BUILD_DIR)/$(PARSER)_test
+
+### T # run-parser-test: # Spustí testy syntaktického analyzátoru alias 'parseru'
+run-parser-test: $(TEST_BUILD_DIR)/$(PARSER)_test
+	$(TEST_BUILD_DIR)/$(PARSER)_test
+
+### T # build-lltable-test: # Sestaví testy aplikace pravidel LL-tabulky pro LL parser
+build-lltable-test: $(TEST_BUILD_DIR)/$(LLTABLE)_test
+
+### T # run-lltable-test: # Spustí testy aplikace pravidel LL-tabulky pro LL parser
+run-lltable-test: $(TEST_BUILD_DIR)/$(LLTABLE)_test
+	$(TEST_BUILD_DIR)/$(LLTABLE)_test
+
+### T # build-prectable-test: # Sestaví testy aplikace pravidel precedenční tabulky pro precedenční parser
+build-prectable-test: $(TEST_BUILD_DIR)/$(PRECTABLE)_test
+
+### T # run-prectable-test: # Spustí testy aplikace pravidel precedenční tabulky pro precedenční parser
+run-prectable-test: $(TEST_BUILD_DIR)/$(PRECTABLE)_test
+	$(TEST_BUILD_DIR)/$(PRECTABLE)_test
+
+### T # build-precstack-test: # Sestaví testy precedenční zásobníku pro precedenční parser
+build-precstack-test: $(TEST_BUILD_DIR)/$(PRECSTACK)_test
+
+### T # run-precstack-test: # Spustí testy precedenční zásobníku pro precedenční parser
+run-precstack-test: $(TEST_BUILD_DIR)/$(PRECSTACK)_test
+	$(TEST_BUILD_DIR)/$(PRECSTACK)_test
+
+### T # build-frame-stack-test: # Sestaví testy zásobíku rámců
+build-frame-stack-test: $(TEST_BUILD_DIR)/$(FRAME_STACK)_test
+
+### T # run-frame-stack-test: # Spustí testy zásobníku rámců
+run-frame-stack-test: $(TEST_BUILD_DIR)/$(FRAME_STACK)_test
+	$(TEST_BUILD_DIR)/$(FRAME_STACK)_test
+
+### T # build-ast-test: # Sestaví testy rozhraní pro uzly AST
+build-ast-test: $(TEST_BUILD_DIR)/$(AST_LIB)_test
+
+### T # run-ast-test: # Spustí testy rozhraní pro uzly AST
+run-ast-test: $(TEST_BUILD_DIR)/$(AST_LIB)_test
+	$(TEST_BUILD_DIR)/$(AST_LIB)_test
+
+### T # build-symtable-test: # Sestaví testy knihovny operací nad tabulkou symbolů
+build-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test
+
+### T # run-symtable-test: # Spustí testy knihovny operací nad tabulkou symbolů
+run-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test
+	$(TEST_BUILD_DIR)/$(SYMTABLE)_test
+
+# Stavba testů pro syntaktický analyzátor
+#                                            $(TEST_BUILD_DIR)/ll$(PARSER).o
+#											 $(TEST_BUILD_DIR)/precedence_$(PARSER).o
 $(TEST_BUILD_DIR)/$(PARSER)_test: $(TEST_BUILD_DIR)/$(PARSER)_test.o \
 											$(TEST_BUILD_DIR)/$(PARSER).o \
-											$(TEST_BUILD_DIR)/$(SCANNER).o \
-											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
-											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
-											$(TEST_BUILD_DIR)/$(AST_LIB).o \
 											$(TEST_BUILD_DIR)/$(LLTABLE).o \
 											$(TEST_BUILD_DIR)/$(PRECTABLE).o \
+											$(TEST_BUILD_DIR)/$(PRECSTACK).o \
+											$(TEST_BUILD_DIR)/$(FRAME_STACK).o \
+											$(TEST_BUILD_DIR)/$(AST_LIB).o \
+											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
+											$(TEST_BUILD_DIR)/$(SCANNER).o \
+											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
 											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
 											$(TEST_BUILD_DIR)/ast_test_utils.o \
 											$(TEST_BUILD_DIR)/gtest_main.a \
@@ -636,11 +632,15 @@ $(TEST_BUILD_DIR)/$(PARSER)_test.o: $(TEST_DIR)/$(PARSER)_test.cpp
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
 
-$(TEST_BUILD_DIR)/ast_test_utils.o: $(TEST_DIR)/ast_test_utils.cpp
+$(TEST_BUILD_DIR)/$(PARSER).o: $(SRC_DIR)/$(PARSER).c
 	@mkdir -p $(TEST_BUILD_DIR)
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
-$(TEST_BUILD_DIR)/$(PARSER).o: $(PARSER_SRC)
+$(TEST_BUILD_DIR)/ll$(PARSER).o: $(SRC_DIR)/ll$(PARSER).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/precedence_$(PARSER).o: $(SRC_DIR)/precedence_$(PARSER).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
@@ -676,12 +676,10 @@ $(TEST_BUILD_DIR)/$(PRECTABLE).o: $(SRC_DIR)/$(PRECTABLE).c
 
 $(TEST_BUILD_DIR)/$(PRECSTACK)_test: $(TEST_BUILD_DIR)/$(PRECSTACK)_test.o \
 											$(TEST_BUILD_DIR)/$(PRECSTACK).o \
-											$(TEST_BUILD_DIR)/$(PRECTABLE).o \
-											$(TEST_BUILD_DIR)/$(LLTABLE).o \
-											$(TEST_BUILD_DIR)/ll$(PARSER).o \
 											$(TEST_BUILD_DIR)/$(AST_LIB).o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
 											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
+											$(TEST_BUILD_DIR)/ast_test_utils.o \
 											$(TEST_BUILD_DIR)/gtest_main.a \
 											$(TEST_BUILD_DIR)/gtest.a
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
@@ -694,8 +692,8 @@ $(TEST_BUILD_DIR)/$(PRECSTACK).o: $(SRC_DIR)/$(PRECSTACK).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
-$(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test: $(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test.o \
-											$(TEST_BUILD_DIR)/$(FRAME_STACK_LIB).o \
+$(TEST_BUILD_DIR)/$(FRAME_STACK)_test: $(TEST_BUILD_DIR)/$(FRAME_STACK)_test.o \
+											$(TEST_BUILD_DIR)/$(FRAME_STACK).o \
 											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
 											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
 											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
@@ -703,11 +701,11 @@ $(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test: $(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_
 											$(TEST_BUILD_DIR)/gtest.a
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
-$(TEST_BUILD_DIR)/$(FRAME_STACK_LIB)_test.o: $(TEST_DIR)/$(FRAME_STACK_LIB)_test.cpp
+$(TEST_BUILD_DIR)/$(FRAME_STACK)_test.o: $(TEST_DIR)/$(FRAME_STACK)_test.cpp
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
 
-$(TEST_BUILD_DIR)/$(FRAME_STACK_LIB).o: $(SRC_DIR)/$(FRAME_STACK_LIB).c
+$(TEST_BUILD_DIR)/$(FRAME_STACK).o: $(SRC_DIR)/$(FRAME_STACK).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
@@ -728,6 +726,38 @@ $(TEST_BUILD_DIR)/$(AST_LIB).o: $(SRC_DIR)/$(AST_LIB).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
+$(TEST_BUILD_DIR)/ast_test_utils.o: $(TEST_DIR)/ast_test_utils.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(SYMTABLE)_test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test.o \
+											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
+											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/gtest_main.a \
+											$(TEST_BUILD_DIR)/gtest.a
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
+
+$(TEST_BUILD_DIR)/$(SYMTABLE)_test.o: $(TEST_DIR)/$(SYMTABLE)_test.cpp
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(SYMTABLE).o: $(SRC_DIR)/$(SYMTABLE).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+
+###                                                                          ###
+#                   TESTY submodulů sémantického analyzátoru                   #
+###                                                                          ###
+
+### T # build-semantic-test: # Sestaví testy sémantického analyzátoru
+build-semantic-test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test
+
+### T # run-semantic-test: # Spustí testy sémantického analyzátoru
+run-semantic-test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test
+	$(TEST_BUILD_DIR)/$(SEMANTIC)_test
+
+# Stavba testů pro sémantický analyzátor
 $(TEST_BUILD_DIR)/$(SEMANTIC)_test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test.o \
 											$(TEST_BUILD_DIR)/$(SEMANTIC).o \
 											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
@@ -745,6 +775,19 @@ $(TEST_BUILD_DIR)/$(SEMANTIC).o: $(SRC_DIR)/$(SEMANTIC).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
+
+###                                                                          ###
+#                   TESTY generátoru tříadresného kódu (3AK)                   #
+###                                                                          ###
+
+### T # build-tac-test: # Sestaví testy generátoru tříadresného kódu (3AK)
+build-tac-test: $(TEST_BUILD_DIR)/$(TAC)_test
+
+### T # run-tac-test: # Spustí testy generátoru tříadresného kódu (3AK)
+run-tac-test: $(TEST_BUILD_DIR)/$(TAC)_test
+	$(TEST_BUILD_DIR)/$(TAC)_test
+
+# Stavba testů pro generátor tříadresného kódu
 $(TEST_BUILD_DIR)/$(TAC)_test: $(TEST_BUILD_DIR)/$(TAC)_test.o \
 											$(TEST_BUILD_DIR)/$(TAC).o \
 											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
@@ -760,6 +803,7 @@ $(TEST_BUILD_DIR)/$(TAC)_test.o: $(TEST_DIR)/$(TAC)_test.cpp
 $(TEST_BUILD_DIR)/$(TAC).o: $(SRC_DIR)/$(TAC).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
 
 ################################################################################
 #                                                                              #
@@ -794,9 +838,13 @@ process-coverage:
 	genhtml $(COVERAGE_BUILD_DIR)/filtered_coverage.info \
 	--output-directory $(COVERAGE_BUILD_DIR)
 	@mkdir -p $(COVERAGE_BUILD_DIR)/coverage_data
-	@find $(COVERAGE_BUILD_DIR) -maxdepth 1 -type f -exec mv -f {} $(COVERAGE_BUILD_DIR)/coverage_data/ \;
-	@find $(COVERAGE_BUILD_DIR) -maxdepth 1 -type d ! -name 'coverage_data' ! -path '$(COVERAGE_BUILD_DIR)' -exec mv {} $(COVERAGE_BUILD_DIR)/coverage_data/ \;
-	@echo '<html><head><meta http-equiv="refresh" content="0; url=coverage_data/index.html"></head></html>' > $(COVERAGE_BUILD_DIR)/code_coverage_web_result.html
+	@find $(COVERAGE_BUILD_DIR) -maxdepth 1 -type f -exec \
+	mv -f {} $(COVERAGE_BUILD_DIR)/coverage_data/ \;
+	@find $(COVERAGE_BUILD_DIR) -maxdepth 1 -type d ! -name \
+	'coverage_data' ! -path '$(COVERAGE_BUILD_DIR)' -exec mv {} \
+	$(COVERAGE_BUILD_DIR)/coverage_data/ \;
+	@echo '<html><head><meta http-equiv="refresh" content="0; \
+	url=coverage_data/index.html"></head></html>' > $(COVERAGE_BUILD_DIR)/code_coverage_web_result.html
 
 
 ###                                                                          ###
@@ -840,12 +888,14 @@ pack-prepare:
 	@{ \
 		missing_files=0; \
 		if [ -d "$(SRC_DIR)" ]; then \
-			rsync -a --include '*/' --include '*.c' --exclude '*' --exclude '*/' --prune-empty-dirs $(SRC_DIR)/ $(PACK_DIR)/$(ARCHIVE_DIR)/; \
+			rsync -a --include '*/' --include '*.c' --exclude '*' --exclude '*/' \
+			--prune-empty-dirs $(SRC_DIR)/ $(PACK_DIR)/$(ARCHIVE_DIR)/; \
 		else \
 			echo "\033[0;31m\nError: Adresář "$(SRC_DIR)" neexistuje.\033[0m"; \
 		fi; \
 		if [ -d "$(SRC_DIR)" ]; then \
-			rsync -a --include '*/' --include '*.h' --exclude '*' --exclude '*/' --prune-empty-dirs $(SRC_DIR)/ $(PACK_DIR)/$(ARCHIVE_DIR)/; \
+			rsync -a --include '*/' --include '*.h' --exclude '*' --exclude '*/' \
+			--prune-empty-dirs $(SRC_DIR)/ $(PACK_DIR)/$(ARCHIVE_DIR)/; \
 		else \
 			echo "\033[0;31m\nError: Adresář "$(SRC_DIR)" neexistuje.\033[0m"; \
 		fi; \
@@ -855,7 +905,8 @@ pack-prepare:
 			missing_files=1; \
 		fi; \
 		if [ -d "$(TEST_DIR)" ]; then \
-			rsync -a --include '*/' --include '*.cpp' --exclude '*' --exclude '*/' --prune-empty-dirs $(TEST_DIR)/ $(PACK_DIR)/$(ARCHIVE_DIR)/; \
+			rsync -a --include '*/' --include '*.cpp' --exclude '*' --exclude '*/' \
+			--prune-empty-dirs $(TEST_DIR)/ $(PACK_DIR)/$(ARCHIVE_DIR)/; \
 		else \
 			echo "\033[0;31m\nError: Adresář "$(TEST_DIR)" neexistuje.\033[0m"; \
 		fi; \
