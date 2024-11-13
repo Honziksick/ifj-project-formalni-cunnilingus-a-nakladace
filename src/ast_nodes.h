@@ -130,7 +130,7 @@ typedef enum AST_DataType {
     AST_DATA_TYPE_INT           = 1,            /**< Datový typ i32 */
     AST_DATA_TYPE_INT_OR_NULL   = 2,            /**< Datový typ i32 nebo NULL */
     AST_DATA_TYPE_FLOAT         = 3,            /**< Datový typ f64 */
-    AST_DATA_TYPE_FLOAT_OR_NULL = 5,            /**< Datový typ f64 nebo NULL */
+    AST_DATA_TYPE_FLOAT_OR_NULL = 4,            /**< Datový typ f64 nebo NULL */
     AST_DATA_TYPE_STRING        = 5,            /**< Datový typ []u8 */
     AST_DATA_TYPE_STRING_OR_NULL= 6,            /**< Datový typ []u8 nebo NULL */
     AST_DATA_TYPE_VOID          = 7,            /**< Datový typ void */
