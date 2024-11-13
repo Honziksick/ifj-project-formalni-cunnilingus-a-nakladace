@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            11.11.2024                                                *
- * Poslední změna:   12.11.2024                                                *
+ * Poslední změna:   13.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -19,14 +19,15 @@
  * @file precedence_stack.c
  * @author Jan Kalina \<xkalinj00>
  *
- * @brief Implementační soubor pro precedenční zásobník v syntaktické analýze.
- * @details Tento soubor obsahuje implementace funkcí pro správu zásobníku
- *          používaného v precedenční syntaktické analýze zdrojového kódu jazyka
- *          IFJ24.
+ * @brief Implementace funkcí pro správu precedenčního zásobníku.
+ * @details Tento soubor obsahuje implementaci funkcí pro manipulaci se
+ *          zásobníkem používaným v precedenční syntaktické analýze. Zahrnuje
+ *          inicializaci, uvolnění paměti, kontrolu stavu zásobníku a operace
+ *          pro práci s vrcholem. Umožňuje efektivní řízení přechodů mezi
+ *          stavy při analýze výrazů.
  */
 
 #include "precedence_stack.h"
-
 
 /*******************************************************************************
  *                                                                             *
@@ -57,56 +58,91 @@ inline void PrecStack_create() {
     if(precStack == NULL) {
         error_handle(ERROR_INTERNAL);
     }
+
+    // Jinak nastvíme vrchol zásobníku na NULL
+    precStack->top = NULL;
 } // PrecStack_create()
 
 /**
  * @brief Inicializuje globální precedenční zásobník.
  */
-void PrecStack_init() {
-    // Pokud zásbník existuje nastvíme vrchol na NULL
-    if(precStack != NULL) {
-        precStack->top = NULL;
+inline void PrecStack_init() {
+    // Kontrola existence zásobníku
+    if(precStack == NULL) {
+        error_handle(ERROR_INTERNAL);
     }
+
+    // Pushne na precedenční zásobník počáteční symbol
+    PrecStack_pushPrecTerminal(T_PREC_DOLLAR, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
 } // PrecStack_init()
 
 /**
  * @brief Pushne terminál na globální precedenční zásobník.
  */
-void PrecStack_push(PrecStackSymbol symbol, AST_NodeType type, void *node) {
+void PrecStack_pushPrecTerminal(PrecTerminals terminal, AST_NodeType type, void *node) {
     // Pokud není precStack alokovaný, nic se neděje
     if(precStack == NULL) {
         return;
     }
 
-    PrecStackNode* newStackNode = (PrecStackNode *)malloc(sizeof(PrecStackNode));
-    if(newStackNode == NULL) {
-        // Ošetření chyby alokace paměti
-        return;
-    }
+    // Namapování typu precedenčního terminálu na typ zásobníkového symbolu
+    PrecStackSymbol stackSymbol = PREC_STACK_SYM_UNEDFINED;
+    PrecStack_mapPrecTerminalToStackSymbol(terminal, &stackSymbol);
 
-    switch(symbol) {
-        case PREC_STACK_SYM_HANDLE:
-            newStackNode->symbolType = STACK_NODE_TYPE_HANDLE;
-            break;
-        case PREC_STACK_SYM_EXPRESSION:
-        case PREC_STACK_SYM_ARGUMENTS:
-        case PREC_STACK_SYM_ARG_LIST:
-        case PREC_STACK_SYM_ARG:
-            newStackNode->symbolType = STACK_NODE_TYPE_NONTERMINAL;
-            break;
-        case PREC_STACK_SYM_DOLLAR:
-            error_handle(ERROR_INTERNAL);
-            break;
-        default:
-            newStackNode->symbolType = STACK_NODE_TYPE_TERMINAL;
-    }
+    // Vytvoření nového uzlu zásobníku
+    PrecStackNode *newStackNode = PrecStack_createStackNode();
 
-    newStackNode->symbol = symbol;
+    // Nastavení vlastností nového uzlu
+    newStackNode->symbolType = STACK_NODE_TYPE_TERMINAL;
+    newStackNode->symbol = stackSymbol;
     newStackNode->nodeType = type;
     newStackNode->node = node;
     newStackNode->next = PrecStack_top();
+
+    // Nastavení nového uzlu jako vrcholu zásobníku
     precStack->top = newStackNode;
-} // PrecStack_push()
+} // PrecStack_pushPrecTerminal()
+
+/**
+ * @brief Pushne NEterminál na globální precedenční zásobník.
+ */
+void PrecStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType type, void *node) {
+    // Pokud není precStack alokovaný, nic se neděje
+    if(precStack == NULL) {
+        return;
+    }
+
+    // Namapování typu zásobníkového neterminálu na typ zásobníkového symbolu
+    PrecStackSymbol stackSymbol = PREC_STACK_SYM_UNEDFINED;
+    PrecStack_mapStackNonTerminalToStackSymbol(symbol, &stackSymbol);
+
+    // Vytvoření nového uzlu zásobníku
+    PrecStackNode *newStackNode = PrecStack_createStackNode();
+
+    // Nastavení typu symbolu nového uzlu na základě typu neterminálu
+    switch(symbol) {
+        case PREC_STACK_NT_EXPRESSION:
+        case PREC_STACK_NT_ARGUMENTS:
+        case PREC_STACK_NT_ARG_LIST:
+        case PREC_STACK_NT_ARG:
+            newStackNode->symbolType = STACK_NODE_TYPE_NONTERMINAL;
+            break;
+        case PREC_STACK_NT_HANDLE:
+            newStackNode->symbolType = STACK_NODE_TYPE_HANDLE;
+            break;
+        default:
+            error_handle(ERROR_INTERNAL);
+    }
+
+    // Nastavení vlastností nového uzlu
+    newStackNode->symbol = stackSymbol;
+    newStackNode->nodeType = type;
+    newStackNode->node = node;
+    newStackNode->next = PrecStack_top();
+
+    // Nastavení nového uzlu jako vrcholu zásobníku
+    precStack->top = newStackNode;
+} // PrecStack_pushPrecNonTerminal()
 
 /**
  * @brief Popne uzel AST z globálního precedenčního zásobníku.
@@ -115,8 +151,10 @@ PrecStackNode* PrecStack_pop() {
     if(precStack->top == NULL) {
         return NULL;
     }
-    PrecStackNode* node = precStack->top;
-    precStack->top = precStack->top->next;
+
+    PrecStackNode* node = PrecStack_top();
+    precStack->top = node->next;
+
     return node;
 } // PrecStack_pop()
 
@@ -124,10 +162,12 @@ PrecStackNode* PrecStack_pop() {
  * @brief Získá ukazatel na uzel na vrcholu globálního precedenčního zásobníku
  *        bez jeho popnutí.
  */
-PrecStackNode* PrecStack_top() {
-    if(precStack->top == NULL) {
-        return NULL;
+inline PrecStackNode* PrecStack_top() {
+    // Kontrola, zda je zásobník alokovaný
+    if(precStack != NULL) {
+        error_handle(ERROR_INTERNAL);
     }
+
     return precStack->top;
 } // PrecStack_top()
 
@@ -159,6 +199,69 @@ void PrecStack_dispose() {
     PrecStack_init();
 } // PrecStack_dispose()
 
+/**
+ * @brief Uvolní z paměti samotnou strukturu precedenčního zásobníku.
+ */
+inline void PrecStack_destroy() {
+    if(precStack == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    free(precStack);
+} // PrecStack_destroy()
+
+/**
+ * @brief Získá první terminál na vrcholu zásobníku, který je nejblíže vrcholu.
+ */
+void PrecStack_getTopPrecTerminal(PrecTerminals *terminal) {
+    if (terminal == NULL || precStack == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Získání vrcholu zásobníku
+    PrecStackNode* stackTopNode = PrecStack_top();
+
+    if(stackTopNode == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Cyklíme, dokud nenajdeme první terminál na zásobníku
+    while(stackTopNode != NULL && stackTopNode->symbolType != STACK_NODE_TYPE_TERMINAL) {
+        stackTopNode = stackTopNode->next;
+    }
+
+    // Pokud nebyl na zásobníku teminál nalezen, nastala interní chyba překladače
+    if(stackTopNode == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    PrecStack_mapStackSymbolToPrecTerminal(stackTopNode->symbol, terminal);
+
+} // PrecStack_getTopPrecTerminal
+
+/**
+ * @brief Zkontroluje, zda je precedenční zásobník prázdný.
+ */
+bool PrecStack_isEmpty() {
+    return (precStack == NULL || precStack->top == NULL);
+} // PrecStack_isEmpty()
+
+/**
+ * @brief Zkontroluje, zda je na vrcholu zásobníku symbol HANDLE.
+ */
+bool PrecStack_isHandleOnTop() {
+    // Získání vrcholu zásobníku
+    PrecStackNode* stackTopNode = PrecStack_top();
+
+    // Pokud je zásobník prázdný, vrátíme false
+    if(stackTopNode == NULL) {
+        return false;
+    }
+
+    // Kontrola, zda je na vrcholu zásobníku symbol HANDLE
+    return (stackTopNode->symbol == PREC_STACK_SYM_HANDLE);
+} // PrecStack_handleOnTop()
+
 
 /*******************************************************************************
  *                                                                             *
@@ -167,10 +270,317 @@ void PrecStack_dispose() {
  ******************************************************************************/
 
 /**
- * @brief Zkontroluje, zda je precedenční zásobník prázdný.
+ * @brief Vytvoří nový uzel typu `PrecStackNode`.
+*/
+PrecStackNode *PrecStack_createStackNode() {
+    // Alokujeme paměť pro nový uzel typu "PrecStackNode"
+    PrecStackNode *node = (PrecStackNode *)malloc(sizeof(PrecStackNode));
+
+    // Pokud se alokace nezdařila, hlásíme interní chybu překladače
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
+
+    // Počáteční inicializace členů uzlu
+    node->symbolType = STACK_NODE_TYPE_UNDEFINED;
+    node->symbol = PREC_STACK_SYM_UNEDFINED;
+    node->nodeType = SN_WITHOUT_AST_TYPE;
+    node->node = SN_WITHOUT_AST_PTR;
+    node->next = NULL;
+
+    // Vracíme ukazatel na nový uzel typu "PrecStackNode"
+    return node;
+} // PrecStack_createStackNode()
+
+/**
+ * @brief Namapuje typ precedenčního terminálu na typ zásobníkového symbolu.
+*/
+void PrecStack_mapPrecTerminalToStackSymbol(PrecTerminals terminal, PrecStackSymbol *stackSymbol) {
+    // Ověření platnosti předaného ukazatele
+    if(stackSymbol == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return;
+    }
+
+    switch(terminal) {
+        // Mapování: T_PREC_ID -> PREC_STACK_SYM_ID
+        case T_PREC_ID:
+            *stackSymbol = PREC_STACK_SYM_ID;
+            break;
+
+        // Mapování: T_PREC_INT_LITERAL -> PREC_STACK_SYM_INT_LITERAL
+        case T_PREC_INT_LITERAL:
+            *stackSymbol = PREC_STACK_SYM_INT_LITERAL;
+            break;
+
+        // Mapování: T_PREC_FLOAT_LITERAL -> PREC_STACK_SYM_FLOAT_LITERAL
+        case T_PREC_FLOAT_LITERAL:
+            *stackSymbol = PREC_STACK_SYM_FLOAT_LITERAL;
+            break;
+
+        // Mapování: T_PREC_STRING_LITERAL -> PREC_STACK_SYM_STRING_LITERAL
+        case T_PREC_STRING_LITERAL:
+            *stackSymbol = PREC_STACK_SYM_STRING_LITERAL;
+            break;
+
+        // Mapování: T_PREC_NULL_LITERAL -> PREC_STACK_SYM_NULL_LITERAL
+        case T_PREC_NULL_LITERAL:
+            *stackSymbol = PREC_STACK_SYM_NULL_LITERAL;
+            break;
+
+        // Mapování: T_PREC_IFJ -> PREC_STACK_SYM_IFJ
+        case T_PREC_IFJ:
+            *stackSymbol = PREC_STACK_SYM_IFJ;
+            break;
+
+        // Mapování: T_PREC_DOT -> PREC_STACK_SYM_DOT
+        case T_PREC_DOT:
+            *stackSymbol = PREC_STACK_SYM_DOT;
+            break;
+
+        // Mapování: T_PREC_LEFT_BRACKET -> PREC_STACK_SYM_LEFT_BRACKET
+        case T_PREC_LEFT_BRACKET:
+            *stackSymbol = PREC_STACK_SYM_LEFT_BRACKET;
+            break;
+
+        // Mapování: T_PREC_RIGHT_BRACKET -> PREC_STACK_SYM_RIGHT_BRACKET
+        case T_PREC_RIGHT_BRACKET:
+            *stackSymbol = PREC_STACK_SYM_RIGHT_BRACKET;
+            break;
+
+        // Mapování: T_PREC_PLUS -> PREC_STACK_SYM_PLUS
+        case T_PREC_PLUS:
+            *stackSymbol = PREC_STACK_SYM_PLUS;
+            break;
+
+        // Mapování: T_PREC_MINUS -> PREC_STACK_SYM_MINUS
+        case T_PREC_MINUS:
+            *stackSymbol = PREC_STACK_SYM_MINUS;
+            break;
+
+        // Mapování: T_PREC_MULTIPLICATION -> PREC_STACK_SYM_MULTIPLICATION
+        case T_PREC_MULTIPLICATION:
+            *stackSymbol = PREC_STACK_SYM_MULTIPLICATION;
+            break;
+
+        // Mapování: T_PREC_DIVISION -> PREC_STACK_SYM_DIVISION
+        case T_PREC_DIVISION:
+            *stackSymbol = PREC_STACK_SYM_DIVISION;
+            break;
+
+        // Mapování: T_PREC_IDENTITY -> PREC_STACK_SYM_IDENTITY
+        case T_PREC_IDENTITY:
+            *stackSymbol = PREC_STACK_SYM_IDENTITY;
+            break;
+
+        // Mapování: T_PREC_NOT_EQUAL -> PREC_STACK_SYM_NOT_EQUAL
+        case T_PREC_NOT_EQUAL:
+            *stackSymbol = PREC_STACK_SYM_NOT_EQUAL;
+            break;
+
+        // Mapování: T_PREC_LESS_THAN -> PREC_STACK_SYM_LESS_THAN
+        case T_PREC_LESS_THAN:
+            *stackSymbol = PREC_STACK_SYM_LESS_THAN;
+            break;
+
+        // Mapování: T_PREC_GREATER_THAN -> PREC_STACK_SYM_GREATER_THAN
+        case T_PREC_GREATER_THAN:
+            *stackSymbol = PREC_STACK_SYM_GREATER_THAN;
+            break;
+
+        // Mapování: T_PREC_LESS_THAN_OR_EQUAL -> PREC_STACK_SYM_LESS_THAN_OR_EQUAL
+        case T_PREC_LESS_THAN_OR_EQUAL:
+            *stackSymbol = PREC_STACK_SYM_LESS_THAN_OR_EQUAL;
+            break;
+
+        // Mapování: T_PREC_GREATER_THAN_OR_EQUAL -> PREC_STACK_SYM_GREATER_THAN_OR_EQUAL
+        case T_PREC_GREATER_THAN_OR_EQUAL:
+            *stackSymbol = PREC_STACK_SYM_GREATER_THAN_OR_EQUAL;
+            break;
+
+        // Mapování: T_PREC_COMMA -> PREC_STACK_SYM_COMMA
+        case T_PREC_COMMA:
+            *stackSymbol = PREC_STACK_SYM_COMMA;
+            break;
+
+        // Mapování: T_PREC_DOLLAR -> PREC_STACK_SYM_DOLLAR
+        case T_PREC_DOLLAR:
+            *stackSymbol = PREC_STACK_SYM_DOLLAR;
+            break;
+
+        // Defaultní případ: interní chyba
+        default:
+            error_handle(ERROR_INTERNAL);
+            break;
+    } // switch()
+}  // PrecStack_mapPrecTerminalToStackSymbol()
+
+/**
+ * @brief Namapuje typ zásobníkového symbolu na typ precedenčního terminálu.
+*/
+void PrecStack_mapStackSymbolToPrecTerminal(PrecStackSymbol stackSymbol, PrecTerminals *terminal) {
+    if (terminal == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return;
+    }
+
+    // Mapujeme symbol na terminál
+    switch(stackSymbol) {
+        // Mapování: PREC_STACK_SYM_ID -> T_PREC_ID
+        case PREC_STACK_SYM_ID:
+            *terminal = T_PREC_ID;
+            break;
+
+        // Mapování: PREC_STACK_SYM_INT_LITERAL -> T_PREC_INT_LITERAL
+        case PREC_STACK_SYM_INT_LITERAL:
+            *terminal = T_PREC_INT_LITERAL;
+            break;
+
+        // Mapování: PREC_STACK_SYM_FLOAT_LITERAL -> T_PREC_FLOAT_LITERAL
+        case PREC_STACK_SYM_FLOAT_LITERAL:
+            *terminal = T_PREC_FLOAT_LITERAL;
+            break;
+
+        // Mapování: PREC_STACK_SYM_STRING_LITERAL -> T_PREC_STRING_LITERAL
+        case PREC_STACK_SYM_STRING_LITERAL:
+            *terminal = T_PREC_STRING_LITERAL;
+            break;
+
+        // Mapování: PREC_STACK_SYM_NULL_LITERAL -> T_PREC_NULL_LITERAL
+        case PREC_STACK_SYM_NULL_LITERAL:
+            *terminal = T_PREC_NULL_LITERAL;
+            break;
+
+        // Mapování: PREC_STACK_SYM_IFJ -> T_PREC_IFJ
+        case PREC_STACK_SYM_IFJ:
+            *terminal = T_PREC_IFJ;
+            break;
+
+        // Mapování: PREC_STACK_SYM_DOT -> T_PREC_DOT
+        case PREC_STACK_SYM_DOT:
+            *terminal = T_PREC_DOT;
+            break;
+
+        // Mapování: PREC_STACK_SYM_LEFT_BRACKET -> T_PREC_LEFT_BRACKET
+        case PREC_STACK_SYM_LEFT_BRACKET:
+            *terminal = T_PREC_LEFT_BRACKET;
+            break;
+
+        // Mapování: PREC_STACK_SYM_RIGHT_BRACKET -> T_PREC_RIGHT_BRACKET
+        case PREC_STACK_SYM_RIGHT_BRACKET:
+            *terminal = T_PREC_RIGHT_BRACKET;
+            break;
+
+        // Mapování: PREC_STACK_SYM_PLUS -> T_PREC_PLUS
+        case PREC_STACK_SYM_PLUS:
+            *terminal = T_PREC_PLUS;
+            break;
+
+        // Mapování: PREC_STACK_SYM_MINUS -> T_PREC_MINUS
+        case PREC_STACK_SYM_MINUS:
+            *terminal = T_PREC_MINUS;
+            break;
+
+        // Mapování: PREC_STACK_SYM_MULTIPLICATION -> T_PREC_MULTIPLICATION
+        case PREC_STACK_SYM_MULTIPLICATION:
+            *terminal = T_PREC_MULTIPLICATION;
+            break;
+
+        // Mapování: PREC_STACK_SYM_DIVISION -> T_PREC_DIVISION
+        case PREC_STACK_SYM_DIVISION:
+            *terminal = T_PREC_DIVISION;
+            break;
+
+        // Mapování: PREC_STACK_SYM_IDENTITY -> T_PREC_IDENTITY
+        case PREC_STACK_SYM_IDENTITY:
+            *terminal = T_PREC_IDENTITY;
+            break;
+
+        // Mapování: PREC_STACK_SYM_NOT_EQUAL -> T_PREC_NOT_EQUAL
+        case PREC_STACK_SYM_NOT_EQUAL:
+            *terminal = T_PREC_NOT_EQUAL;
+            break;
+
+        // Mapování: PREC_STACK_SYM_LESS_THAN -> T_PREC_LESS_THAN
+        case PREC_STACK_SYM_LESS_THAN:
+            *terminal = T_PREC_LESS_THAN;
+            break;
+
+        // Mapování: PREC_STACK_SYM_GREATER_THAN -> T_PREC_GREATER_THAN
+        case PREC_STACK_SYM_GREATER_THAN:
+            *terminal = T_PREC_GREATER_THAN;
+            break;
+
+        // Mapování: PREC_STACK_SYM_LESS_THAN_OR_EQUAL -> T_PREC_LESS_THAN_OR_EQUAL
+        case PREC_STACK_SYM_LESS_THAN_OR_EQUAL:
+            *terminal = T_PREC_LESS_THAN_OR_EQUAL;
+            break;
+
+        // Mapování: PREC_STACK_SYM_GREATER_THAN_OR_EQUAL -> T_PREC_GREATER_THAN_OR_EQUAL
+        case PREC_STACK_SYM_GREATER_THAN_OR_EQUAL:
+            *terminal = T_PREC_GREATER_THAN_OR_EQUAL;
+            break;
+
+        // Mapování: PREC_STACK_SYM_COMMA -> T_PREC_COMMA
+        case PREC_STACK_SYM_COMMA:
+            *terminal = T_PREC_COMMA;
+            break;
+
+        // Mapování: PREC_STACK_SYM_DOLLAR -> T_PREC_DOLLAR
+        case PREC_STACK_SYM_DOLLAR:
+            *terminal = T_PREC_DOLLAR;
+            break;
+
+        // Defaultní případ: interní chyba
+        default:
+            error_handle(ERROR_INTERNAL);
+            break;
+    } // switch()
+}  // PrecStack_mapStackSymbolToPrecTerminal()
+
+/**
+ * @brief Namapuje typ zásobníkového neterminálu na typ zásobníkového symbolu.
  */
-bool PrecStack_isEmpty() {
-    return (precStack == NULL || precStack->top == NULL);
-} // PrecStack_isEmpty()
+void PrecStack_mapStackNonTerminalToStackSymbol(PrecStackNonTerminals stackNonTerminal, PrecStackSymbol *symbol) {
+    // Ověření platnosti předaného ukazatele
+    if(symbol == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return;
+    }
+
+    // Mapujeme zásobníkový neterminál na zásobníkový symbol
+    switch(stackNonTerminal) {
+        // Mapování: PREC_STACK_NT_EXPRESSION -> PREC_STACK_SYM_EXPRESSION
+        case PREC_STACK_NT_EXPRESSION:
+            *symbol = PREC_STACK_SYM_EXPRESSION;
+            break;
+
+        // Mapování: PREC_STACK_NT_ARGUMENTS -> PREC_STACK_SYM_ARGUMENTS
+        case PREC_STACK_NT_ARGUMENTS:
+            *symbol = PREC_STACK_SYM_ARGUMENTS;
+            break;
+
+        // Mapování: PREC_STACK_NT_ARG_LIST -> PREC_STACK_SYM_ARG_LIST
+        case PREC_STACK_NT_ARG_LIST:
+            *symbol = PREC_STACK_SYM_ARG_LIST;
+            break;
+
+        // Mapování: PREC_STACK_NT_ARG -> PREC_STACK_SYM_ARG
+        case PREC_STACK_NT_ARG:
+            *symbol = PREC_STACK_SYM_ARG;
+            break;
+
+        // Mapování: PREC_STACK_NT_HANDLE -> PREC_STACK_SYM_HANDLE
+        case PREC_STACK_NT_HANDLE:
+            *symbol = PREC_STACK_SYM_HANDLE;
+            break;
+
+        // Defaultní případ: interní chyba
+        default:
+            error_handle(ERROR_INTERNAL);
+            break;
+    } // switch()
+} // PrecStack_mapStackNonTerminalToStackSymbol()
 
 /*** Konec souboru precedence_stack.c ***/
