@@ -28,6 +28,9 @@
 #define TAC_H_
 /** @endcond  */
 
+#define ADRLAB(adr, var1, var2) (  (   adr.val.s = getStr(2, var1, var2),             \
+                                      (adr.type = ADRTYPE_LABEL, adr)   )  )
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include "ast_nodes.h"
@@ -45,7 +48,8 @@
  *
  * @details Reprezentuje různé operace, které lze provádět v tříadresných instrukcích.
  */
-typedef enum TAC_Operation {
+typedef enum TAC_Operation {\
+    TAC_OP_NONE,           /**< Žádná operace (pro základní hodnoty) */
     TAC_OP_ADD,            /**< Sčítání */
     TAC_OP_SUB,            /**< Odčítání */
     TAC_OP_MUL,            /**< Násobení */
