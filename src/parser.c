@@ -79,12 +79,12 @@ void Parser_addIdSuffix(size_t frameID, DString *id) {
     // Přípojení hodnoty "frameID" jako suffix identifikátoru
     for(int i = 0; i < (int)strlen(suffix); i++) {
         error = string_append_char(id, suffix[i]);
-        parser_checkAppendSuccess(error);
+        Parser_checkAppendSuccess(error);
     }
 
     // Přidání ukončovacího oddělovače frameID od indetifikátoru
     error = string_append_char(id, FRAME_ID_SEPARATOR);
-    parser_checkAppendSuccess(error);
+    Parser_checkAppendSuccess(error);
 }
 
 
