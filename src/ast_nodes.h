@@ -302,6 +302,9 @@ typedef struct AST_VarNode {
  *          stromu (AST), který je vytvářen během syntaktické analýzy. AST je
  *          používán pro reprezentaci struktury programu a je generován parserem.
  *          Dále je využíván k sémantické analýze a generování 3AK.
+ *
+ * @note Ukazatel na kořen abstraktního syntaktického stromu bude před svou
+ *       skutečnou inicializací inicializován na @c NULL.
  */
 extern AST_ProgramNode *ASTroot;
 
