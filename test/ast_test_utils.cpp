@@ -82,6 +82,8 @@ string ASTutils_printCapturedOutput(AST_NodeType type, void *node, bool useColor
             ASTutils_printBinOpNode((AST_BinOpNode *)node, buffer, 0, useColors, levels, true);
             break;
         case AST_VAR_NODE:
+            ASTutils_printVarNode((AST_VarNode *)node, buffer, 0, useColors, levels, true);
+            break;
         case AST_LITERAL_NODE:
             ASTutils_printLiteralNode((AST_VarNode *)node, buffer, 0, useColors, levels, true);
             break;

@@ -51,6 +51,9 @@
  * @details Reprezentuje různé typy uzlů v abstraktním syntaktickém stromu (AST).
  */
 typedef enum AST_NodeType {
+    // Nedefinovaný uzel
+    AST_NODE_UNDEFINED          = -1,           /**< Typ uzlu zatím není definován */
+
     // Struktury programu
     AST_PROGRAM_NODE            = 1,            /**< Uzel pro celý program */
     AST_FUN_DEF_NODE            = 2,            /**< Uzel pro definici funkce */
