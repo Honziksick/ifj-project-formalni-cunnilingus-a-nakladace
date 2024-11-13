@@ -44,6 +44,25 @@ TAC_InstructionList *TAC_createInstructionList(){
 }
 
 /**
+ * @brief Vytvoří a inicializuje novou tříadresnou instrukci na základní hodnoty.
+ */
+TAC_Instruction *TAC_initInstruction(){
+    TAC_Instruction *instr = malloc(sizeof(struct TAC_Instruction));
+    if(instr == NULL){
+        return NULL;
+    }
+
+    // Základní inicializace instrukce
+    instr->op = TAC_OP_NONE;
+    instr->dest.type = TAC_OPERAND_NONE;
+    instr->src1.type = TAC_OPERAND_NONE;
+    instr->src2.type = TAC_OPERAND_NONE;
+    instr->next = NULL;
+
+    return instr;
+}
+
+/**
  * @brief Vytvoří novou tříadresnou instrukci.
  */
 TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_Operand src1, TAC_Operand src2){
@@ -52,18 +71,48 @@ TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_O
     if(list == NULL){
         return NULL;
     }
-    // Alokace paměti pro novou instrukci
-    TAC_Instruction *instr = malloc(sizeof(struct TAC_Instruction));
+    // Alokace paměti a inicializace pro novou instrukci
+    TAC_Instruction *instr = TAC_initInstruction();
     if(instr == NULL){
         return NULL;
     }
 
-    // Nastavení hodnot instrukce
     instr->op = op;
-    instr->dest = dest;
-    instr->src1 = src1;
-    instr->src2 = src2;
-    instr->next = NULL;
+
+    // Switch pro nastavení operandů instrukce pro jednotlivé operace
+    switch (instr->op){
+        case TAC_OP_NONE: break;
+        case TAC_OP_RETURN: break;
+        case TAC_OP_ADD:
+        case TAC_OP_SUB:
+        case TAC_OP_MUL:
+        case TAC_OP_DIV:
+        case TAC_OP_IF_EQ:
+        case TAC_OP_IF_NEQ:
+        case TAC_OP_IF_LT:
+        case TAC_OP_IF_LE:
+        case TAC_OP_IF_GT:
+        case TAC_OP_IF_GE:
+            instr->src1 = src1;
+            instr->src2 = src2;
+            instr->dest = dest;
+            break;
+        case TAC_OP_ASSIGN:
+            instr->src1 = src1;
+            instr->dest = dest;
+            break;
+        case TAC_OP_PARAM:
+        case TAC_OP_CALL:
+        case TAC_OP_LABEL:
+            instr->src1 = src1;
+            break;
+        case TAC_OP_GOTO:
+            instr->dest = dest;
+            break;
+
+        default:
+            return instr;
+    }
 
     // Vracíme ukaatel na novou instrukci
     return instr;
@@ -102,6 +151,41 @@ void TAC_freeInstructionList(TAC_InstructionList *list){
         free(current);
         current = next;
     }
-}
+} // TAC_freeInstructionList
+
+/**
+ * @brief Generuje tříadresný kód pro definici funkce.
+
+bool TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode, TAC_InstructionList *tacList){
+    // Vytvoření nového seznamu instrukcí pro tělo funkce
+    funDefNode = AST_createFunDefNode();
+
+    if(funDefNode == NULL){
+        return false;
+    }
+
+    // Prázdný operand pro nevyužití
+    TAC_Operand undef;
+    // Instrukce
+    TAC_Instruction *instr;
+
+    instr = TAC_createInstruction(TAC_OP_PARAM, undef, funDefNode->, undef);
+            TAC_appendInstruction(tacList, instr);
+    return true;
+} */
+
+/**
+ * @brief Generuje tříadresný kód pro proměnnou.
+ */
+/*bool TAC_generateVariable(AST_VarNode *varNode, TAC_InstructionList *tacList){
+    // Prázdný operand pro nevyužití
+    TAC_Operand undef, src1, src2;
+    // Instrukce
+    TAC_Instruction *instr;
+
+    instr = TAC_createInstruction(TAC_OP_ASSIGN, undef, src1, src2);
+    TAC_appendInstruction(tacList, instr);
+    return true;
+}*/
 
 /*** Konec souboru tac_generator.c ***/
