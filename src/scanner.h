@@ -90,46 +90,24 @@ typedef enum {
 typedef enum {
     LETTER = 1,
     NUMBER = 2,
-    WHITE = 3,      //WHITESPACE
-    NIL = 4,        //NOT IN LANGUAGE
-    //SPECIAL SIMPLE
-    S_LEFT_PARENTHESIS = 5,
-    S_RIGHT_PARENTHESIS = 6,
-    S_ASTERISK = 7,
-    S_PLUS = 8,
-    S_COMMA = 9,
-    S_MINUS = 10,
-    S_COLON = 11,
-    S_SEMICOLON = 12,
-    S_LEFT_CURLY_BRACKET = 13,
-    S_VERTICAL_BAR = 14,
-    S_RIGHT_CURLY_BRACKET = 15,
-    //SPECIAL COMPLEX
-    C_EXCLAMATION_MARK = 16,
-    C_DOUBLE_QUOTE = 17,
-    C_PERIOD = 18,
-    C_SLASH = 19,
-    C_LESS_THAN = 20,
-    C_EQUALITY_SIGN = 21,
-    C_GREATER_THAN = 22,
-    C_QUESTION_MARK = 23,
-    C_AT_SIGN = 24,
-    C_LEFT_SQUARE_BRACKET = 25,
-    C_BACKSLASH = 26,
-    C_RIGHT_SQUARE_BRACKET = 27,
-    C_EOL = 28,
-    C_EOF = 29
+    WHITESPACE = 3,
+    NOT_IN_LANGUAGE = 4,
+    SIMPLE = 5,
+    COMPLEX = 6,
+    CHAR_EOF = 7
 } CharType;
 
 // Definice stavů FSM lexikálního analyzátoru
 typedef enum {
-    START = 1,
-    LETTERS = 2,
-    NUMBERS = 3,
-    FLOAT_UNREADY = 4,
-    FLOAT_READY = 5,
+    STATE0_START = 0,
+    STATE1_LETTERS = 1,
+    STATE2_NUMBERS = 2,
+    STATE3_FLOAT_UNREADY = 3,
+    STATE4_FLOAT_READY = 4,
+    STATE5_SIMPLE = 5,
+    STATE6_COMPLEX = 6,
     //NUMBER OR NULL PATH
-    NON = 6,
+    NON = 18,   //to fix, random number asigned to avoid collision
     NON1a = 7,
     NON1b = 8,
     NON2a = 9,
@@ -143,11 +121,7 @@ typedef enum {
     U3 = 16,
     //@import PATH
     I1 = 17,
-    I2 = 18,
-    I3 = 19,
-    I4 = 20,
-    I5 = 21,
-    I6 = 22,
+
     //= OR == PATH
     EQUAL = 23,
     //!= PATH
