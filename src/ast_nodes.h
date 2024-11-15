@@ -127,6 +127,7 @@ typedef enum AST_LiteralType {
  * @details Reprezentuje datové typy používané v AST.
  *
  * @warning Typ @c void je povolen pouze jako pseudo návratový typ funkcí.
+ * @warning Typ @c bool je povolen pouze pro výsledek relační binární operace.
  */
 typedef enum AST_DataType {
     AST_DATA_TYPE_NOT_DEFINED   = 0,            /**< Datový typ není uveden */
@@ -137,6 +138,7 @@ typedef enum AST_DataType {
     AST_DATA_TYPE_STRING        = 5,            /**< Datový typ []u8 */
     AST_DATA_TYPE_STRING_OR_NULL= 6,            /**< Datový typ []u8 nebo NULL */
     AST_DATA_TYPE_VOID          = 7,            /**< Datový typ void */
+    AST_DATA_TYPE_BOOL          = 8,            /**< Datový typ boolean */
 } AST_DataType;
 
 /**
@@ -244,7 +246,6 @@ typedef struct AST_IfNode {
 typedef struct AST_WhileNode {
     enum   AST_NodeType      type;              /**< Typ uzlu (AST_WHILE_NODE) */
     struct AST_ExprNode      *condition;        /**< Podmínka */
-    struct AST_VarNode       *nullCondition;    /**< Identifikátor: Volitelná podmínka NULL */
     struct AST_StatementNode *body;             /**< Tělo cyklu */
 } AST_WhileNode;
 
