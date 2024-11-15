@@ -186,6 +186,100 @@ void PrecParser_reduce(ReductionRule rule);
 
 /*******************************************************************************
  *                                                                             *
+ *                   DEKLARACE FUNKCÍ PRO REDUKČNÍ PRAVIDLA                    *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Redukce podle pravidla E -> id nebo E -> literal.
+ *
+ * @details Tato funkce provádí redukci pro pravidla E -> id nebo E -> literal.
+ *          Popne uzel ze zásobníku, vytvoří AST uzel pro proměnnou nebo literál
+ *          a výraz, a poté pushne nový neterminál E na zásobník s vytvořeným
+ *          AST uzlem.
+ *
+ * @param nodeType Typ uzlu, který má být vytvořen. Tento parametr určuje, zda
+ *                 bude vytvořen uzel pro proměnnou (AST_VAR_NODE) nebo literál
+ *                 (AST_LITERAL_NODE).
+ */
+void PrecParser_reduceVarOrLit(AST_NodeType nodeType);
+
+/**
+ * @brief Redukce pro binární operaci E -> E op E.
+ *
+ * @details Tato funkce provádí redukci pro binární operaci E -> E op E. Popne
+ *          uzly pro pravý operand, operátor a levý operand ze zásobníku,
+ *          vytvoří AST uzel pro binární operaci a výraz, a poté pushne nový
+ *          neterminál (výraz) E na zásobník s vytvořeným AST uzlem.
+ *
+ * @param operator Typ binární operace, která má být provedena. Tento parametr
+ *                 určuje konkrétní operátor (např. +, -, *, /, ==, !=, <, >,
+ *                 <=, >=), který bude použit při vytváření AST uzlu pro binární
+ *                 operaci.
+ */
+void PrecParser_reduceBinOp(AST_BinOpType operator);
+
+/**
+ * @brief Redukce pro výraz v závorkách E -> ( E ).
+ *
+ * @details Tato funkce provádí redukci pro výraz v závorkách E -> ( E ). Popne
+ *          uzly pro pravou závorku, výraz a levou závorku ze zásobníku, a poté
+ *          pushne výraz zpět na zásobník bez změny.
+ */
+void PrecParser_reduceBrackets();
+
+/**
+ * @brief Redukce pro volání funkce E -> id ( <ARGUMENTS> ).
+ *
+ * @details Tato funkce provádí redukci pro volání funkce E -> id ( <ARGUMENTS> ).
+ *          Popne uzly pro pravou závorku, argumenty, levou závorku a identifikátor
+ *          ze zásobníku, vytvoří AST uzel pro volání funkce a výraz, a poté pushne
+ *          nový neterminál (výraz) E na zásobník s vytvořeným AST uzlem.
+ */
+void PrecParser_reduceFunCall();
+
+/**
+ * @brief Redukce pro volání vestavěné funkce E -> ifj . id ( <ARGUMENTS> ).
+ *
+ * @details Tato funkce provádí redukci pro volání vestavěné funkce E -> ifj . id ( <ARGUMENTS> ).
+ *          Popne uzly pro pravou závorku, argumenty, levou závorku, identifikátor,
+ *          tečku a 'ifj' ze zásobníku, vytvoří AST uzel pro volání funkce a výraz,
+ *          a poté pushne nový neterminál (výraz) E na zásobník s vytvořeným AST uzlem.
+ */
+void PrecParser_reduceIfjFunCall();
+
+/**
+ * @brief Redukce pro argumenty <ARGUMENTS> -> <ARG_LIST>.
+ *
+ * @details Tato funkce provádí redukci pro argumenty <ARGUMENTS> -> <ARG_LIST>.
+ *          Popne uzel pro seznam argumentů ze zásobníku a poté pushne nový
+ *          neterminál <ARGUMENTS> na zásobník s uzlem argumentů.
+ */
+void PrecParser_reduceArguments();
+
+/**
+ * @brief Redukce pro seznam argumentů <ARG_LIST> -> E <ARG>.
+ *
+ * @details Tato funkce provádí redukci pro seznam argumentů <ARG_LIST> -> E <ARG>.
+ *          Popne uzly pro argument a výraz ze zásobníku, vytvoří nový uzel pro
+ *          argument, a poté pushne nový neterminál <ARG_LIST> na zásobník
+ *          s uzlem argumentů.
+ */
+void PrecParser_reduceArgList();
+
+/**
+ * @brief Redukce pro argument <ARG> -> , E <ARG>.
+ *
+ * @details Tato funkce provádí redukci pro argument <ARG> -> , E <ARG>.
+ *          Popne uzly pro argument, výraz a čárku ze zásobníku, vytvoří nový
+ *          uzel pro argument, a poté pushne nový neterminál <ARG> na zásobník
+ *          s uzlem argumentů.
+ */
+void PrecParser_reduceArg();
+
+
+/*******************************************************************************
+ *                                                                             *
  *                POMOCENÉ INTERNÍ FUNKCE PRECEDENČNÍHO PARSERU                *
  *                                                                             *
  ******************************************************************************/
@@ -214,95 +308,6 @@ void PrecParser_mapTokenToPrecTerminal(int bracketDepth, PrecTerminals *terminal
  * @param rule Ukazatel na proměnnou, do které bude uloženo odpovídající redukční pravidlo.
  */
 void PrecParser_mapNonTerminalToRule(PrecStackSymbol symbol, ReductionRule *rule);
-
-/**
- * @brief Redukce podle pravidla E -> id nebo E -> literal
- *
- * @details Tato funkce provádí redukci pro pravidla E -> id nebo E -> literal.
- *          Popne uzel ze zásobníku, vytvoří AST uzel pro proměnnou nebo literál
- *          a výraz, a poté pushne nový neterminál E na zásobník s vytvořeným
- *          AST uzlem.
- *
- * @param nodeType Typ uzlu, který má být vytvořen. Tento parametr určuje, zda
- *                 bude vytvořen uzel pro proměnnou (AST_VAR_NODE) nebo literál
- *                 (AST_LITERAL_NODE).
- */
-void PrecParser_reduceVarOrLit(AST_NodeType nodeType);
-
-/**
- * @brief Redukce pro binární operaci E -> E op E
- *
- * @details Tato funkce provádí redukci pro obecnou binární operaci mezi dvěma
- *          výrazy. Popne pravý operand E, operátor, a levý operand E ze
- *          zásobníku, vytvoří AST uzel pro binární operaci a výraz, a poté
- *          pushne nový neterminál E na zásobník s vytvořeným AST uzlem.
- *
- * @param operator Typ binární operace, která má být provedena. Tento parametr
- *                 určuje konkrétní operátor (např. +, -, *, /, ==, !=, <, >,
- *                 <=, >=), který bude použit při vytváření AST uzlu pro binární
- *                 operaci.
- */
-void PrecParser_reduceBinOp(AST_BinOpType operator);
-
-/**
- * @brief Redukce podle pravidla E -> ( E )
- *
- * @details Tato funkce pushuje výraz v závorkách zpět na zásobník bez změny.
- *          Popne pravou závorku ')', výraz E, a levou závorku '(' ze zásobníku,
- *          a poté pushne výraz E zpět na zásobník.
- */
-void PrecParser_reduceBrackets();
-
-/**
- * @brief Redukce podle pravidla E -> id ( <ARGUMENTS> )
- *
- * @details Tato funkce vytváří AST uzel pro volání funkce a pushuje neterminál
- *          E na zásobník. Popne pravou závorku ')', uzel '<ARGUMENTS>', levou
- *          závorku '(', a identifikátor 'id' ze zásobníku, vytvoří AST uzel
- *          pro volání funkce a výraz, a poté pushne nový neterminál E na
- *          zásobník s vytvořeným AST uzlem.
- */
-void PrecParser_reduceFunCall();
-
-/**
- * @brief Redukce podle pravidla E -> ifj . id ( <ARGUMENTS> )
- *
- * @details Tato funkce vytváří AST uzel pro volání vestavěné funkce a pushuje
- *          neterminál E na zásobník. Popne pravou závorku ')', uzel '<ARGUMENTS>',
- *          levou závorku '(', identifikátor 'id', tečku '.', a 'ifj' ze zásobníku,
- *          vytvoří AST uzel pro volání vestavěné funkce a výraz, a poté pushne
- *          nový neterminál E na zásobník s vytvořeným AST uzlem.
- */
-void PrecParser_reduceIfjFunCall();
-
-/**
- * @brief Redukce podle pravidla <ARGUMENTS> -> <ARG_LIST>
- *
- * @details Tato funkce pushuje neterminál <ARGUMENTS> s uzlem argumentů na
- *          zásobník. Popne uzel '<ARG_LIST>' ze zásobníku a poté pushne
- *          neterminál <ARGUMENTS> s uzlem argumentů zpět na zásobník.
- */
-void PrecParser_reduceArguments();
-
-/**
- * @brief Redukce podle pravidla <ARG_LIST> -> E <ARG>
- *
- * @details Tato funkce vytváří nový uzel pro argument a pushuje neterminál
- *          <ARG_LIST> na zásobník. Popne uzel '<ARG>' a výraz 'E' ze zásobníku,
- *          vytvoří nový uzel pro argument, a poté pushne neterminál <ARG_LIST>
- *          s uzlem argumentů zpět na zásobník.
- */
-void PrecParser_reduceArgList();
-
-/**
- * @brief Redukce podle pravidla <ARG> -> , E <ARG>
- *
- * @details Tato funkce vytváří nový uzel pro argument a pushuje neterminál
- *          <ARG> na zásobník. Popne uzel '<ARG>', výraz 'E', a čárku ',' ze
- *          zásobníku, vytvoří nový uzel pro argument, a poté pushne neterminál
- *          <ARG> s uzlem argumentů zpět na zásobník.
- */
-void PrecParser_reduceArg();
 
 #endif // PREC_PARSER_H_
 
