@@ -142,34 +142,102 @@ Token scanner_FSM() {
             -------------
             */
             case STATE0_START:
+<<<<<<< HEAD
+<<<<<<< HEAD
+                //printf("S0 Start\n");
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case LETTER:
+                        //printf("S0 Let\n");
+=======
+                printf("S0 Start\n");
+                c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+                switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
+                    case LETTER:
+                        printf("S0 Let\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                //printf("S0 Start\n");
+                c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+                switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
+                    case LETTER:
+                        //printf("S0 Let\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         string_append_char(str, (char)c);
                         state = STATE1_LETTERS;
                         break;
                     case NUMBER:
                         string_append_char(str, (char)c);
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S0 Num\n");
                         state = STATE2_NUMBERS;
                         break;
                     case WHITESPACE:
+                        //printf("S0 White\n");
+=======
+                        printf("S0 Num\n");
+                        state = STATE2_NUMBERS;
+                        break;
+                    case WHITESPACE:
+                        printf("S0 White\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S0 Num\n");
+                        state = STATE2_NUMBERS;
+                        break;
+                    case WHITESPACE:
+                        //printf("S0 White\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         break;
                     case NOT_IN_LANGUAGE:
                         stopFSM = true;
                         error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
                         break;
                     case SIMPLE:
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S0 Sim\n");
                         state = STATE5_SIMPLE;
                         break;
                     case COMPLEX:
+                        //printf("S0 Com\n");
                         state = STATE6_COMPLEX;
                         break;
                     case CHAR_EOF:
+                        //printf("S0 EOF\n");
+=======
+                        printf("S0 Sim\n");
+=======
+                        //printf("S0 Sim\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
+                        state = STATE5_SIMPLE;
+                        break;
+                    case COMPLEX:
+                        //printf("S0 Com\n");
+                        state = STATE6_COMPLEX;
+                        break;
+                    case CHAR_EOF:
+<<<<<<< HEAD
+                        printf("S0 EOF\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S0 EOF\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         lexToken = scanner_stringlessTokenCreate(TOKEN_EOF);
                         scanner_ungetChar(c);
                         stopFSM = true;
                         break;
-                    default:    
+                    default:
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S0 DEF\n");    
+=======
+                        printf("S0 DEF\n");    
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S0 DEF\n");    
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         stopFSM = true;
                         error_handle(ERROR_LEXICAL);        //ERROR - charIdentity vrátil něco, co nedává smysl
                         break;
@@ -182,15 +250,43 @@ Token scanner_FSM() {
             */
             case STATE1_LETTERS:
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+<<<<<<< HEAD
+<<<<<<< HEAD
+                //printf("S1 Start\n");
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case LETTER:
                         string_append_char(str, (char)c);
+                        //printf("S1 Let\n");
                         break;
                     case NUMBER:
                         string_append_char(str, (char)c);
+                        //printf("S1 Num\n");
                         break;
                     case WHITESPACE:
                         keytest = scanner_isKeyword(str);
+                        //printf("S1 White\n");
+=======
+                printf("S1 Start\n");
+=======
+                //printf("S1 Start\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
+                switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
+                    case LETTER:
+                        string_append_char(str, (char)c);
+                        //printf("S1 Let\n");
+                        break;
+                    case NUMBER:
+                        string_append_char(str, (char)c);
+                        //printf("S1 Num\n");
+                        break;
+                    case WHITESPACE:
+                        keytest = scanner_isKeyword(str);
+<<<<<<< HEAD
+                        printf("S1 White\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S1 White\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         if(keytest == KEY_IDENTIFIER) {
                             lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
                             stopFSM = true;
@@ -200,17 +296,33 @@ Token scanner_FSM() {
                         }
                         break;
                     case NOT_IN_LANGUAGE:
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S1 NIL\n");
+=======
+                        printf("S1 NIL\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S1 NIL\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         stopFSM = true;
                         error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
                         break;
                     default:    //SIMPLE + COMPLEX + CHAR_EOF
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S1 DEF\n");
+=======
+                        printf("S1 DEF\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S1 DEF\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         keytest = scanner_isKeyword(str);
                         if(keytest == KEY_IDENTIFIER) {
                             lexToken = scanner_tokenCreate(TOKEN_IDENTIFIER, str);
-                            stopFSM = true;
                         } else {
                             lexToken = scanner_stringlessTokenCreate(keytest);
-                            stopFSM = true;
                         }
                         scanner_ungetChar(c);
                         stopFSM = true;
@@ -224,34 +336,93 @@ Token scanner_FSM() {
             */
             case STATE2_NUMBERS:
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+<<<<<<< HEAD
+<<<<<<< HEAD
+                //printf("S2 Start\n");
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case LETTER:
                         stopFSM = true;
+                        //printf("S2 Let\n");
+=======
+                printf("S2 Start\n");
+                switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
+                    case LETTER:
+                        stopFSM = true;
+                        printf("S2 Let\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                //printf("S2 Start\n");
+                switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
+                    case LETTER:
+                        stopFSM = true;
+                        //printf("S2 Let\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         error_handle(ERROR_LEXICAL);        //ERROR - načítá se písmeno do Tokenu Int
                         break;
                     case NUMBER:
                         string_append_char(str, (char)c);
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S2 Num\n");
+=======
+                        printf("S2 Num\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S2 Num\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         break;
                     case WHITESPACE:
-                        scanner_tokenCreate(TOKEN_INT, str);
+                        lexToken = scanner_tokenCreate(TOKEN_INT, str);
                         stopFSM = true;
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S2 White\n");
                         break;
                     case NOT_IN_LANGUAGE:
                         stopFSM = true;
+                        //printf("S2 NIL\n");
                         error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
                         break;
                     case COMPLEX:
+                        //printf("S2 COM\n");
+=======
+                        printf("S2 White\n");
+=======
+                        //printf("S2 White\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
+                        break;
+                    case NOT_IN_LANGUAGE:
+                        stopFSM = true;
+                        //printf("S2 NIL\n");
+                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        break;
+                    case COMPLEX:
+<<<<<<< HEAD
+                        printf("S2 COM\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S2 COM\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         if(c == '.') {
                             string_append_char(str, (char)c);
                             state = STATE3_FLOAT_UNREADY;
                         } else {
-                            scanner_tokenCreate(TOKEN_INT, str);
+                            lexToken = scanner_tokenCreate(TOKEN_INT, str);
                             scanner_ungetChar(c);
                             stopFSM = true;
                         }
                         break;
                     default:    //SIMPLE + CHAR_EOF
-                        scanner_tokenCreate(TOKEN_INT, str);
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S2 DEF\n");
+=======
+                        printf("S2 DEF\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S2 DEF\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
+                        lexToken = scanner_tokenCreate(TOKEN_INT, str);
                         scanner_ungetChar(c);
                         stopFSM = true;
                         break;
@@ -263,13 +434,40 @@ Token scanner_FSM() {
             ---------------------
             */
             case STATE3_FLOAT_UNREADY:
+<<<<<<< HEAD
+<<<<<<< HEAD
+                //printf("S3 Start\n");
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case NUMBER:
+                        //printf("S3 Num\n");
+=======
+                printf("S3 Start\n");
+                c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+                switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
+                    case NUMBER:
+                        printf("S3 Num\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                //printf("S3 Start\n");
+                c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+                switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
+                    case NUMBER:
+                        //printf("S3 Num\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         string_append_char(str, (char)c);
                         state = STATE4_FLOAT_READY;
                         break;
                     default:    //LETTER + NOT_IN_LANGUAGE + SIMPLE + COMPLEX + CHAR_EOF
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S3 DEF\n");
+=======
+                        printf("S3 DEF\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S3 DEF\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         stopFSM = true;
                         error_handle(ERROR_LEXICAL);        //ERROR - nebylo načteno číslo do Tokenu nehotového floatu
                         break;
@@ -282,24 +480,76 @@ Token scanner_FSM() {
             */
             case STATE4_FLOAT_READY:
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+<<<<<<< HEAD
+<<<<<<< HEAD
+                //printf("S4 Start\n");
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case LETTER:
+                        //printf("S4 Let\n");
+=======
+                printf("S4 Start\n");
+                switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
+                    case LETTER:
+                        printf("S4 Let\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                //printf("S4 Start\n");
+                switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
+                    case LETTER:
+                        //printf("S4 Let\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         stopFSM = true;
                         error_handle(ERROR_LEXICAL);        //ERROR - načítá se písmeno do Tokenu Float
                         break;
                     case NUMBER:
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S4 Num\n");
                         string_append_char(str, (char)c);
                         break;
                     case WHITESPACE:
-                        scanner_tokenCreate(TOKEN_FLOAT, str);
+                        //printf("S4 White\n");
+=======
+                        printf("S4 Num\n");
+                        string_append_char(str, (char)c);
+                        break;
+                    case WHITESPACE:
+                        printf("S4 White\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S4 Num\n");
+                        string_append_char(str, (char)c);
+                        break;
+                    case WHITESPACE:
+                        //printf("S4 White\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
+                        lexToken = scanner_tokenCreate(TOKEN_FLOAT, str);
                         stopFSM = true;
                         break;
                     case NOT_IN_LANGUAGE:
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S4 Nil\n");
+=======
+                        printf("S4 Nil\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S4 Nil\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
                         stopFSM = true;
                         error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
                         break;
                     default:    //SIMPLE + COMPLEX + CHAR_EOF
-                        scanner_tokenCreate(TOKEN_FLOAT, str);
+<<<<<<< HEAD
+<<<<<<< HEAD
+                        //printf("S4 DEF\n");
+=======
+                        printf("S4 DEF\n");
+>>>>>>> 07d2b82 (Bug fix lex. anal 2)
+=======
+                        //printf("S4 DEF\n");
+>>>>>>> b7a088b (Bug fix lex. anal 3)
+                        lexToken = scanner_tokenCreate(TOKEN_FLOAT, str);
                         scanner_ungetChar(c);
                         stopFSM = true;
                         break;
@@ -313,34 +563,37 @@ Token scanner_FSM() {
             case STATE5_SIMPLE:
                 switch(c) {
                     case '(':
-                        scanner_stringlessTokenCreate(TOKEN_LEFT_PARENTHESIS);
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_LEFT_PARENTHESIS);
                         break;
                     case ')':
-                        scanner_stringlessTokenCreate(TOKEN_RIGHT_PARENTHESIS);
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_RIGHT_PARENTHESIS);
                         break;
                     case '*':
-                        scanner_stringlessTokenCreate(TOKEN_ASTERISK);
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_ASTERISK);
                         break;
                     case '+':
-                        scanner_stringlessTokenCreate(TOKEN_PLUS);
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_PLUS);
                         break;
                     case ',':
-                        scanner_stringlessTokenCreate(TOKEN_MINUS);
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_COMMA);
+                        break;
+                    case '-':
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_MINUS);
                         break;
                     case ':':
-                        scanner_stringlessTokenCreate(TOKEN_COLON);
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_COLON);
                         break;
                     case ';':
-                        scanner_stringlessTokenCreate(TOKEN_SEMICOLON);
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_SEMICOLON);
                         break;
                     case '{':
-                        scanner_stringlessTokenCreate(TOKEN_LEFT_CURLY_BRACKET);
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_LEFT_CURLY_BRACKET);
                         break;
                     case '|':
-                        scanner_stringlessTokenCreate(TOKEN_VERTICAL_BAR);
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_VERTICAL_BAR);
                         break;
                     case '}':
-                        scanner_stringlessTokenCreate(TOKEN_RIGHT_CURLY_BRACKET);
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_RIGHT_CURLY_BRACKET);
                         break;
                 }
                 stopFSM = true;
@@ -353,7 +606,8 @@ Token scanner_FSM() {
             case STATE6_COMPLEX:
                 switch(c) {
                     case '.':
-                        scanner_stringlessTokenCreate(TOKEN_PERIOD);
+                        lexToken = scanner_stringlessTokenCreate(TOKEN_PERIOD);
+                        stopFSM = true;
                         break;
                     case '!':
                         state = STATE7_EXCLAMATION_MARK;

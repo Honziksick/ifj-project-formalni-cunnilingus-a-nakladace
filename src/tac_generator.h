@@ -6,7 +6,7 @@
  * Autor:            Lukáš Farkašovský   <xfarkal00>                           *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   12.11.2024                                                *
+ * Poslední změna:   15.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -20,16 +20,13 @@
  * @author Lukáš Farkašovský \<xfarkal00>
  *
  * @brief Hlavičkový soubor pro generátor vnitřního kódu (3AK).
- * @details XXX
+ * @details Knihovna pro generování cílového kódu z AST.
  */
 
 #ifndef TAC_H_
 /** @cond  */
 #define TAC_H_
 /** @endcond  */
-
-#define ADRLAB(adr, var1, var2) (  (   adr.val.s = getStr(2, var1, var2),             \
-                                      (adr.type = ADRTYPE_LABEL, adr)   )  )
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -50,21 +47,34 @@
  */
 typedef enum TAC_Operation {\
     TAC_OP_NONE,           /**< Žádná operace (pro základní hodnoty) */
+    TAC_OP_DEFVAR,         /**< Definice proměnné */
+    TAC_OP_JUMP,           /**< Nepodmíněný skok */
+    TAC_OP_JUMPIFEQ,       /**< Podmíněný skok: rovnost */
+    TAC_OP_JUMPIFNEQ,      /**< Podmíněný skok: nerovnost */
+    TAC_OP_TYPE,           /**< Typ */
+    TAC_OP_EXIT,           /**< Ukončení programu */
+    TAC_OP_CREATEFRAME,    /**< Vytvoření nového rámce */
+    TAC_OP_PUSHFRAME,      /**< Přidání prázdného rámce na zásobník rámců */
+    TAC_OP_POPFRAME,       /**< Pop prvek zásobníku rámců */
     TAC_OP_ADD,            /**< Sčítání */
     TAC_OP_SUB,            /**< Odčítání */
     TAC_OP_MUL,            /**< Násobení */
     TAC_OP_DIV,            /**< Dělení */
     TAC_OP_ASSIGN,         /**< Přiřazení */
-    TAC_OP_IF_EQ,          /**< Podmíněný skok: rovnost */
-    TAC_OP_IF_NEQ,         /**< Podmíněný skok: nerovnost */
-    TAC_OP_IF_LT,          /**< Podmíněný skok: menší než */
-    TAC_OP_IF_GT,          /**< Podmíněný skok: větší než */
-    TAC_OP_IF_LE,          /**< Podmíněný skok: menší nebo rovno */
-    TAC_OP_IF_GE,          /**< Podmíněný skok: větší nebo rovno */
+    TAC_OP_IF_EQ,          /**< Porovnání: rovnost */
+    TAC_OP_IF_NEQ,         /**< Porovnání: nerovnost */
+    TAC_OP_IF_LT,          /**< Porovnání: menší než */
+    TAC_OP_IF_GT,          /**< Porovnání: větší než */
+    TAC_OP_IF_LE,          /**< Porovnání: menší nebo rovno */
+    TAC_OP_IF_GE,          /**< Porovnání: větší nebo rovno */
+    TAC_OP_NOT,            /**< Negace */
+    TAC_OP_WRITE,          /**< Výpis */
+    TAC_OP_READ,           /**< Načtení */
     TAC_OP_GOTO,           /**< Nepodmíněný skok */
     TAC_OP_RETURN,         /**< Návratová hodnota */
     TAC_OP_CALL,           /**< Volání funkce */
     TAC_OP_PARAM,          /**< Parametr pro volání funkce */
+    TAC_OP_CONCAT,         /**< Konkatenace */
     TAC_OP_LABEL           /**< Označení místa (label) ve kódu */
 } TAC_Operation;
 
@@ -74,8 +84,13 @@ typedef enum TAC_Operation {\
  * @details Reprezentuje možné typy operandů pro každou instrukci tříadresného kódu.
  */
 typedef enum TAC_OperandType {
+    TAC_OPERAND_INT,       /**< Celé číslo */
+    TAC_OPERAND_FLOAT,     /**< Desetinné číslo */
+    TAC_OPERAND_STRING,    /**< Řetězec */
+    TAC_OPERAND_BOOL,      /**< Logická hodnota */
+    TAC_OPERAND_NIL,       /**< Hodnota NULL */
     TAC_OPERAND_VAR,       /**< Proměnná */
-    TAC_OPERAND_CONST,     /**< Konstanta */
+    TAC_OPERAND_TEMP,      /**< Dočasná proměnná */
     TAC_OPERAND_LABEL,     /**< Místo v kódu */
     TAC_OPERAND_NONE       /**< Žádný operand (např. pro instrukce jako GOTO) */
 } TAC_OperandType;
@@ -280,9 +295,22 @@ bool TAC_generateVariable(AST_VarNode *varNode, TAC_InstructionList *tacList);
 /**
  * @brief Uvolní všechny instrukce v seznamu tříadresného kódu.
  *
+ * @details Uvolní všechny instrukce v seznamu tříadresných instrukcí.
+ *          Pokud je seznam prázdný, nic se nestane.
+ *
  * @param list Ukazatel na seznam tříadresných instrukcí.
  */
 void TAC_freeInstructionList(TAC_InstructionList *list);
+
+/**
+ * @brief Vytiskne všechny instrukce v seznamu tříadresného kódu.
+ *
+ * @details Tiskne všechny instrukce v seznamu tříadresných instrukcí, dokud nenarazí na konec.
+ *          Pokud je seznam prázdný, nic se nestane.
+ *
+ * @param list Ukazatel na seznam tříadresných instrukcí.
+ */
+void TAC_printInstructionList(TAC_InstructionList *list);
 
 #endif // TAC_H_
 
