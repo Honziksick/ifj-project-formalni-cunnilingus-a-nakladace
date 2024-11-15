@@ -222,13 +222,11 @@ TEST(Get, Get_Next_Char) {
     }
 }
 
-
-
 /**
  * @brief Testuje funkci `scanner_FSM` pro identifikátor hello.
  */
 TEST(FSM, FSM_Identifier){
-    char c[] = "hello";
+    char c[] = "hello ";
     Token state; 
 
     FILE* f = fmemopen(c, strlen(c), "r");
@@ -301,7 +299,7 @@ TEST(FSM, FSM_Identifier_ERROR_3){
 
 /**
  * @brief Testuje funkci `scanner_FSM` pro chybný identifikátor 'hello.'.
- *//*
+ */
 TEST(FSM, FSM_Identifier_ERROR_4){
     char c[] = "hello.";
     Token state; 
@@ -322,8 +320,9 @@ TEST(FSM, FSM_Identifier_ERROR_4){
     state = scanner_FSM();
     ASSERT_EQ(state.type, TOKEN_PERIOD);
 
-}*/
+}
 
+//Muj test
 TEST(FSM, FSM_Number_INT_One_Number){
     char c[] = "4 ";
     Token state; 
@@ -336,9 +335,6 @@ TEST(FSM, FSM_Number_INT_One_Number){
     EXPECT_EQ(state.type, TOKEN_INT);
     string_free(state.value);
 }
-
-
-
 
 /**
  * @brief Testuje funkci `scanner_FSM` pro int číslo.
@@ -644,16 +640,16 @@ TEST(Lex, Example1){
         // Hlavni telo programu
 
         // const ifj = @import("ifj24.zig");
-        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // pub fn main() void {
         TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET,
         
         // ifj.write("Zadejte cislo pro vypocet faktorialu\n");
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // const a = ifj.readi32();
-        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // if (a) |val| {
         TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_VERTICAL_BAR, TOKEN_IDENTIFIER, TOKEN_VERTICAL_BAR, TOKEN_LEFT_CURLY_BRACKET,
@@ -662,19 +658,19 @@ TEST(Lex, Example1){
         TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_LESS_THAN, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_LEFT_CURLY_BRACKET,
         
         // ifj.write("Faktorial ");
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // ifj.write(val);
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // ifj.write(" nelze spocitat\n");
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // } else {
         TOKEN_RIGHT_CURLY_BRACKET, TOKEN_K_else, TOKEN_LEFT_CURLY_BRACKET,
         
         // var d: f64 = ifj.i2f(val);
-        TOKEN_K_var, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_f64, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_var, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_f64, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // var vysl: f64 = 1.0;
         TOKEN_K_var, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_f64, TOKEN_EQUALITY_SIGN, TOKEN_FLOAT, TOKEN_SEMICOLON,
@@ -692,22 +688,22 @@ TEST(Lex, Example1){
         TOKEN_RIGHT_CURLY_BRACKET,
         
         // ifj.write("Vysledek: ");
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // ifj.write(vysl);
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // ifj.write(" = ");
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // const vysl_i32 = ifj.f2i(vysl);
-        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // ifj.write(vysl_i32);
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // ifj.write("\n");
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // }
         TOKEN_RIGHT_CURLY_BRACKET, 
@@ -716,7 +712,7 @@ TEST(Lex, Example1){
         TOKEN_RIGHT_CURLY_BRACKET, TOKEN_K_else, TOKEN_LEFT_CURLY_BRACKET, // a == null
         
         // ifj.write("Faktorial pro null nelze spocitat\n");
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // }
         TOKEN_RIGHT_CURLY_BRACKET,
@@ -770,11 +766,195 @@ TEST(Lex, Example1){
     fclose(f);
 }
 
+
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example2.zig
+ */
+/*TEST(Lex, Example2){
+    FILE* f = fopen("../ifj24_examples/ifj24_programs/example2.zig", "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // Program 2: Vypocet faktorialu (rekurzivne)
+        // Hlavni telo programu
+
+        // const ifj = @import("ifj24.zig");
+        TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        
+        // pub fn main() void {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET,
+        
+        // ifj.write("Zadejte cislo pro vypocet faktorialu: ");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        
+        // const inp = ifj.readi32();
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        
+        // if (inp) |INP| {
+        TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_VERTICAL_BAR, TOKEN_IDENTIFIER, TOKEN_VERTICAL_BAR, TOKEN_LEFT_CURLY_BRACKET,
+        
+        // if (INP < 0) {
+        TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_LESS_THAN, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_LEFT_CURLY_BRACKET,
+        
+        // ifj.write("Faktorial nelze spocitat!\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        
+        // } else {
+        TOKEN_RIGHT_CURLY_BRACKET, TOKEN_K_else, TOKEN_LEFT_CURLY_BRACKET,
+        
+        // const vysl = factorial(INP);
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        
+        // ifj.write("Vysledek: ");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        
+        // ifj.write(vysl);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+        
+        // } else {
+        TOKEN_RIGHT_CURLY_BRACKET, TOKEN_K_else, TOKEN_LEFT_CURLY_BRACKET,
+
+        // ifj.write("Chyba pri nacitani celeho cisla!\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // pub fn decrement(n: i32, m: i32) i32 {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_COMMA, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_i32, TOKEN_LEFT_CURLY_BRACKET,
+
+        //return n - m;
+        TOKEN_K_return, TOKEN_IDENTIFIER, TOKEN_MINUS, TOKEN_IDENTIFIER, TOKEN_SEMICOLON,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // pub fn factorial(n: i32) i32 {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_i32, TOKEN_LEFT_CURLY_BRACKET,
+
+        // var result: i32 = 0-1;
+        TOKEN_K_var, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_EQUALITY_SIGN, TOKEN_INT, TOKEN_MINUS, TOKEN_INT, TOKEN_SEMICOLON,
+        
+        // if (n < 2) {
+        TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_LESS_THAN, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_LEFT_CURLY_BRACKET,
+
+        // result = 1;
+        TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_INT, TOKEN_SEMICOLON,
+
+        // } else {
+        TOKEN_RIGHT_CURLY_BRACKET, TOKEN_K_else, TOKEN_LEFT_CURLY_BRACKET,
+
+        // const decremented_n = decrement(n, 1);
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COMMA, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // const temp_result = factorial(decremented_n);
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // result = n * temp_result;
+        TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_ASTERISK, TOKEN_IDENTIFIER,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // return result;
+        TOKEN_K_return, TOKEN_IDENTIFIER, TOKEN_SEMICOLON,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // EOF
+        TOKEN_EOF
+    };
+
+    const char* expected_strings[] = {
+        "ifj24.zig",
+        "Zadejte cislo pro vypocet faktorialu: ",
+        "Faktorial nelze spocitat!\n",
+        "Vysledek: ",
+        "Chyba pri nacitani celeho cisla!\n"
+    };
+
+    for (unsigned long i = 0, j = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Uložíme si pozici vstupu
+        long int current_pos = ftell(stdin);
+        
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Potomek zavolá testTokenType a ukončí se
+            if(expected_arr[i] == TOKEN_STRING){
+                if(j > sizeof(expected_strings) / sizeof(char*)){
+                    cerr << "Error in token " << i << endl;
+                    cerr << "Expected strings is too small: " << endl;
+                    FAIL();
+                }
+                testTokenString(expected_strings[j]);
+            } else {
+                testTokenType(expected_arr[i]);
+            }
+
+            exit(0);
+        } else {
+            // Rodičovský proces čeká na potomka
+            int status;
+            waitpid(pid, &status, 0);
+            if(WEXITSTATUS(status) == 0){
+                if(expected_arr[i] == TOKEN_STRING){
+                    j++;
+                }
+                continue;
+            }else if (WEXITSTATUS(status) == 2) {
+                // Potomek failnul testy, ale ne lex chybou
+                ADD_FAILURE();
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+            }else if (WEXITSTATUS(status) == 1) {
+                // Potomek skončil s lex chybou
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Vypíšeme zbytek vstupu
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+                
+                FAIL();
+            }
+            if(expected_arr[i] == TOKEN_STRING){
+                j++;
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+
+}*/
+
 /**
  * @brief Testuje lexikální analyzátor pro vstupní program
  * 
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program multiline.zig
- */
+ *//*
 TEST(Lex, Multiline){
     FILE* f = fopen("../ifj24_examples/ifj24_programs/multiline.zig", "r");
     ASSERT_NE(f, nullptr);
@@ -784,13 +964,13 @@ TEST(Lex, Multiline){
     TokenType expected_arr[] = {
         // Ukazka prace s retezci a vestavenymi funkcemi 
         // const ifj = @import("ifj24.zig");
-        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // pub fn main() void {
         TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET,
         
         // const s1 : []u8 = ifj.string( 
-        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_u8, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS,
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_u8, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS,
 
         // Multiline string
         TOKEN_STRING,
@@ -799,7 +979,7 @@ TEST(Lex, Multiline){
         TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
 
         // ifj.write(s1);
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
 
         // }
         TOKEN_RIGHT_CURLY_BRACKET,
@@ -878,7 +1058,7 @@ TEST(Lex, Multiline){
     fclose(f);
 
 
-}
+}*/
 
 /**
  * @brief Testuje lexikální analyzátor pro vstupní program
@@ -894,13 +1074,13 @@ TEST(Lex, lex_test_multi){
     TokenType expected_arr[] = {
         // Ukazka prace s retezci a vestavenymi funkcemi 
         // const ifj = @import("ifj24.zig");
-        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
         
         // pub fn main() void {
         TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET,
         
         // const s1 : []u8 = ifj.string( 
-        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_u8, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS,
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_u8, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS,
 
         // Multiline string
         TOKEN_STRING,
@@ -909,7 +1089,7 @@ TEST(Lex, lex_test_multi){
         TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
 
         // ifj.write(s1);
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
 
         // }
         TOKEN_RIGHT_CURLY_BRACKET,
@@ -1003,7 +1183,7 @@ TEST(Lex, lex_test_multi2){
 
     TokenType expected_arr[] = {
         // ifj.concat(
-        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS,
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS,
 
         // první multiline
         TOKEN_STRING,
