@@ -103,6 +103,8 @@ Keywords scanner_isKeyword(DString *value) {
         return KEY_while;
     } else if(strcmp(value->str, "_") == 0) {
         return KEY_underscore;
+    } else if(strcmp(value->str, "ifj") == 0) {
+        return KEY_ifj;
     } else {
         return KEY_IDENTIFIER;
     }
@@ -940,11 +942,14 @@ Token scanner_FSM() {
             ------------------
             */
             case STATE28_BACKSLASH:
+                //printf("S28 Start\n");
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
                 if(c == 92) {//92 = backslash
+                    //printf("S28 if\n");
                     state = STATE29_DOUBLE_BACKSLASH;
                     break;
                 } else {
+                    //printf("S28 else\n");
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);        //ERROR - načten nekompatibilní znak do tokenu stringu s variantou backslash
                     break;
@@ -955,11 +960,14 @@ Token scanner_FSM() {
             -------------------------
             */
             case STATE29_DOUBLE_BACKSLASH:
+                //printf("S29 Start\n");
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
                 if(c == 10) {   //10 = LF
+                    //printf("S29 if\n");
                     state = STATE30_DOUBLE_BACKSLASH_LF;
                     break;
                 } else {
+                    //printf("S29 else\n");
                     string_append_char(str, (char)c);
                     break;
                 }
@@ -969,19 +977,28 @@ Token scanner_FSM() {
             -----------------------------
             */
             case STATE30_DOUBLE_BACKSLASH_LF:
+                //printf("S30 Start\n");
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+                while(c == ' ') {
+                    c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+                }
+
                 if(c != 92) {
+                    //printf("S30 if1\n");
                     lexToken = scanner_tokenCreate(TOKEN_STRING, str);
                     scanner_ungetChar(c);
                     stopFSM = true;
                     break;
                 }
+                //printf("S30 Mid\n");
                 c = scanner_getNextChar();
                 if(c != 92) {
+                    printf("S30 if2\n");
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);        //ERROR - načten nekompatibilní znak do tokenu stringu s variantou backslash
                     break;
                 }
+                //printf("S30 End\n");
                 string_append_char(str, '\n');
                 state = STATE29_DOUBLE_BACKSLASH;
                 break;
@@ -997,7 +1014,7 @@ Token scanner_FSM() {
         }
     }
 
-    if(lexToken.value == NULL) {
+    if(lexToken.value == NULL || strcmp(lexToken.value->str, "import") == 0) {
         string_free(str);
     }
     return lexToken;
