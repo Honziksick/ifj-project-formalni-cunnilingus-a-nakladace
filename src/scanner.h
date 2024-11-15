@@ -6,7 +6,7 @@
  * Autor:            Hýža Pavel         <xhyzapa00>                            *
  *                                                                             *
  * Datum:            06.10.2024                                                *
- * Poslední změna:   14.11.2024                                                *
+ * Poslední změna:   15.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -106,40 +106,30 @@ typedef enum {
     STATE4_FLOAT_READY = 4,
     STATE5_SIMPLE = 5,
     STATE6_COMPLEX = 6,
-    //NUMBER OR NULL PATH
-    NON = 18,   //to fix, random number asigned to avoid collision
-    NON1a = 7,
-    NON1b = 8,
-    NON2a = 9,
-    NON2b = 10,
-    NON3a = 11,
-    NON3b = 12,
-    NON3c = 13,
-    //[]u8 PATH
-    U1 = 14,
-    U2 = 15,
-    U3 = 16,
-    //@import PATH
-    I1 = 17,
-
-    //= OR == PATH
-    EQUAL = 23,
-    //!= PATH
-    NOT_EQUAL = 24,
-    //< OR <= PATH
-    LESS = 25,
-    //> OR >= PATH
-    GREATER = 26,
-    //SLASH PATH
-    SLASH = 27,
-    DOUBLE_SLASH = 28,
-    //STRING PATH
-    DOUBLE_QUOTE = 29,
-    ESCAPE = 30,
-    ESCAPE_X = 31, //Tímto si nejsem jistý
-    //BACKSLASH PATH
-    BACKSLASH = 32,
-    DOUBLE_BACKSLASH = 33
+    STATE7_EXCLAMATION_MARK = 7,
+    STATE8_LESS = 8,
+    STATE9_GREATER = 9,
+    STATE10_EQUALITY_MARK = 10,
+    STATE11_SLASH = 11,
+    STATE12_DOUBLE_SLASH = 12,
+    STATE13_AT_SIGN = 13,
+    STATE14_LEFT_SQUARE_BRACKET_A = 14,
+    STATE15_LEFT_SQUARE_BRACKET_B = 15,
+    STATE16_LEFT_SQUARE_BRACKET_C = 16,
+    STATE17_QUESTION_MARK = 17,
+    STATE18_QUESTION_MARK_A1 = 18,
+    STATE19_QUESTION_MARK_B1 = 19,
+    STATE20_QUESTION_MARK_C1 = 20,
+    STATE21_QUESTION_MARK_A2 = 21,
+    STATE22_QUESTION_MARK_B2 = 22,
+    STATE23_QUESTION_MARK_C2 = 23,
+    STATE24_QUESTION_MARK_C3 = 24,
+    STATE25_DOUBLE_QUOTATION_MARKS = 25,
+    STATE26_ESCAPE_BACKSLASH = 26,
+    STATE27_ESCAPE_BACKSLASH_X = 27,
+    STATE28_BACKSLASH = 28,
+    STATE29_DOUBLE_BACKSLASH = 29,
+    STATE30_DOUBLE_BACKSLASH_LF = 30
 } StateFSM;
 
 typedef enum {
@@ -170,13 +160,13 @@ typedef struct {
 
 // Práce se znaky na vstupu
 // Přečte další znak ze zdrojového kódu
-char scanner_getNextChar();
+int scanner_getNextChar();
 
 // Vrácí znak zpět do vstupu (backtracking)
-void scanner_ungetChar(char c);
+void scanner_ungetChar(int c);
 
 // Rozhodování o typu znaku na vstupu
-CharType scanner_charIdentity(char c);
+CharType scanner_charIdentity(int c);
 
 // Rozhodování o tom, jestli LETTERS je IDENTIFIKÁTOR, nebo KEYWORD
 Keywords scanner_isKeyword(DString *value);
