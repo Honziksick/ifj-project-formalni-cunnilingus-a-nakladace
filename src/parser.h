@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "scanner.h"
+#include "frame_stack.h"
 #include "dynamic_string.h"
 #include "lltable.h"
 #include "ast_nodes.h"
@@ -81,6 +82,28 @@ extern Token currentToken;
  *       skutečnou inicializací inicializován na @c NULL.
  */
 extern AST_ProgramNode *ASTroot;
+
+/**
+ * @brief Globální zásobník rámců používaný v celém překladači.
+ *
+ * @details Tato proměnná obsahuje zásobník rámců, který je používán během
+ *          syntaktické a sémantické analýzy. Zásobník rámců umožňuje správu
+ *          symbolických tabulek a dalších informací spojených s jednotlivými
+ *          rámci. Každý rámec obsahuje tabulku symbolů, unikátní identifikátor
+ *          a další informace potřebné pro analýzu a generování kódu.
+ */
+extern FrameStack stack;
+
+/**
+ * @brief Globální pole všech vytvořených rámců.
+ *
+ * @details Tato proměnná obsahuje pole všech rámců, které byly vytvořeny během
+ *          syntaktické a sémantické analýzy. Pole rámců umožňuje rychlý přístup
+ *          k jednotlivým rámcům a jejich správu. Každý rámec v poli obsahuje
+ *          tabulku symbolů, unikátní identifikátor a další informace potřebné
+ *          pro analýzu a generování kódu.
+ */
+extern FrameArray frameArray;
 
 
 /*******************************************************************************
