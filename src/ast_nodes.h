@@ -38,6 +38,16 @@
 #include <stdbool.h>
 #include "dynamic_string.h"
 
+/*******************************************************************************
+ *                                                                             *
+ *                              DEFINICE KONSTANT                              *
+ *                                                                             *
+ ******************************************************************************/
+
+#define AST_FRAME_ID_NOT_ASSIGNED 0     /**< Uzlu AST_StatementNode nebo AST_VarNode ještě nebylo přiřazeno frameID. */
+#define AST_VAL_UNDEFINED NULL          /**< Uzel `AST_VarNode` pro proměnnou neobsahuje literál */
+#define AST_ID_UNDEFINED NULL           /**< Uzel `AST_VarNode` pro literál neobsahuje identifikátor */
+
 
 /*******************************************************************************
  *                                                                             *
@@ -192,7 +202,6 @@ typedef struct AST_FunDefNode {
  */
 typedef struct AST_ArgOrParamNode {
     enum   AST_NodeType        type;            /**< Typ uzlu (AST_ARG_NODE) */
-           DString             *identifier;     /**< Název proměnné */
     struct AST_VarNode         *variable;       /**< Argument/Parametr funkce */
     struct AST_ArgOrParamNode  *next;           /**< Ukazatel na další argument/parametr */
 } AST_ArgOrParamNode;
@@ -246,6 +255,7 @@ typedef struct AST_IfNode {
 typedef struct AST_WhileNode {
     enum   AST_NodeType      type;              /**< Typ uzlu (AST_WHILE_NODE) */
     struct AST_ExprNode      *condition;        /**< Podmínka */
+    struct AST_VarNode       *nullCondition;    /**< Identifikátor: Volitelná podmínka NULL */
     struct AST_StatementNode *body;             /**< Tělo cyklu */
 } AST_WhileNode;
 
