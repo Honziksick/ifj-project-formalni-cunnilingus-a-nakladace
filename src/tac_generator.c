@@ -6,7 +6,7 @@
  * Autor:            Lukáš Farkašovský   <xfarkal00>                           *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   12.11.2024                                                *
+ * Poslední změna:   15.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -19,8 +19,8 @@
  * @file tac_generator.c
  * @author Lukáš Farkašovský \<xfarkal00>
  *
- * @brief Implementace funkcí pro generátor vnitřního kódu (3AK).
- * @details XXX
+ * @brief Implementace funkcí pro generátor vnitřního kódu (3AK + Cílový jazyk).
+ * @details Knihovna pro generování cílového kódu z AST.
  */
 
 #include "tac_generator.h"
@@ -83,30 +83,30 @@ TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_O
     switch (instr->op){
         case TAC_OP_NONE: break;
         case TAC_OP_RETURN: break;
-        case TAC_OP_ADD:
-        case TAC_OP_SUB:
-        case TAC_OP_MUL:
-        case TAC_OP_DIV:
-        case TAC_OP_IF_EQ:
-        case TAC_OP_IF_NEQ:
-        case TAC_OP_IF_LT:
-        case TAC_OP_IF_LE:
-        case TAC_OP_IF_GT:
-        case TAC_OP_IF_GE:
+        case TAC_OP_ADD: break;
+        case TAC_OP_SUB: break;
+        case TAC_OP_MUL: break;
+        case TAC_OP_DIV: break;
+        case TAC_OP_IF_EQ: break;
+        case TAC_OP_IF_NEQ: break;
+        case TAC_OP_IF_LT: break;
+        case TAC_OP_IF_LE: break;
+        case TAC_OP_IF_GT: break;
+        case TAC_OP_IF_GE: break;
             instr->src1 = src1;
             instr->src2 = src2;
             instr->dest = dest;
             break;
-        case TAC_OP_ASSIGN:
+        case TAC_OP_ASSIGN:break;
             instr->src1 = src1;
             instr->dest = dest;
             break;
-        case TAC_OP_PARAM:
-        case TAC_OP_CALL:
-        case TAC_OP_LABEL:
+        case TAC_OP_PARAM:break;
+        case TAC_OP_CALL:break;
+        case TAC_OP_LABEL: break;
             instr->src1 = src1;
             break;
-        case TAC_OP_GOTO:
+        case TAC_OP_GOTO:break;
             instr->dest = dest;
             break;
 
@@ -134,6 +134,128 @@ void TAC_appendInstruction(TAC_InstructionList *list, TAC_Instruction *instr){
 } // TAC_appendInstruction
 
 /**
+ * @brief Vytiskne operand tříadresného kódu.
+ */
+void TAC_printOperand(TAC_Operand *operand){
+    switch (operand->type){
+        case TAC_OPERAND_NONE: return;
+        case TAC_OPERAND_VAR: printf("LF@$%s", string_toConstChar(operand->value.varName)); return;
+        case TAC_OPERAND_TEMP: printf("TF@$%s", string_toConstChar(operand->value.varName)); return;
+        case TAC_OPERAND_LABEL: printf("_%s", string_toConstChar(operand->value.labelName)); return;
+        case TAC_OPERAND_INT: printf("int@%d", operand->value.intValue); return;
+        case TAC_OPERAND_FLOAT: printf("float@%a", operand->value.floatValue); return;
+        case TAC_OPERAND_STRING: printf("string@%s", string_toConstChar(operand->value.varName)); return;
+        case TAC_OPERAND_BOOL: printf("bool@%s", string_toConstChar(operand->value.varName)); return;
+        case TAC_OPERAND_NIL: printf("nil@nil"); return;
+    }
+}// TAC_printOperand
+
+/**
+ * @brief Vytiskne instrukci tříadresného kódu.
+ */
+void TAC_printInstruction(TAC_Instruction *instr){
+    // Výpis operace instrukce
+    switch (instr->op){
+        case TAC_OP_NONE: break;
+        case TAC_OP_ADD: printf("ADD "); break; // ADD dest, src1, src2
+        case TAC_OP_SUB: printf("SUB "); break; // SUB dest, src1, src2
+        case TAC_OP_MUL: printf("MUL "); break; // MUL dest, src1, src2
+        case TAC_OP_DIV: printf("DIV "); break; // DIV dest, src1, src2
+        case TAC_OP_IF_EQ: printf("EQ "); break; // EQ dest, src1, src2
+        case TAC_OP_IF_NEQ: printf("NEQ "); break; // NEQ dest, src1, src2
+        case TAC_OP_IF_LT: printf("LT "); break; // LT dest, src1, src2
+        case TAC_OP_IF_LE: printf("LE "); break; // LE dest, src1, src2
+        case TAC_OP_IF_GT: printf("GT "); break; // GT dest, src1, src2
+        case TAC_OP_IF_GE: printf("GE "); break; // GE dest, src1, src2
+        case TAC_OP_CALL: printf("CALL "); break; // CALL dest
+        case TAC_OP_RETURN: printf("RETURN "); break; // RETURN src1
+        case TAC_OP_LABEL: printf("LABEL "); break; // LABEL dest
+        case TAC_OP_JUMP: printf("JUMP "); break; // JUMP dest
+        case TAC_OP_JUMPIFEQ: printf("JUMPIFEQ "); break; // JUMPIFEQ dest, src1, src2
+        case TAC_OP_JUMPIFNEQ: printf("JUMPIFNEQ "); break; // JUMPIFNEQ dest, src1, src2
+        case TAC_OP_TYPE: printf("TYPE "); break; // TYPE dest, src1
+        case TAC_OP_EXIT: printf("EXIT "); break; // EXIT src1
+        case TAC_OP_CREATEFRAME: printf("CREATEFRAME "); break; // CREATEFRAME
+        case TAC_OP_PUSHFRAME: printf("PUSHFRAME "); break; // PUSHFRAME
+        case TAC_OP_POPFRAME: printf("POPFRAME "); break; // POPFRAME
+        case TAC_OP_DEFVAR: printf("DEFVAR "); break; // DEFVAR dest
+        case TAC_OP_WRITE: printf("WRITE "); break; // WRITE src1
+        case TAC_OP_READ: printf("READ "); break; // READ dest
+        case TAC_OP_CONCAT: printf("CONCAT "); break; // CONCAT dest, src1, src2
+        default: break;
+    }
+    // Výpis operandů instrukce --> dest, src1, src2 (pokud využívá všechny adresy)
+    switch (instr->op){
+        // dest, src1, src2
+        case TAC_OP_NONE: break;
+        case TAC_OP_ADD:
+        case TAC_OP_SUB:
+        case TAC_OP_MUL:
+        case TAC_OP_DIV:
+        case TAC_OP_JUMPIFEQ:
+        case TAC_OP_JUMPIFNEQ:
+        case TAC_OP_IF_EQ:
+        case TAC_OP_IF_NEQ:
+        case TAC_OP_IF_LT:
+        case TAC_OP_IF_LE:
+        case TAC_OP_IF_GT:
+        case TAC_OP_IF_GE:
+            // Destinace --> kam se zapíš€e výsledek
+            TAC_printOperand(&(instr->dest));
+            // Mezery mezi operandy
+            printf(" ");
+            TAC_printOperand(&(instr->src1));
+            printf(" ");
+            TAC_printOperand(&(instr->src2));
+            return;
+
+        // dest
+        case TAC_OP_DEFVAR:
+        case TAC_OP_JUMP:
+        case TAC_OP_EXIT:
+        case TAC_OP_WRITE:
+        case TAC_OP_READ:
+        case TAC_OP_CALL:
+        case TAC_OP_LABEL:
+            TAC_printOperand(&(instr->dest));
+            return;
+
+        // dest, src1
+        case TAC_OP_ASSIGN:
+        case TAC_OP_NOT:
+        case TAC_OP_TYPE:
+            TAC_printOperand(&(instr->dest));
+            printf(" ");
+            TAC_printOperand(&(instr->src1));
+            return;
+
+        // Pokud instrukce nepotřebuje žádný operand
+        default:
+            return;
+    }
+}// TAC_printInstruction
+
+/**
+ * @brief Vytiskne všechny instrukce v seznamu tříadresného kódu.
+ */
+void TAC_printInstructionList(TAC_InstructionList *list){
+    // Pokud je seznam prázdný, nemáme co tisknout
+    if(list->head == NULL){
+        return;
+    }
+
+    // Postupné tisknutí instrukcí od hlavičky
+    TAC_Instruction *current = list->head;
+
+    // Dokud máme, co tisknout
+    while(current != NULL){
+        TAC_printInstruction(current);
+        printf("\n");
+        current = current->next;
+    }
+} // TAC_printInstructionList
+
+/**
  * @brief Uvolní všechny instrukce v seznamu tříadresného kódu.
  */
 void TAC_freeInstructionList(TAC_InstructionList *list){
@@ -152,40 +274,5 @@ void TAC_freeInstructionList(TAC_InstructionList *list){
         current = next;
     }
 } // TAC_freeInstructionList
-
-/**
- * @brief Generuje tříadresný kód pro definici funkce.
-
-bool TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode, TAC_InstructionList *tacList){
-    // Vytvoření nového seznamu instrukcí pro tělo funkce
-    funDefNode = AST_createFunDefNode();
-
-    if(funDefNode == NULL){
-        return false;
-    }
-
-    // Prázdný operand pro nevyužití
-    TAC_Operand undef;
-    // Instrukce
-    TAC_Instruction *instr;
-
-    instr = TAC_createInstruction(TAC_OP_PARAM, undef, funDefNode->, undef);
-            TAC_appendInstruction(tacList, instr);
-    return true;
-} */
-
-/**
- * @brief Generuje tříadresný kód pro proměnnou.
- */
-/*bool TAC_generateVariable(AST_VarNode *varNode, TAC_InstructionList *tacList){
-    // Prázdný operand pro nevyužití
-    TAC_Operand undef, src1, src2;
-    // Instrukce
-    TAC_Instruction *instr;
-
-    instr = TAC_createInstruction(TAC_OP_ASSIGN, undef, src1, src2);
-    TAC_appendInstruction(tacList, instr);
-    return true;
-}*/
 
 /*** Konec souboru tac_generator.c ***/
