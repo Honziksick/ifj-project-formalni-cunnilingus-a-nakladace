@@ -965,7 +965,9 @@ Token scanner_FSM() {
         }
     }
 
-    string_free(str);
+    if(lexToken.value == NULL) {
+        string_free(str);
+    }
     return lexToken;
 }
 
