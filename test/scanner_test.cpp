@@ -240,7 +240,7 @@ TEST(FSM, FSM_Identifier){
     string_free(state.value);
 }
 
-/**
+/** TOTO JE BLBĚ NAPSANÉ
  * @brief Testuje funkci `scanner_FSM` pro chybný identifikátor =hello.
  */
 /*TEST(FSM, FSM_Identifier_ERROR_1){
@@ -261,7 +261,7 @@ TEST(FSM, FSM_Identifier){
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
 }*/
 
-/**
+/** TOTO JE BLBĚ NAPSANÉ
  * @brief Testuje funkci `scanner_FSM` pro chybný identifikátor .hello.
  */
 /*TEST(FSM, FSM_Identifier_ERROR_2){
@@ -623,6 +623,237 @@ TEST(FSM, FSM_OPERATOR_ERROR_2){
     ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
 }
 
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program hello.zig
+ */
+TEST(Lex, Hello) {
+    FILE* f = fopen("../ifj24_examples/ifj24_programs/hello.zig", "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // const ifj = @import("ifj24.zig");
+        TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // pub fn main() void {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET,
+
+        // const y: i32 = 24;
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_EQUALITY_SIGN, TOKEN_INT, TOKEN_SEMICOLON,
+
+        // ifj.write("Hello from IFJ");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write(y);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write("\\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // EOF
+        TOKEN_EOF
+    };
+
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
+        long int current_pos = ftell(stdin);
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
+            exit(0);
+        } else {
+            // Parent process waits for the child
+            int status;
+            waitpid(pid, &status, 0);
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Print the remaining input
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+
+                FAIL();
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program fun.zig
+ */
+TEST(Lex, Fun) {
+    FILE* f = fopen("../ifj24_examples/ifj24_programs/fun.zig", "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // const ifj = @import("ifj24.zig");
+        TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // pub fn f (x : i32) i32
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_i32, 
+
+        // {
+        TOKEN_LEFT_CURLY_BRACKET,
+
+        // if (x < 10) {
+        TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_LESS_THAN, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_LEFT_CURLY_BRACKET,
+
+        // return x - 1;
+        TOKEN_K_return, TOKEN_IDENTIFIER, TOKEN_MINUS, TOKEN_INT, TOKEN_SEMICOLON,
+
+        // } else {
+        TOKEN_RIGHT_CURLY_BRACKET, TOKEN_K_else, TOKEN_LEFT_CURLY_BRACKET,
+
+        // const y = x - 1;
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_MINUS, TOKEN_INT, TOKEN_SEMICOLON,
+
+        // ifj.write("calling g with ");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write(y);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write("\\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // const res = g(y);
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // return res;
+        TOKEN_K_return, TOKEN_IDENTIFIER, TOKEN_SEMICOLON,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // pub fn g(x: i32) i32 {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_i32, TOKEN_LEFT_CURLY_BRACKET,
+
+        // if (x > 0) {
+        TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_GREATER_THAN, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_LEFT_CURLY_BRACKET,
+
+        // ifj.write("calling f with ");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write(x);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write("\\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // const y = f(x);
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // return y;
+        TOKEN_K_return, TOKEN_IDENTIFIER, TOKEN_SEMICOLON,
+
+        // } else {
+        TOKEN_RIGHT_CURLY_BRACKET, TOKEN_K_else, TOKEN_LEFT_CURLY_BRACKET,
+
+        // return 200;
+        TOKEN_K_return, TOKEN_INT, TOKEN_SEMICOLON,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // pub fn main() void {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET,
+
+        // const res = g(10);
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write("res: ");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write(res);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write("\\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // EOF
+        TOKEN_EOF
+    };
+
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
+        long int current_pos = ftell(stdin);
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
+            exit(0);
+        } else {
+            // Parent process waits for the child
+            int status;
+            waitpid(pid, &status, 0);
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Print the remaining input
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+
+                FAIL();
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+}
+
 
 /**
  * @brief Testuje lexikální analyzátor pro vstupní program
@@ -772,7 +1003,7 @@ TEST(Lex, Example1){
  * 
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example2.zig
  */
-/*TEST(Lex, Example2){
+TEST(Lex, Example2) {
     FILE* f = fopen("../ifj24_examples/ifj24_programs/example2.zig", "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -780,44 +1011,41 @@ TEST(Lex, Example1){
 
     TokenType expected_arr[] = {
         // Program 2: Vypocet faktorialu (rekurzivne)
-        // Hlavni telo programu
-
-        // const ifj = @import("ifj24.zig");
         TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
-        
+
         // pub fn main() void {
         TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET,
-        
+
         // ifj.write("Zadejte cislo pro vypocet faktorialu: ");
         TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
-        
+
         // const inp = ifj.readi32();
         TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
-        
+
         // if (inp) |INP| {
         TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_VERTICAL_BAR, TOKEN_IDENTIFIER, TOKEN_VERTICAL_BAR, TOKEN_LEFT_CURLY_BRACKET,
-        
+
         // if (INP < 0) {
-        TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_LESS_THAN, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_LEFT_CURLY_BRACKET,
-        
+        TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_LESS_THAN, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_LEFT_CURLY_BRACKET,
+
         // ifj.write("Faktorial nelze spocitat!\n");
         TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
-        
+
         // } else {
         TOKEN_RIGHT_CURLY_BRACKET, TOKEN_K_else, TOKEN_LEFT_CURLY_BRACKET,
-        
+
         // const vysl = factorial(INP);
         TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
-        
+
         // ifj.write("Vysledek: ");
         TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
-        
+
         // ifj.write(vysl);
         TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
-        
+
         // }
         TOKEN_RIGHT_CURLY_BRACKET,
-        
+
         // } else {
         TOKEN_RIGHT_CURLY_BRACKET, TOKEN_K_else, TOKEN_LEFT_CURLY_BRACKET,
 
@@ -833,7 +1061,7 @@ TEST(Lex, Example1){
         // pub fn decrement(n: i32, m: i32) i32 {
         TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_COMMA, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_i32, TOKEN_LEFT_CURLY_BRACKET,
 
-        //return n - m;
+        // return n - m;
         TOKEN_K_return, TOKEN_IDENTIFIER, TOKEN_MINUS, TOKEN_IDENTIFIER, TOKEN_SEMICOLON,
 
         // }
@@ -844,9 +1072,9 @@ TEST(Lex, Example1){
 
         // var result: i32 = 0-1;
         TOKEN_K_var, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_EQUALITY_SIGN, TOKEN_INT, TOKEN_MINUS, TOKEN_INT, TOKEN_SEMICOLON,
-        
+
         // if (n < 2) {
-        TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_LESS_THAN, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_LEFT_CURLY_BRACKET,
+        TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_LESS_THAN, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_LEFT_CURLY_BRACKET,
 
         // result = 1;
         TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_INT, TOKEN_SEMICOLON,
@@ -861,7 +1089,7 @@ TEST(Lex, Example1){
         TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
 
         // result = n * temp_result;
-        TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_ASTERISK, TOKEN_IDENTIFIER,
+        TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_ASTERISK, TOKEN_IDENTIFIER, TOKEN_SEMICOLON,
 
         // }
         TOKEN_RIGHT_CURLY_BRACKET,
@@ -876,56 +1104,28 @@ TEST(Lex, Example1){
         TOKEN_EOF
     };
 
-    const char* expected_strings[] = {
-        "ifj24.zig",
-        "Zadejte cislo pro vypocet faktorialu: ",
-        "Faktorial nelze spocitat!\n",
-        "Vysledek: ",
-        "Chyba pri nacitani celeho cisla!\n"
-    };
-
-    for (unsigned long i = 0, j = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
-        // Uložíme si pozici vstupu
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
         long int current_pos = ftell(stdin);
-        
+
         pid_t pid = fork();
         if (pid == -1) {
             perror("fork\n");
             exit(1);
         } else if (pid == 0) {
-            // Potomek zavolá testTokenType a ukončí se
-            if(expected_arr[i] == TOKEN_STRING){
-                if(j > sizeof(expected_strings) / sizeof(char*)){
-                    cerr << "Error in token " << i << endl;
-                    cerr << "Expected strings is too small: " << endl;
-                    FAIL();
-                }
-                testTokenString(expected_strings[j]);
-            } else {
-                testTokenType(expected_arr[i]);
-            }
-
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
             exit(0);
         } else {
-            // Rodičovský proces čeká na potomka
+            // Parent process waits for the child
             int status;
             waitpid(pid, &status, 0);
-            if(WEXITSTATUS(status) == 0){
-                if(expected_arr[i] == TOKEN_STRING){
-                    j++;
-                }
-                continue;
-            }else if (WEXITSTATUS(status) == 2) {
-                // Potomek failnul testy, ale ne lex chybou
-                ADD_FAILURE();
-                cerr << "Error in token " << i << endl;
-                cerr << "Expected type: " << expected_arr[i] << endl;
-            }else if (WEXITSTATUS(status) == 1) {
-                // Potomek skončil s lex chybou
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
                 cerr << "Error in token " << i << endl;
                 cerr << "Expected type: " << expected_arr[i] << endl;
 
-                // Vypíšeme zbytek vstupu
+                // Print the remaining input
                 fseek(stdin, current_pos, SEEK_SET);
                 char buffer[256];
                 cerr << "Remaining input: ";
@@ -936,20 +1136,155 @@ TEST(Lex, Example1){
 
                 stdin = stdin_backup;
                 fclose(f);
-                
+
                 FAIL();
-            }
-            if(expected_arr[i] == TOKEN_STRING){
-                j++;
             }
         }
     }
 
     stdin = stdin_backup;
     fclose(f);
+}
 
-}*/
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example3.zig
+ */
+TEST(Lex, Example3) {
+    FILE* f = fopen("../ifj24_examples/ifj24_programs/example3.zig", "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
 
+    TokenType expected_arr[] = {
+        // Program 3: Prace s retezci a vestavenymi funkcemi
+        TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // pub fn main() void {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET,
+
+        // const str1 = ifj.string("...");
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // var str2 = ifj.string("...");
+        TOKEN_K_var, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // str2 = ifj.concat(str1, str2);
+        TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COMMA, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write(str1);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write("\\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write(str2);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write("\\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write("Zadejte serazenou posloupnost vsech malych pismen a-h, ");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // var newInput = ifj.readstr();
+        TOKEN_K_var, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // var all: []u8 = ifj.string("");
+        TOKEN_K_var, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_u8, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // while (newInput) |inpOK| {
+        TOKEN_K_while, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_VERTICAL_BAR, TOKEN_IDENTIFIER, TOKEN_VERTICAL_BAR, TOKEN_LEFT_CURLY_BRACKET,
+
+        // const abcdefgh = ifj.string("abcdefgh");
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // const strcmpResult = ifj.strcmp(inpOK, abcdefgh);
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COMMA, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // if (strcmpResult == 0) {
+        TOKEN_K_if, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_EQUAL_TO, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_LEFT_CURLY_BRACKET,
+
+        // ifj.write("Spravne zadano!\\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // ifj.write(all);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // newInput = null;
+        TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_null, TOKEN_SEMICOLON,
+
+        // } else {
+        TOKEN_RIGHT_CURLY_BRACKET, TOKEN_K_else, TOKEN_LEFT_CURLY_BRACKET,
+
+        // ifj.write("Spatne zadana posloupnost, zkuste znovu:\\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // all = ifj.concat(all, inpOK);
+        TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COMMA, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // newInput = ifj.readstr();
+        TOKEN_IDENTIFIER, TOKEN_EQUALITY_SIGN, TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // }
+        TOKEN_RIGHT_CURLY_BRACKET,
+
+        // EOF
+        TOKEN_EOF
+    };
+
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
+        long int current_pos = ftell(stdin);
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
+            exit(0);
+        } else {
+            // Parent process waits for the child
+            int status;
+            waitpid(pid, &status, 0);
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Print the remaining input
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+
+                FAIL();
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+
+
+//ZAKOMENTOVÁNO PROTOŽE TO JE TO SAMÉ JAKO DALŠÍ TEST, ale je v tom jinačí systém zpracování stringu, který je špatně
 /**
  * @brief Testuje lexikální analyzátor pro vstupní program
  * 
@@ -1273,6 +1608,68 @@ TEST(Lex, lex_test_multi2){
 
 }
 
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_satanic.zig
+ */
+TEST(Lex, Satanic) {
+    FILE* f = fopen("../ifj24_examples/ifj24_programs/lex_test_satanic.zig", "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // Your corrected expected tokens
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_K_Qu8, TOKEN_K_Qu8, TOKEN_K_Qi32, TOKEN_K_Qf64,
+        TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_LEFT_CURLY_BRACKET, TOKEN_RIGHT_CURLY_BRACKET, TOKEN_VERTICAL_BAR,
+        TOKEN_PERIOD, TOKEN_COMMA, TOKEN_COLON, TOKEN_SEMICOLON, TOKEN_PLUS, TOKEN_MINUS, TOKEN_SLASH, TOKEN_ASTERISK,
+        TOKEN_EQUALITY_SIGN, TOKEN_NOT_EQUAL_TO, TOKEN_GREATER_THAN, TOKEN_GREATER_EQUAL_THAN, TOKEN_LESS_THAN, TOKEN_LESS_EQUAL_THAN,
+        TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_FLOAT, TOKEN_IDENTIFIER, TOKEN_K_underscore, TOKEN_IDENTIFIER,
+        TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON, TOKEN_EOF
+    };
+
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
+        long int current_pos = ftell(stdin);
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
+            exit(0);
+        } else {
+            // Parent process waits for the child
+            int status;
+            waitpid(pid, &status, 0);
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Print the remaining input
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+
+                FAIL();
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+}
 
 
 /*** Konec souboru scanner_test.cpp ***/
