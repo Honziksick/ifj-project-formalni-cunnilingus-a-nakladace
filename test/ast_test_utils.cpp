@@ -241,17 +241,15 @@ void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int in
         levels.push_back(!isLast);
 
         // Ověření existence identifikátoru a tisknutí identifikátoru
-        if (node->identifier != nullptr && node->identifier->str != nullptr) { 
-            char *identifier = string_toConstChar(node->identifier);
+        if (node->variable != nullptr) { 
             if (useColors)
-                out << COLOR_BLUE << "Parameter: " << COLOR_RESET << identifier << endl;
+                out << COLOR_BLUE << "Parameter: " << COLOR_RESET << endl;
             else
-                out << "Parameter: " << identifier << endl;
-            free(identifier);
+                out << "Parameter: " << endl;
         } else {
-            // Pokud `identifier` nebo `identifier->str` není platný, ošetříme výstup
+           // Pokud `identifier` nebo `identifier->str` není platný, ošetříme výstup
             out << COLOR_BLUE << "Parameter: " << COLOR_RESET << "(null)" << endl;
-        }
+        } 
         
         // Výpis proměnné, pokud existuje
         if(node->variable != nullptr) {
