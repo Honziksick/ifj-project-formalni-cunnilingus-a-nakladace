@@ -15,7 +15,6 @@
  *           Krejčí David         <xkrejcd00>                                  *
  *                                                                             *
  ******************************************************************************/
-
 /**
  * @file precedence_parser.c
  * @author Jan Kalina \<xkalinj00>
@@ -27,8 +26,6 @@
  */
 
 #include "precedence_parser.h"
-
-#define TOKEN_k_ifj 42
 
 
 /*******************************************************************************
@@ -685,8 +682,8 @@ void PrecParser_mapTokenToPrecTerminal(int bracketDepth ,PrecTerminals *terminal
             *terminal = T_PREC_NULL_LITERAL;
             break;
 
-        // Mapování: TOKEN_k_ifj -> T_PREC_IFJ
-        case TOKEN_k_ifj:
+        // Mapování: TOKEN_K_ifj -> T_PREC_IFJ
+        case TOKEN_K_ifj:
             *terminal = T_PREC_IFJ;
             break;
 
