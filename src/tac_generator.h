@@ -157,6 +157,15 @@ typedef struct TAC_InstructionList {
 TAC_InstructionList *TAC_createInstructionList();
 
 /**
+ * @brief Vytvoří a inicializuje novou tříadresnou instrukci na základní hodnoty.
+ *
+ * @details Funkce slouží k vygenerování prázdné instrukce s inicializovanými hodnotami.
+ *
+ * @return @c instr Ukazatel na novou instrukci, jinak NULL při chybě alokace.
+ */
+TAC_Instruction *TAC_initInstruction();
+
+/**
  * @brief Vytvoří novou tříadresnou instrukci.
  *
  * @details Vytvoří novou instrukci s danou operací a s danými operandy.
@@ -170,6 +179,26 @@ TAC_InstructionList *TAC_createInstructionList();
  *         NULL, pokud selže alokace paměti.
  */
 TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_Operand src1, TAC_Operand src2);
+
+/**
+ * @brief Zničí instrukci.
+ *
+ * @details Zničí instrukci a uvolní alokovanou paměť.
+ *          Využito ve funkci TAC_destroyInstructionList a TAC_freeInstructionList.
+ *
+ * @param instr Ukazatel na instrukci, která má být uvolněna.
+ */
+void TAC_destroyInstruction(TAC_Instruction *instr);
+
+/**
+ * @brief Zničí operand.
+ *
+ * @details Zničí operand a uvolní alokovanou paměť.
+ *          Využito ve funkci TAC_destroyInstruction.
+ *
+ * @param instr Ukazatel na instrukci, která má být uvolněna.
+ */
+void TAC_destroyOperand(TAC_Operand *operand);
 
 /**
  * @brief Přidá instrukci na konec seznamu instrukcí.
@@ -303,6 +332,13 @@ bool TAC_generateVariable(AST_VarNode *varNode, TAC_InstructionList *tacList);
 void TAC_freeInstructionList(TAC_InstructionList *list);
 
 /**
+ * @brief Uvolní všechny instrukce v seznamu tříadresného kódu a potom samotný seznam.
+ *
+ * @param list Ukazatel na seznam tříadresných instrukcí.
+ */
+void TAC_destroyInstructionList(TAC_InstructionList *list);
+
+/**
  * @brief Vytiskne všechny instrukce v seznamu tříadresného kódu.
  *
  * @details Tiskne všechny instrukce v seznamu tříadresných instrukcí, dokud nenarazí na konec.
@@ -311,6 +347,16 @@ void TAC_freeInstructionList(TAC_InstructionList *list);
  * @param list Ukazatel na seznam tříadresných instrukcí.
  */
 void TAC_printInstructionList(TAC_InstructionList *list);
+
+/**
+ * @brief Vytvoří nějaké instrukce na otestování.
+ *
+ * @details Tato funkce slouží k testování generování tříadresného kódu.
+ *          Pokud je seznam prázdný, nic se nestane.
+ *
+ * @param list Ukazatel na seznam tříadresných instrukcí.
+ */
+bool TAC_generateTestCode(TAC_InstructionList *tacList);
 
 #endif // TAC_H_
 
