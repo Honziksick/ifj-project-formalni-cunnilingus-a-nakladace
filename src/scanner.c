@@ -47,10 +47,10 @@ CharType scanner_charIdentity(int c) {
     else if(isdigit(c)) {
         return NUMBER;  //c je číslo (NUMBER)
     }
-    else if(isspace(c)) {
+    else if(isspace(c)) { 
         return WHITESPACE;   //c je prázdný znak (WHITESPACE)
     }
-    else if(c == '#' || c == '$' || c == '%' ||
+    else if(c == '#' || c == '$' || c == '%' || 
             c == '&' || c == 39  || c == '^' ||
             c == '`' || c == '~' || c == 127) { //Znak, co není v jazyce povolen (39 = ' , 127 = DEL)
         return NOT_IN_LANGUAGE;     //c je znak, kerý nepatří do jazyka (NIL)
@@ -103,6 +103,8 @@ Keywords scanner_isKeyword(DString *value) {
         return KEY_while;
     } else if(strcmp(value->str, "_") == 0) {
         return KEY_underscore;
+    } else if(strcmp(value->str, "ifj") == 0) {
+        return KEY_ifj;
     } else {
         return KEY_IDENTIFIER;
     }
@@ -135,6 +137,8 @@ Token scanner_FSM() {
     {
         int x = 0;
         int keytest = 0;
+        //printf("State num: %d\n", state);
+
         switch (state) {
             /*
             -------------
@@ -177,7 +181,7 @@ Token scanner_FSM() {
                         stopFSM = true;
                         break;
                     default:
-                        //printf("S0 DEF\n");
+                        //printf("S0 DEF\n");    
                         stopFSM = true;
                         error_handle(ERROR_LEXICAL);        //ERROR - charIdentity vrátil něco, co nedává smysl
                         break;
@@ -694,8 +698,10 @@ Token scanner_FSM() {
             ----------------------
             */
             case STATE17_QUESTION_MARK:
+                //printf("BASE\n");
                 c = scanner_getNextChar();
                 if(isspace(c)) {
+                    //printf("space\n");
                     //Nic
                 } else if(c == 'i') {
                     state = STATE18_QUESTION_MARK_A1;
@@ -706,7 +712,6 @@ Token scanner_FSM() {
                 } else {
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
-                    break;
                 }
                 break;
             /*
@@ -715,13 +720,15 @@ Token scanner_FSM() {
             -------------------------
             */
             case STATE18_QUESTION_MARK_A1:
+                //printf("A1\n");
                 c = scanner_getNextChar();
                 if(c == '3') {
+                    //printf("if\n");
                     state = STATE21_QUESTION_MARK_A2;
                 } else {
+                    //printf("else\n");
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
-                    break;
                 }
                 break;
             /*
@@ -730,13 +737,15 @@ Token scanner_FSM() {
             -------------------------
             */
             case STATE19_QUESTION_MARK_B1:
+                //printf("B1\n");
                 c = scanner_getNextChar();
                 if(c == '6') {
+                    //printf("if\n");
                     state = STATE22_QUESTION_MARK_B2;
                 } else {
+                    //printf("else\n");
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
-                    break;
                 }
                 break;
             /*
@@ -745,15 +754,18 @@ Token scanner_FSM() {
             -------------------------
             */
             case STATE20_QUESTION_MARK_C1:
+                //printf("C1\n");
                 c = scanner_getNextChar();
                 if(c == ']') {
+                    //printf("if\n");
                     state = STATE23_QUESTION_MARK_C2;
                 } else if(isspace(c)) {
+                    //printf("space\n");
                     //Nic
                 } else {
+                    //printf("else\n");
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
-                    break;
                 }
                 break;
             /*
@@ -762,14 +774,16 @@ Token scanner_FSM() {
             -------------------------
             */
             case STATE21_QUESTION_MARK_A2:
+                //printf("A2\n");
                 c = scanner_getNextChar();
                 if(c == '2') {
+                    //printf("if\n");
                     lexToken = scanner_stringlessTokenCreate(TOKEN_K_Qi32);
                     stopFSM = true;
                 } else {
+                    //printf("else\n");
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
-                    break;
                 }
                 break;
             /*
@@ -778,14 +792,16 @@ Token scanner_FSM() {
             -------------------------
             */
             case STATE22_QUESTION_MARK_B2:
+                //printf("B2\n");
                 c = scanner_getNextChar();
                 if(c == '4') {
+                    //printf("if\n");
                     lexToken = scanner_stringlessTokenCreate(TOKEN_K_Qf64);
                     stopFSM = true;
                 } else {
+                    //printf("else\n");
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
-                    break;
                 }
                 break;
             /*
@@ -794,15 +810,18 @@ Token scanner_FSM() {
             -------------------------
             */
             case STATE23_QUESTION_MARK_C2:
+                //printf("C2\n");
                 c = scanner_getNextChar();
                 if(c == 'u') {
+                    //printf("ifC2\n");
                     state = STATE24_QUESTION_MARK_C3;
-                } if(isspace(c)) {
+                } else if(isspace(c)) {
+                    //printf("space\n");
                     //Nic
                 } else {
+                    //printf("elseC2\n");
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
-                    break;
                 }
                 break;
             /*
@@ -811,11 +830,14 @@ Token scanner_FSM() {
             -------------------------
             */
             case STATE24_QUESTION_MARK_C3:
+                //printf("C3\n");
                 c = scanner_getNextChar();
                 if(c == '8') {
+                    //printf("if\n");
                     lexToken = scanner_stringlessTokenCreate(TOKEN_K_Qu8);
                     stopFSM = true;
                 } else {
+                    //printf("else\n");
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
                     break;
@@ -940,11 +962,14 @@ Token scanner_FSM() {
             ------------------
             */
             case STATE28_BACKSLASH:
+                //printf("S28 Start\n");
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
                 if(c == 92) {//92 = backslash
+                    //printf("S28 if\n");
                     state = STATE29_DOUBLE_BACKSLASH;
                     break;
                 } else {
+                    //printf("S28 else\n");
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);        //ERROR - načten nekompatibilní znak do tokenu stringu s variantou backslash
                     break;
@@ -955,11 +980,14 @@ Token scanner_FSM() {
             -------------------------
             */
             case STATE29_DOUBLE_BACKSLASH:
+                //printf("S29 Start\n");
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
                 if(c == 10) {   //10 = LF
+                    //printf("S29 if\n");
                     state = STATE30_DOUBLE_BACKSLASH_LF;
                     break;
                 } else {
+                    //printf("S29 else\n");
                     string_append_char(str, (char)c);
                     break;
                 }
@@ -969,19 +997,28 @@ Token scanner_FSM() {
             -----------------------------
             */
             case STATE30_DOUBLE_BACKSLASH_LF:
+                //printf("S30 Start\n");
                 c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+                while(c == ' ') {
+                    c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+                }
+
                 if(c != 92) {
+                    //printf("S30 if1\n");
                     lexToken = scanner_tokenCreate(TOKEN_STRING, str);
                     scanner_ungetChar(c);
                     stopFSM = true;
                     break;
                 }
+                //printf("S30 Mid\n");
                 c = scanner_getNextChar();
                 if(c != 92) {
+                    //printf("S30 if2\n");
                     stopFSM = true;
                     error_handle(ERROR_LEXICAL);        //ERROR - načten nekompatibilní znak do tokenu stringu s variantou backslash
                     break;
                 }
+                //printf("S30 End\n");
                 string_append_char(str, '\n');
                 state = STATE29_DOUBLE_BACKSLASH;
                 break;
@@ -997,7 +1034,7 @@ Token scanner_FSM() {
         }
     }
 
-    if(lexToken.value == NULL) {
+    if(lexToken.value == NULL || strcmp(lexToken.value->str, "import") == 0) {
         string_free(str);
     }
     return lexToken;

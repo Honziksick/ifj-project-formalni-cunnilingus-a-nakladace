@@ -83,7 +83,10 @@ typedef enum {
     TOKEN_K_else = 40,
     TOKEN_K_while = 41,
     TOKEN_K_import = 42,
-    TOKEN_K_underscore = 43
+    TOKEN_K_underscore = 43,
+    TOKEN_K_ifj = 44,
+    //OTHER
+    TOKEN_UNINITIALIZED = 45
 } TokenType;
 
 // Definice rozlišovaných typů znaků (char) na vstupu
@@ -148,7 +151,8 @@ typedef enum {
     KEY_if = 39,
     KEY_else = 40,
     KEY_while = 41,
-    KEY_underscore = 43
+    KEY_underscore = 43,
+    KEY_ifj = 44
 } Keywords;
 
 /* Každý token má typ, hodnotu (tj. dynamický řetězec) a informace o pozici

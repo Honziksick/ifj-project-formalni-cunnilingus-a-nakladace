@@ -15,7 +15,6 @@
  *           Krejčí David         <xkrejcd00>                                  *
  *                                                                             *
  ******************************************************************************/
-
 /**
  * @file precedence_parser.c
  * @author Jan Kalina \<xkalinj00>
@@ -27,8 +26,6 @@
  */
 
 #include "precedence_parser.h"
-
-#define TOKEN_k_ifj 42
 
 
 /*******************************************************************************
@@ -122,23 +119,37 @@ void PrecParser_parse(LLNonTerminals fromNonTerminal) {
         switch(precedence) {
             /* Rovnost: 1) Vlož 'b' na vrchol zásobník
              *          2) Čti další symbol 'b'ze vstupu
-            */
-            case P_EQUAL:
-                PrecStack_pushPrecTerminal(inTerminal, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
+             */
+            case P_EQUAL: {
+                // Pushneme na zásboník inicializovaný "PrecStackNode"
+                PrecStack_pushBothStackAndASTNode(inTerminal);
+
+                // Čtení dalšího symbolu ze vstupu
                 Parser_pokeScanner();
+
+                // Mapování dalšího symbolu na precedenční terminál
                 PrecParser_mapTokenToPrecTerminal(bracketDepth, &inTerminal);
                 break;
+            } // case P_EQUAL
 
             /* Shift: 1) Změň na zásobníku 'a' na 'a<'
              *        2) Vlož 'b' na vrchol zásobníku
              *        3) Čti další symbol 'b' ze vstupu
              */
-            case P_LESS:
+            case P_LESS: {
+                // Pushneme na zásobník symbol "handle"
                 PrecStack_pushPrecNonTerminal(PREC_STACK_NT_HANDLE, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
-                PrecStack_pushPrecTerminal(inTerminal, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
+
+                // Pushneme na zásboník inicializovaný "PrecStackNode"
+                PrecStack_pushBothStackAndASTNode(inTerminal);
+
+                // Čtení dalšího symbolu ze vstupu
                 Parser_pokeScanner();
+
+                // Mapování dalšího symbolu na precedenční terminál
                 PrecParser_mapTokenToPrecTerminal(bracketDepth, &inTerminal);
                 break;
+            } // case P_LESS
 
             /* Redukce: 1) Je-li '<y' na vrcholu zásobníku &&
              *             Existuje-li pravidlo 'r: A -> y∈P'
@@ -146,17 +157,24 @@ void PrecParser_parse(LLNonTerminals fromNonTerminal) {
              *                  Vypiš 'r' na výstup
              *          b) NE: chyba
              */
-            case P_GREATER:
-                if (PrecStack_isHandleOnTop()) {
+            case P_GREATER: {
+                // Kontrola, zda je na vrcholu zásobníku "handle"
+                if(PrecStack_isHandleOnTop()) {
+                    // Vybereme redukční pravidlo
                     ReductionRule rule = REDUCE_RULE_UNDEFINED;
                     precParser_chooseReductionRule(&rule);
+
+                    // Proedeme redukci na základě zvoleného pravidla
                     PrecParser_reduce(rule);
-                } else {
+                }
+                // Pokud na vrcholu zásobníku "handle" není, došlo k syntaktické chybě
+                else {
                     error_handle(ERROR_SYNTAX);
                 }
                 break;
+            } // case P_GREATER
 
-            // Prázdné políčko v precedenční tabulce = syntaktická chyba
+            // Prázdné políčko v precedenční tabulce => syntaktická chyba
             case P_SYNTAX_ERROR:
             default:
                 error_handle(ERROR_SYNTAX);
@@ -386,194 +404,252 @@ void PrecParser_reduce(ReductionRule rule) {
 
 /*******************************************************************************
  *                                                                             *
- *                   IMPLEMENTACE POMOCNÝCH INTERNÍCH FUNKCÍ                   *
+ *                      IMPLEMENTACE REDUKČNÍCH PRAVIDEL                       *
  *                                                                             *
  ******************************************************************************/
 
 /**
- * @brief Redukce podle pravidla E -> id nebo E -> literal
- *
- * @details Tato funkce provádí redukci pro pravidla E -> id nebo E -> literal.
- *          Popne uzel ze zásobníku, vytvoří AST uzel pro proměnnou nebo literál
- *          a výraz, a poté pushne nový neterminál E na zásobník s vytvořeným
- *          AST uzlem.
- *
- * @param nodeType Typ uzlu, který má být vytvořen. Tento parametr určuje, zda
- *                 bude vytvořen uzel pro proměnnou (AST_VAR_NODE) nebo literál
- *                 (AST_LITERAL_NODE).
+ * @brief Redukce podle pravidla E -> id nebo E -> literal.
  */
 void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
-    // Popnutí uzlu ze zásobníku
+    // Popnutí uzlu s proměnnou/literálem ze zásobníku
     PrecStackNode *stackNode = PrecStack_pop();
 
-    // Vytvoření AST uzlu pro proměnnou nebo literál
-    AST_VarNode *varNode = malloc(sizeof(AST_VarNode));
-    varNode->type = AST_VAR_NODE;
-    varNode->identifier = (nodeType == AST_VAR_NODE) ? stackNode->node : NULL;
-    varNode->frameID = (nodeType == AST_VAR_NODE) ? stack.currentID : 0;
-    varNode->literalType = (nodeType == AST_LITERAL_NODE) ? stackNode->nodeType : AST_LITERAL_NOT_DEFINED;
-    varNode->value = (nodeType == AST_LITERAL_NODE) ? stackNode->node : NULL;
-
     // Vytvoření AST uzlu pro výraz
-    AST_ExprNode *exprNode = malloc(sizeof(AST_ExprNode));
-    exprNode->type = AST_EXPR_NODE;
-    exprNode->exprType = (nodeType == AST_VAR_NODE) ? AST_EXPR_VARIABLE : AST_EXPR_LITERAL;
-    exprNode->expression = varNode;
+    AST_ExprNode *exprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+
+    // AST_ExprNode propojíme s příslušným AST_VarNode
+    switch(nodeType) {
+        // Když jde o uzel proměnné
+        case AST_VAR_NODE:
+            AST_initNewExprNode(exprNode, AST_EXPR_VARIABLE, stackNode->node);
+            break;
+
+        // Když jde o uzel literálu
+        case AST_LITERAL_NODE:
+            AST_initNewExprNode(exprNode, AST_EXPR_LITERAL, stackNode->node);
+            break;
+
+        // Jakýkoliv jiný typ uzlu způsobí vnitřní chybu
+        default:
+            PrecStack_freeNode(stackNode);
+            error_handle(ERROR_INTERNAL);
+            break;
+    } // switch()
+
+    // Uvolnění popnutého uzlu, protože jeho AST uzel byl již použit
+    free(stackNode);
 
     // Pushnutí nového neterminálu E na zásobník s AST uzlem
     PrecStack_pushPrecNonTerminal(PREC_STACK_NT_EXPRESSION, AST_EXPR_NODE, exprNode);
 } // PrecParser_reduceVarOrLit()
 
 /**
- * @brief Redukce pro binární operaci E -> E op E
+ * @brief Redukce pro binární operaci E -> E op E.
  */
 void PrecParser_reduceBinOp(AST_BinOpType operator) {
     // Popnutí pravého operandu E
     PrecStackNode *rightNode = PrecStack_pop();
-    // Popnutí a zahození operátoru
-    PrecStack_pop();
+
+    // Popnutí a uvolnění operátoru
+    PrecStackNode *opNode = PrecStack_pop();
+    free(opNode);
+
     // Popnutí levého operandu E
     PrecStackNode *leftNode = PrecStack_pop();
 
-    // Vytvoření AST uzlu pro binární operaci
-    AST_BinOpNode *binOpNode = malloc(sizeof(AST_BinOpNode));
-    binOpNode->type = AST_BIN_OP_NODE;
-    binOpNode->op = operator; // Nastavení typu operace
-    binOpNode->left = leftNode->node;   // Levý operand
-    binOpNode->right = rightNode->node; // Pravý operand
+    // Vytvoření a inicializace AST uzlu pro binární operaci
+    AST_BinOpNode *binOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    AST_initNewBinOpNode(binOpNode, operator, leftNode->node, rightNode->node);
 
-    // Vytvoření AST uzlu pro výraz s binární operací
-    AST_ExprNode *exprNode = malloc(sizeof(AST_ExprNode));
-    exprNode->type = AST_EXPR_NODE;
-    exprNode->exprType = AST_EXPR_BINARY_OP;
-    exprNode->expression = binOpNode;
+    // Vytvoření a inicializace AST uzlu pro výraz s binární operací
+    AST_ExprNode *exprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    AST_initNewExprNode(exprNode, AST_EXPR_BINARY_OP, binOpNode);
+
+    // Uvolnění popnutých uzlů, protože jejich AST uzly byly již použity
+    free(leftNode);
+    free(rightNode);
 
     // Pushnutí nového neterminálu E na zásobník s AST uzlem
     PrecStack_pushPrecNonTerminal(PREC_STACK_NT_EXPRESSION, AST_EXPR_NODE, exprNode);
 } // PrecParser_reduceBinOp()
 
+/**
+ * @brief Redukce pro výraz v závorkách E -> ( E ).
+ */
 void PrecParser_reduceBrackets() {
-    // Popnutí ')'
+    // Popnutí a uvolnění ')'
     PrecStackNode *rightBracket = PrecStack_pop();
+    free(rightBracket);
+
     // Popnutí E
     PrecStackNode *exprNode = PrecStack_pop();
-    // Popnutí '('
+
+    // Popnutí a uvolnění '('
     PrecStackNode *leftBracket = PrecStack_pop();
+    free(leftBracket);
 
     // Pushnutí E zpět na zásobník bez změny (výraz v závorkách)
     PrecStack_pushPrecNonTerminal(PREC_STACK_NT_EXPRESSION, exprNode->nodeType, exprNode->node);
 
-    // Uvolnění nepotřebných uzlů
-    free(rightBracket);
-    free(leftBracket);
+    // Uvolníme původní StackNode pro výraz E
     free(exprNode);
 } // PrecParser_reduceBrackets()
 
+/**
+ * @brief Redukce pro volání funkce E -> id ( <ARGUMENTS> ).
+ */
 void PrecParser_reduceFunCall() {
-    // Popnutí a zahození ')'
-    PrecStack_pop();
+    // Popnutí a uvolnění ')'
+    PrecStackNode *rightBracket = PrecStack_pop();
+    free(rightBracket);
+
     // Popnutí '<ARGUMENTS>'
     PrecStackNode *argumentsNode = PrecStack_pop();
-    // Popnutí a zahození '('
-    PrecStack_pop();
+
+    // Popnutí a uvolnění '('
+    PrecStackNode *leftBracket = PrecStack_pop();
+    free(leftBracket);
+
     // Popnutí 'id'
-    PrecStackNode *idNode = PrecStack_pop();
+    PrecStackNode *varNode = PrecStack_pop();
 
     // Vytvoření AST uzlu pro volání funkce
-    AST_FunCallNode *funCallNode = malloc(sizeof(AST_FunCallNode));
-    funCallNode->type = AST_FUN_CALL_NODE;
-    funCallNode->identifier = idNode->node; // Předpokládá se, že idNode->node obsahuje DString* s názvem funkce
-    funCallNode->isBuiltIn = false;
-    funCallNode->arguments = argumentsNode->node;
+    AST_FunCallNode *funCallNode = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
+    AST_VarNode *idNode = (AST_VarNode *)varNode->node;
+    AST_initNewFunCallNode(funCallNode, idNode->identifier, false, argumentsNode->node);
 
     // Vytvoření AST uzlu pro výraz
-    AST_ExprNode *exprNode = malloc(sizeof(AST_ExprNode));
-    exprNode->type = AST_EXPR_NODE;
-    exprNode->exprType = AST_EXPR_FUN_CALL;
-    exprNode->expression = funCallNode;
+    AST_ExprNode *exprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    AST_initNewExprNode(exprNode, AST_EXPR_FUN_CALL, funCallNode);
 
     // Pushnutí nového neterminálu E na zásobník s AST uzlem
     PrecStack_pushPrecNonTerminal(PREC_STACK_NT_EXPRESSION, AST_EXPR_NODE, exprNode);
+
+    // Uvolnění popnutých uzlů, protože jejich AST uzly byly již použity
+    free(idNode);
+    free(varNode);
+    free(argumentsNode);
 } // PrecParser_reduceFunCall()
 
+/**
+ * @brief Redukce pro volání vestavěné funkce E -> ifj . id ( <ARGUMENTS> ).
+ */
 void PrecParser_reduceIfjFunCall() {
-    // Popnutí a zahození ')'
-    PrecStack_pop();
+    // Popnutí a uvolnění ')'
+    PrecStackNode *rightBracket = PrecStack_pop();
+    free(rightBracket);
+
     // Popnutí '<ARGUMENTS>'
     PrecStackNode *argumentsNode = PrecStack_pop();
-    // Popnutí a zahození '('
-    PrecStack_pop();
-    // Popnutí 'id'
-    PrecStackNode *idNode = PrecStack_pop();
-    // Popnutí a zahození '.'
-    PrecStack_pop();
-    // Popnutí a zahození 'ifj'
-    PrecStack_pop();
 
-    // Vytvoření AST uzlu pro volání vestavěné funkce
-    AST_FunCallNode *funCallNode = malloc(sizeof(AST_FunCallNode));
-    funCallNode->type = AST_FUN_CALL_NODE;
-    funCallNode->identifier = idNode->node; // Předpokládá se, že idNode->node obsahuje DString* s názvem funkce
-    funCallNode->isBuiltIn = true;
-    funCallNode->arguments = argumentsNode->node;
+    // Popnutí a uvolnění '('
+    PrecStackNode *leftBracket = PrecStack_pop();
+    free(leftBracket);
+
+    // Popnutí 'id'
+    PrecStackNode *varNode = PrecStack_pop();
+
+    // Popnutí a uvolnění '.'
+    PrecStackNode *dot = PrecStack_pop();
+    free(dot);
+
+    // Popnutí a uvolnění 'ifj'
+    PrecStackNode *ifj = PrecStack_pop();
+    free(ifj);
+
+    // Vytvoření AST uzlu pro volání funkce
+    AST_FunCallNode *funCallNode = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
+    AST_VarNode *idNode = (AST_VarNode *)varNode->node;
+    AST_initNewFunCallNode(funCallNode, idNode->identifier, true, argumentsNode->node);
 
     // Vytvoření AST uzlu pro výraz
-    AST_ExprNode *exprNode = malloc(sizeof(AST_ExprNode));
-    exprNode->type = AST_EXPR_NODE;
-    exprNode->exprType = AST_EXPR_FUN_CALL;
-    exprNode->expression = funCallNode;
+    AST_ExprNode *exprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    AST_initNewExprNode(exprNode, AST_EXPR_FUN_CALL, funCallNode);
 
     // Pushnutí nového neterminálu E na zásobník s AST uzlem
     PrecStack_pushPrecNonTerminal(PREC_STACK_NT_EXPRESSION, AST_EXPR_NODE, exprNode);
+
+    // Uvolnění popnutých uzlů, protože jejich AST uzly byly již použity
+    free(idNode);
+    free(varNode);
+    free(argumentsNode);
 } // PrecParser_reduceIfjFunCall()
 
+/**
+ * @brief Redukce pro argumenty <ARGUMENTS> -> <ARG_LIST>.
+ */
 void PrecParser_reduceArguments() {
     // Popnutí '<ARG_LIST>'
     PrecStackNode *argListNode = PrecStack_pop();
 
     // Pushnutí neterminálu '<ARGUMENTS>' s uzlem argumentů
     PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARGUMENTS, argListNode->nodeType, argListNode->node);
+
+    // Uvolnění popnutého uzlu, protože jeho AST uzel byl již použit
+    free(argListNode);
 } // PrecParser_reduceArguments()
 
+/**
+ * @brief Redukce pro seznam argumentů <ARG_LIST> -> E <ARG>.
+ */
 void PrecParser_reduceArgList() {
     // Popnutí '<ARG>'
     PrecStackNode *argNode = PrecStack_pop();
+
     // Popnutí 'E'
     PrecStackNode *exprNode = PrecStack_pop();
 
     // Vytvoření nového uzlu pro argument
-    AST_ArgOrParamNode *arg = malloc(sizeof(AST_ArgOrParamNode));
-    arg->type = AST_ARG_OR_PARAM_NODE;
-    arg->identifier = NULL;
-    arg->variable = exprNode->node; // Předpokládá se, že exprNode->node je AST_ExprNode*
-    arg->next = argNode->node; // Připojení dalších argumentů
+    AST_ArgOrParamNode *arg = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    AST_initNewArgOrParamNode(arg, exprNode->node);
+    arg->next = argNode->node;
 
     // Pushnutí neterminálu '<ARG_LIST>' s uzlem argumentů
     PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARG_LIST, AST_ARG_OR_PARAM_NODE, arg);
+
+    // Uvolnění popnutých uzlů, protože jejich AST uzly byly již použity
+    free(argNode);
+    free(exprNode);
 } // PrecParser_reduceArgList()
 
+/**
+ * @brief Redukce pro argument <ARG> -> , E <ARG>.
+ */
 void PrecParser_reduceArg() {
     // Popnutí '<ARG>'
     PrecStackNode *argNode = PrecStack_pop();
+
     // Popnutí 'E'
     PrecStackNode *exprNode = PrecStack_pop();
-    // Popnutí a zahození ','
-    PrecStack_pop();
+
+    // Popnutí ','
+    PrecStackNode *commaNode = PrecStack_pop();
+    PrecStack_freeNode(commaNode);
 
     // Vytvoření nového uzlu pro argument
-    AST_ArgOrParamNode *arg = malloc(sizeof(AST_ArgOrParamNode));
-    arg->type = AST_ARG_OR_PARAM_NODE;
-    arg->identifier = NULL;
-    arg->variable = exprNode->node; // Předpokládá se, že exprNode->node je AST_ExprNode*
-    arg->next = argNode->node; // Připojení dalších argumentů
+    AST_ArgOrParamNode *arg = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    AST_initNewArgOrParamNode(arg, exprNode->node);
+    arg->next = argNode->node;
 
     // Pushnutí neterminálu '<ARG>' s uzlem argumentů
     PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARG, AST_ARG_OR_PARAM_NODE, arg);
+
+    // Uvolnění popnutých uzlů, protože jejich AST uzly byly již použity
+    free(argNode);
+    free(exprNode);
 } // PrecParser_reduceArg()
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                   IMPLEMENTACE POMOCNÝCH INTERNÍCH FUNKCÍ                   *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Namapuje typ tokenu na typ precedenčního terminálu.
-*/
+ */
 void PrecParser_mapTokenToPrecTerminal(int bracketDepth ,PrecTerminals *terminal) {
     // Ověření platnosti předaného ukazatele
     if (terminal == NULL) {
@@ -606,8 +682,8 @@ void PrecParser_mapTokenToPrecTerminal(int bracketDepth ,PrecTerminals *terminal
             *terminal = T_PREC_NULL_LITERAL;
             break;
 
-        // Mapování: TOKEN_k_ifj -> T_PREC_IFJ
-        case TOKEN_k_ifj:
+        // Mapování: TOKEN_K_ifj -> T_PREC_IFJ
+        case TOKEN_K_ifj:
             *terminal = T_PREC_IFJ;
             break;
 
@@ -708,7 +784,7 @@ void PrecParser_mapTokenToPrecTerminal(int bracketDepth ,PrecTerminals *terminal
 
 /**
  * @brief Mapuje neterminál na redukční pravidlo.
-*/
+ */
 void PrecParser_mapNonTerminalToRule(PrecStackSymbol symbol, ReductionRule *rule) {
     // Ověření platnosti předaného ukazatele
     if (rule == NULL) {

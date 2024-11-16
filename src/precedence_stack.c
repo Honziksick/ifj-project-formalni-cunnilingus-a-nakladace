@@ -145,6 +145,98 @@ void PrecStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType ty
 } // PrecStack_pushPrecNonTerminal()
 
 /**
+ * @brief Pushne inicializovaný Stack uzel na zásobník, popř. i s AST uzlem.
+ */
+void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
+    // Switch specifikující uzel pushnutý na zásbník
+    switch(inTerminal) {
+        // Pro uzel pro proměnnou
+        case T_PREC_ID: {
+            // Zkontrolujeme, že se nesnažíme použít proměnnou mimo její rozsah platnosti
+            SymtableItem *foundItem = NULL;
+            frame_stack_result res = frameStack_findItem(currentToken.value, &foundItem);
+
+            // Pokud byla proměnná v tabulce nalezena, pushneme ji na stack
+            if(res == FRAME_STACK_SUCCESS) {
+                // Vytvoření a konkrétní inicializace uzlu pro proměnnou
+                AST_VarNode *pushNode = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+                AST_initNewVarNode(pushNode, AST_VAR_NODE, currentToken.value,
+                                stack.currentID, AST_LITERAL_NOT_DEFINED,
+                                AST_VAL_UNDEFINED);
+                // Pushnutí uzlu na zásobník
+                PrecStack_pushPrecTerminal(inTerminal, AST_VAR_NODE, pushNode);
+            }
+            // Pokud nalezena nebyla, jde o sémantickou chybu použití nedeklarované proměnné
+            else if(res == FRAME_STACK_ITEM_DOESNT_EXIST) {
+                error_handle(ERROR_SEM_UNDEF);
+            }
+            // Jiná kód výsledku vyhledávací funkec znamená interní chybu překladače
+            else {
+                error_handle(ERROR_INTERNAL);
+            }
+
+            break;
+        } // case T_PREC_ID
+
+        // Pro uzel pro pro literál typu "i32"
+        case T_PREC_INT_LITERAL: {
+            // Vytvoření a konkrétní inicializace uzlu pro literál
+            AST_VarNode *pushNode = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+            AST_initNewVarNode(pushNode, AST_LITERAL_NODE, AST_ID_UNDEFINED,
+                               stack.currentID, AST_LITERAL_INT,
+                               currentToken.value);
+
+            // Pushnutí uzlu na zásobník
+            PrecStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
+            break;
+        } // case T_PREC_INT_LITERAL
+
+        // Pro uzel pro pro literál typu "f64"
+        case T_PREC_FLOAT_LITERAL: {
+            // Vytvoření a konkrétní inicializace uzlu pro literál
+            AST_VarNode *pushNode = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+            AST_initNewVarNode(pushNode, AST_LITERAL_NODE, AST_ID_UNDEFINED,
+                               stack.currentID, AST_LITERAL_FLOAT,
+                               currentToken.value);
+
+            // Pushnutí uzlu na zásobník
+            PrecStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
+            break;
+        } // case T_PREC_FLOAT_LITERAL
+
+        // Pro uzel pro pro literál typu "[]u8"
+        case T_PREC_STRING_LITERAL: {
+            // Vytvoření a konkrétní inicializace uzlu pro literál
+            AST_VarNode *pushNode = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+            AST_initNewVarNode(pushNode, AST_LITERAL_NODE, AST_ID_UNDEFINED,
+                               stack.currentID, AST_LITERAL_STRING,
+                               currentToken.value);
+
+            // Pushnutí uzlu na zásobník
+            PrecStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
+            break;
+        } // case T_PREC_STRING_LITERAL
+
+        // Pro uzel pro pro literál typu "NULL"
+        case T_PREC_NULL_LITERAL: {
+            // Vytvoření a konkrétní inicializace uzlu pro literál
+            AST_VarNode *pushNode = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+            AST_initNewVarNode(pushNode, AST_LITERAL_NODE, AST_ID_UNDEFINED,
+                               stack.currentID, AST_LITERAL_NULL,
+                               currentToken.value);
+
+            // Pushnutí uzlu na zásobník
+            PrecStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
+            break;
+        } // case T_PREC_NULL_LITERAL
+
+        default:
+            // Pushnutí terminálu na zásobník bez vytvoření AST uzlu
+            PrecStack_pushPrecTerminal(inTerminal, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
+    } // switch()
+} // PrecStack_pushBothStackAndASTNode()
+
+/**
  * @brief Popne uzel AST z globálního precedenčního zásobníku.
  */
 PrecStackNode* PrecStack_pop() {
@@ -170,6 +262,23 @@ inline PrecStackNode* PrecStack_top() {
 
     return precStack->top;
 } // PrecStack_top()
+
+/**
+ * @brief Uvolní všechny zdroje spojené s uzlem `PrecStackNode`.
+ */
+void PrecStack_freeNode(PrecStackNode *node) {
+    if(node == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Uvolnění uzlu AST spojeného s terminálem nebo neterminálem
+    if(node->node != NULL) {
+        AST_destroyNode(node->nodeType, node->node);
+    }
+
+    // Uvolnění samotného uzlu "PrecStackNode"
+    free(node);
+}
 
 /**
  * @brief Uvolní všechny uzly z globálního precedenčního zásobníku a

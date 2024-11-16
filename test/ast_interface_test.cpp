@@ -208,25 +208,6 @@ TEST(ASTtest_ArgOrParamNode, UnInitArgOrParamNode) {
     AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node, nullptr);
     ASSERT_EQ(node->type, AST_ARG_OR_PARAM_NODE);
-    ASSERT_EQ(node->identifier, nullptr);
-    ASSERT_EQ(node->variable, nullptr);
-    ASSERT_EQ(node->next, nullptr);
-
-    PRINT_TREE(node->type, node);
-
-    AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
-}
-
-/**
- * @brief Test AST_ArgOrParamNode, který je jednodušše inicializovaný.
- */
-TEST(ASTtest_ArgOrParamNode, InitArgOrParamNode) {
-    AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    ASSERT_NE(node, nullptr);
-    node->identifier = string_init();
-    ASSERT_NE(node->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(node->type, AST_ARG_OR_PARAM_NODE);
     ASSERT_EQ(node->variable, nullptr);
     ASSERT_EQ(node->next, nullptr);
 
@@ -241,18 +222,38 @@ TEST(ASTtest_ArgOrParamNode, InitArgOrParamNode) {
 TEST(ASTtest_ArgOrParamNode, LinkedArgOrParamNode) {
     AST_ArgOrParamNode *node1 = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node1, nullptr);
-    node1->identifier = string_init();
-    ASSERT_NE(node1->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node1->identifier, 'a'), STRING_SUCCESS);
+
+    AST_VarNode *lit = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(lit, nullptr);
+    lit->literalType = AST_LITERAL_STRING;
+    lit->value = string_init();
+    ASSERT_NE(lit->value, nullptr);
+    ASSERT_EQ(string_append_char((DString *)lit->value, 'H'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)lit->value, 'e'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)lit->value, 'o'), STRING_SUCCESS);
+    node1->variable = lit;
+
+    ASSERT_EQ(node1->variable, lit);
 
     AST_ArgOrParamNode *node2 = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node2, nullptr);
-    node2->identifier = string_init();
-    ASSERT_NE(node2->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node2->identifier, 'b'), STRING_SUCCESS);
+
+    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(var, nullptr);
+    var->identifier = string_init();
+    ASSERT_NE(var->identifier, nullptr);
+    ASSERT_EQ(string_append_char(var->identifier, 'a'), STRING_SUCCESS);
+    var->literalType = AST_LITERAL_INT;
+    int *value2 = (int *)malloc(sizeof(int));
+    *value2 = 42;
+    var->value = value2;
+    node2->variable = var;
+
+    ASSERT_EQ(node2->variable, var);
 
     node1->next = node2;
-
     ASSERT_EQ(node1->next, node2);
 
     PRINT_TREE(node1->type, node1);
@@ -268,12 +269,12 @@ TEST(ASTtest_ArgOrParamNode, LinkedArgOrParamNode) {
 TEST(ASTtest_ArgOrParamNode, IntegerVarArgOrParamNode) {
     AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node, nullptr);
-    node->identifier = string_init();
-    ASSERT_NE(node->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
 
     AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(var, nullptr);
+    var->identifier = string_init();
+    ASSERT_NE(var->identifier, nullptr);
+    ASSERT_EQ(string_append_char(var->identifier, 'a'), STRING_SUCCESS);
     var->literalType = AST_LITERAL_INT;
     int *value = (int *)malloc(sizeof(int));
     *value = 42;
@@ -293,12 +294,12 @@ TEST(ASTtest_ArgOrParamNode, IntegerVarArgOrParamNode) {
 TEST(ASTtest_ArgOrParamNode, FloatVarArgOrParamNode) {
     AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node, nullptr);
-    node->identifier = string_init();
-    ASSERT_NE(node->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
 
     AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(var, nullptr);
+    var->identifier = string_init();
+    ASSERT_NE(var->identifier, nullptr);
+    ASSERT_EQ(string_append_char(var->identifier, 'a'), STRING_SUCCESS);
     var->literalType = AST_LITERAL_FLOAT;
     double *value = (double *)malloc(sizeof(double));
     *value = 3.14;
@@ -318,12 +319,12 @@ TEST(ASTtest_ArgOrParamNode, FloatVarArgOrParamNode) {
 TEST(ASTtest_ArgOrParamNode, StringVarArgOrParamNode) {
     AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node, nullptr);
-    node->identifier = string_init();
-    ASSERT_NE(node->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
 
     AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(var, nullptr);
+    var->identifier = string_init();
+    ASSERT_NE(var->identifier, nullptr);
+    ASSERT_EQ(string_append_char(var->identifier, 'a'), STRING_SUCCESS);
     var->literalType = AST_LITERAL_STRING;
     var->value = string_init();
     ASSERT_NE(var->value, nullptr);
@@ -347,19 +348,16 @@ TEST(ASTtest_ArgOrParamNode, StringVarArgOrParamNode) {
 TEST(ASTtest_ArgOrParamNode, IntegerLitArgOrParamNode) {
     AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node, nullptr);
-    node->identifier = string_init();
-    ASSERT_NE(node->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
 
-    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(var, nullptr);
-    var->literalType = AST_LITERAL_INT;
+    AST_VarNode *lit = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(lit, nullptr);
+    lit->literalType = AST_LITERAL_INT;
     int *value = (int *)malloc(sizeof(int));
     *value = 42;
-    var->value = value;
-    node->variable = var;
+    lit->value = value;
+    node->variable = lit;
 
-    ASSERT_EQ(node->variable, var);
+    ASSERT_EQ(node->variable, lit);
 
     PRINT_TREE(node->type, node);
 
@@ -372,19 +370,16 @@ TEST(ASTtest_ArgOrParamNode, IntegerLitArgOrParamNode) {
 TEST(ASTtest_ArgOrParamNode, FloatLitArgOrParamNode) {
     AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node, nullptr);
-    node->identifier = string_init();
-    ASSERT_NE(node->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
 
-    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(var, nullptr);
-    var->literalType = AST_LITERAL_FLOAT;
+    AST_VarNode *lit = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(lit, nullptr);
+    lit->literalType = AST_LITERAL_FLOAT;
     double *value = (double *)malloc(sizeof(double));
     *value = 3.14;
-    var->value = value;
-    node->variable = var;
+    lit->value = value;
+    node->variable = lit;
 
-    ASSERT_EQ(node->variable, var);
+    ASSERT_EQ(node->variable, lit);
 
     PRINT_TREE(node->type, node);
 
@@ -397,23 +392,20 @@ TEST(ASTtest_ArgOrParamNode, FloatLitArgOrParamNode) {
 TEST(ASTtest_ArgOrParamNode, StringLitArgOrParamNode) {
     AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node, nullptr);
-    node->identifier = string_init();
-    ASSERT_NE(node->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
 
-    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(var, nullptr);
-    var->literalType = AST_LITERAL_STRING;
-    var->value = string_init();
-    ASSERT_NE(var->value, nullptr);
-    ASSERT_EQ(string_append_char((DString *)var->value, 'H'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)var->value, 'e'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)var->value, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)var->value, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)var->value, 'o'), STRING_SUCCESS);
-    node->variable = var;
+    AST_VarNode *lit = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(lit, nullptr);
+    lit->literalType = AST_LITERAL_STRING;
+    lit->value = string_init();
+    ASSERT_NE(lit->value, nullptr);
+    ASSERT_EQ(string_append_char((DString *)lit->value, 'H'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)lit->value, 'e'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(string_append_char((DString *)lit->value, 'o'), STRING_SUCCESS);
+    node->variable = lit;
 
-    ASSERT_EQ(node->variable, var);
+    ASSERT_EQ(node->variable, lit);
 
     PRINT_TREE(node->type, node);
 
@@ -426,17 +418,14 @@ TEST(ASTtest_ArgOrParamNode, StringLitArgOrParamNode) {
 TEST(ASTtest_ArgOrParamNode, NullLitArgOrParamNode) {
     AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node, nullptr);
-    node->identifier = string_init();
-    ASSERT_NE(node->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node->identifier, 'a'), STRING_SUCCESS);
 
-    AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(var, nullptr);
-    var->literalType = AST_LITERAL_NULL;
-    var->value = nullptr;
-    node->variable = var;
+    AST_VarNode *lit = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(lit, nullptr);
+    lit->literalType = AST_LITERAL_NULL;
+    lit->value = nullptr;
+    node->variable = lit;
 
-    ASSERT_EQ(node->variable, var);
+    ASSERT_EQ(node->variable, lit);
 
     PRINT_TREE(node->type, node);
 

@@ -231,6 +231,20 @@ void PrecStack_pushPrecTerminal(PrecTerminals symbol, AST_NodeType type, void *n
 void PrecStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType type, void *node);
 
 /**
+ * @brief Pushne inicializovaný Stack uzel na zásobník, popř. i s AST uzlem.
+ *
+ * @details Tato funkce vytváří a inicializuje uzly AST na základě typu terminálu
+ *          a pushuje je na zásobník. Pokud je terminál typu identifikátor nebo
+ *          literál, vytvoří se odpovídající uzel AST a inicializuje se. Poté se
+ *          uzel pushne na zásobník. Pokud je terminál jiného typu, pushne se na
+ *          zásobník bez vytvoření AST uzlu.
+ *
+ * @param inTerminal Typ terminálu, který má být pushnut na zásobník.
+ * @param bracketDepth Úroveň zanoření závorek.
+ */
+void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal);
+
+/**
  * @brief Popne uzel AST z globálního precedenčního zásobníku.
  *
  * @details Tato funkce odstraní vrcholový element ze stacku a vrátí
@@ -253,6 +267,16 @@ PrecStackNode* PrecStack_pop();
  * @return Ukazatel na vrcholový uzel stacku, nebo @c NULL pokud je stack prázdný.
  */
 PrecStackNode* PrecStack_top();
+
+/**
+ * @brief Uvolní všechny zdroje spojené s uzlem `PrecStackNode`.
+ *
+ * @details Tato funkce uvolní všechny zdroje spojené s uzlem `PrecStackNode`,
+ *          včetně volání funkce `AST_destroyNode` pro uvolnění `void *node`.
+ *
+ * @param node Ukazatel na uzel `PrecStackNode`, který má být uvolněn.
+ */
+void PrecStack_freeNode(PrecStackNode *node);
 
 /**
  * @brief Uvolní všechny uzly z globálního precedenčního zásobníku a
@@ -285,7 +309,6 @@ void PrecStack_destroy();
  *              terminál.
  */
 void PrecStack_getTopPrecTerminal(PrecTerminals *terminal);
-
 
 /**
  * @brief Zkontroluje, zda je na vrcholu zásobníku symbol HANDLE.

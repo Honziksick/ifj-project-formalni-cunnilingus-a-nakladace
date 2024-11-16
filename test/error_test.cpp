@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            09.10.2024                                                *
- * Poslední změna:   09.10.2024                                                *
+ * Poslední změna:   16.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -120,9 +120,12 @@ TEST(PrintErrorMessage, E1_Lexical) {
     CaptureStderr();
     error_printMessage(ERROR_LEXICAL);
     string GotErrMsg = GetCapturedStderr();
-    string ExpectedErrMsg = "(Error 1) Lexical error: invalid structure of the " \
-                            "current lexeme.\n";
+    string ExpectedErrMsg = RED_COLOR "(Error 1) Lexical error: invalid " \
+                            "structure of the current lexeme.\n" RESET_COLOR;
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+
+    fprintf(stderr, "Ilustration of error message:\n%s", ExpectedErrMsg.c_str());
+    fprintf(stderr, YELLOW_COLOR "In file: <fileName>:<line> (<inFunction>)\n" RESET_COLOR);
 }
 
 /**
@@ -132,9 +135,12 @@ TEST(PrintErrorMessage, E2_Syntactic) {
     CaptureStderr();
     error_printMessage(ERROR_SYNTAX);
     string GotErrMsg = GetCapturedStderr();
-    string ExpectedErrMsg = "(Error 2) Syntax error: invalid program " \
-                            "syntax, missing header, etc.\n";
+    string ExpectedErrMsg = RED_COLOR "(Error 2) Syntax error: invalid program " \
+                            "syntax, missing header, etc.\n" RESET_COLOR;
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+
+    fprintf(stderr, "Ilustration of error message:\n%s", ExpectedErrMsg.c_str());
+    fprintf(stderr, YELLOW_COLOR "In file: <fileName>:<line> (<inFunction>)\n" RESET_COLOR);
 }
 
 /**
@@ -144,9 +150,12 @@ TEST(PrintErrorMessage, E3_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_UNDEF);
     string GotErrMsg = GetCapturedStderr();
-    string ExpectedErrMsg = "(Error 3) Semantic error: undefined function " \
-                            "or variable.\n";
+    string ExpectedErrMsg = RED_COLOR "(Error 3) Semantic error: undefined " \
+                            "function or variable.\n" RESET_COLOR;
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+
+    fprintf(stderr, "Ilustration of error message:\n%s", ExpectedErrMsg.c_str());
+    fprintf(stderr, YELLOW_COLOR "In file: <fileName>:<line> (<inFunction>)\n" RESET_COLOR);
 }
 
 /**
@@ -156,10 +165,14 @@ TEST(PrintErrorMessage, E4_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_PARAMS_OR_RETVAL);
     string GotErrMsg = GetCapturedStderr();
-    string ExpectedErrMsg = "(Error 4) Semantic error: incorrect number/type " \
-                            "of parameters in function call; incorrect type " \
-                            "or disallowed discard of function return value.\n";
+    string ExpectedErrMsg = RED_COLOR "(Error 4) Semantic error: incorrect " \
+                            "number/type of parameters in function call; " \
+                            "incorrect type or disallowed discard of function "\
+                            "return value.\n" RESET_COLOR;
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+
+    fprintf(stderr, "Ilustration of error message:\n%s", ExpectedErrMsg.c_str());
+    fprintf(stderr, YELLOW_COLOR "In file: <fileName>:<line> (<inFunction>)\n" RESET_COLOR);
 }
 
 /**
@@ -169,10 +182,13 @@ TEST(PrintErrorMessage, E5_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_REDEF_OR_CONSTDEF);
     string GotErrMsg = GetCapturedStderr();
-    string ExpectedErrMsg = "(Error 5) Semantic error: redefinition of " \
-                            "variable or function; assignment to a " \
-                            "non-modifiable variable.\n";
+    string ExpectedErrMsg = RED_COLOR "(Error 5) Semantic error: redefinition " \
+                            "of variable or function; assignment to a " \
+                            "non-modifiable variable.\n" RESET_COLOR;
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+
+    fprintf(stderr, "Ilustration of error message:\n%s", ExpectedErrMsg.c_str());
+    fprintf(stderr, YELLOW_COLOR "In file: <fileName>:<line> (<inFunction>)\n" RESET_COLOR);
 }
 
 /**
@@ -182,9 +198,12 @@ TEST(PrintErrorMessage, E6_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_RETURN_EXP);
     string GotErrMsg = GetCapturedStderr();
-    string ExpectedErrMsg = "(Error 6) Semantic error: missing/excessive " \
-                            "expression in function return statement.\n";
+    string ExpectedErrMsg = RED_COLOR "(Error 6) Semantic error: missing/excessive " \
+                            "expression in function return statement.\n" RESET_COLOR;
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+
+    fprintf(stderr, "Ilustration of error message:\n%s", ExpectedErrMsg.c_str());
+    fprintf(stderr, YELLOW_COLOR "In file: <fileName>:<line> (<inFunction>)\n" RESET_COLOR);
 }
 
 /**
@@ -194,10 +213,13 @@ TEST(PrintErrorMessage, E7_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_TYPE_COMPATIBILITY);
     string GotErrMsg = GetCapturedStderr();
-    string ExpectedErrMsg = "(Error 7) Semantic error: type incompatibility " \
+    string ExpectedErrMsg = RED_COLOR "(Error 7) Semantic error: type incompatibility " \
                             "in arithmetic, string, and relational expressions; " \
-                            "incompatible expression type (e.g., in assignment).\n";
+                            "incompatible expression type (e.g., in assignment).\n" RESET_COLOR;
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+
+    fprintf(stderr, "Ilustration of error message:\n%s", ExpectedErrMsg.c_str());
+    fprintf(stderr, YELLOW_COLOR "In file: <fileName>:<line> (<inFunction>)\n" RESET_COLOR);
 }
 
 /**
@@ -207,10 +229,13 @@ TEST(PrintErrorMessage, E8_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_TYPE_INFERENCE);
     string GotErrMsg = GetCapturedStderr();
-    string ExpectedErrMsg = "(Error 8) Semantic error: variable type not " \
+    string ExpectedErrMsg = RED_COLOR "(Error 8) Semantic error: variable type not " \
                             "specified and cannot be inferred from the " \
-                            "expression used.\n";
+                            "expression used.\n" RESET_COLOR;
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+
+    fprintf(stderr, "Ilustration of error message:\n%s", ExpectedErrMsg.c_str());
+    fprintf(stderr, YELLOW_COLOR "In file: <fileName>:<line> (<inFunction>)\n" RESET_COLOR);
 }
 
 /**
@@ -220,10 +245,13 @@ TEST(PrintErrorMessage, E9_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_UNUSED_VAR);
     string GotErrMsg = GetCapturedStderr();
-    string ExpectedErrMsg = "(Error 9) Semantic error: unused variable " \
+    string ExpectedErrMsg = RED_COLOR "(Error 9) Semantic error: unused variable " \
                             "within its scope; modifiable variable without " \
-                            "the possibility of change after initialization.\n";
+                            "the possibility of change after initialization.\n" RESET_COLOR;
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+
+    fprintf(stderr, "Ilustration of error message:\n%s", ExpectedErrMsg.c_str());
+    fprintf(stderr, YELLOW_COLOR "In file: <fileName>:<line> (<inFunction>)\n" RESET_COLOR);
 }
 
 /**
@@ -233,8 +261,11 @@ TEST(PrintErrorMessage, E10_Semantic) {
     CaptureStderr();
     error_printMessage(ERROR_SEM_OTHER);
     string GotErrMsg = GetCapturedStderr();
-    string ExpectedErrMsg = "(Error 10) Other semantic errors.\n";
+    string ExpectedErrMsg = RED_COLOR "(Error 10) Other semantic errors.\n" RESET_COLOR;
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+
+    fprintf(stderr, "Ilustration of error message:\n%s", ExpectedErrMsg.c_str());
+    fprintf(stderr, YELLOW_COLOR "In file: <fileName>:<line> (<inFunction>)\n" RESET_COLOR);
 }
 
 /**
@@ -244,10 +275,13 @@ TEST(PrintErrorMessage, E99_Internal) {
     CaptureStderr();
     error_printMessage(ERROR_INTERNAL);
     string GotErrMsg = GetCapturedStderr();
-    string ExpectedErrMsg = "(Error 99) Internal compiler error: not " \
-                            "influenced by the input program (e.g., memory " \
-                            "allocation error).\n";
+    string ExpectedErrMsg = RED_COLOR "(Error 99) Internal compiler error: " \
+                            "not influenced by the input program (e.g., " \
+                            "memory allocation error).\n" RESET_COLOR;
     EXPECT_EQ(GotErrMsg, ExpectedErrMsg);
+
+    fprintf(stderr, "Ilustration of error message:\n%s", ExpectedErrMsg.c_str());
+    fprintf(stderr, YELLOW_COLOR "In file: <fileName>:<line> (<inFunction>)\n" RESET_COLOR);
 }
 
 /*** Konec souboru error_test.cpp ***/

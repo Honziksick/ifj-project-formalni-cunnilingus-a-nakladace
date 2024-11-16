@@ -35,6 +35,8 @@
 /** @endcond  */
 
 #include <stdlib.h>
+#include <limits.h>         // Konstanty pro meze integeru
+#include <math.h>           // Konstanty pro meze floatu
 #include "ast_nodes.h"
 #include "parser.h"
 #include "error.h"
@@ -45,7 +47,7 @@
  *                                                                             *
  ******************************************************************************/
 
-#define AST_FRAME_ID_NOT_ASSIGNED 0   /**< Uzlu AST_StatementNode ještě nebylo přiřazeno frameID. */
+#define INT_CONVERTION_BASE 10      /**< Základ pro dekaické číslo při převodu pomocí "strtol" */
 
 
 /*******************************************************************************
@@ -56,6 +58,7 @@
 
 /**
  * @brief Vytvoří nový uzel AST daného typu.
+ *
  * @details Dynamicky alokuje paměť pro nový uzel AST a inicializuje jeho typ.
  *
  * @param [in] type Typ uzlu, který má být vytvořen.
@@ -69,6 +72,7 @@ void *AST_createNode(AST_NodeType type);
 
 /**
  * @brief Uvolní paměť uzlu AST daného typu.
+ *
  * @details Zajistí správné uvolnění všech členů uzlu a samotné struktury uzlu.
  *
  * @param [in] type Typ uzlu, který má být uvolněn.
@@ -78,6 +82,7 @@ void AST_destroyNode(AST_NodeType type, void *node);
 
 /**
  * @brief Alokuje paměť pro globální kořen abstraktního syntaktického stromu
+ *
  * @details Alokuje paměť pro kořen AST a inicializuje tímto ukazatelem globální
  *          ukazatel na kořen abstraktního syntaktického stromu.
  *
@@ -89,6 +94,7 @@ void AST_createTree();
 
 /**
  * @brief Uvolní z paměti celý abstraktní syntaktický strom
+ *
  * @details Pokud je kořen platný, zahájí postupnou destrukci stromu. Zajistí
  *          správné uvolnění všech členů uzlů, všech uzlů stromu a nakonec
  *          globálního kořenového uzlu.
@@ -96,6 +102,162 @@ void AST_createTree();
  * @note Funkce využívá jako vstupní parametr globální ukazatel na kořen stromu.
  */
 void AST_destroyTree();
+
+
+/*******************************************************************************
+ *                                                                             *
+ *        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ NA KONKRÉTNÍ INICIALIZACI UZLŮ         *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Inicializuje kořenový uzel programu.
+ *
+ * @details Tato funkce inicializuje kořenový uzel programu s poskytnutými
+ *          parametry. Pokud je uzel již inicializován nebo pokud je předán
+ *          neplatný ukazatel, funkce hlásí interní chybu.
+ *
+ * @param node Ukazatel na uzel, který má být inicializován.
+ * @param importedFile Ukazatel na dynamický string s cestou k importovanému modulu.
+ * @param functionList Ukazatel na seznam definic funkcí.
+ */
+void AST_initNewProgramNode(AST_ProgramNode *node, DString *importedFile, \
+                            AST_FunDefNode *functionList);
+
+/**
+ * @brief Inicializuje uzel pro definici funkce.
+ *
+ * @details Tato funkce inicializuje uzel pro definici funkce s poskytnutými
+ *          parametry. Pokud je uzel již inicializován nebo pokud je předán
+ *          neplatný ukazatel, funkce hlásí interní chybu.
+ *
+ * @param node Ukazatel na uzel, který má být inicializován.
+ * @param identifier Ukazatel na dynamický string s identifikátorem funkce.
+ * @param parameters Ukazatel na seznam parametrů funkce.
+ * @param returnType Návratový typ funkce.
+ * @param body Ukazatel na tělo funkce.
+ */
+void AST_initNewFunDefNode(AST_FunDefNode *node, DString *identifier,  \
+                           AST_ArgOrParamNode *parameters, AST_DataType returnType,  \
+                           AST_StatementNode *body);
+
+/**
+ * @brief Inicializuje uzel pro argument nebo parametr funkce.
+ *
+ * @details Tato funkce inicializuje uzel pro argument nebo parametr funkce s
+ *          poskytnutými parametry. Pokud je uzel již inicializován nebo pokud
+ *          je předán neplatný ukazatel, funkce hlásí interní chybu.
+ *
+ * @param node Ukazatel na uzel, který má být inicializován.
+ * @param variable Ukazatel na uzel proměnné.
+ */
+void AST_initNewArgOrParamNode(AST_ArgOrParamNode *node, AST_VarNode *variable);
+
+/**
+ * @brief Inicializuje uzel pro příkaz.
+ *
+ * @details Tato funkce inicializuje uzel pro příkaz s poskytnutými parametry.
+ *          Pokud je uzel již inicializován nebo pokud je předán neplatný
+ *          ukazatel, funkce hlásí interní chybu.
+ *
+ * @param node Ukazatel na uzel, který má být inicializován.
+ * @param frameID ID rámce, kde je příkaz definován.
+ * @param statementType Typ příkazu.
+ * @param statement Ukazatel na uzel specifický pro daný příkaz.
+ */
+void AST_initNewStatementNode(AST_StatementNode *node, size_t frameID, \
+                              AST_StatementType statementType, void *statement);
+
+/**
+ * @brief Inicializuje uzel pro volání funkce.
+ *
+ * @details Tato funkce inicializuje uzel pro volání funkce s poskytnutými
+ *          parametry. Pokud je uzel již inicializován nebo pokud je předán
+ *          neplatný ukazatel, funkce hlásí interní chybu.
+ *
+ * @param node Ukazatel na uzel, který má být inicializován.
+ * @param identifier Ukazatel na dynamický string s názvem funkce.
+ * @param isBuiltIn Příznak, zda je funkce vestavěná (`ifj.id(args)`).
+ * @param arguments Ukazatel na uzly argumentů.
+ */
+void AST_initNewFunCallNode(AST_FunCallNode *node, DString *identifier, \
+                            bool isBuiltIn, AST_ArgOrParamNode *arguments);
+
+/**
+ * @brief Inicializuje uzel pro podmíněný příkaz if.
+ *
+ * @details Tato funkce inicializuje uzel pro podmíněný příkaz if s poskytnutými
+ *          parametry. Pokud je uzel již inicializován nebo pokud je předán
+ *          neplatný ukazatel, funkce hlásí interní chybu.
+ *
+ * @param node Ukazatel na uzel, který má být inicializován.
+ * @param condition Ukazatel na podmínku.
+ * @param nullCondition Ukazatel na volitelnou podmínku NULL.
+ * @param thenBranch Ukazatel na větev 'then'.
+ * @param elseBranch Ukazatel na větev 'else'.
+ */
+void AST_initNewIfNode(AST_IfNode *node, AST_ExprNode *condition, AST_VarNode *nullCondition, \
+                    AST_StatementNode *thenBranch, AST_StatementNode *elseBranch);
+
+/**
+ * @brief Inicializuje uzel pro cyklus while.
+ *
+ * @details Tato funkce inicializuje uzel pro cyklus while s poskytnutými
+ *          parametry. Pokud je uzel již inicializován nebo pokud je předán
+ *          neplatný ukazatel, funkce hlásí interní chybu.
+ *
+ * @param node Ukazatel na uzel, který má být inicializován.
+ * @param condition Ukazatel na podmínku.
+ * @param nullCondition Ukazatel na volitelnou podmínku NULL.
+ * @param body Ukazatel na tělo cyklu.
+ */
+void AST_initNewWhileNode(AST_WhileNode *node, AST_ExprNode *condition, \
+                          AST_VarNode *nullCondition, AST_StatementNode *body);
+
+/**
+ * @brief Inicializuje uzel pro výraz.
+ *
+ * @details Tato funkce inicializuje uzel pro výraz s poskytnutými parametry.
+ *          Pokud je uzel již inicializován nebo pokud je předán neplatný
+ *          ukazatel, funkce hlásí interní chybu.
+ *
+ * @param node Ukazatel na uzel, který má být inicializován.
+ * @param exprType Typ výrazu.
+ * @param expression Ukazatel na konkrétní výraz.
+ */
+void AST_initNewExprNode(AST_ExprNode *node, AST_ExprType exprType, void *expression);
+
+/**
+ * @brief Inicializuje uzel pro binární operátor.
+ *
+ * @details Tato funkce inicializuje uzel pro binární operátor s poskytnutými
+ *          parametry. Pokud je uzel již inicializován nebo pokud je předán
+ *          neplatný ukazatel, funkce hlásí interní chybu.
+ *
+ * @param node Ukazatel na uzel, který má být inicializován.
+ * @param op Typ binární operace.
+ * @param left Ukazatel na levý operand.
+ * @param right Ukazatel na pravý operand.
+ */
+void AST_initNewBinOpNode(AST_BinOpNode *node, AST_BinOpType op, \
+                          AST_ExprNode *left, AST_ExprNode *right);
+
+/**
+ * @brief Inicializuje uzel pro proměnnou nebo literál.
+ *
+ * @details Tato funkce inicializuje uzel pro proměnnou nebo literál s
+ *          poskytnutými parametry. Pokud je uzel již inicializován nebo pokud
+ *          je předán neplatný ukazatel, funkce hlásí interní chybu.
+ *
+ * @param node Ukazatel na uzel, který má být inicializován.
+ * @param type Typ uzlu (AST_VAR_NODE nebo AST_LITERAL_NODE).
+ * @param identifier Ukazatel na dynamický string s identifikátorem proměnné.
+ * @param frameID ID rámce, kde je proměnná definovaná.
+ * @param literalType Typ literálu.
+ * @param value Ukazatel na hodnotu literálu.
+ */
+void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifier, \
+                        size_t frameID, AST_LiteralType literalType, DString *value);
 
 
 /*******************************************************************************
