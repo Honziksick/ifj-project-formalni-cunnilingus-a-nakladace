@@ -84,7 +84,9 @@ typedef enum {
     TOKEN_K_while = 41,
     TOKEN_K_import = 42,
     TOKEN_K_underscore = 43,
-    TOKEN_K_ifj = 44
+    TOKEN_K_ifj = 44,
+    //OTHER
+    TOKEN_UNINITIALIZED = 45
 } TokenType;
 
 // Definice rozlišovaných typů znaků (char) na vstupu
