@@ -551,4 +551,23 @@ SymtableFunctionData *symtable_init_function_data(size_t param_count){
     return data;
 }
 
+void *symtable_createLiteralData(symtable_symbolState state){
+    switch(state) {
+        case SYMTABLE_SYMBOL_VARIABLE_INT:
+            return malloc(sizeof(int));
+        case SYMTABLE_SYMBOL_VARIABLE_DOUBLE:
+            return malloc(sizeof(double));
+        case SYMTABLE_SYMBOL_VARIABLE_STRING:
+            return string_init();
+        case SYMTABLE_SYMBOL_VARIABLE_INT_OR_NULL:
+            return malloc(sizeof(int));
+        case SYMTABLE_SYMBOL_VARIABLE_DOUBLE_OR_NULL:
+            return malloc(sizeof(double));
+        case SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL:
+            return string_init();
+        default:
+            return NULL;
+    }
+}
+
 /*** Konec souboru symtable.c ***/
