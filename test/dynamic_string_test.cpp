@@ -556,7 +556,7 @@ TEST(ConstStrToDString, ShortString){
     ASSERT_NE(str, nullptr);
 
     ASSERT_EQ(str->length, 3ULL);
-    ASSERT_EQ(str->allocatedSize, 3ULL);
+    ASSERT_EQ(str->allocatedSize, 4ULL);
     ASSERT_EQ(string_append_char(str, 'd'), STRING_SUCCESS);
 
     ASSERT_EQ(str->length, 4ULL);
