@@ -62,15 +62,11 @@ typedef enum TAC_Operation {\
     TAC_OP_DIV,            /**< Dělení */
     TAC_OP_ASSIGN,         /**< Přiřazení */
     TAC_OP_IF_EQ,          /**< Porovnání: rovnost */
-    TAC_OP_IF_NEQ,         /**< Porovnání: nerovnost */
     TAC_OP_IF_LT,          /**< Porovnání: menší než */
     TAC_OP_IF_GT,          /**< Porovnání: větší než */
-    TAC_OP_IF_LE,          /**< Porovnání: menší nebo rovno */
-    TAC_OP_IF_GE,          /**< Porovnání: větší nebo rovno */
     TAC_OP_NOT,            /**< Negace */
     TAC_OP_WRITE,          /**< Výpis */
     TAC_OP_READ,           /**< Načtení */
-    TAC_OP_GOTO,           /**< Nepodmíněný skok */
     TAC_OP_RETURN,         /**< Návratová hodnota */
     TAC_OP_CALL,           /**< Volání funkce */
     TAC_OP_PARAM,          /**< Parametr pro volání funkce */

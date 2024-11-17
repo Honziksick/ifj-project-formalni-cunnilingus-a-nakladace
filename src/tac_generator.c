@@ -31,7 +31,7 @@
  */
 TAC_InstructionList *TAC_createInstructionList(){
     // Alokace paměti pro seznam instrukcí
-    TAC_InstructionList *list = malloc(sizeof(TAC_InstructionList));
+    TAC_InstructionList *list = malloc(sizeof(struct TAC_InstructionList));
     if (list == NULL){
         return NULL;
     }
@@ -81,109 +81,43 @@ TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_O
 
     // Switch pro nastavení operandů instrukce pro jednotlivé operace
     switch (instr->op){
-        case TAC_OP_NONE: break;
-        case TAC_OP_RETURN:
+        case TAC_OP_JUMPIFEQ:
+        case TAC_OP_JUMPIFNEQ:
         case TAC_OP_ADD:
         case TAC_OP_SUB:
         case TAC_OP_MUL:
         case TAC_OP_DIV:
         case TAC_OP_IF_EQ:
-        case TAC_OP_IF_NEQ:
         case TAC_OP_IF_LT:
-        case TAC_OP_IF_LE:
         case TAC_OP_IF_GT:
-        case TAC_OP_IF_GE:
+        case TAC_OP_NOT:
+        case TAC_OP_CONCAT:
             instr->src1 = src1;
             instr->src2 = src2;
             instr->dest = dest;
-            break;
+            return instr;
+
         case TAC_OP_ASSIGN:
+        case TAC_OP_READ:
+        case TAC_OP_TYPE:
             instr->src1 = src1;
             instr->dest = dest;
-            break;
+            return instr;
+
         case TAC_OP_PARAM:
         case TAC_OP_CALL:
         case TAC_OP_LABEL:
-            instr->src1 = src1;
-            break;
-        case TAC_OP_GOTO:
+        case TAC_OP_JUMP:
+        case TAC_OP_EXIT:
+        case TAC_OP_WRITE:
         case TAC_OP_DEFVAR:
             instr->dest = dest;
-            break;
+            return instr;
 
         default:
             return instr;
     }
-
-    // Vracíme ukaatel na novou instrukci
-    return instr;
 } // TAC_createInstruction
-
-void TAC_destroyOperand(TAC_Operand *operand){
-    switch (operand->type){
-        case TAC_OPERAND_VAR:
-        case TAC_OPERAND_TEMP:
-        case TAC_OPERAND_STRING:
-            string_free(operand->value.varName);
-            break;
-
-        case TAC_OPERAND_LABEL:
-            string_free(operand->value.labelName);
-            break;
-
-        default:
-            break;
-    }
-} // TAC_destroyOperand
-
-void TAC_destroyInstruction(TAC_Instruction *instr){
-    switch (instr->op){
-        // dest, src1, src2
-        case TAC_OP_NONE: break;
-        case TAC_OP_ADD:
-        case TAC_OP_SUB:
-        case TAC_OP_MUL:
-        case TAC_OP_DIV:
-        case TAC_OP_JUMPIFEQ:
-        case TAC_OP_JUMPIFNEQ:
-        case TAC_OP_IF_EQ:
-        case TAC_OP_IF_NEQ:
-        case TAC_OP_IF_LT:
-        case TAC_OP_IF_LE:
-        case TAC_OP_IF_GT:
-        case TAC_OP_IF_GE:
-
-            TAC_destroyOperand(&instr->dest);
-            TAC_destroyOperand(&instr->src1);
-            TAC_destroyOperand(&instr->src2);
-            return;
-
-        // dest
-        case TAC_OP_DEFVAR:
-        case TAC_OP_JUMP:
-        case TAC_OP_EXIT:
-        case TAC_OP_WRITE:
-        case TAC_OP_READ:
-        case TAC_OP_CALL:
-        case TAC_OP_LABEL:
-
-            TAC_destroyOperand(&instr->dest);
-            return;
-
-        // dest, src1
-        case TAC_OP_ASSIGN:
-        case TAC_OP_NOT:
-        case TAC_OP_TYPE:
-
-            TAC_destroyOperand(&instr->dest);
-            TAC_destroyOperand(&instr->src1);
-            return;
-
-        // Pokud instrukce nepotřebuje žádný operand
-        default:
-            return;
-    }
-} // TAC_destroyInstruction
 
 /**
  * @brief Přidá instrukci na konec seznamu instrukcí.
@@ -232,11 +166,8 @@ void TAC_printInstruction(TAC_Instruction *instr){
         case TAC_OP_MUL: printf("MUL "); break; // MUL dest, src1, src2
         case TAC_OP_DIV: printf("DIV "); break; // DIV dest, src1, src2
         case TAC_OP_IF_EQ: printf("EQ "); break; // EQ dest, src1, src2
-        case TAC_OP_IF_NEQ: printf("NEQ "); break; // NEQ dest, src1, src2
         case TAC_OP_IF_LT: printf("LT "); break; // LT dest, src1, src2
-        case TAC_OP_IF_LE: printf("LE "); break; // LE dest, src1, src2
         case TAC_OP_IF_GT: printf("GT "); break; // GT dest, src1, src2
-        case TAC_OP_IF_GE: printf("GE "); break; // GE dest, src1, src2
         case TAC_OP_CALL: printf("CALL "); break; // CALL dest
         case TAC_OP_RETURN: printf("RETURN "); break; // RETURN src1
         case TAC_OP_LABEL: printf("LABEL "); break; // LABEL dest
@@ -265,11 +196,9 @@ void TAC_printInstruction(TAC_Instruction *instr){
         case TAC_OP_JUMPIFEQ:
         case TAC_OP_JUMPIFNEQ:
         case TAC_OP_IF_EQ:
-        case TAC_OP_IF_NEQ:
         case TAC_OP_IF_LT:
-        case TAC_OP_IF_LE:
         case TAC_OP_IF_GT:
-        case TAC_OP_IF_GE:
+        case TAC_OP_NOT:
             // Destinace --> kam se zapíš€e výsledek
             TAC_printOperand(&(instr->dest));
             // Mezery mezi operandy
@@ -284,7 +213,6 @@ void TAC_printInstruction(TAC_Instruction *instr){
         case TAC_OP_JUMP:
         case TAC_OP_EXIT:
         case TAC_OP_WRITE:
-        case TAC_OP_READ:
         case TAC_OP_CALL:
         case TAC_OP_LABEL:
             TAC_printOperand(&(instr->dest));
@@ -292,8 +220,8 @@ void TAC_printInstruction(TAC_Instruction *instr){
 
         // dest, src1
         case TAC_OP_ASSIGN:
-        case TAC_OP_NOT:
         case TAC_OP_TYPE:
+        case TAC_OP_READ:
             TAC_printOperand(&(instr->dest));
             printf(" ");
             TAC_printOperand(&(instr->src1));
@@ -353,6 +281,70 @@ bool TAC_generateTestCode(TAC_InstructionList *tacList){
     TAC_appendInstruction(tacList, instr);
     return true;
 }
+
+void TAC_destroyOperand(TAC_Operand *operand){
+    switch (operand->type){
+        case TAC_OPERAND_VAR:
+        case TAC_OPERAND_TEMP:
+        case TAC_OPERAND_STRING:
+        case TAC_OPERAND_BOOL:
+            string_free(operand->value.varName);
+            break;
+
+        case TAC_OPERAND_LABEL:
+            string_free(operand->value.labelName);
+            break;
+
+        default:
+            break;
+    }
+} // TAC_destroyOperand
+
+void TAC_destroyInstruction(TAC_Instruction *instr){
+    switch (instr->op){
+        // dest, src1, src2
+        case TAC_OP_NONE: break;
+        case TAC_OP_ADD:
+        case TAC_OP_SUB:
+        case TAC_OP_MUL:
+        case TAC_OP_DIV:
+        case TAC_OP_JUMPIFEQ:
+        case TAC_OP_JUMPIFNEQ:
+        case TAC_OP_IF_EQ:
+        case TAC_OP_IF_LT:
+        case TAC_OP_IF_GT:
+        case TAC_OP_NOT:
+
+            TAC_destroyOperand(&instr->dest);
+            TAC_destroyOperand(&instr->src1);
+            TAC_destroyOperand(&instr->src2);
+            return;
+
+        // dest
+        case TAC_OP_DEFVAR:
+        case TAC_OP_JUMP:
+        case TAC_OP_EXIT:
+        case TAC_OP_WRITE:
+        case TAC_OP_CALL:
+        case TAC_OP_LABEL:
+
+            TAC_destroyOperand(&instr->dest);
+            return;
+
+        // dest, src1
+        case TAC_OP_ASSIGN:
+        case TAC_OP_TYPE:
+        case TAC_OP_READ:
+
+            TAC_destroyOperand(&instr->dest);
+            TAC_destroyOperand(&instr->src1);
+            return;
+
+        // Pokud instrukce nepotřebuje žádný operand
+        default:
+            return;
+    }
+} // TAC_destroyInstruction
 
 /**
  * @brief Uvolní všechny instrukce v seznamu tříadresného kódu.
