@@ -89,6 +89,9 @@ void frameStack_init() {
     // Inicializujeme pole rámců
     frameArray.allocated = FRAME_ARRAY_INIT_SIZE;
     frameArray.array[frame->frameID] = frame;
+
+    // Do globálního rámce přidáme vestavěné funkce
+    frameStack_addEmbeddedFunctions();
 } // frameStack_init()
 
 /**
@@ -263,6 +266,7 @@ frame_stack_result frameStack_addItemExpress(DString *key,
     item->symbol_state = state;
     item->constant = constant;
     item->data = data;
+    return FRAME_STACK_SUCCESS;
 } // frameStack_addItemExpress()
 
 /**
@@ -322,5 +326,164 @@ void frameStack_print(FILE *file, bool print_data, bool cut_data) {
 inline void frameStack_printSimple() {
     frameStack_print(stdout, false, true);
 } // frameStack_printSimple()
+
+void frameStack_addEmbeddedFunctions(){
+    SymtableFunctionData *data;
+
+    // Funkce pro načítání hodnot
+    data = symtable_init_function_data(0);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_STRING_OR_NULL;
+    if(frameStack_addFunction("ifj.readstr", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    data = symtable_init_function_data(0);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_INT_OR_NULL;
+    if(frameStack_addFunction("ifj.readi32", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    data = symtable_init_function_data(0);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_DOUBLE_OR_NULL;
+    if(frameStack_addFunction("ifj.readf64", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Funkce pro výpis hodnoty
+    // Neuložíme skutečná data, protože bere jakýkoliv typ = speciální případ
+    data = symtable_init_function_data(0);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_VOID;
+    if(frameStack_addFunction("ifj.write", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Funkce pro konverzi číselných typů
+    data = symtable_init_function_data(1);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_DOUBLE;
+    data->params[0].type = SYMTABLE_TYPE_INT;
+    if(frameStack_addFunction("ifj.i2f", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    data = symtable_init_function_data(1);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_INT;
+    data->params[0].type = SYMTABLE_TYPE_DOUBLE;
+    if(frameStack_addFunction("ifj.f2i", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Funkce pro práci s řezy
+    // Neuložíme skutečná data, protože bere 2 typy = speciální případ
+    data = symtable_init_function_data(0);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_STRING;
+    if(frameStack_addFunction("ifj.string", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    data = symtable_init_function_data(1);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_INT;
+    data->params[0].type = SYMTABLE_TYPE_STRING;
+    if(frameStack_addFunction("ifj.length", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    data = symtable_init_function_data(2);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_STRING;
+    data->params[0].type = SYMTABLE_TYPE_STRING;
+    data->params[1].type = SYMTABLE_TYPE_STRING;
+    if(frameStack_addFunction("ifj.concat", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    data = symtable_init_function_data(3);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_STRING_OR_NULL;
+    data->params[0].type = SYMTABLE_TYPE_STRING;
+    data->params[1].type = SYMTABLE_TYPE_INT;
+    data->params[2].type = SYMTABLE_TYPE_INT;
+    if(frameStack_addFunction("ifj.substring", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    data = symtable_init_function_data(2);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_INT;
+    data->params[0].type = SYMTABLE_TYPE_STRING;
+    data->params[1].type = SYMTABLE_TYPE_STRING;
+    if(frameStack_addFunction("ifj.strcmp", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    data = symtable_init_function_data(2);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_INT;
+    data->params[0].type = SYMTABLE_TYPE_STRING;
+    data->params[1].type = SYMTABLE_TYPE_INT;
+    if(frameStack_addFunction("ifj.ord", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+
+    data = symtable_init_function_data(1);
+    if(data == NULL){
+        return;
+    }
+    data->return_type = SYMTABLE_TYPE_STRING;
+    data->params[0].type = SYMTABLE_TYPE_INT;
+    if(frameStack_addFunction("ifj.chr", data) != FRAME_STACK_SUCCESS){
+        error_handle(ERROR_INTERNAL);
+    }
+    
+}
+
+frame_stack_result frameStack_addFunction(const char* key, void* data){
+    // Funkce pro načítání hodnot
+    DString *s_key = string_charToDString(key);
+    if(key == NULL){
+        return FRAME_STACK_ALLOCATION_FAIL;
+    }
+    SymtableItemPtr item;
+    frame_stack_result result = frameStack_addItem(s_key, &item);
+    if(result != FRAME_STACK_SUCCESS){
+        string_free(s_key);
+        return result;
+    }
+    item->symbol_state = SYMTABLE_SYMBOL_FUNCTION;
+    item->data = data;
+    string_free(s_key);
+    return FRAME_STACK_SUCCESS;
+}
 
 /*** Konec souboru frame_stack.h ***/

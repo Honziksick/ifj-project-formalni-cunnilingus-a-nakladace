@@ -56,9 +56,9 @@ TEST(FrameStack, Init) {
     frameStack_init();
 
     // Ověříme, že zásobník byl inicializován
-    ASSERT_NE(stack.top, nullptr);
-    ASSERT_NE(stack.bottom, nullptr);
-    ASSERT_EQ(stack.currentID, 0ULL);
+    ASSERT_NE(frameStack.top, nullptr);
+    ASSERT_NE(frameStack.bottom, nullptr);
+    ASSERT_EQ(frameStack.currentID, 0ULL);
 
     // Uvolníme zásobník
     frameStack_destroyAll();
@@ -77,10 +77,10 @@ TEST(FrameStack, Push) {
     frameStack_push(false);
 
     // Ověříme, že rámec byl přidán
-    ASSERT_NE(stack.top, nullptr);
-    ASSERT_EQ(stack.top->frameID, 1ULL);
-    ASSERT_EQ(stack.top->searchStop, false);
-    EXPECT_EQ(frameArray.array[1], stack.top);
+    ASSERT_NE(frameStack.top, nullptr);
+    ASSERT_EQ(frameStack.top->frameID, 1ULL);
+    ASSERT_EQ(frameStack.top->searchStop, false);
+    EXPECT_EQ(frameArray.array[1], frameStack.top);
 
     // Uvolníme zásobník
     frameStack_destroyAll();
@@ -98,17 +98,17 @@ TEST(FrameStack, Pop) {
     frameStack_push(false);
 
     // Ověříme, že rámec byl přidán
-    ASSERT_NE(stack.top, nullptr);
-    ASSERT_EQ(stack.top->frameID, 1ULL);
-    ASSERT_EQ(stack.top->searchStop, false);
-    EXPECT_EQ(frameArray.array[1], stack.top);
+    ASSERT_NE(frameStack.top, nullptr);
+    ASSERT_EQ(frameStack.top->frameID, 1ULL);
+    ASSERT_EQ(frameStack.top->searchStop, false);
+    EXPECT_EQ(frameArray.array[1], frameStack.top);
 
     // Odstraníme vrchní rámec
     ASSERT_EQ(frameStack_pop(), FRAME_STACK_SUCCESS);
-    ASSERT_NE(stack.top, nullptr);
-    ASSERT_EQ(stack.top->frameID, 0ULL);
-    ASSERT_EQ(stack.top->searchStop, true);
-    EXPECT_EQ(frameArray.array[0], stack.top);
+    ASSERT_NE(frameStack.top, nullptr);
+    ASSERT_EQ(frameStack.top->frameID, 0ULL);
+    ASSERT_EQ(frameStack.top->searchStop, true);
+    EXPECT_EQ(frameArray.array[0], frameStack.top);
     // Rámec zůstal v poli
     ASSERT_EQ(frameArray.array[1]->frameID, 1ULL);
 
@@ -260,7 +260,7 @@ TEST(FrameStack, Many){
 
     // Oveříme očekávané hodnoty
     EXPECT_EQ(frameArray.allocated, 20ULL);
-    EXPECT_EQ(stack.currentID, 15ULL);
+    EXPECT_EQ(frameStack.currentID, 15ULL);
 
     // Ověříme, že 1. položka je v rámci a 2. není
     SymtableItemPtr item3;
