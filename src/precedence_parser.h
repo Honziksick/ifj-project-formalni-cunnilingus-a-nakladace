@@ -212,12 +212,12 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType);
  *          vytvoří AST uzel pro binární operaci a výraz, a poté pushne nový
  *          neterminál (výraz) E na zásobník s vytvořeným AST uzlem.
  *
- * @param operator Typ binární operace, která má být provedena. Tento parametr
+ * @param binOp Typ binární operace, která má být provedena. Tento parametr
  *                 určuje konkrétní operátor (např. +, -, *, /, ==, !=, <, >,
  *                 <=, >=), který bude použit při vytváření AST uzlu pro binární
  *                 operaci.
  */
-void PrecParser_reduceBinOp(AST_BinOpType operator);
+void PrecParser_reduceBinOp(AST_BinOpType binOp);
 
 /**
  * @brief Redukce pro výraz v závorkách E -> ( E ).
