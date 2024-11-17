@@ -117,7 +117,7 @@ typedef struct FrameArray {
 /**
  * @brief Globální zásobník rámců používaný v celém překladači.
  */
-extern FrameStack stack;
+extern FrameStack frameStack;
 
 /**
  * @brief Globální pole všech vytvořených rámců.
@@ -194,6 +194,12 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item);
  *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
 frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item);
+
+/**
+ * @brief 
+ */
+frame_stack_result frameStack_addItemExpress(DString *key,
+                    symtable_symbolState state, bool constant, void* data);
 
 /**
  * @brief Uvolní všechny rámce v zásobníku a uvede zásobník do počátečního stavu.
