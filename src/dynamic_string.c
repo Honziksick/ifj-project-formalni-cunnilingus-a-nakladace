@@ -87,7 +87,7 @@ int string_append_char(DString *str, char character) {
     }
 
     // Pokud je string plný, musíme ho zvětšit o jedno
-    if(str->length+1 > str->allocatedSize) {
+    if(str->length+1 >= str->allocatedSize) {
         // Kontrola, zda neselhal resize
         str = string_resize(str, DEFAULT_RESIZE_SIZE);
         if(str == NULL){
@@ -261,7 +261,7 @@ DString *string_charToDString(const char *strConst){
     }
 
     // Vytvoříme buňky pro znaky
-    stringCreated->str = (char *)malloc(length * sizeof(char));
+    stringCreated->str = (char *)malloc( ((length+1)) * sizeof(char) );
 
     // Pokud se špatně alokovala paměť, vrátíme NULL
     if(stringCreated->str == NULL) {
@@ -271,11 +271,11 @@ DString *string_charToDString(const char *strConst){
 
     // Nastavíme délku a alokovanou paměť
     stringCreated->length = length;
-    stringCreated->allocatedSize = length;
+    stringCreated->str[length] = '\0';
+    stringCreated->allocatedSize = length+1;
 
     // Překopírujeme obsah konstantního řetězce do dynamického
     memcpy(stringCreated->str, strConst, length*sizeof(char));
-
 
     return stringCreated;
 
