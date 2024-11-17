@@ -794,6 +794,7 @@ $(TEST_BUILD_DIR)/$(TAC)_test: $(TEST_BUILD_DIR)/$(TAC)_test.o \
 											$(TEST_BUILD_DIR)/$(TAC).o \
 											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
 											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/$(AST_LIB).o \
 											$(TEST_BUILD_DIR)/gtest_main.a \
 											$(TEST_BUILD_DIR)/gtest.a
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@

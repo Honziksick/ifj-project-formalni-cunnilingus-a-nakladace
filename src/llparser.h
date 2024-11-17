@@ -40,7 +40,6 @@
 #include "ast_interface.h"
 #include "precedence_parser.h"
 #include "error.h"
-#include "parser_terminal.h"
 
 
 /*******************************************************************************
