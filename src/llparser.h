@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            30.10.2024                                                *
- * Poslední změna:   13.11.2024                                                *
+ * Poslední změna:   16.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -33,9 +33,23 @@
 
 #include <stdbool.h>
 #include "lltable.h"
-#include "precedence_table.h"
 #include "parser.h"
+#include "symtable.h"
+#include "frame_stack.h"
+#include "ast_nodes.h"
+#include "ast_interface.h"
+#include "precedence_parser.h"
 #include "error.h"
+#include "parser_terminal.h"
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                              DEFINICE KONSTANT                              *
+ *                                                                             *
+ ******************************************************************************/
+
+#define PARSING_SYNTAX_ERROR NULL    /**< Slouží k propagaci chyby syntaxe návratovými hodnotami při rekurzivním sestupu.  */
 
 
 /*******************************************************************************
@@ -55,9 +69,9 @@ AST_ProgramNode *LLparser_parseProgram();
 /**
  * @brief Parsuje neterminál `<PROLOG>`.
  *
- * @return `true` při úspěšném parsování, jinak `false`.
+ * @return V případě úspěchu vrací cestu k importovaném souboru, jinak `NULL`
  */
-bool LLparser_parsePrologue();
+DString *LLparser_parsePrologue();
 
 /**
  * @brief Parsuje neterminál `<FUN_DEF_LIST>`.
@@ -81,7 +95,7 @@ AST_FunDefNode *LLparser_parseFunDef();
  * @return Ukazatel na první uzel seznamu parametrů (AST_ArgOrParamNode) při
  *         úspěšném parsování, jinak `NULL`.
  */
-AST_ArgOrParamNode *LLparser_parseParameters();
+AST_ArgOrParamNode *LLparser_parseParameters(size_t *paramCount);
 
 /**
  * @brief Parsuje neterminál `<PARAM_LIST>`.
@@ -89,7 +103,7 @@ AST_ArgOrParamNode *LLparser_parseParameters();
  * @return Ukazatel na první uzel seznamu parametrů (AST_ArgOrParamNode) při
  *         úspěšném parsování, jinak `NULL`.
  */
-AST_ArgOrParamNode *LLparser_parseParamList();
+AST_ArgOrParamNode *LLparser_parseParamList(size_t *paramCount);
 
 /**
  * @brief Parsuje neterminál `<PARAM_LIST_REST>`.
@@ -97,7 +111,7 @@ AST_ArgOrParamNode *LLparser_parseParamList();
  * @return Ukazatel na další uzel v seznamu parametrů (AST_ArgOrParamNode) při
  *         úspěšném parsování, jinak `NULL`.
  */
-AST_ArgOrParamNode *LLparser_parseParamListRest();
+AST_ArgOrParamNode *LLparser_parseParamListRest(size_t *paramCount);
 
 /**
  * @brief Parsuje neterminál `<PARAM>`.
@@ -240,25 +254,6 @@ AST_ArgOrParamNode *LLparser_parseArgList();
  *         parsování, jinak `NULL`.
  */
 AST_ArgOrParamNode *LLparser_parseArg();
-
-
-/*******************************************************************************
- *                                                                             *
- *                         DALŠÍ FUNKCE PRO LL PARSER                          *
- *                                                                             *
- ******************************************************************************/
-
-/**
- * @brief Mapuje typ aktuálního Tokenu na odpovídající typ Terminálu pro LL analýzu.
- *
- * @details Tato funkce převede typ globálního tokenu @c currentToken na odpovídající
- *          typ terminálu používaný v LL syntaktické analýze. Funkce využívá
- *          globální proměnnou @c currentToken, která obsahuje aktuální token
- *          získaný ze scanneru.
- *
- * @return Typ terminálu odpovídající aktuálnímu tokenu `currentToken`.
- */
-LLTerminals LLparser_mapTokenToTerminal();
 
 #endif // LLPARSER_H_
 

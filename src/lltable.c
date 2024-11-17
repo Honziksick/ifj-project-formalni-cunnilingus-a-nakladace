@@ -91,7 +91,12 @@ const struct LLtable LLtable[LL_TERMINAL_COUNT] = {
 /**
  * @brief Najde pravidlo v LL tabulce na základě neterminálu a kódu terminálu.
  */
-int LLtable_findRule(int nonTerminal, int terminal) {
+bool LLtable_findRule(LLTerminals tokenType, LLNonTerminals nonTerminal, LLRuleSet *rule) {
+    // Ověření platnosti předaného ukazatele
+    if(rule == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
     // Nastavení indexů pro binární vyhledávání
     int left = 0;
     int right = LL_TERMINAL_COUNT - 1;
@@ -102,18 +107,20 @@ int LLtable_findRule(int nonTerminal, int terminal) {
         mid = (left + right) / 2;
 
         // Pokud najdeme odpovídající index, vrátíme hodnotu pravidla pro daný neterminál
-        if(LLtable[mid].key == terminal) {
+        if(LLtable[mid].key == tokenType) {
             // Pokud pravidlo neexistuje, došlo k syntaktické chybě
             if(LLtable[mid].value[nonTerminal] == SYNTAX_ERROR) {
-                error_handle(ERROR_SYNTAX);
+                *rule = SYNTAX_ERROR;
+                return false;
             }
             // Jinak pravidlo existuje a vrátíme ho
             else {
-                return LLtable[mid].value[nonTerminal];
+                *rule = LLtable[mid].value[nonTerminal];
+                return true;
             }
         }
 
-        if(LLtable[mid].key < terminal) {
+        if(LLtable[mid].key < tokenType) {
             // Hledaný index je vyšší, posouváme levý index doprava
             left = mid + 1;
         }
@@ -126,7 +133,7 @@ int LLtable_findRule(int nonTerminal, int terminal) {
     // Vrací interní chybový kód, pokud terminál není nalezen v tabulce
     // (aka něco je velmi špatně, protože toto by nikdy nemělo nastat)
     error_handle(ERROR_INTERNAL);
-    return ERROR_INTERNAL;
+    return false;
 } // LLtable_findRule()
 
 /*** Konec souboru lltable.c ***/
