@@ -282,6 +282,11 @@ void symtable_destroyTable(Symtable *table);
 SymtableFunctionData *symtable_init_function_data(size_t param_count);
 
 /**
+ * @brief Alokuje paměť pro data literálu
+ */
+void *symtable_createLiteralData(symtable_symbolState state);
+
+/**
  * @brief Vytiskne obsah tabulky symbolů
  * 
  * @details Tato funkce vytiskne obsah tabulky symbolů do souboru.
