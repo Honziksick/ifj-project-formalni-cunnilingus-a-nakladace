@@ -762,6 +762,8 @@ $(TEST_BUILD_DIR)/$(SEMANTIC)_test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test.o \
 											$(TEST_BUILD_DIR)/$(SEMANTIC).o \
 											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
 											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
+											$(TEST_BUILD_DIR)/$(FRAME_STACK).o \
+											$(TEST_BUILD_DIR)/$(AST_LIB).o \
 											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
 											$(TEST_BUILD_DIR)/gtest_main.a \
 											$(TEST_BUILD_DIR)/gtest.a
