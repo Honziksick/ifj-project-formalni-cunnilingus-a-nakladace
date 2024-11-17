@@ -184,6 +184,14 @@ AST_DataType LLparser_parsePossibleType();
 AST_StatementNode *LLparser_parseStatementRest();
 
 /**
+ * @brief Parsuje neterminál `<THROW_AWAY>`.
+ *
+ * @return Ukazatel na uzel příkazu (AST_StatementNode) při úspěšném parsování,
+ *         jinak `NULL`.
+ */
+AST_ExprNode *LLparser_parseThrowAway();
+
+/**
  * @brief Parsuje neterminál `<IF>`.
  *
  * @return Ukazatel na uzel podmíněného příkazu (AST_IfNode) při
