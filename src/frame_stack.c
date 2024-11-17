@@ -38,7 +38,7 @@
 /**
  * @brief Globální zásobník rámců používaný v celém překladači.
  */
-FrameStack stack = {NULL, NULL, 0};
+FrameStack frameStack = {NULL, NULL, 0};
 
 /**
  * @brief Globální pole všech vytvořených rámců.
@@ -78,8 +78,8 @@ void frameStack_init() {
     }
 
     // Nastavíme vrchol a spodek zásobníku na globální rámec
-    stack.bottom = frame;
-    stack.top = frame;
+    frameStack.bottom = frame;
+    frameStack.top = frame;
 
     // Inicializujeme globální rámec
     frame->frameID = 0;
@@ -96,7 +96,7 @@ void frameStack_init() {
  */
 void frameStack_push(bool isFunction) {
     // Pokud není zásobník inicializován, skončíme s chybou
-    if(stack.top == NULL) {
+    if(frameStack.top == NULL) {
         error_handle(ERROR_INTERNAL);
     }
 
@@ -114,18 +114,18 @@ void frameStack_push(bool isFunction) {
     }
 
     // Aktualizujeme nejvyšší ID
-    stack.currentID++;
+    frameStack.currentID++;
 
     // Nastavíme hodnoty rámce
-    frame->frameID = stack.currentID;
-    frame->next = stack.top;
+    frame->frameID = frameStack.currentID;
+    frame->next = frameStack.top;
     frame->searchStop = isFunction;
 
     // Nastavíme vrchol zásobníku
-    stack.top = frame;
+    frameStack.top = frame;
 
     // Pokud došla kapacita pole rámců, tak jej rozšíříme
-    if(stack.currentID +1 > frameArray.allocated) {
+    if(frameStack.currentID +1 > frameArray.allocated) {
         // Vytvoříme nové pole s dvojnásobnou kapacitou
         FramePtr *new_array = malloc(frameArray.allocated * FRAME_ARRAY_EXPAND_FACTOR * sizeof(FramePtr));
         if(new_array == NULL) {
@@ -153,15 +153,15 @@ void frameStack_push(bool isFunction) {
  * @brief Odstraní vrchní rámec ze zásobníku.
  */
 frame_stack_result frameStack_pop() {
-    if(stack.top == NULL) {
+    if(frameStack.top == NULL) {
         return FRAME_STACK_NOT_INITIALIZED;
     }
 
-    if(stack.top->next == NULL) {
+    if(frameStack.top->next == NULL) {
         return FRAME_STACK_POP_GLOBAL;
     }
 
-    stack.top = stack.top->next;
+    frameStack.top = frameStack.top->next;
 
     return FRAME_STACK_SUCCESS;
 } // frameStack_pop()
@@ -176,12 +176,12 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item) {
     }
 
     // Pokud není zásobník inicializován, vrátíme chybu
-    if(stack.top == NULL) {
+    if(frameStack.top == NULL) {
         return FRAME_STACK_NOT_INITIALIZED;
     }
 
     // Nastavíme začátek prohledávání na vrchol zásobníku
-    FramePtr frame = stack.top;
+    FramePtr frame = frameStack.top;
 
     // Cyklus prohledávání rámců
     while(true) {
@@ -233,7 +233,7 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item) {
 
     // Pokud položka neexistuje, přidáme ji
     if(result == FRAME_STACK_ITEM_DOESNT_EXIST) {
-        symtable_result sym_result = symtable_addItem(stack.top->frame, key, out_item);
+        symtable_result sym_result = symtable_addItem(frameStack.top->frame, key, out_item);
 
         // Pokud se položka podařilo přidat, vrátíme úspěch
         if(sym_result == SYMTABLE_SUCCESS) {
@@ -254,21 +254,21 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item) {
  */
 void frameStack_destroyAll() {
     // Pokud není zásobník inicializován, vrátíme se
-    if(stack.top == NULL) {
+    if(frameStack.top == NULL) {
         return;
     }
 
     // Uvolníme všechny rámce
-    for(size_t i = 0; i <= stack.currentID; i++) {
+    for(size_t i = 0; i <= frameStack.currentID; i++) {
         symtable_destroyTable(frameArray.array[i]->frame);
         free(frameArray.array[i]);
     }
     free(frameArray.array);
 
     // Nastavíme zásobník na původní stav
-    stack.bottom = NULL;
-    stack.top = NULL;
-    stack.currentID = 0;
+    frameStack.bottom = NULL;
+    frameStack.top = NULL;
+    frameStack.currentID = 0;
 
     // Nastavíme pole rámců na původní stav
     frameArray.allocated = 0;
@@ -280,11 +280,11 @@ void frameStack_destroyAll() {
  */
 void frameStack_print(FILE *file, bool print_data, bool cut_data) {
     // Pokud není zásobník inicializován, vrátíme se
-    if(stack.top == NULL) {
+    if(frameStack.top == NULL) {
         return;
     }
     // Vytiskneme všechny rámce
-    FramePtr frame = stack.top;
+    FramePtr frame = frameStack.top;
     while(frame != NULL) {
         fprintf(file, "Frame ID: %-10zu", frame->frameID);
 
