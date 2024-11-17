@@ -37,6 +37,22 @@
 #include "symtable.h"
 #include "error.h"
 
+
+typedef enum {
+    SEM_DATA_UNKNOWN = 0,
+    SEM_DATA_INT = 1,
+    SEM_DATA_INT_OR_NULL = 2,
+    SEM_DATA_FLOAT = 3,
+    SEM_DATA_FLOAT_OR_NULL = 4,
+    SEM_DATA_RAW_STRING = 5,
+    SEM_DATA_STRING = 6,
+    SEM_DATA_STRING_OR_NULL = 7,
+    SEM_DATA_VOID = 8,
+    SEM_DATA_BOOL = 9,
+    SEM_DATA_NULL = 10
+} Semantic_Data;
+
+
 /**
  * @brief Provede sémantickou analýzu celého programu.
  * 
@@ -49,12 +65,12 @@ void semantic_analyseProgram();
 
 
 /**
- * @brief Provede sémantickou analýzu základní struktury programu
+ * @brief Provede sémantickou analýzu základní struktury programu.
  * 
  * @details Ověří, že existuje funkce main s návratovým typem void a bez parametrů
  *          Dále ověří sprvánost literálů v prologu programu
  * 
- * @return `true`, pokud je sémantická analýza struktury programu v pořádku, jinak `false`
+ * @return  '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  */
 ErrorType semantic_analyseProgramStructure();
 
@@ -65,7 +81,7 @@ ErrorType semantic_analyseProgramStructure();
  * @details Projde strom a pro každou definici funkce zavolá sémantickou sondu
  *          ()
  * 
- * @return `true`, pokud je sémantická analýza funkcí v pořádku, jinak `false`
+ * @return '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  */
 ErrorType semantic_analyseFunctionDefinitions();
 
@@ -78,7 +94,7 @@ ErrorType semantic_analyseFunctionDefinitions();
  *          že každá nekonstantní proměnná je změněna,
  *          že žádná konstantní proměnná není změněna
  * 
- * @return `true`, pokud je sémantická analýza proměnných v pořádku, jinak `false`
+ * @return '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  */
 ErrorType semantic_analyseVariables();
 
@@ -88,6 +104,8 @@ ErrorType semantic_analyseVariables();
  * 
  * @details Prochází blok příkaz po příkazu a podle typu volá další
  *          pomocné funkce podle typu příkazu.
+ * 
+ * @return  '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  *          
  */
 ErrorType semantic_probeFunction(AST_FunDefNode *node);
@@ -95,17 +113,53 @@ ErrorType semantic_probeFunction(AST_FunDefNode *node);
 /**
  * @brief 
  */
-ErrorType semantic_probeBlock(DString *FunId, AST_StatementNode *statement, bool* returned);
+ErrorType semantic_probeBlock(Semantic_Data fun_return,
+                              AST_StatementNode *statement, bool* returned);
 
-ErrorType semantic_analyseVarDef();
+ErrorType semantic_analyseVarDef(AST_StatementNode *statement);
 
-ErrorType semantic_analyseFunCallStatement();
+ErrorType semantic_analyseExpr(AST_ExprNode *expr_node, Semantic_Data *type, void **value);
 
-ErrorType semantic_analyseIf();
+ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *return_type);
 
-ErrorType semantic_analyseWhile();
+ErrorType semantic_analyseIf(Semantic_Data fun_return,       \
+                             AST_IfNode *if_node, bool *returned);
 
-ErrorType semantic_analyseReturn();
+ErrorType semantic_analyseWhile(Semantic_Data fun_return,       \
+                                AST_WhileNode *while_node, bool *returned);
+
+ErrorType semantic_analyseReturn(Semantic_Data fun_return, AST_ExprNode *node);
+
+ErrorType semantic_compatibleAssign(Semantic_Data defined, Semantic_Data actual);
+
+ErrorType semantic_compatibleRelation(Semantic_Data type_1, Semantic_Data type_2);
+
+ErrorType semantic_compatibleEqual(Semantic_Data type_1, Semantic_Data type_2);
+
+ErrorType semantic_compatibleArithmetic(Semantic_Data type_1, Semantic_Data type_2);
+
+ErrorType semantic_toInt(AST_ExprNode *node);
+
+ErrorType semantic_toFloat(AST_ExprNode *node);
+
+
+
+Semantic_Data semantic_ASTToSemType(AST_DataType type);
+
+Semantic_Data semantic_literalToSemType(AST_LiteralType type);
+
+Semantic_Data semantic_stateToSemType(symtable_symbolState state);
+
+Semantic_Data semantic_returnToSemType(symtable_functionReturnType type);
+
+symtable_symbolState semantic_semTypeToState(Semantic_Data type);
+
+AST_LiteralType semantic_semToLiteral(Semantic_Data type);
+
+ErrorType semantic_checkIFJWrite(AST_FunCallNode *fun_node);
+
+ErrorType semantic_checkIFJString(AST_FunCallNode *fun_node);
+
 #endif // SEMANTIC_ANALYSER_H_
 
 /*** Konec souboru semantic_analyser.h ***/
