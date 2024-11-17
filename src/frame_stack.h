@@ -247,6 +247,19 @@ void frameStack_print(FILE *file, bool print_data, bool cut_data);
  */
 void frameStack_printSimple();
 
+/**
+ * @brief Přidá vestavěné funkce do zásobníku rámců.
+ */
+void frameStack_addEmbeddedFunctions();
+
+/**
+ * @brief Přidá funkci do zásobníku rámců.
+ * 
+ * @param [in] key Klíč funkce
+ * @param [in] data Ukazatel na data funkce
+ */
+frame_stack_result frameStack_addFunction(const char* key, void* data);
+
 #endif  // FRAME_STACK_H_
 
 /*** Konec souboru frame_stack.h ***/
