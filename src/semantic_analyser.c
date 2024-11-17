@@ -6,7 +6,7 @@
  * Autor:            Krejčí David   <xkrejcd00>                                *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   12.11.2024                                                *
+ * Poslední změna:   17.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -25,26 +25,33 @@
 
 
 #include "semantic_analyser.h"
+#include <math.h>
 
 
-
+/**
+ * @brief Provede sémantickou analýzu celého programu.
+ */
 void semantic_analyseProgram() {
     ErrorType error = semantic_analyseProgramStructure();
     if(error != 0) {
         error_handle(error);
     }
+
     error = semantic_analyseFunctionDefinitions();
     if(error != 0) {
         error_handle(error);
     }
+
     error = semantic_analyseVariables();
     if(error != 0) {
         error_handle(error);
     }
 }
 
-
-ErrorType semantic_checkProgramStructure() {
+/**
+ * @brief Provede sémantickou analýzu základní struktury programu.
+ */
+ErrorType semantic_analyseProgramStructure() {
     // Vytvoříme string main
     DString *str = string_charToDString("main");
     if(str == NULL) {
@@ -53,7 +60,7 @@ ErrorType semantic_checkProgramStructure() {
 
     SymtableItemPtr item_main;
     // Podíváme se na globální rámec, kde jsou definice funkcí
-    symtable_result result = symtable_findItem(stack.bottom->frame, str, &item_main);
+    symtable_result result = symtable_findItem(frameStack.bottom->frame, str, &item_main);
 
     // Uvolníme string pro hledání
     string_free(str);
@@ -82,13 +89,11 @@ ErrorType semantic_checkProgramStructure() {
         return ERROR_SEM_PARAMS_OR_RETVAL;
     }
 
-/*      DOMLUVIT SE S HONZOU A DODĚLAT
     // Zkontrolujeme prolog programu, že má správné literály
     if(string_compare_const_str(ASTroot->importedFile, "ifj24.zig") != STRING_EQUAL) {
         // Toto nelze jednoduše zařadit mezi jiné chyby, proto ERROR_SEM_OTHER
         return ERROR_SEM_OTHER;
     }
-*/
 
     // Vše je v pořádku
     return 0;
@@ -96,7 +101,7 @@ ErrorType semantic_checkProgramStructure() {
 }
 
 
-ErrorType semantic_checkFunctionDefinitions() {
+ErrorType semantic_analyseFunctionDefinitions() {
     AST_FunDefNode *node = ASTroot->functionList;
     while(node != NULL) {
         ErrorType error = semantic_probeFunction(node);
@@ -106,24 +111,21 @@ ErrorType semantic_checkFunctionDefinitions() {
         node = node->next;
     }
 
-
-
-
     return 0;
 }
 
 
-ErrorType semantic_checkVariables() {
+ErrorType semantic_analyseVariables() {
     // Projdeme všechny rámce
-    for(size_t i = 1; i <= stack.currentID; i++) {
+    for(size_t i = 1; i <= frameStack.currentID; i++) {
         // Z rámce vezmeme tabulku symbolů
         SymtablePtr table = frameArray.array[i]->frame;
         SymtableItem item;
-        // Pro každou položku z tabulky symbolů
+        // Pro každý index tabulky symbolů
         for(size_t j = 0; j < table->allocated_size; j++) {
             item = table->array[j];
 
-            // Pokud položka na indexu není, tak přejdeme na další položku
+            // Pokud na indexu není položka, tak přejdeme na další index
             if(item.symbol_state == SYMTABLE_SYMBOL_EMPTY) {
                 continue;
             }
@@ -166,7 +168,8 @@ ErrorType semantic_checkVariables() {
 
 ErrorType semantic_probeFunction(AST_FunDefNode *FunDefNode) {
     bool reachedReturn = false;
-    ErrorType probeResult = semantic_probeBlock(FunDefNode->identifier, FunDefNode->body, &reachedReturn);
+    Semantic_Data return_type = semantic_ASTToSemType(FunDefNode->returnType);
+    ErrorType probeResult = semantic_probeBlock(return_type, FunDefNode->body, &reachedReturn);
     
     // Pokud jsme našli sémantickou chybu, tak ji vrátíme 
     if(probeResult != 0) {
@@ -176,22 +179,9 @@ ErrorType semantic_probeFunction(AST_FunDefNode *FunDefNode) {
     // Pokud jsme došli na konec funkce bez příkazu return, tak zkontrolujeme,
     // že funkce je void
     if(reachedReturn == false) {
-        SymtableItemPtr symItem;
-        // Funkci hledáme v globálním rámci
-        symtable_result symResult = symtable_findItem(stack.bottom->frame, FunDefNode->identifier, &symItem);
-        if(symResult != SYMTABLE_SUCCESS) {
-            // Pokud funkce není v tabulce symbolů, tak je chyba v implementaci
-            return ERROR_SEM_OTHER;
-        }
-
-        SymtableFunctionData *data = (SymtableFunctionData *)symItem->data;
-        if(data == NULL) {
-            // Pokud funce nemá data, tak je chyba v implementaci
-            return ERROR_SEM_OTHER;
-        }
 
         // Pokud funkce není void, tak jsme došli na konec funkce bez návratu
-        if(data->return_type != SYMTABLE_TYPE_VOID) {
+        if(return_type != SEM_DATA_VOID) {
             return ERROR_SEM_RETURN_EXP;
         }
     }
@@ -201,10 +191,12 @@ ErrorType semantic_probeFunction(AST_FunDefNode *FunDefNode) {
 }
 
 /**
- * @brief Analyzuje blok příkazů
+ * @brief Analyzuje blok příkazů a volá další funkce podle typu příkazu
  */
-ErrorType semantic_probeBlock(DString *FunId, AST_StatementNode *statement, bool* returned) {
+ErrorType semantic_probeBlock(Semantic_Data fun_return,      \
+                              AST_StatementNode *statement, bool* returned) {
     ErrorType result = 0;
+    Semantic_Data type;
 
     // Procházíme všechny příkazy těla funkce
     while(statement != NULL) {
@@ -214,28 +206,39 @@ ErrorType semantic_probeBlock(DString *FunId, AST_StatementNode *statement, bool
                 return ERROR_SEM_OTHER;
 
             case(AST_STATEMENT_VAR_DEF):
-                result = semantic_analyseVarDef();
+                result = semantic_analyseVarDef(statement->statement);
                 break;
 
             case(AST_STATEMENT_EXPR):
-                // Narazili jsme na výraz bez využití hodnoty
+                // Toto je blbě, statement může být přiřazení, je to v ...
                 result = ERROR_SEM_OTHER;
                 break;
 
             case(AST_STATEMENT_FUN_CALL):
-                result = semantic_analyseFunCallStatement(); // Uvnitř check, že je void a sedí počet/typy parametrů
+                // Ověříme parametry funkce a získáme její navratový typ
+                result = semantic_analyseFunCall(statement->statement, &type);
+                // Pokud typ není void, tak bychom zahodili návratovou hodnotu
+                if(type != SEM_DATA_VOID){
+                    return ERROR_SEM_PARAMS_OR_RETVAL;
+                }
+
                 break;
 
             case(AST_STATEMENT_IF):
-                result = semantic_analyseIf(); // Uvnitř volá funkce na analýzu bloků a trackuje return v obou větvích 
+                result = semantic_analyseIf(fun_return,
+                                            (AST_IfNode*)statement->statement,
+                                            returned);
                 break;
 
             case(AST_STATEMENT_WHILE):
-                result = semantic_analyseWhile();
+                result = semantic_analyseWhile(fun_return,
+                                               (AST_WhileNode*)statement->statement,
+                                               returned);
                 break;
 
             case(AST_STATEMENT_RETURN):
-                result = semantic_analyseReturn(FunId); // Uvnitř nastaví returned na true a analyzuje správnost return
+                result = semantic_analyseReturn(fun_return, statement->statement);
+                *returned = true;
                 break;
                 
             // Pokud typ příkazu je něco nedefinovaného, tak je chyba v implementaci
@@ -261,51 +264,902 @@ ErrorType semantic_probeBlock(DString *FunId, AST_StatementNode *statement, bool
 }
 
 /**
- * @brief Pro binární operátory KROMĚ PŘIŘAZENÍ
+ * @brief Pro binární operátory
  */
-/*ErrorType semantic_analyseBinOp(DString *FunId, size_t FrameId, AST_BinOpNode node){
-    // Rozhoduje se podle kombinace typů left a right a podle toho, jestli je něco literál nebo const
+ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** value) {
+    AST_BinOpNode bin_node = *(AST_BinOpNode*)node->expression;
     // Pokud jsou typy kompatibilní provede případné implicitní úpravy a vrací 0
-    get_type(left);
-    get_type(right);
-    hasKnownValue(left);
-    hasKnownValue(right);
-}
 
-ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
-    AST_BinOpNode assignNode = *(AST_BinOpNode*)statement->statement;
+    ErrorType result;
 
-    ErrorType result = semantic_analyseExpr(DString *FunId, size_t FrameId, AST_BinOpNode node)
+    if(bin_node.op == AST_OP_ASSIGNEMENT){
+        // Pokud vlevo není proměnná
+        if(bin_node.left->exprType != AST_EXPR_VARIABLE){
+            return ERROR_SEM_OTHER;
+        }
+
+        // Zjitíme typ rhs
+        Semantic_Data r_type;
+        void *r_value;
+        result = semantic_analyseExpr(bin_node.right, &r_type, &r_value);
+        if(result != 0) {
+            return result;
+        }
+
+        // Zjistíme typ proměnné
+        AST_VarNode *left_node = bin_node.left->expression;
+        SymtablePtr table = frameArray.array[left_node->frameID]->frame;
+        SymtableItemPtr item;
+        symtable_result sym_res = symtable_findItem(table, left_node->identifier, &item);
+
+        if(sym_res != SYMTABLE_SUCCESS){
+            return ERROR_INTERNAL;
+        }
+
+        if(item->constant == true){
+            return ERROR_SEM_REDEF_OR_CONSTDEF;
+        }
+
+        Semantic_Data l_type = semantic_stateToSemType(item->symbol_state);
+
+        result = semantic_compatibleAssign(l_type, r_type);
+        if(result != 0) {
+            return result;
+        }
+
+        item->changed = true;
+
+    }
+        
+    
+    Semantic_Data left_type;
+    Semantic_Data right_type;
+    void *left_value;
+    void *right_value;
+
+    result = semantic_analyseExpr(bin_node.left, &left_type, &left_value);
     if(result != 0) {
         return result;
     }
 
-    assignNode.
-}
+    result = semantic_analyseExpr(bin_node.right, &right_type, &right_value);
+    if(result != 0) {
+        return result;
+    }
 
-ErrorType semantic_analyseExpr();*/
+    // Pokud je operátor aritmetického typu
+    if(bin_node.op >= AST_OP_ADD){
+        result = semantic_compatibleArithmetic(left_type, right_type);
+        if(result != 0) {
+            return result;
+        }
 
-ErrorType semantic_analyseVarDef(){
-    return 0;
-}
+        /* Pokud známe obě hodnoty, tak můžeme uzel nahradit
+        if(left_value != NULL && right_value != NULL){
+            AST_VarNode* new_node = semantic_magic(node);
+        }*/
 
-ErrorType semantic_analyseFunCallStatement(){
-    return 0;
-}
+        // Pokud neznáme ani jednu hodnotu, tak typy musí být stejné
+        if(left_value == NULL && right_value == NULL){
+            if(left_type != right_type){
+                return ERROR_SEM_TYPE_COMPATIBILITY;
+            }
+            return 0;
+        }
 
-ErrorType semantic_analyseIf(){
-    return 0;
-}
+        // Pokud známe alespoň jednu hodnotu
+        // Pokud typy jsou stejné, tak nic neřešíme
+        if(left_type == right_type){
+            *type = left_type;
+            if(value != NULL){
+                *value = NULL;
+            }
+            return 0;
+        }
 
-ErrorType semantic_analyseWhile(){
-    return 0;
-}
-
-ErrorType semantic_analyseReturn(size_t FunId){
-    if(FunId == 0){
+        // Pokud jsou typy rozdílné, tak se pokusíme o konverzi
+        // Levý typ je celočíselný
+        if(left_type == SEM_DATA_INT){
+            if(left_value != NULL){
+                // Konvertujeme left na float
+                result = semantic_toFloat(bin_node.left);
+                *type = SEM_DATA_FLOAT;
+                
+            }else{
+                // Pokusíme se konvertovat right na int
+                result = semantic_toInt(bin_node.right);
+                *type = SEM_DATA_INT;
+            }
+        }else{
+            if(right_value != NULL){
+                // Konvertujeme right na float
+                result = semantic_toFloat(bin_node.right);
+                *type = SEM_DATA_FLOAT;
+            }else{
+                // Pokusíme se konvertovat left na int
+                result = semantic_toInt(bin_node.left);
+                *type = SEM_DATA_INT;
+            }
+        }
         return 0;
+    }
+
+    // Jedná se o relační operátor
+    if(bin_node.op == AST_OP_EQUAL || bin_node.op == AST_OP_NOT_EQUAL){
+        result = semantic_compatibleEqual(left_type, right_type);
+        if(result != 0) {
+            return result;
+        }
+
+        // Pokud je jeden typ i32 a druhý f64, tak se pokusíme o konverzi
+        if(left_type == SEM_DATA_INT && right_type == SEM_DATA_FLOAT){
+            if(left_value != NULL){
+                //konverze left na float
+                result = semantic_toFloat(bin_node.left);
+            }else if(right_value != NULL){
+                // konverze right na int
+                result = semantic_toInt(bin_node.right);
+            }else{
+                return ERROR_SEM_TYPE_COMPATIBILITY;
+            }
+        }else if(right_type == SEM_DATA_INT && left_type == SEM_DATA_FLOAT){
+            if(right_value != NULL){
+                //konverze right na float
+                result = semantic_toFloat(bin_node.right);
+            }else if(left_value != NULL){
+                // konverze left na int
+                result = semantic_toInt(bin_node.left);
+            }else{
+                return ERROR_SEM_TYPE_COMPATIBILITY;
+            }
+        }
+
+        if(result != 0){
+            return result;
+        }
+
+        *type = SEM_DATA_BOOL;
+        if(value != NULL){
+            *value = NULL;
+        }
+
+    }else {
+        result = semantic_compatibleRelation(left_type, right_type);
+        if(result != 0) {
+            return result;
+        }
+
+        // Pokud je jeden typ i32 a druhý f64, tak se pokusíme o konverzi
+        // Pokud je jeden typ i32 a druhý f64, tak se pokusíme o konverzi
+        if(left_type == SEM_DATA_INT && right_type == SEM_DATA_FLOAT){
+            if(left_value != NULL){
+                //konverze left na float
+                result = semantic_toFloat(bin_node.left);
+            }else if(right_value != NULL){
+                // konverze right na int
+                result = semantic_toInt(bin_node.right);
+            }else{
+                return ERROR_SEM_TYPE_COMPATIBILITY;
+            }
+        }else if(right_type == SEM_DATA_INT && left_type == SEM_DATA_FLOAT){
+            if(right_value != NULL){
+                //konverze right na float
+                result = semantic_toFloat(bin_node.right);
+            }else if(left_value != NULL){
+                // konverze left na int
+                result = semantic_toInt(bin_node.left);
+            }else{
+                return ERROR_SEM_TYPE_COMPATIBILITY;
+            }
+        }
+
+        if(result != 0){
+            return result;
+        }
+
+        *type = SEM_DATA_BOOL;
+        if(value != NULL){
+            *value = NULL;
+        }
+    }
+
+    return 0;
+}
+
+
+ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
+    AST_BinOpNode assignNode = *(AST_BinOpNode*)statement->statement;
+
+    if(assignNode.op != AST_OP_ASSIGNEMENT) {
+        return ERROR_INTERNAL;
+    }
+
+    // Zjitíme typ rhs
+    Semantic_Data r_type;
+    void *value;
+    ErrorType result = semantic_analyseExpr(assignNode.right, &r_type, &value);
+    if(result != 0) {
+        return result;
+    }
+
+    // Zjistíme typ proměnné
+    SymtablePtr table = frameArray.array[statement->frameID]->frame;
+    SymtableItemPtr item;
+    DString *identifier = ((AST_VarNode*)assignNode.left)->identifier;
+    symtable_result sym_res = symtable_findItem(table, identifier, &item);
+
+    if(sym_res != SYMTABLE_SUCCESS){
+        return ERROR_INTERNAL;
+    }
+
+    Semantic_Data l_type = semantic_stateToSemType(item->symbol_state);
+
+    // Pokud typ proměnné není definován
+    if(l_type == SEM_DATA_UNKNOWN){
+        // A nejde odvodit z pravé strany
+        if(r_type == SEM_DATA_NULL){
+            return ERROR_SEM_TYPE_INFERENCE;
+        }
+
+        // Jinak typ odvodíme z pravé strany
+        item->symbol_state = semantic_semTypeToState(r_type);
+        if(item->symbol_state == SYMTABLE_SYMBOL_UNKNOWN){
+            return ERROR_SEM_TYPE_INFERENCE;
+        }
+
+    } else {
+        // Zkontrolujeme, že typy jsou kompatibilní
+        result = semantic_compatibleAssign(l_type, r_type);
+        if(result != 0) {
+            return result;
+        }
+    }
+
+    if(item->constant == true){
+        if(value != NULL){
+            item->known_value = true;
+            item->data = value;
+        } else {
+            item->known_value = false;
+        }
+    }
+
+    return 0;
+}
+
+
+ErrorType semantic_analyseExpr(AST_ExprNode *expr_node, Semantic_Data *type, void **value){
+    // Podle typu výrazu buď vyhodnotíme jeho typ a hodnotu nebo voláme další funkce
+    ErrorType result;
+    AST_VarNode *node;
+    
+    switch(expr_node->exprType) {
+        case AST_EXPR_LITERAL:
+            node = expr_node->expression;
+            // Nastavíme typ výrazu podle typu literálu
+            *type = semantic_literalToSemType(node->literalType);
+
+            if(node->value == NULL){
+                // Literál nemá hodnotu, chyba je v implementaci
+                return ERROR_INTERNAL;
+            }
+
+            // Předáme ukazatel na hodnotu
+            if(value != NULL){
+                *value = node->value;
+            }
+
+            return 0;
+
+        case AST_EXPR_VARIABLE:
+            // Hledáme proměnnou v tabulce symbolů
+            node = expr_node->expression;
+            SymtablePtr table = frameArray.array[node->frameID]->frame;
+            SymtableItemPtr item;
+            symtable_result sym_res = symtable_findItem(table, node->identifier, &item);
+
+            if(sym_res != SYMTABLE_SUCCESS){
+                // Pokud proměnná není v rámci, tak je chyba v implementaci
+                return ERROR_INTERNAL;
+            }
+
+            item->used = true;
+            
+            // Pokud známe hodnotu, ale je NULL,
+            if(item->known_value == true && item->data == NULL){
+                *type = SEM_DATA_NULL;
+                if(value != NULL){
+                    *value = NULL;
+                }
+                return 0;
+            } 
+
+            *type = semantic_stateToSemType(item->symbol_state);
+
+            if(value != NULL){
+                *value = node->value;
+            }
+
+            // Pokud je proměnná konstantní, tak se ji pokusíme nahradit literálem
+            if(item->constant == true){
+                AST_LiteralType lit_type = semantic_semToLiteral(*type);
+                if(lit_type == AST_LITERAL_NOT_DEFINED){
+                    return 0;
+                }
+                string_free(node->identifier);
+                node->identifier = NULL;
+                node->literalType = lit_type;
+            }
+            
+            // Není co dále kontrolovat, v pořádku se vracíme
+            return 0;
+
+        case AST_EXPR_FUN_CALL:
+            result = semantic_analyseFunCall(expr_node->expression, type);
+            if(result != 0){
+                return result;
+            }
+
+            if(value != NULL){
+                *value = NULL;
+            }
+            break;
+
+        case AST_EXPR_BINARY_OP:
+            result = semantic_analyseBinOp(expr_node, type, value);
+            if(result != 0){
+                return result;
+            }
+            break;
+
+        default:
+            // Typ výrazu není definován
+            return ERROR_SEM_OTHER;
+    };
+
+    return 0;
+}
+
+/**
+ * @brief Kontroluje typ a počet parametrů funkce
+ */
+ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *return_type){
+    SymtableItemPtr item;
+    DString *key;
+
+    // Specíální případ funkce ifj.write
+    if(fun_node->isBuiltIn &&
+       string_compare_const_str(fun_node->identifier, "write") == STRING_EQUAL){
+        *return_type = SEM_DATA_VOID;
+        return semantic_checkIFJWrite(fun_node);
+    }
+    // Speciální případ funkce ifj.string
+    else if(fun_node->isBuiltIn &&
+            string_compare_const_str(fun_node->identifier, "string") == STRING_EQUAL){
+        *return_type = SEM_DATA_STRING;
+        return semantic_checkIFJString(fun_node);
+    }
+
+
+    if(fun_node->isBuiltIn){
+        key = string_charToDString("ifj.");
+        if(key == NULL){
+            return ERROR_INTERNAL;
+        }
+        for(size_t i = 0; i < fun_node->identifier->length; i++){
+            string_append_char(key, fun_node->identifier->str[i]);
+        }
+    }else {
+        if(string_copy(fun_node->identifier, key) != STRING_SUCCESS){
+            return ERROR_INTERNAL;
+        }
+    }
+
+    symtable_result sym_result = symtable_findItem(frameStack.bottom->frame,
+                                               fun_node->identifier, &item);
+    if(sym_result != SYMTABLE_SUCCESS){
+        string_free(key);
+        return ERROR_INTERNAL;
+    }
+    SymtableFunctionData *data = (SymtableFunctionData*)item->data;
+
+    AST_ArgOrParamNode *arg = fun_node->arguments;
+
+    // Najdeme tabulku symbolů volání funkce
+    SymtablePtr table = frameArray.array[arg->variable->frameID]->frame;
+
+    for(size_t i = 0; i < data->param_count; i++){
+        // Málo argumentů ve volání
+        if(arg == NULL){
+            string_free(key);
+            return ERROR_SEM_PARAMS_OR_RETVAL;
+        }
+
+        Semantic_Data actual_type;
+        if(arg->variable->identifier == NULL){
+            // Argument je literál
+            actual_type = semantic_literalToSemType(arg->variable->literalType);
+            
+        }else{
+            // Argument je proměnná
+            // Najdeme argument v tabulce symbolů
+            sym_result = symtable_findItem(table, arg->variable->identifier, &item);
+            if(sym_result != SYMTABLE_SUCCESS){
+                string_free(key);
+                return ERROR_INTERNAL;
+            }
+            actual_type = semantic_stateToSemType(item->symbol_state);
+        }
+        
+        // Zjistíme, jestli sedí typ argumentu
+        Semantic_Data defined_type = semantic_returnToSemType(data->params[i].type);
+        ErrorType result = semantic_compatibleAssign(defined_type, actual_type);
+
+        if(result != 0){
+            string_free(key);
+            return result;
+        }
+
+        arg = arg->next;
+    }
+
+    string_free(key);
+    // Přebývají argumenty
+    if(arg != NULL){
+        return ERROR_SEM_PARAMS_OR_RETVAL;
+    }
+
+    // Předáme typ návratové hodnoty funkce
+    if(return_type != NULL){
+        *return_type = semantic_returnToSemType(data->return_type);
+    }
+    
+    return 0;
+}
+
+
+ErrorType semantic_analyseIf(Semantic_Data fun_return,       \
+                             AST_IfNode *if_node, bool *returned){
+    bool then_returned = false;
+    bool else_returned = false;
+
+    // Zjistíme typ výsledku výrazu v podmínce
+    Semantic_Data type;
+    ErrorType result = semantic_analyseExpr(if_node->condition, &type, NULL);
+    if(result != 0){
+        return result;
+    }
+
+    // Nemáme NULL podmínku
+    if(if_node->nullCondition == NULL){
+        // Pokud typ není relační, tak vracíme chybu
+        if(type != SEM_DATA_BOOL){
+            return ERROR_SEM_TYPE_COMPATIBILITY;
+        }
+    }else{
+        // Pokud máme NULL podmínku, tak typ musí obsahovat NULL
+        if(type != SEM_DATA_NULL            &&  \
+           type != SEM_DATA_FLOAT_OR_NULL   &&  \
+           type != SEM_DATA_INT_OR_NULL     &&  \
+           type != SEM_DATA_STRING_OR_NULL){
+            return ERROR_SEM_TYPE_COMPATIBILITY;
+        }
+    }
+    
+
+    // Projdeme bloky if a else
+    result = semantic_probeBlock(fun_return, if_node->thenBranch, &then_returned);
+    if(result != 0){
+        return result;
+    }
+    result = semantic_probeBlock(fun_return, if_node->elseBranch, &else_returned);
+    if(result != 0){
+        return result;
+    }
+
+    // Pokud se vrátily oba bloky, tak předáme informaci výš
+    if(then_returned == true && else_returned == true){
+        *returned = true;
     }
     return 0;
 }
+
+ErrorType semantic_analyseWhile(Semantic_Data fun_return,       \
+                                AST_WhileNode *while_node, bool *returned){
+
+    // Zjistíme typ výsledku výrazu v podmínce
+    Semantic_Data type;
+    ErrorType result = semantic_analyseExpr(while_node->condition, &type, NULL);
+    if(result != 0){
+        return result;
+    }
+
+    // Pokud typ není relační, tak vracíme chybu
+    if(type != SEM_DATA_BOOL){
+        return ERROR_SEM_TYPE_COMPATIBILITY;
+    }
+
+    // Projdeme tělo while
+    result = semantic_probeBlock(fun_return, while_node->body, returned);
+    if(result != 0){
+        return result;
+    }
+    return 0;
+}
+
+ErrorType semantic_analyseReturn(Semantic_Data fun_return, AST_ExprNode *node){
+    // Pokud return nemá výraz
+    if(node == NULL){
+        // Pokud je funkce void, tak je vše v pořádku
+        if(fun_return == SEM_DATA_VOID){
+            return 0;
+        }
+
+        // Jinak vracíme error
+        return ERROR_SEM_RETURN_EXP;
+    }
+
+    // Return má výraz, tak získáme jeho typ
+    Semantic_Data type;
+    ErrorType result = semantic_analyseExpr(node, &type, NULL);
+    if(result != 0) {
+        return result;
+    }
+
+    return semantic_compatibleAssign(fun_return, type);
+
+}
+
+/*AST_VarNode* semantic_magic(AST_ExprNode *node){
+    AST_BinOpNode bin_node = *(AST_BinOpNode*)node->expression;
+    if(bin_node.left->exprType != AST_VAR_NODE &&
+       bin_node.right->exprType != AST_VAR_NODE){
+        // David neuvařil, snaží se zjednodušit něco, co nejde
+        error_handle(ERROR_INTERNAL);
+    }
+    AST_VarNode l_node = *(AST_VarNode*)bin_node.left->expression;
+    AST_VarNode r_node = *(AST_VarNode*)bin_node.right->expression;
+    if(l_node.identifier != NULL || r_node.identifier != NULL){
+        // David neuvařil, myslel si, že tady musí být literály
+        error_handle(ERROR_INTERNAL);
+    }
+
+    void *new_value;
+    // Typy jsou stejné
+    if(l_node.literalType == r_node.literalType){
+        if(l_node.literalType == AST_LITERAL_INT){
+            // Oba jsou int
+            new_value = semantic_evaluateInt(bin_node.op, l_node.value, r_node.value);
+        }else{
+            // Oba jsou float
+            new_value = semantic_evaluateFloat(bin_node.op, l_node.value, r_node.value);
+        }
+    }else {
+        if(l_node.literalType == AST_LITERAL_INT){
+            // L - int | R - float
+            semantic_toInt
+        }else {
+            // L - float | R - int
+            semantic_tiInt
+        }
+    }
+
+    AST_VarNode *new_node =  
+}*/
+
+
+ErrorType semantic_compatibleAssign(Semantic_Data to, Semantic_Data from) {
+    switch(to){
+        // Pro typy bez NULL se musí typy rovnat
+        case SEM_DATA_FLOAT:
+            // Projdeme dál
+        case SEM_DATA_INT:
+            // Projdeme dál
+        case SEM_DATA_STRING:
+        
+            if(to != from){
+                return ERROR_SEM_PARAMS_OR_RETVAL;
+            }
+            break;
+
+        // Pro typy s NULL mohou být stejného typy s NULL i bez nebo čistě NULL
+        case SEM_DATA_FLOAT_OR_NULL:
+            if(to != SEM_DATA_FLOAT &&             \
+               to != SEM_DATA_FLOAT_OR_NULL &&     \
+               to != SEM_DATA_NULL) {
+                return ERROR_SEM_PARAMS_OR_RETVAL;
+            }
+            break;
+
+        case SEM_DATA_INT_OR_NULL:
+            if(to != SEM_DATA_INT &&               \
+               to != SEM_DATA_INT_OR_NULL &&       \
+               to != SEM_DATA_NULL) {
+                return ERROR_SEM_PARAMS_OR_RETVAL;
+            }
+            break;
+        
+        case SEM_DATA_STRING_OR_NULL:
+            if(to != SEM_DATA_STRING &&            \
+               to != SEM_DATA_STRING_OR_NULL &&    \
+               to != SEM_DATA_NULL) {
+                return ERROR_SEM_PARAMS_OR_RETVAL;
+            }
+            break;
+
+        default:
+            // Typ by neměl být nic jiného
+            return ERROR_INTERNAL;
+    }
+
+    return 0;
+}
+
+ErrorType semantic_compatibleArithmetic(Semantic_Data type_1, Semantic_Data type_2){
+    if(type_1 != SEM_DATA_INT && type_1 != SEM_DATA_FLOAT){
+        return ERROR_SEM_TYPE_COMPATIBILITY;
+    }
+    if(type_2 != SEM_DATA_INT && type_2 != SEM_DATA_FLOAT){
+        return ERROR_SEM_TYPE_COMPATIBILITY;
+    }
+    return 0;
+}
+
+ErrorType semantic_compatibleEqual(Semantic_Data type_1, Semantic_Data type_2){
+    switch(type_1){
+        case SEM_DATA_INT:
+            if(type_2 == SEM_DATA_INT || type_2 == SEM_DATA_FLOAT ||
+                type_2 == SEM_DATA_INT_OR_NULL){
+                return 0;
+            }
+            break;
+        case SEM_DATA_FLOAT:
+            if(type_2 == SEM_DATA_INT || type_2 == SEM_DATA_FLOAT ||
+                type_2 == SEM_DATA_FLOAT_OR_NULL){
+                return 0;
+            }
+            break;
+        case SEM_DATA_INT_OR_NULL:
+            if(type_2 == SEM_DATA_INT || type_2 == SEM_DATA_FLOAT_OR_NULL ||
+                type_2 == SEM_DATA_INT_OR_NULL){
+                return 0;
+            }
+            break;
+        case SEM_DATA_FLOAT_OR_NULL:
+            if(type_2 == SEM_DATA_INT_OR_NULL || type_2 == SEM_DATA_FLOAT ||
+                type_2 == SEM_DATA_FLOAT_OR_NULL){
+                return 0;
+            }
+            break;
+        case SEM_DATA_NULL:
+            if(type_2 == SEM_DATA_NULL || type_2 == SEM_DATA_INT_OR_NULL ||
+                type_2 == SEM_DATA_FLOAT_OR_NULL){
+                return 0;
+            }
+            break;
+        default:
+            return ERROR_SEM_TYPE_COMPATIBILITY;
+    }
+    return ERROR_SEM_TYPE_COMPATIBILITY;
+}
+
+ErrorType semantic_compatibleRelation(Semantic_Data type_1, Semantic_Data type_2){
+    switch(type_1){
+        case SEM_DATA_INT:
+            if(type_2 == SEM_DATA_INT || type_2 == SEM_DATA_FLOAT){
+                return 0;
+            }
+            break;
+        case SEM_DATA_FLOAT:
+            if(type_2 == SEM_DATA_INT || type_2 == SEM_DATA_FLOAT){
+                return 0;
+            }
+            break;
+        default:
+            return ERROR_SEM_TYPE_COMPATIBILITY;
+    }
+    return ERROR_SEM_TYPE_COMPATIBILITY;
+}
+
+/**
+ * 
+ */
+Semantic_Data semantic_stateToSemType(symtable_symbolState state){
+    switch(state){
+        case SYMTABLE_SYMBOL_VARIABLE_DOUBLE:
+            return SEM_DATA_FLOAT;
+        case SYMTABLE_SYMBOL_VARIABLE_DOUBLE_OR_NULL:
+            return SEM_DATA_FLOAT_OR_NULL;
+        case SYMTABLE_SYMBOL_VARIABLE_INT:
+            return SEM_DATA_INT;
+        case SYMTABLE_SYMBOL_VARIABLE_INT_OR_NULL:
+            return SEM_DATA_INT_OR_NULL;
+        case SYMTABLE_SYMBOL_VARIABLE_STRING:
+            return SEM_DATA_STRING;
+        case SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL:
+            return SEM_DATA_STRING_OR_NULL;
+        default:
+            return SEM_DATA_UNKNOWN;
+    }
+}
+
+
+Semantic_Data semantic_returnToSemType(symtable_functionReturnType type){
+    switch(type){
+        case SYMTABLE_TYPE_DOUBLE:
+            return SEM_DATA_FLOAT;
+        case SYMTABLE_TYPE_DOUBLE_OR_NULL:
+            return SEM_DATA_FLOAT_OR_NULL;
+        case SYMTABLE_TYPE_INT:
+            return SEM_DATA_INT;
+        case SYMTABLE_TYPE_INT_OR_NULL:
+            return SEM_DATA_INT_OR_NULL;
+        case SYMTABLE_TYPE_STRING:
+            return SEM_DATA_STRING;
+        case SYMTABLE_TYPE_STRING_OR_NULL:
+            return SEM_DATA_STRING_OR_NULL;
+        case SYMTABLE_TYPE_VOID:
+            return SEM_DATA_VOID;
+        default:
+            return SEM_DATA_UNKNOWN;
+    }
+}
+
+
+Semantic_Data semantic_literalToSemType(AST_LiteralType type){
+    switch(type){
+        case AST_LITERAL_INT:
+            return SEM_DATA_INT;
+        case AST_LITERAL_FLOAT:
+            return SEM_DATA_FLOAT;
+        case AST_LITERAL_STRING:
+            return SEM_DATA_RAW_STRING;
+        case AST_LITERAL_NULL:
+            return SEM_DATA_NULL;
+        default:
+            return SEM_DATA_UNKNOWN;
+    }
+}
+
+
+Semantic_Data semantic_ASTToSemType(AST_DataType type){
+    switch(type){
+        case AST_DATA_TYPE_FLOAT:
+            return SEM_DATA_FLOAT;
+        case AST_DATA_TYPE_FLOAT_OR_NULL:
+            return SEM_DATA_FLOAT_OR_NULL;
+        case AST_DATA_TYPE_INT:
+            return SEM_DATA_INT;
+        case AST_DATA_TYPE_INT_OR_NULL:
+            return SEM_DATA_INT_OR_NULL;
+        case AST_DATA_TYPE_STRING:
+            return SEM_DATA_STRING;
+        case AST_DATA_TYPE_STRING_OR_NULL:
+            return SEM_DATA_STRING_OR_NULL;
+        case AST_DATA_TYPE_VOID:
+            return SEM_DATA_VOID;
+        case AST_DATA_TYPE_BOOL:
+            return SEM_DATA_BOOL;
+        default:
+            return SEM_DATA_UNKNOWN;
+    }
+}
+
+ErrorType semantic_toFloat(AST_ExprNode *node) {
+    AST_VarNode *var_node = node->expression;
+
+    int value = *(int*)var_node->value;
+    // Alokujeme paměť pro výsledek
+    double* result = (double*)malloc(sizeof(double));
+    if (result == NULL) {
+        return ERROR_INTERNAL;
+    }
+    *result = (double)value;
+    free(var_node->value);
+    var_node->value = result;
+    var_node->literalType = AST_LITERAL_FLOAT;
+
+    return 0;
+}
+
+ErrorType semantic_toInt(AST_ExprNode *node) {
+    AST_VarNode *var_node = node->expression;
+    double value = *(double*)var_node->value;
+    // Zkontrolujeme, jestli má value desetinnou část
+    if (value != trunc(value)) {
+        return ERROR_SEM_TYPE_COMPATIBILITY;
+    }
+    // Zkontrolujeme, jestli se value vejde do int
+    if (value < INT_MIN || value > INT_MAX) {
+        return ERROR_SEM_TYPE_COMPATIBILITY;
+    }
+    // Alokujeme pamět pro výsledek
+    int* result = (int*)malloc(sizeof(int));
+    if (result == NULL) {
+        return ERROR_INTERNAL;
+    }
+    *result = (int)value;
+    free(var_node->value);
+    var_node->value = result;
+    var_node->literalType = AST_LITERAL_INT;
+
+    return 0;
+}
+
+symtable_symbolState semantic_semTypeToState(Semantic_Data type){
+    switch(type){
+        case SEM_DATA_FLOAT:
+            return SYMTABLE_SYMBOL_VARIABLE_DOUBLE;
+        case SEM_DATA_FLOAT_OR_NULL:
+            return SYMTABLE_SYMBOL_VARIABLE_DOUBLE_OR_NULL;
+        case SEM_DATA_INT:
+            return SYMTABLE_SYMBOL_VARIABLE_INT;
+        case SEM_DATA_INT_OR_NULL:
+            return SYMTABLE_SYMBOL_VARIABLE_INT_OR_NULL;
+        case SEM_DATA_STRING:
+            return SYMTABLE_SYMBOL_VARIABLE_STRING;
+        case SEM_DATA_STRING_OR_NULL:
+            return SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL;
+        default:
+            return SYMTABLE_SYMBOL_UNKNOWN;
+    }
+}
+
+AST_LiteralType semantic_semToLiteral(Semantic_Data type){
+    switch(type){
+        case SEM_DATA_FLOAT:
+            return AST_LITERAL_FLOAT;
+        case SEM_DATA_INT:
+            return AST_LITERAL_INT;
+        case SEM_DATA_STRING:
+            return AST_LITERAL_STRING;
+        default:
+            return AST_LITERAL_NOT_DEFINED;
+    }
+}
+
+ErrorType semantic_checkIFJWrite(AST_FunCallNode *fun_node){
+    // Funkce má právě jeden parametr
+    if(fun_node->arguments == NULL){
+        return ERROR_SEM_PARAMS_OR_RETVAL;
+    } else if(fun_node->arguments->next != NULL){
+        return ERROR_SEM_PARAMS_OR_RETVAL;
+    }
+}
+
+ErrorType semantic_checkIFJString(AST_FunCallNode *fun_node){
+    // Funkce má právě jeden parametr
+    if(fun_node->arguments == NULL){
+        return ERROR_SEM_PARAMS_OR_RETVAL;
+    } else if(fun_node->arguments->next != NULL){
+        return ERROR_SEM_PARAMS_OR_RETVAL;
+    }
+
+    // Parametr musí být string nebo string literál
+    AST_ArgOrParamNode *arg = fun_node->arguments;
+    
+    Semantic_Data actual_type;
+        if(arg->variable->identifier == NULL){
+            // Argument je literál
+            if(semantic_literalToSemType(arg->variable->literalType) != SEM_DATA_STRING){
+                return ERROR_SEM_PARAMS_OR_RETVAL;
+            }
+            
+        }else{
+            // Argument je proměnná
+            // Najdeme argument v tabulce symbolů
+            SymtablePtr table = frameArray.array[arg->variable->frameID]->frame;
+            SymtableItemPtr item;
+            if(symtable_findItem(table, arg->variable->identifier, &item) != SYMTABLE_SUCCESS){
+                return ERROR_INTERNAL;
+            }
+
+            if(semantic_stateToSemType(item->symbol_state) != SEM_DATA_STRING){
+                return ERROR_SEM_PARAMS_OR_RETVAL;
+            }
+        }
+    return 0;       
+}
+
 
 /*** Konec souboru semantic_analyser.c ***/
