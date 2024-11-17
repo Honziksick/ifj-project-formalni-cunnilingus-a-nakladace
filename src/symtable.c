@@ -266,10 +266,20 @@ void symtable_deleteAll(Symtable *table, bool keep_data) {
                         string_free(data->params[j].id);
                     }
                     free(data->params);
+                    free(item.data);
+                    item.data = NULL;
+                } else
+                // Pokud je položka string, uvolníme jako string
+                if(item.symbol_state == SYMTABLE_SYMBOL_VARIABLE_STRING ||
+                   item.symbol_state == SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL){
+                    string_free(item.data);
+                    item.data = NULL;
                 }
-                // Uvolníme data položky
-                free(item.data);
-                item.data = NULL;
+                // Jinak jen uvolníme data
+                else{
+                    free(item.data);
+                    item.data = NULL;
+                }
             }
             item.symbol_state = SYMTABLE_SYMBOL_DEAD;
         }
