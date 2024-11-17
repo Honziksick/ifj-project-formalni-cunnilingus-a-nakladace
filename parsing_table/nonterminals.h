@@ -45,7 +45,7 @@ std::array<std::string, NON_TERMINAL_COUNT> invNonTerminalMap = {
     "STATEMENT_LIST",
     "STATEMENT",
     "STATEMENT_REST",
-    "NT_THROW_AWAY",
+    "THROW_AWAY",
     "VAR_DEF",
     "MODIFIABLE",
     "POSSIBLE_TYPE",

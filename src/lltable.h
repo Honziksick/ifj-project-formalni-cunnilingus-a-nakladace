@@ -169,14 +169,14 @@ typedef enum LLRuleSet {
     STATEMENT_4       = 24,     /**<  <STATEMENT> -> <IF>                                               */
     STATEMENT_5       = 25,     /**<  <STATEMENT> -> <WHILE>                                            */
     STATEMENT_6       = 26,     /**<  <STATEMENT> -> <RETURN> ;                                         */
-    VAR_DEF           = 27,     /**<  <VAR_DEF> -> <MODIFIABLE> id <POSSIBLE_TYPE> = [precedence_expr]  */
-    MODIFIABLE_1      = 28,     /**<  <MODIFIABLE> -> var                                               */
-    MODIFIABLE_2      = 29,     /**<  <MODIFIABLE> -> const                                             */
-    POSSIBLE_TYPE_1   = 30,     /**<  <POSSIBLE_TYPE> -> : <DATA_TYPE>                                  */
-    POSSIBLE_TYPE_2   = 31,     /**<  <POSSIBLE_TYPE> -> ε                                              */
-    STATEMENT_REST_1  = 32,     /**<  <STATEMENT_REST> -> = [precedence_expr]                           */
-    STATEMENT_REST_2  = 33,     /**<  <STATEMENT_REST> -> ( [precedence_expr] )                         */
-    STATEMENT_REST_3  = 34,     /**<  <STATEMENT_REST> -> ifj . id ( [precedence_expr] )                */
+    STATEMENT_7       = 27,     /**<  <STATEMENT> -> ifj . id ( <ARGUMENTS> ) ;                         */
+    VAR_DEF           = 28,     /**<  <VAR_DEF> -> <MODIFIABLE> id <POSSIBLE_TYPE> = [precedence_expr]  */
+    MODIFIABLE_1      = 29,     /**<  <MODIFIABLE> -> var                                               */
+    MODIFIABLE_2      = 30,     /**<  <MODIFIABLE> -> const                                             */
+    POSSIBLE_TYPE_1   = 31,     /**<  <POSSIBLE_TYPE> -> : <DATA_TYPE>                                  */
+    POSSIBLE_TYPE_2   = 32,     /**<  <POSSIBLE_TYPE> -> ε                                              */
+    STATEMENT_REST_1  = 33,     /**<  <STATEMENT_REST> -> = [precedence_expr]                           */
+    STATEMENT_REST_2  = 34,     /**<  <STATEMENT_REST> -> ( <ARGUMENTS> )                               */
     THROW_AWAY        = 35,     /**<  <THROW_AWAY> -> [precedence_expr]                                 */
     IF                = 36,     /**<  <IF> -> if ( [precedence_expr] ) <NULL_COND> <SEQUENCE> else <SEQUENCE> */
     NULL_COND_1       = 37,     /**<  <NULL_COND> -> | id |                                             */
