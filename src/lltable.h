@@ -35,7 +35,7 @@
 #define LLTABLE_H_
 /** @endcond  */
 
-#include "parser.h"
+#include <stdbool.h>
 #include "error.h"
 
 /*******************************************************************************
@@ -46,45 +46,6 @@
 
 #define LL_TERMINAL_COUNT 31       /**<  Celkový počet terminálů v LL gramatice. */
 #define LL_NON_TERMINAL_COUNT 26   /**<  Celkový počet neterminálů v LL gramatice. */
-
-
-/*******************************************************************************
- *                                                                             *
- *                             DEKLARACE STRUKTUR                              *
- *                                                                             *
- ******************************************************************************/
-
-/**
- * @brief Struktura pro reprezentaci pravidel v LL tabulce.
- *
- * @details Tato struktura obsahuje klíč a pole hodnot, které reprezentují
- *          pravidla pro přechody mezi stavy na základě aktuálního ne/terminálu.
- *
- * @note V tabulce je příslušný řádek pro každý terminál, jejichž kódem je tabulka
- *       indexována. Sloupce tabulky odpovídají jednotlivým NEterminálům.
- *       Souřadnice [Terminál, NEterminál] určují aplikaci příslušného pravidla.
- */
-struct LLtable{
-    int key;                           /**<  Klíč pro identifikaci neterminálu v tabulce  */
-    int value[LL_NON_TERMINAL_COUNT];  /**<  Pole hodnot reprezentující pravidla pro přechody mezi stavy  */
-};
-
-
-/*******************************************************************************
- *                                                                             *
- *                       DEKLARACE GLOBÁLNÍCH PROMĚNNÝCH                       *
- *                                                                             *
- ******************************************************************************/
-
-/**
- * @brief Externí deklarace LL-tabulky.
- *
- * @details V tabulce je příslušný řádek pro každý terminál, jejichž kódem je
- *          tabulka indexována. Sloupce tabulky odpovídají jednotlivým
- *          NEterminálům. Souřadnice [Terminál, NEterminál] určují aplikaci
- *          příslušného pravidla.
- */
-extern const struct LLtable LLtable[LL_TERMINAL_COUNT];
 
 
 /*******************************************************************************
@@ -101,6 +62,7 @@ extern const struct LLtable LLtable[LL_TERMINAL_COUNT];
  *          LL tabulce.
  */
 typedef enum LLTerminals {
+    T_UNDEFINED             = -1,       /**<  Aktuální terminál je zatím neznámý */
     T_ID                    = 0,        /**<  Identifikátor  */
     T_IMPORT                = 1,        /**<  Klíčové slovo "@import"  */
     T_IFJ                   = 2,        /**<  Klíčové slovo "ifj"  */
@@ -178,6 +140,7 @@ typedef enum LLNonTerminals {
  *          efektivní odkazování v parsovací tabulce.
  */
 typedef enum LLRuleSet {
+    RULE_UNDEFINED    = -2,     /**<  LL pravidlo zatím nebylo zvoleno                                  */
     SYNTAX_ERROR      = -1,     /**<  Chyba syntaxe (takovéto pravidlo se v LL-tabulce nevyskytuje)     */
     PROGRAM           = 0,      /**<  <PROGRAM> -> <PROLOGUE> <FUN_DEF_LIST> EOF                        */
     PROLOGUE          = 1,      /**<  <PROLOGUE> -> const ifj = @import ( "ifj24.zig" ) ;               */
@@ -233,25 +196,73 @@ typedef enum LLRuleSet {
 
 /*******************************************************************************
  *                                                                             *
+ *                             DEKLARACE STRUKTUR                              *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Struktura pro reprezentaci pravidel v LL tabulce.
+ *
+ * @details Tato struktura obsahuje klíč a pole hodnot, které reprezentují
+ *          pravidla pro přechody mezi stavy na základě aktuálního ne/terminálu.
+ *
+ * @note V tabulce je příslušný řádek pro každý terminál, jejichž kódem je tabulka
+ *       indexována. Sloupce tabulky odpovídají jednotlivým NEterminálům.
+ *       Souřadnice [Terminál, NEterminál] určují aplikaci příslušného pravidla.
+ */
+struct LLtable {
+    LLTerminals key;                         /**<  Klíč pro identifikaci neterminálu v tabulce  */
+    LLRuleSet value[LL_NON_TERMINAL_COUNT];  /**<  Pole hodnot reprezentující pravidla pro přechody mezi stavy  */
+};
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                       DEKLARACE GLOBÁLNÍCH PROMĚNNÝCH                       *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Externí deklarace LL-tabulky.
+ *
+ * @details V tabulce je příslušný řádek pro každý terminál, jejichž kódem je
+ *          tabulka indexována. Sloupce tabulky odpovídají jednotlivým
+ *          NEterminálům. Souřadnice [Terminál, NEterminál] určují aplikaci
+ *          příslušného pravidla.
+ */
+extern const struct LLtable LLtable[LL_TERMINAL_COUNT];
+
+
+/*******************************************************************************
+ *                                                                             *
  *                      FUNKCE URČENÉ PRO VEŘEJNÉ VYUŽITÍ                      *
  *                                                                             *
  ******************************************************************************/
 
 /**
- * @brief Najde pravidlo v LL tabulce na základě neterminálu a kódu terminálu.
+ * @brief Najde pravidlo v LL tabulce na základě aktuálního neterminálu a terminálu.
  *
  * @details Tato funkce používá kód neterminálu a terminálu k vyhledání
- *          odpovídajícího pravidla v LL tabulce.
+ *          odpovídajícího pravidla v LL tabulce. Funkce používá binární
+ *          vyhledávání pro efektivní nalezení pravidla. Pokud pravidlo
+ *          neexistuje nebo terminál není nalezen v tabulce, funkce vrací přes
+ *          parametr syntaktickou chybu @c SYNTAX_ERROR typu @c LLRuleSet.
+ *          Pokud funkce najde naprosto neočekávaný řádek tabulky, zahlásí
+ *          @c ERROR_INTERNAL.
  *
- * @param[in] nonTerminal Neterminál, pro který se má najít pravidlo.
- * @param[in] terminal Kód terminálu sloužící jako index do LL tabulky.
+ * @param [in] tokenType Typ aktuální tokenu.
+ * @param [in] nonTerminal Neterminál, pro který se má najít pravidlo.
+ * @param [out] rule Ukazatel na proměnnou typu @c LLRuleSet, kam bude uloženo
+ *                   nalezené pravidlo.
  *
- * @return Index nalezeného pravidla nebo hlásí chybu, pokud pravidlo není nalezeno.
+ * @return Vrací @c true, pokud bylo pravidlo v LL tabulce nalezeno,
+ *         jinak @c false.
  *
- * @note Pokud funkce najde naprosto neočekávaný řádek tabulky,
- *       zahlásí `ERROR_INTERNAL`.
+ * @note Funkce typ aktuálního terminálu získává přímo z globální proměnné
+ *       @c currentTerminal. Typ terminálu je následně implicitně přemapován
+ *       na typ terminálu.
  */
-int LLtable_findRule(int nonTerminal, int terminal);
+bool LLtable_findRule(LLTerminals tokenType, LLNonTerminals nonTerminal, LLRuleSet *rule);
 
 #endif  // LLTABLE_H_
 

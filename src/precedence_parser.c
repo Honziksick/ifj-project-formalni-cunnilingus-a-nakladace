@@ -88,9 +88,9 @@ void PrecParser_parse(LLNonTerminals fromNonTerminal) {
     PrecStack_init();
 
     // Načtení prvního tokenu
-    Parser_pokeScanner();
+    Parser_getNextToken(PREC_PARSER);
     PrecTerminals inTerminal = T_PREC_UNDEFINED;
-    PrecParser_mapTokenToPrecTerminal(bracketDepth, &inTerminal);
+    PrecParser_mapToDollar(bracketDepth, &inTerminal);
 
     // Hlavní cyklus precedenční analýzy
     while(true) {
@@ -125,10 +125,10 @@ void PrecParser_parse(LLNonTerminals fromNonTerminal) {
                 PrecStack_pushBothStackAndASTNode(inTerminal);
 
                 // Čtení dalšího symbolu ze vstupu
-                Parser_pokeScanner();
+                Parser_getNextToken(PREC_PARSER);
 
                 // Mapování dalšího symbolu na precedenční terminál
-                PrecParser_mapTokenToPrecTerminal(bracketDepth, &inTerminal);
+                PrecParser_mapToDollar(bracketDepth, &inTerminal);
                 break;
             } // case P_EQUAL
 
@@ -144,10 +144,10 @@ void PrecParser_parse(LLNonTerminals fromNonTerminal) {
                 PrecStack_pushBothStackAndASTNode(inTerminal);
 
                 // Čtení dalšího symbolu ze vstupu
-                Parser_pokeScanner();
+                Parser_getNextToken(PREC_PARSER);
 
                 // Mapování dalšího symbolu na precedenční terminál
-                PrecParser_mapTokenToPrecTerminal(bracketDepth, &inTerminal);
+                PrecParser_mapToDollar(bracketDepth, &inTerminal);
                 break;
             } // case P_LESS
 
@@ -602,7 +602,7 @@ void PrecParser_reduceArgList() {
 
     // Vytvoření nového uzlu pro argument
     AST_ArgOrParamNode *arg = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    AST_initNewArgOrParamNode(arg, exprNode->node);
+    AST_initNewArgOrParamNode(arg, AST_DATA_TYPE_NOT_DEFINED, exprNode->node);
     arg->next = argNode->node;
 
     // Pushnutí neterminálu '<ARG_LIST>' s uzlem argumentů
@@ -629,7 +629,7 @@ void PrecParser_reduceArg() {
 
     // Vytvoření nového uzlu pro argument
     AST_ArgOrParamNode *arg = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    AST_initNewArgOrParamNode(arg, exprNode->node);
+    AST_initNewArgOrParamNode(arg, AST_DATA_TYPE_NOT_DEFINED, exprNode->node);
     arg->next = argNode->node;
 
     // Pushnutí neterminálu '<ARG>' s uzlem argumentů
@@ -650,53 +650,13 @@ void PrecParser_reduceArg() {
 /**
  * @brief Namapuje typ tokenu na typ precedenčního terminálu.
  */
-void PrecParser_mapTokenToPrecTerminal(int bracketDepth ,PrecTerminals *terminal) {
+void PrecParser_mapToDollar(int bracketDepth, PrecTerminals *terminal) {
     // Ověření platnosti předaného ukazatele
     if (terminal == NULL) {
         error_handle(ERROR_INTERNAL);
     }
 
-    switch(currentToken.type) {
-        // Mapování: TOKEN_IDENTIFIER -> T_PREC_ID
-        case TOKEN_IDENTIFIER:
-            *terminal = T_PREC_ID;
-            break;
-
-        // Mapování: TOKEN_INT -> T_PREC_INT_LITERAL
-        case TOKEN_INT:
-            *terminal = T_PREC_INT_LITERAL;
-            break;
-
-        // Mapování: TOKEN_FLOAT -> T_PREC_FLOAT_LITERAL
-        case TOKEN_FLOAT:
-            *terminal = T_PREC_FLOAT_LITERAL;
-            break;
-
-        // Mapování: TOKEN_STRING -> T_PREC_STRING_LITERAL
-        case TOKEN_STRING:
-            *terminal = T_PREC_STRING_LITERAL;
-            break;
-
-        // Mapování: TOKEN_K_null -> T_PREC_NULL_LITERAL
-        case TOKEN_K_null:
-            *terminal = T_PREC_NULL_LITERAL;
-            break;
-
-        // Mapování: TOKEN_K_ifj -> T_PREC_IFJ
-        case TOKEN_K_ifj:
-            *terminal = T_PREC_IFJ;
-            break;
-
-        // Mapování: TOKEN_PERIOD -> T_PREC_DOT
-        case TOKEN_PERIOD:
-            *terminal = T_PREC_DOT;
-            break;
-
-        // Mapování: TOKEN_LEFT_PARENTHESIS -> T_PREC_LEFT_BRACKET
-        case TOKEN_LEFT_PARENTHESIS:
-            *terminal = T_PREC_LEFT_BRACKET;
-            break;
-
+    switch(currentToken.PrecTerminal) {
         // Mapování: TOKEN_RIGHT_PARENTHESIS -> T_PREC_RIGHT_BRACKET nebo T_PREC_DOLLAR
         case TOKEN_RIGHT_PARENTHESIS:
             if (PrecTable_isInFollowSet(DOLLAR_T_RIGHT_BRACKET) && bracketDepth == 0) {
@@ -704,56 +664,6 @@ void PrecParser_mapTokenToPrecTerminal(int bracketDepth ,PrecTerminals *terminal
             } else {
                 *terminal = T_PREC_RIGHT_BRACKET;
             }
-            break;
-
-        // Mapování: TOKEN_PLUS -> T_PREC_PLUS
-        case TOKEN_PLUS:
-            *terminal = T_PREC_PLUS;
-            break;
-
-        // Mapování: TOKEN_MINUS -> T_PREC_MINUS
-        case TOKEN_MINUS:
-            *terminal = T_PREC_MINUS;
-            break;
-
-        // Mapování: TOKEN_ASTERISK -> T_PREC_MULTIPLICATION
-        case TOKEN_ASTERISK:
-            *terminal = T_PREC_MULTIPLICATION;
-            break;
-
-        // Mapování: TOKEN_SLASH -> T_PREC_DIVISION
-        case TOKEN_SLASH:
-            *terminal = T_PREC_DIVISION;
-            break;
-
-        // Mapování: TOKEN_EQUAL_TO -> T_PREC_IDENTITY
-        case TOKEN_EQUAL_TO:
-            *terminal = T_PREC_IDENTITY;
-            break;
-
-        // Mapování: TOKEN_NOT_EQUAL_TO -> T_PREC_NOT_EQUAL
-        case TOKEN_NOT_EQUAL_TO:
-            *terminal = T_PREC_NOT_EQUAL;
-            break;
-
-        // Mapování: TOKEN_LESS_THAN -> T_PREC_LESS_THAN
-        case TOKEN_LESS_THAN:
-            *terminal = T_PREC_LESS_THAN;
-            break;
-
-        // Mapování: TOKEN_GREATER_THAN -> T_PREC_GREATER_THAN
-        case TOKEN_GREATER_THAN:
-            *terminal = T_PREC_GREATER_THAN;
-            break;
-
-        // Mapování: TOKEN_LESS_EQUAL_THAN -> T_PREC_LESS_THAN_OR_EQUAL
-        case TOKEN_LESS_EQUAL_THAN:
-            *terminal = T_PREC_LESS_THAN_OR_EQUAL;
-            break;
-
-        // Mapování: TOKEN_GREATER_EQUAL_THAN -> T_PREC_GREATER_THAN_OR_EQUAL
-        case TOKEN_GREATER_EQUAL_THAN:
-            *terminal = T_PREC_GREATER_THAN_OR_EQUAL;
             break;
 
         // Mapování: TOKEN_COMMA -> T_PREC_COMMA nebo T_PREC_DOLLAR
@@ -775,12 +685,12 @@ void PrecParser_mapTokenToPrecTerminal(int bracketDepth ,PrecTerminals *terminal
             }
             break;
 
-        // Defaultní případ: syntaktická chyba
+        // Defaultní případ: Nejedná se o dolar
         default:
-            error_handle(ERROR_SYNTAX);
+            *terminal = currentToken.PrecTerminal;
             break;
     } // switch()
-} // PrecParser_mapTokenToPrecTerminal()
+} // PrecParser_mapToDollar()
 
 /**
  * @brief Mapuje neterminál na redukční pravidlo.

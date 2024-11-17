@@ -38,7 +38,6 @@
 #include <limits.h>         // Konstanty pro meze integeru
 #include <math.h>           // Konstanty pro meze floatu
 #include "ast_nodes.h"
-#include "parser.h"
 #include "error.h"
 
 /*******************************************************************************
@@ -90,7 +89,7 @@ void AST_destroyNode(AST_NodeType type, void *node);
  *
  * @return Ukazatel na nový uzel AST typu `AST_ProgramNode`, nebo `NULL` při chybě alokace.
  */
-void AST_createTree();
+AST_ProgramNode *AST_createTree();
 
 /**
  * @brief Uvolní z paměti celý abstraktní syntaktický strom
@@ -149,9 +148,11 @@ void AST_initNewFunDefNode(AST_FunDefNode *node, DString *identifier,  \
  *          je předán neplatný ukazatel, funkce hlásí interní chybu.
  *
  * @param node Ukazatel na uzel, který má být inicializován.
+ * @param dataType Datový typ proměnné parametru/argumentu.
  * @param variable Ukazatel na uzel proměnné.
  */
-void AST_initNewArgOrParamNode(AST_ArgOrParamNode *node, AST_VarNode *variable);
+void AST_initNewArgOrParamNode(AST_ArgOrParamNode *node, AST_DataType dataType, \
+                               AST_VarNode *variable);
 
 /**
  * @brief Inicializuje uzel pro příkaz.
@@ -414,6 +415,40 @@ void AST_destroyVarNode(AST_VarNode *node);
  *                     INTERNÍ FUNKCE NA DESTRUKCI SEZNAMŮ                     *
  *                                                                             *
  ******************************************************************************/
+
+/**
+ * @brief Vloží uzel na začátek seznamu definic funkcí.
+ *
+ * @details Tato funkce přidá nový uzel na začátek seznamu definic funkcí. Pokud
+ *          je seznam prázdný, nový uzel se stane prvním uzlem v seznamu.
+ *
+ * @param firstDef Ukazatel na ukazatel na první uzel seznamu definic funkcí.
+ * @param newDef Ukazatel na nový uzel, který má být přidán na začátek seznamu.
+ */
+void AST_insertFirstFunDefNode(AST_FunDefNode **firstDef, AST_FunDefNode *newDef);
+
+/**
+ * @brief Vloží uzel na začátek seznamu argumentů nebo parametrů funkce.
+ *
+ * @details Tato funkce přidá nový uzel na začátek seznamu argumentů nebo
+ *          parametrů funkce. Pokud je seznam prázdný, nový uzel se stane
+ *          prvním uzlem v seznamu.
+ *
+ * @param firstArg Ukazatel na ukazatel na první uzel seznamu argumentů nebo parametrů.
+ * @param newArg Ukazatel na nový uzel, který má být přidán na začátek seznamu.
+ */
+void AST_insertFirstArgOrParamNode(AST_ArgOrParamNode **firstArg, AST_ArgOrParamNode *newArg);
+
+/**
+ * @brief Vloží uzel na začátek seznamu příkazů.
+ *
+ * @details Tato funkce přidá nový uzel na začátek seznamu příkazů. Pokud je
+ *          seznam prázdný, nový uzel se stane prvním uzlem v seznamu.
+ *
+ * @param firstStat Ukazatel na ukazatel na první uzel seznamu příkazů.
+ * @param newStat Ukazatel na nový uzel, který má být přidán na začátek seznamu.
+ */
+void AST_insertFirstStatementNode(AST_StatementNode **firstStat, AST_StatementNode *newStat);
 
 /**
  * @brief Uvolní paměť pro všechny uzly v seznamu parametrů/argumentů v uzlu pro funkci.

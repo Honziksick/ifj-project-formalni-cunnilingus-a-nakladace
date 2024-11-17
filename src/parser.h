@@ -34,10 +34,12 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include "scanner.h"
+#include "lltable.h"
+#include "precedence_table.h"
 #include "frame_stack.h"
 #include "dynamic_string.h"
-#include "lltable.h"
 #include "ast_nodes.h"
 #include "ast_interface.h"
 
@@ -47,9 +49,32 @@
  *                                                                             *
  ******************************************************************************/
 
-#define MAX_SIZE_T_DIGITS 20
-#define FRAME_ID_SEPARATOR '$'
+#define MAX_SIZE_T_DIGITS 20        /**< Maximální počet číslic, které mohou být použity pro reprezentaci hodnoty typu `size_t`. */
+#define FRAME_ID_SEPARATOR '$'      /**< Znak používaný jako odělovač ID rámce od názvu proměnné v jejím identifikátoru. */
+#define SET_SYNTAX_ERROR true       /**< Parametr pro funkci `Parser_watchSyntaxError`, aby nastavila stav syntax error na `true`. */
+#define IS_SYNTAX_ERROR false       /**< Parametr pro funkci `Parser_watchSyntaxError`, aby zkontrolovala aktuální stav syntax error. */
+#define LL_PARSER true
+#define PREC_PARSER false
 
+/*******************************************************************************
+ *                                                                             *
+ *                             DEKLARACE STRUKTUR                              *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Struktura reprezentující terminál.
+ *
+ * @details Tato struktura obsahuje informace o terminálu, který je zpracováván
+ *          parserem. Struktura obsahuje typ terminálu a hodnotu terminálu.
+ *          Typ terminálu je reprezentován výčtovým typem @c LLTerminals a
+ *          hodnota terminálu je ukazatel na dynamický řetězec @c DString.
+ */
+typedef struct Terminal {
+    LLTerminals   LLterminal;       /**< Typ LL terminálu pro LL parser. */
+    PrecTerminals PrecTerminal;     /**< Typ LL terminálu pro precedenční parser. */
+    DString       *value;           /**< Hodnota terminálu reprezentovaná ukazatelem na dynamický řetězec `DString`. */
+} Terminal;
 
 /*******************************************************************************
  *                                                                             *
@@ -58,17 +83,16 @@
  ******************************************************************************/
 
 /**
- * @brief Globální statická proměnná pro aktuální token, který je zpracováván.
+ * @brief Globální proměnná pro aktuální token, který je zpracováván.
  *
  * @details Tato proměnná obsahuje aktuální token, který je právě zpracováván
- *          parserem. Token je získáván pomocí funkce `scanner_getNextToken` a
- *          je aktulizován funkcí `parser_getNextToke`.
- *
- * @note Struktura bude na počátku inicializována na token typu @c EOF, který se
- *       jeví jako nejvíce neutrální volba. Obsažený ukazatel na @c DString bude
- *       inicializován na @c NULL.
+ *          parserem. Token je získáván pomocí funkce @c scanner_getNextToken()
+ *          a je aktualizován funkcí @c Parser_pokeScanner(), která implicitně
+ *          přemapovává typ tokenu @c TokenType na typ LL terminálu @c LLTerminals.
+ *          Struktura @c Terminal obsahuje typ terminálu a hodnotu terminálu,
+ *          což umožňuje parseru efektivně zpracovávat různé typy tokenů.
  */
-extern Token currentToken;
+extern Terminal currentToken;
 
 /**
  * @brief Globální kořen abstraktního syntaktického stromu.
@@ -76,7 +100,7 @@ extern Token currentToken;
  * @details Tato proměnná obsahuje kořenový uzel abstraktního syntaktického
  *          stromu (AST), který je vytvářen během syntaktické analýzy. AST je
  *          používán pro reprezentaci struktury programu a je generován parserem.
- *          Dále je využíván k sémantické analýze a generování 3AK.
+ *          Dále je využíván k sémantické analýze a generování kódu.
  *
  * @note Ukazatel na kořen abstraktního syntaktického stromu bude před svou
  *       skutečnou inicializací inicializován na @c NULL.
@@ -115,13 +139,27 @@ extern FrameArray frameArray;
 /**
  * @brief Získá další token ze scanneru a aktualizuje globální současný token.
  *
- * @details Tato funkce volá @c scanner_getNextToken(), která vrací další token
- *          ze vstupního streamu. Globální proměnná @c currentToken je poté
- *          aktualizována na tento nový token.
+ * @details Tato funkce získá další token ze scanneru a aktualizuje globální
+ *          proměnnou @c currentToken na aktuální lookahead token. Funkce používá
+ *          statickou proměnnou @c lookaheadToken pro uchování lookahead tokenu,
+ *          což umožňuje předvídání dalšího tokenu bez jeho okamžitého zpracování.
+ *          Pokud lookahead token není inicializován, funkce ho načte pomocí
+ *          @c scanner_getNextToken(). Poté aktualizuje @c currentToken na
+ *          hodnotu lookahead tokenu a načte další lookahead token.
  *
- * @note Funkce je deklarována jako @c inline.
+ * @return Vrací @c lookaheadToken.
  */
-void Parser_pokeScanner();
+Terminal Parser_getNextToken(bool LLparser);
+
+/**
+ * @brief Nastaví nebo zkontroluje stav syntax error.
+ *
+ * @param setError Pokud je @c true, nastaví stav syntax error na @c true.
+ *                 Pokud je @c false, vrátí aktuální stav syntax error.
+ *
+ * @return Aktuální stav syntax error.
+ */
+bool Parser_watchSyntaxError(bool setError);
 
 /**
  * @brief Přidá suffix k jménu proměnné ve formátu @c $frameID$.
@@ -159,6 +197,48 @@ void Parser_addIdSuffix(size_t frameID, DString *id);
  * @note Funkce je deklarována jako @c inline.
  */
 void Parser_checkAppendSuccess(int error);
+
+/**
+ * @brief Získá další token ze scanneru a namapuje ho na typ LL terminálu.
+ *
+ * @details Tato funkce získá další token ze scanneru, namapuje jeho typ na typ
+ *          LL terminálu a vrátí strukturu `Terminal` obsahující typ a hodnotu
+ *          tokenu.
+ *
+ * @return Struktura `Terminal` obsahující typ a hodnotu tokenu.
+ */
+Terminal Parser_pokeScanner(bool LLparser);
+
+/**
+ * @brief Namapuje typ tokenu na typ LL terminálu.
+ *
+ * @details Tato funkce namapuje typ aktuálního tokenu na odpovídající typ
+ *          LL terminálu. Pokud je předaný ukazatel @c terminalType NULL,
+ *          funkce zavolá @c error_handle() s chybovým kódem @c ERROR_INTERNAL.
+ *
+ * @param [in] tokenType Typ tokenu, který má být přemapován na typ terminálu.
+ * @param [in] terminalType Ukazatel na proměnnou typu @c LLTerminals, kam bude
+ *                          uložen namapovaný typ LL terminálu.
+ */
+void Parser_mapTokenToLLTerminal(TokenType tokenType, LLTerminals *terminalType);
+
+void Parser_mapTokenToPrecTerminal(TokenType tokenType, PrecTerminals *terminalType);
+
+/**
+ * @brief Namapuje typ datového typu AST na typ návratového typu tabulky symbolů.
+ *
+ * @param astDataType Typ datového typu AST.
+ * @param symtableType Ukazatel na typ návratového typu tabulky symbolů.
+ */
+void Parser_mapASTDataTypeToFunReturnType(AST_DataType astDataType, symtable_functionReturnType *symtableType);
+
+/**
+ * @brief Namapuje typ datového typu AST na stav symbolu v tabulce symbolů.
+ *
+ * @param astDataType Typ datového typu AST.
+ * @param symtableState Ukazatel na stav symbolu v tabulce symbolů.
+ */
+void Parser_mapASTDataTypeToSymtableState(AST_DataType astDataType, symtable_symbolState *symtableState);
 
 #endif  // PARSER_H_
 

@@ -296,7 +296,7 @@ void PrecParser_reduceArg();
  * @param [in] bracketDepth Hloubka zanoření závorek, která ovlivňuje mapování.
  * @param [out] terminal Ukazatel na proměnnou, do které bude uloženo namapované terminál.
  */
-void PrecParser_mapTokenToPrecTerminal(int bracketDepth, PrecTerminals *terminal);
+void PrecParser_mapToDollar(int bracketDepth, PrecTerminals *terminal);
 
 /**
  * @brief Mapuje symbol na redukční pravidlo.

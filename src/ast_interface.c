@@ -163,8 +163,9 @@ void AST_destroyNode(AST_NodeType type, void *node) {
 /**
  * @brief Alokuje paměť pro globální kořen abstraktního syntaktického stromu
  */
-inline void AST_createTree() {
-    ASTroot = AST_createProgramNode();
+inline AST_ProgramNode *AST_createTree() {
+    AST_ProgramNode *root = AST_createProgramNode();
+    return root;
 } // AST_createTree()
 
 /**
@@ -235,7 +236,8 @@ void AST_initNewFunDefNode(AST_FunDefNode *node, DString *identifier, \
 /**
  * @brief Inicializuje uzel pro argument nebo parametr funkce.
  */
-void AST_initNewArgOrParamNode(AST_ArgOrParamNode *node, AST_VarNode *variable) {
+void AST_initNewArgOrParamNode(AST_ArgOrParamNode *node, AST_DataType dataType, \
+                               AST_VarNode *variable) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
@@ -247,6 +249,7 @@ void AST_initNewArgOrParamNode(AST_ArgOrParamNode *node, AST_VarNode *variable) 
     }
 
     // Přiřadíme uzlu předané zdroje
+    node->dataType = dataType;
     node->variable = variable;
     node->next = NULL;
 
@@ -495,7 +498,6 @@ AST_ProgramNode *AST_createProgramNode() {
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
-        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -538,7 +540,6 @@ AST_FunDefNode *AST_createFunDefNode() {
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
-        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -587,7 +588,6 @@ AST_ArgOrParamNode *AST_createArgOrParamNode() {
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
-        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -625,7 +625,6 @@ AST_StatementNode *AST_createStatementNode() {
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
-        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -706,7 +705,6 @@ AST_FunCallNode *AST_createFunCallNode() {
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
-        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -750,7 +748,6 @@ AST_IfNode *AST_createIfNode() {
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
-        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -797,7 +794,6 @@ AST_WhileNode *AST_createWhileNode() {
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
-        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -840,7 +836,6 @@ AST_ExprNode *AST_createExprNode() {
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
-        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -909,7 +904,6 @@ AST_BinOpNode *AST_createBinOpNode() {
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
-        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -949,7 +943,6 @@ AST_VarNode *AST_createVarNode(AST_NodeType type) {
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
-        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -1032,20 +1025,18 @@ void AST_destroyVarNode(AST_VarNode *node) {
  * @details Tato funkce přidá nový uzel na začátek seznamu definic funkcí. Pokud
  *          je seznam prázdný, nový uzel se stane prvním uzlem v seznamu.
  *
+ * @param firstDef Ukazatel na ukazatel na první uzel seznamu definic funkcí.
  * @param newDef Ukazatel na nový uzel, který má být přidán na začátek seznamu.
  */
-void AST_insertFirstFunDefNode(AST_FunDefNode *newDef) {
-    // Ověříme, že byl předán platný ukazatel na nový uzel
-    if(newDef == NULL) {
+void AST_insertFirstFunDefNode(AST_FunDefNode **firstDef, AST_FunDefNode *newDef) {
+    // Ověříme, že byly předány platné ukazatele
+    if (firstDef == NULL || newDef == NULL) {
         error_handle(ERROR_INTERNAL);
     }
 
-    // Přístup k seznamu definic funkcí přes globální proměnnou ASTroot
-    AST_FunDefNode *firstDef = ASTroot->functionList;
-
     // Nastavíme nový uzel jako první uzel v seznamu
-    newDef->next = firstDef;
-    ASTroot->functionList = newDef;
+    newDef->next = *firstDef;
+    *firstDef = newDef;
 } // AST_insertFirstFunDefNode()
 
 /**
@@ -1093,6 +1084,11 @@ void AST_insertFirstStatementNode(AST_StatementNode **firstStat, AST_StatementNo
  * @brief Uvolní paměť pro všechny uzly v seznamu parametrů/argumentů v uzlu pro funkci.
  */
 void AST_destroyArgOrParamList(AST_ArgOrParamNode *list) {
+    // Pokud byl předán neplatný ukazatel, nic se nestane
+    if(list == NULL) {
+        return;
+    }
+
     // Vytvoříme si pomocný ukazatel na aktuální argument/parametr
     AST_ArgOrParamNode *currArgOrParamNode = list;
 
@@ -1108,6 +1104,11 @@ void AST_destroyArgOrParamList(AST_ArgOrParamNode *list) {
  * @brief Uvolní paměť pro všechny uzly v seznamu pro příkazy.
  */
 void AST_destroyStatementList(AST_StatementNode *list) {
+    // Pokud byl předán neplatný ukazatel, nic se nestane
+    if(list == NULL) {
+        return;
+    }
+
     // Vytvoříme si pomocný ukazatel na aktuální příkaz
     AST_StatementNode *currStatementNode = list;
 
@@ -1123,6 +1124,11 @@ void AST_destroyStatementList(AST_StatementNode *list) {
  * @brief Uvolní paměť pro všechny uzly v seznamu definovaných funkcí.
  */
 void AST_destroyFunDefList(AST_FunDefNode *list) {
+    // Pokud byl předán neplatný ukazatel, nic se nestane
+    if(list == NULL) {
+        return;
+    }
+
     // Vytvoříme si pomocný ukazatel na aktuální definici funkce
     AST_FunDefNode *currFunDefNode = list;
 

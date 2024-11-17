@@ -161,7 +161,7 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
                 // Vytvoření a konkrétní inicializace uzlu pro proměnnou
                 AST_VarNode *pushNode = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
                 AST_initNewVarNode(pushNode, AST_VAR_NODE, currentToken.value,
-                                stack.currentID, AST_LITERAL_NOT_DEFINED,
+                                frameStack.currentID, AST_LITERAL_NOT_DEFINED,
                                 AST_VAL_UNDEFINED);
                 // Pushnutí uzlu na zásobník
                 PrecStack_pushPrecTerminal(inTerminal, AST_VAR_NODE, pushNode);
@@ -183,7 +183,7 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
             // Vytvoření a konkrétní inicializace uzlu pro literál
             AST_VarNode *pushNode = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
             AST_initNewVarNode(pushNode, AST_LITERAL_NODE, AST_ID_UNDEFINED,
-                               stack.currentID, AST_LITERAL_INT,
+                               frameStack.currentID, AST_LITERAL_INT,
                                currentToken.value);
 
             // Pushnutí uzlu na zásobník
@@ -196,7 +196,7 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
             // Vytvoření a konkrétní inicializace uzlu pro literál
             AST_VarNode *pushNode = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
             AST_initNewVarNode(pushNode, AST_LITERAL_NODE, AST_ID_UNDEFINED,
-                               stack.currentID, AST_LITERAL_FLOAT,
+                               frameStack.currentID, AST_LITERAL_FLOAT,
                                currentToken.value);
 
             // Pushnutí uzlu na zásobník
@@ -209,7 +209,7 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
             // Vytvoření a konkrétní inicializace uzlu pro literál
             AST_VarNode *pushNode = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
             AST_initNewVarNode(pushNode, AST_LITERAL_NODE, AST_ID_UNDEFINED,
-                               stack.currentID, AST_LITERAL_STRING,
+                               frameStack.currentID, AST_LITERAL_STRING,
                                currentToken.value);
 
             // Pushnutí uzlu na zásobník
@@ -222,7 +222,7 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
             // Vytvoření a konkrétní inicializace uzlu pro literál
             AST_VarNode *pushNode = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
             AST_initNewVarNode(pushNode, AST_LITERAL_NODE, AST_ID_UNDEFINED,
-                               stack.currentID, AST_LITERAL_NULL,
+                               frameStack.currentID, AST_LITERAL_NULL,
                                currentToken.value);
 
             // Pushnutí uzlu na zásobník
@@ -256,7 +256,7 @@ PrecStackNode* PrecStack_pop() {
  */
 inline PrecStackNode* PrecStack_top() {
     // Kontrola, zda je zásobník alokovaný
-    if(precStack != NULL) {
+    if(precStack == NULL) {
         error_handle(ERROR_INTERNAL);
     }
 
