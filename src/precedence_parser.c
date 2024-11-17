@@ -447,7 +447,7 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
 /**
  * @brief Redukce pro binární operaci E -> E op E.
  */
-void PrecParser_reduceBinOp(AST_BinOpType operator) {
+void PrecParser_reduceBinOp(AST_BinOpType binOp) {
     // Popnutí pravého operandu E
     PrecStackNode *rightNode = PrecStack_pop();
 
@@ -460,7 +460,7 @@ void PrecParser_reduceBinOp(AST_BinOpType operator) {
 
     // Vytvoření a inicializace AST uzlu pro binární operaci
     AST_BinOpNode *binOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    AST_initNewBinOpNode(binOpNode, operator, leftNode->node, rightNode->node);
+    AST_initNewBinOpNode(binOpNode, binOp, leftNode->node, rightNode->node);
 
     // Vytvoření a inicializace AST uzlu pro výraz s binární operací
     AST_ExprNode *exprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
