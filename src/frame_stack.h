@@ -196,7 +196,23 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item);
 frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item);
 
 /**
- * @brief 
+ * @brief Přidá novou položku s daty do vrchního rámce zásobníku.
+ * 
+ * @details Přidá novou položku do tabulky symbolů ve vrcholovém rámci zásobníku
+ *          a nastaví její data.
+ * 
+ * @param [in] key Klíč nové položky
+ * @param [in] state Stav symbolu
+ * @param [in] constant Příznak, zda je položka konstantní
+ * @param [in] data Ukazatel na data, která se mají uložit
+ * 
+ * @return - @c FRAME_STACK_SUCCESS při úspěchu.
+ *         - @c FRAME_STACK_ITEM_ALREADY_EXISTS pokud už položka s daným klíčem
+ *              v rozsahu platnosti existuje.
+ *         - @c FRAME_STACK_NOT_INITIALIZED pokud není inicializován globální
+ *              zásobník rámců
+ *         - @c FRAME_STACK_ALLOCATION_FAIL pokud selhalo alokování paměti
+ *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
 frame_stack_result frameStack_addItemExpress(DString *key,
                     symtable_symbolState state, bool constant, void* data);

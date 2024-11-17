@@ -250,6 +250,22 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item) {
 } // frameStack_addItem()
 
 /**
+ * @brief Přidá novou položku s daty do vrchního rámce zásobníku.
+ */
+frame_stack_result frameStack_addItemExpress(DString *key,
+                    symtable_symbolState state, bool constant, void* data){
+    SymtableItemPtr item;
+    frame_stack_result result = frameStack_addItem(key, &item);
+    if(result != FRAME_STACK_SUCCESS){
+        return result;
+    }
+
+    item->symbol_state = state;
+    item->constant = constant;
+    item->data = data;
+} // frameStack_addItemExpress()
+
+/**
  * @brief Uvolní všechny rámce v zásobníku a uvede zásobník do počátečního stavu.
  */
 void frameStack_destroyAll() {
