@@ -1649,7 +1649,7 @@ TEST(Lex, lex_test_string_escapes){
 
     const char* expected_strings[] = {
         "Toto je test escape sekvenci stringu. Lomeno n: \n; Lomeno lomeno: \\; Lomeno uvozovky: \"; Lomeno r: \r; Lomeno t: \t.",
-        "Toto je test x escape sekvence stringu. :(58) = :; }(125) = }; NL(10) = \n; ú(250) = ú."
+        "Toto je test x escape sekvence stringu. :(58) = :; }(125) = }; NL(10) = \n; ú(250) = \xFA."
     };
 
 
