@@ -90,7 +90,12 @@ ErrorType semantic_analyseProgramStructure() {
     }
 
     // Zkontrolujeme prolog programu, že má správné literály
-    if(string_compare_const_str(ASTroot->importedFile, "ifj24.zig") != STRING_EQUAL) {
+    if(string_compare_const_str(ASTroot->importedFile->identifier, "ifj") != STRING_EQUAL) {
+        // Toto nelze jednoduše zařadit mezi jiné chyby, proto ERROR_SEM_OTHER
+        return ERROR_SEM_OTHER;
+    }
+    str = ASTroot->importedFile->value;
+    if(string_compare_const_str(str, "ifj24.zig") != STRING_EQUAL) {
         // Toto nelze jednoduše zařadit mezi jiné chyby, proto ERROR_SEM_OTHER
         return ERROR_SEM_OTHER;
     }
