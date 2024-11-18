@@ -203,7 +203,7 @@ typedef struct AST_FunDefNode {
 typedef struct AST_ArgOrParamNode {
     enum   AST_NodeType        type;            /**< Typ uzlu (AST_ARG_NODE) */
     enum   AST_DataType        dataType;        /**< Datový typ parametru funkce */
-    struct AST_VarNode         *variable;       /**< Argument/Parametr funkce */
+    struct AST_ExprNode        *expression;     /**< Argument/Parametr funkce */
     struct AST_ArgOrParamNode  *next;           /**< Ukazatel na další argument/parametr */
 } AST_ArgOrParamNode;
 

@@ -241,7 +241,7 @@ void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int in
         levels.push_back(!isLast);
 
         // Ověření existence identifikátoru a tisknutí identifikátoru
-        if (node->variable != nullptr) { 
+        if (node->expression != nullptr) { 
             if (useColors)
                 out << COLOR_BLUE << "Parameter: " << COLOR_RESET << endl;
             else
@@ -252,8 +252,8 @@ void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int in
         } 
         
         // Výpis proměnné, pokud existuje
-        if(node->variable != nullptr) {
-            ASTutils_printVarNode(node->variable, out, indent + 1, useColors, levels, true);
+        if(node->expression != nullptr) {
+            ASTutils_printExprNode(node->expression, out, indent + 1, useColors, levels, true);
         } else {
             // Pokud proměnná ani výraz neexistuje
             ASTutils_printIndent(indent + 1, out, levels, true);

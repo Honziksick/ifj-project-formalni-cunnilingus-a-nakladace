@@ -63,7 +63,7 @@ TEST(ASTtest_Root, UnInitRoot) {
  * @brief Test kořene, kde je pouze jednodušše inicializovaný kořenový uzel.
  */
 TEST(ASTtest_Root, InitRoot) {
-    AST_createTree();
+    ASTroot = AST_createTree();
     ASSERT_NE(ASTroot, nullptr);
     ASTroot->importedFile = string_init();
     ASSERT_NE(ASTroot->importedFile, nullptr);
@@ -208,7 +208,7 @@ TEST(ASTtest_ArgOrParamNode, UnInitArgOrParamNode) {
     AST_ArgOrParamNode *node = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node, nullptr);
     ASSERT_EQ(node->type, AST_ARG_OR_PARAM_NODE);
-    ASSERT_EQ(node->variable, nullptr);
+    ASSERT_EQ(node->expression, nullptr);
     ASSERT_EQ(node->next, nullptr);
 
     PRINT_TREE(node->type, node);
@@ -233,9 +233,14 @@ TEST(ASTtest_ArgOrParamNode, LinkedArgOrParamNode) {
     ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
     ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
     ASSERT_EQ(string_append_char((DString *)lit->value, 'o'), STRING_SUCCESS);
-    node1->variable = lit;
 
-    ASSERT_EQ(node1->variable, lit);
+    AST_ExprNode *exprLit = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(exprLit, nullptr);
+    exprLit->expression = lit;
+    exprLit->exprType = AST_EXPR_LITERAL;
+    node1->expression = exprLit;
+
+    ASSERT_EQ((AST_VarNode *)(node1->expression->expression), lit);
 
     AST_ArgOrParamNode *node2 = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     ASSERT_NE(node2, nullptr);
@@ -249,9 +254,14 @@ TEST(ASTtest_ArgOrParamNode, LinkedArgOrParamNode) {
     int *value2 = (int *)malloc(sizeof(int));
     *value2 = 42;
     var->value = value2;
-    node2->variable = var;
+    
+    AST_ExprNode *exprVar = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(exprVar, nullptr);
+    exprVar->expression = var;
+    exprVar->exprType = AST_EXPR_VARIABLE;
+    node2->expression = exprVar;
 
-    ASSERT_EQ(node2->variable, var);
+    ASSERT_EQ((AST_VarNode *)(node2->expression->expression), var);
 
     node1->next = node2;
     ASSERT_EQ(node1->next, node2);
@@ -279,9 +289,13 @@ TEST(ASTtest_ArgOrParamNode, IntegerVarArgOrParamNode) {
     int *value = (int *)malloc(sizeof(int));
     *value = 42;
     var->value = value;
-    node->variable = var;
 
-    ASSERT_EQ(node->variable, var);
+    AST_ExprNode *exprVar = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(exprVar, nullptr);
+    exprVar->expression = var;
+    exprVar->exprType = AST_EXPR_VARIABLE;
+    node->expression = exprVar;
+    ASSERT_EQ((AST_VarNode *)(node->expression->expression), var);
 
     PRINT_TREE(node->type, node);
 
@@ -304,9 +318,13 @@ TEST(ASTtest_ArgOrParamNode, FloatVarArgOrParamNode) {
     double *value = (double *)malloc(sizeof(double));
     *value = 3.14;
     var->value = value;
-    node->variable = var;
 
-    ASSERT_EQ(node->variable, var);
+    AST_ExprNode *exprVar = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(exprVar, nullptr);
+    exprVar->expression = var;
+    exprVar->exprType = AST_EXPR_VARIABLE;
+    node->expression = exprVar;
+    ASSERT_EQ((AST_VarNode *)(node->expression->expression), var);
 
     PRINT_TREE(node->type, node);
 
@@ -333,9 +351,13 @@ TEST(ASTtest_ArgOrParamNode, StringVarArgOrParamNode) {
     ASSERT_EQ(string_append_char((DString *)var->value, 'l'), STRING_SUCCESS);
     ASSERT_EQ(string_append_char((DString *)var->value, 'l'), STRING_SUCCESS);
     ASSERT_EQ(string_append_char((DString *)var->value, 'o'), STRING_SUCCESS);
-    node->variable = var;
 
-    ASSERT_EQ(node->variable, var);
+    AST_ExprNode *exprVar = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(exprVar, nullptr);
+    exprVar->expression = var;
+    exprVar->exprType = AST_EXPR_VARIABLE;
+    node->expression = exprVar;
+    ASSERT_EQ((AST_VarNode *)(node->expression->expression), var);
 
     PRINT_TREE(node->type, node);
 
@@ -355,9 +377,13 @@ TEST(ASTtest_ArgOrParamNode, IntegerLitArgOrParamNode) {
     int *value = (int *)malloc(sizeof(int));
     *value = 42;
     lit->value = value;
-    node->variable = lit;
 
-    ASSERT_EQ(node->variable, lit);
+    AST_ExprNode *exprLit = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(exprLit, nullptr);
+    exprLit->expression = lit;
+    exprLit->exprType = AST_EXPR_LITERAL;
+    node->expression = exprLit;
+    ASSERT_EQ((AST_VarNode *)(node->expression->expression), lit);
 
     PRINT_TREE(node->type, node);
 
@@ -377,9 +403,13 @@ TEST(ASTtest_ArgOrParamNode, FloatLitArgOrParamNode) {
     double *value = (double *)malloc(sizeof(double));
     *value = 3.14;
     lit->value = value;
-    node->variable = lit;
 
-    ASSERT_EQ(node->variable, lit);
+    AST_ExprNode *exprLit = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(exprLit, nullptr);
+    exprLit->expression = lit;
+    exprLit->exprType = AST_EXPR_LITERAL;
+    node->expression = exprLit;
+    ASSERT_EQ((AST_VarNode *)(node->expression->expression), lit);
 
     PRINT_TREE(node->type, node);
 
@@ -403,9 +433,13 @@ TEST(ASTtest_ArgOrParamNode, StringLitArgOrParamNode) {
     ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
     ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
     ASSERT_EQ(string_append_char((DString *)lit->value, 'o'), STRING_SUCCESS);
-    node->variable = lit;
 
-    ASSERT_EQ(node->variable, lit);
+    AST_ExprNode *exprLit = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(exprLit, nullptr);
+    exprLit->expression = lit;
+    exprLit->exprType = AST_EXPR_LITERAL;
+    node->expression = exprLit;
+    ASSERT_EQ((AST_VarNode *)(node->expression->expression), lit);
 
     PRINT_TREE(node->type, node);
 
@@ -423,9 +457,13 @@ TEST(ASTtest_ArgOrParamNode, NullLitArgOrParamNode) {
     ASSERT_NE(lit, nullptr);
     lit->literalType = AST_LITERAL_NULL;
     lit->value = nullptr;
-    node->variable = lit;
 
-    ASSERT_EQ(node->variable, lit);
+    AST_ExprNode *exprLit = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(exprLit, nullptr);
+    exprLit->expression = lit;
+    exprLit->exprType = AST_EXPR_LITERAL;
+    node->expression = exprLit;
+    ASSERT_EQ((AST_VarNode *)(node->expression->expression), lit);
 
     PRINT_TREE(node->type, node);
 
@@ -907,7 +945,7 @@ TEST(ASTtest_Tree, MoreComplexTree) {
  */
 TEST(ASTtest_Tree, ComplexTree) {
     // Vytvoření kořene stromu
-    AST_createTree();
+    ASTroot = AST_createTree();
     ASSERT_NE(ASTroot, nullptr);
     ASTroot->importedFile = string_init();
     ASSERT_NE(ASTroot->importedFile, nullptr);
