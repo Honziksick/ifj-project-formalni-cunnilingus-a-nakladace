@@ -135,7 +135,7 @@ void ASTutils_printProgramNode(AST_ProgramNode *node, ostream &out, int indent, 
             out << COLOR_BLUE << "Imported File: " << COLOR_RESET << endl;
         else
             out << "Imported File: " << endl;
-        ASTutils_printVarNode(node->importedFile, out, indent + 1, useColors, levels, true);
+        ASTutils_printVarNode(node->importedFile, out, indent + 2, useColors, levels, true);
     } else {
         ASTutils_printIndent(indent + 1, out, levels, false);
         if (useColors)
