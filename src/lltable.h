@@ -94,6 +94,7 @@ typedef enum LLTerminals {
     T_RIGHT_CURLY_BRACKET   = 28,       /**<  Symbol pravé složené závorky "}"  */
     T_EOF                   = 29,       /**<  Signalizace, že nastal konec souboru  */
     T_CALL_PRECEDENCE       = 30,       /**<  Řízení parsování předáno precedenčnímu parseru */
+    T_IMPORT_PATH           = 31,       /**<  PseudoTerminál využívaný při parsování cesty k importovanému souboru v prologu */
 } LLTerminals;
 
 /**
