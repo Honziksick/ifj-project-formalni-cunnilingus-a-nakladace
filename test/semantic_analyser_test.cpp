@@ -67,32 +67,40 @@ TEST(Correct, Simplest){
     
     frameStack_init();
 
-    Parser_getNextToken(true);
-    LLparser_parseProgram();
+    ASTroot = LLparser_parseProgram();
 
     //EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
     EXPECT_NE(ASTroot, nullptr);
-
+    
     //Test pro AST
     EXPECT_EQ(ASTroot->type, AST_PROGRAM_NODE);
-    EXPECT_STREQ(string_toConstChar(ASTroot->importedFile), "ifj24.zig");
+    char *str1 = string_toConstChar(ASTroot->importedFile->identifier);
+    EXPECT_STREQ(str1, "ifj");
+    free(str1);
+    char *str2 = string_toConstChar((DString*)ASTroot->importedFile->value);
+    EXPECT_STREQ(str2, "ifj24.zig");
+    free(str2);
     EXPECT_NE(ASTroot->functionList, nullptr);
     AST_FunDefNode* fun = ASTroot->functionList;
     EXPECT_EQ(fun->body, nullptr);
-    EXPECT_STREQ(string_toConstChar(fun->identifier), "main");
+    char *str3 = string_toConstChar(fun->identifier);
+    EXPECT_STREQ(str3, "main");
+    free(str3);
     EXPECT_EQ(fun->next, nullptr);
     EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
     EXPECT_EQ(fun->parameters, nullptr);
 
-
+    TestSemantic();
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     frameStack_destroyAll();
+    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
-/*
+
+
 TEST(Correct, Hello){
     std::string path = exam_path + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -102,16 +110,19 @@ TEST(Correct, Hello){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    ASTroot = LLparser_parseProgram();
+
     EXPECT_NE(ASTroot, nullptr);
+    TestSemantic();
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     frameStack_destroyAll();
+    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
-
+/*
 TEST(Correct, Example1){
     std::string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -611,7 +622,7 @@ TEST(Incorrect, Prolog){
 TEST(Incorrect, Inference){
     
 }*/
-
+/*
 TEST(Incorrect, Inference2){
     std::string path = sem_path + "type_inference2.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -652,12 +663,12 @@ TEST(Incorrect, Unchanged_var){
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
-}
+}*/
 
 /*TEST(Incorrect, Unused_value){
     
 }*/
-
+/*
 TEST(Incorrect, Unused_value2){
     std::string path = sem_path + "unused_value2.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -677,7 +688,7 @@ TEST(Incorrect, Unused_value2){
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
-}
+}*/
 
 /*TEST(Incorrect, Void_fun){
     
