@@ -136,16 +136,34 @@ void TAC_appendInstruction(TAC_InstructionList *tacList, TAC_Instruction *instr)
  * @brief Vytiskne operand tříadresného kódu.
  */
 void TAC_printOperand(TAC_Operand *operand){
-    switch (operand->type){
-        case TAC_OPERAND_NONE: return;
-        case TAC_OPERAND_VAR: printf("LF@$%s", string_toConstChar(operand->value.varName)); return;
-        case TAC_OPERAND_TEMP: printf("TF@$%s", string_toConstChar(operand->value.varName)); return;
-        case TAC_OPERAND_LABEL: printf("_%s", string_toConstChar(operand->value.labelName)); return;
-        case TAC_OPERAND_INT: printf("int@%d", operand->value.intValue); return;
-        case TAC_OPERAND_FLOAT: printf("float@%a", operand->value.floatValue); return;
-        case TAC_OPERAND_STRING: printf("string@%s", string_toConstChar(operand->value.varName)); return;
-        case TAC_OPERAND_BOOL: printf("bool@%s", string_toConstChar(operand->value.varName)); return;
-        case TAC_OPERAND_NIL: printf("nil@nil"); return;
+
+    if(operand->type != TAC_OPERAND_INT && operand->type != TAC_OPERAND_FLOAT && operand->type != TAC_OPERAND_NIL){
+        // Pomocný řetězec pro výpis, kvůli alokaci ve funkci string_toConstChar
+        char *stringHelpVar = string_toConstChar(operand->value.varName);
+        char *stringHelpLabel = string_toConstChar(operand->value.labelName);
+
+        switch (operand->type){
+            case TAC_OPERAND_NONE: break;
+            case TAC_OPERAND_VAR: printf("LF@$%s", stringHelpVar); break;
+            case TAC_OPERAND_TEMP: printf("TF@$%s", stringHelpVar); break;
+            case TAC_OPERAND_LABEL: printf("_%s", stringHelpLabel); break;
+            case TAC_OPERAND_STRING: printf("string@%s", stringHelpVar); break;
+            case TAC_OPERAND_BOOL: printf("bool@%s", stringHelpVar); break;
+            default: break;
+        }
+
+        // Uvolnění alokovaného řetězce
+        free(stringHelpVar);
+        free(stringHelpLabel);
+    }
+    else{
+
+        switch (operand->type){
+            case TAC_OPERAND_INT: printf("int@%d", operand->value.intValue); break;
+            case TAC_OPERAND_FLOAT: printf("float@%f", operand->value.floatValue); break;
+            case TAC_OPERAND_NIL: printf("nil@nil"); break;
+            default: break;
+        }
     }
 }// TAC_printOperand
 
@@ -272,7 +290,15 @@ bool TAC_generateProgramCode(AST_ProgramNode *programNode, TAC_InstructionList *
  */
 bool TAC_generateTestCode(TAC_InstructionList *tacList){
     TAC_Instruction *instr;
-    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("kokot"), .type = TAC_OPERAND_STRING}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("konik"), .type = TAC_OPERAND_VAR}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_appendInstruction(tacList, instr);
+    instr = TAC_createInstruction(TAC_OP_LABEL, (TAC_Operand){.value.labelName = string_charToDString("pejsek"), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_appendInstruction(tacList, instr);
+    instr = TAC_createInstruction(TAC_OP_EXIT, (TAC_Operand){.value.intValue = 42, .type = TAC_OPERAND_INT}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_appendInstruction(tacList, instr);
+    instr = TAC_createInstruction(TAC_OP_EXIT, (TAC_Operand){.value.floatValue = 42.55556, .type = TAC_OPERAND_FLOAT}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_appendInstruction(tacList, instr);
+    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("temp_konik"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
     TAC_appendInstruction(tacList, instr);
     return true;
 }
