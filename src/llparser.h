@@ -70,7 +70,7 @@ AST_ProgramNode *LLparser_parseProgram();
  *
  * @return V případě úspěchu vrací cestu k importovaném souboru, jinak `NULL`
  */
-DString *LLparser_parsePrologue();
+AST_VarNode *LLparser_parsePrologue();
 
 /**
  * @brief Parsuje neterminál `<FUN_DEF_LIST>`.
