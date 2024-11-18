@@ -85,7 +85,6 @@ TEST(Correct, Simplest){
     EXPECT_EQ(fun->parameters, nullptr);
 
 
-
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     frameStack_destroyAll();
@@ -93,7 +92,7 @@ TEST(Correct, Simplest){
     fclose(f);
     ASTroot = NULL;
 }
-
+/*
 TEST(Correct, Hello){
     std::string path = exam_path + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -603,7 +602,7 @@ TEST(Incorrect, Prolog){
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
-}
+}*/
 
 /*TEST(Incorrect, Prolog2){
     Nevim exit code

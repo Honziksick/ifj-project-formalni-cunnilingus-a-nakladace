@@ -81,6 +81,205 @@ TEST(LLParserBasics, PrologueAndEmptyMain) {
 }
 
 
+std::string syn_path = "../test/test_examples/syntactic_examples/";
+
+void TestParser(){
+    ASTroot = LLparser_parseProgram();
+    exit(0);
+}
+
+TEST(Correct, TwoFunctions){
+    std::string path = syn_path + "two_fun.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    frameStack_init();
+
+    ASTroot = LLparser_parseProgram();
+
+    EXPECT_NE(ASTroot, nullptr);
+
+    //Test pro AST
+    EXPECT_EQ(ASTroot->type, AST_PROGRAM_NODE);
+    // Prolog literál
+    EXPECT_STREQ(string_toConstChar(ASTroot->importedFile), "ifj24.zig");
+    // Má funkci
+    EXPECT_NE(ASTroot->functionList, nullptr);
+    AST_FunDefNode* fun = ASTroot->functionList;
+    // Funkce nemá tělo
+    EXPECT_EQ(fun->body, nullptr);
+    // Název funkce je main
+    EXPECT_STREQ(string_toConstChar(fun->identifier), "main");
+    // Vrací void
+    EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
+    // Nemá parametry
+    EXPECT_EQ(fun->parameters, nullptr);
+    // Má ukazatel na další funkci
+    EXPECT_NE(fun->next, nullptr);
+
+    fun = fun->next;
+    // Druhá funkce
+    // Funkce nemá tělo
+    EXPECT_EQ(fun->body, nullptr);
+    // Má identifikátor
+    EXPECT_NE(fun->identifier, nullptr);
+    // Vrací void
+    EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
+    // Nemá parametry
+    EXPECT_EQ(fun->parameters, nullptr);
+    // Nemá na další funkci
+    EXPECT_EQ(fun->next, nullptr);
+    
+
+    frameStack_destroyAll();
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+
+TEST(Correct, OneParam){
+    std::string path = syn_path + "one_param.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    frameStack_init();
+
+    ASTroot = LLparser_parseProgram();
+
+    EXPECT_NE(ASTroot, nullptr);
+
+    //Test pro AST
+    EXPECT_EQ(ASTroot->type, AST_PROGRAM_NODE);
+    // Prolog literál
+    EXPECT_STREQ(string_toConstChar(ASTroot->importedFile), "ifj24.zig");
+    // Má funkci
+    EXPECT_NE(ASTroot->functionList, nullptr);
+    AST_FunDefNode* fun = ASTroot->functionList;
+    // Funkce nemá tělo
+    EXPECT_EQ(fun->body, nullptr);
+    // Název funkce je main
+    EXPECT_STREQ(string_toConstChar(fun->identifier), "main");
+    // Vrací void
+    EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
+    // Má parametr
+    EXPECT_NE(fun->parameters, nullptr);
+    AST_ArgOrParamNode* param = fun->parameters;
+
+    // Parametr má typ int
+    EXPECT_EQ(param->dataType, AST_DATA_TYPE_INT);
+    // Parametr má výraz
+    EXPECT_NE(param->expression, nullptr);
+    AST_ExprNode* expr = param->expression;
+    EXPECT_EQ(expr->type, AST_EXPR_NODE);
+    // Výraz je proměnná
+    EXPECT_EQ(expr->exprType, AST_EXPR_VARIABLE);
+    AST_VarNode* var = (AST_VarNode*)expr->expression;
+    EXPECT_EQ(var->type, AST_VAR_NODE);
+    // Proměnná má identifikátor x
+    EXPECT_NE(var->identifier, nullptr);
+    EXPECT_EQ(string_compare_const_str(var->identifier, "x"), STRING_EQUAL);
+    
+    // Nemá další parametry
+    EXPECT_EQ(param->next, nullptr);
+
+    // Nemá další funkci
+    EXPECT_EQ(fun->next, nullptr);
+
+    frameStack_destroyAll();
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+
+TEST(Correct, TwoParams){
+        std::string path = syn_path + "two_params.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    frameStack_init();
+
+    ASTroot = LLparser_parseProgram();
+
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Má funkci
+    EXPECT_NE(ASTroot->functionList, nullptr);
+    AST_FunDefNode* fun = ASTroot->functionList;
+    // Funkce nemá tělo
+    EXPECT_EQ(fun->body, nullptr);
+    // Má parametr
+    EXPECT_NE(fun->parameters, nullptr);
+    AST_ArgOrParamNode* param = fun->parameters;
+
+    // Parametr má typ int
+    EXPECT_EQ(param->dataType, AST_DATA_TYPE_INT);
+    // Parametr má výraz
+    EXPECT_NE(param->expression, nullptr);
+    AST_ExprNode* expr = param->expression;
+    EXPECT_EQ(expr->type, AST_EXPR_NODE);
+    // Výraz je proměnná
+    EXPECT_EQ(expr->exprType, AST_EXPR_VARIABLE);
+    AST_VarNode* var = (AST_VarNode*)expr->expression;
+    EXPECT_EQ(var->type, AST_VAR_NODE);
+    // Proměnná má identifikátor x
+    EXPECT_NE(var->identifier, nullptr);
+    EXPECT_EQ(string_compare_const_str(var->identifier, "x"), STRING_EQUAL);
+    
+    // Má další parametr
+    EXPECT_NE(param->next, nullptr);
+    param = param->next;
+
+    // Parametr má typ string
+    EXPECT_EQ(param->dataType, AST_DATA_TYPE_STRING);
+    // Parametr má výraz
+    EXPECT_NE(param->expression, nullptr);
+    AST_ExprNode* expr = param->expression;
+    EXPECT_EQ(expr->type, AST_EXPR_NODE);
+    // Výraz je proměnná
+    EXPECT_EQ(expr->exprType, AST_EXPR_VARIABLE);
+    AST_VarNode* var = (AST_VarNode*)expr->expression;
+    EXPECT_EQ(var->type, AST_VAR_NODE);
+    // Proměnná má identifikátor y
+    EXPECT_NE(var->identifier, nullptr);
+    EXPECT_EQ(string_compare_const_str(var->identifier, "y"), STRING_EQUAL);
+
+    // Nemá další parametry
+    EXPECT_EQ(param->next, nullptr);
+
+
+    frameStack_destroyAll();
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+
+TEST(Correct, VarDef){
+    // Má funkci
+    EXPECT_NE(ASTroot->functionList, nullptr);
+    AST_FunDefNode* fun = ASTroot->functionList;
+    // Funkce má tělo
+    EXPECT_NE(fun->body, nullptr);
+    AST_StatementNode* stmt = fun->body;
+    // Tělo funkce má jeden příkaz
+    EXPECT_NE(stmt, nullptr);
+    EXPECT_EQ(stmt->next, nullptr);
+    // Příkaz je deklarace proměnné
+    EXPECT_EQ(stmt->statementType, AST_STATEMENT_VAR_DEF);
+    EXPECT_NE(stmt->statement, nullptr);
+    // Příkaz je tedy výraz
+    AST_ExprNode* expr = (AST_ExprNode*)stmt->statement;
+    // Výraz má binární operátor
+    EXPECT_EQ(expr->exprType, AST_EXPR_BINARY_OP);
+    AST_BinOpNode* binop = (AST_BinOpNode*)expr->expression;
+
+
+}
 
 
 /*** Konec souboru parser_test.cpp ***/
