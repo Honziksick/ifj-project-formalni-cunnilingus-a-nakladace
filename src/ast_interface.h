@@ -152,7 +152,7 @@ void AST_initNewFunDefNode(AST_FunDefNode *node, DString *identifier,  \
  * @param variable Ukazatel na uzel proměnné.
  */
 void AST_initNewArgOrParamNode(AST_ArgOrParamNode *node, AST_DataType dataType, \
-                               AST_VarNode *variable);
+                               AST_ExprNode *expression);
 
 /**
  * @brief Inicializuje uzel pro příkaz.

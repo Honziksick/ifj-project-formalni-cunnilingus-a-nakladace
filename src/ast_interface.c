@@ -237,20 +237,20 @@ void AST_initNewFunDefNode(AST_FunDefNode *node, DString *identifier, \
  * @brief Inicializuje uzel pro argument nebo parametr funkce.
  */
 void AST_initNewArgOrParamNode(AST_ArgOrParamNode *node, AST_DataType dataType, \
-                               AST_VarNode *variable) {
+                               AST_ExprNode *expression) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
         error_handle(ERROR_INTERNAL);
     }
 
     // Pokud se nejedná o nový uzel beze zdrojů, dojde k interní chybě
-    if(node->variable != NULL || node->next != NULL) {
+    if(node->expression != NULL || node->next != NULL) {
         error_handle(ERROR_INTERNAL);
     }
 
     // Přiřadíme uzlu předané zdroje
     node->dataType = dataType;
-    node->variable = variable;
+    node->expression = expression;
     node->next = NULL;
 
 } // AST_initNewArgOrParamNode()
@@ -592,7 +592,7 @@ AST_ArgOrParamNode *AST_createArgOrParamNode() {
 
     // Počáteční inicializace členů uzlu
     node->type = AST_ARG_OR_PARAM_NODE;
-    node->variable = NULL;
+    node->expression = NULL;
     node->next = NULL;
 
     // Vracíme ukazatel na nový uzel
@@ -609,7 +609,7 @@ void AST_destroyArgOrParamNode(AST_ArgOrParamNode *node) {
     }
 
     // Uvolníme s uzlem svázaný uzel proměnné
-    AST_destroyNode(AST_VAR_NODE, node->variable);
+    AST_destroyNode(AST_EXPR_NODE, node->expression);
 
     // Uvolníme uzel
     free(node);
