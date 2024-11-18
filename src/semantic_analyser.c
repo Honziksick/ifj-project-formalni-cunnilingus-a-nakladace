@@ -6,7 +6,7 @@
  * Autor:            Krejčí David   <xkrejcd00>                                *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   17.11.2024                                                *
+ * Poslední změna:   18.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -670,7 +670,8 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
     AST_ArgOrParamNode *arg = fun_node->arguments;
 
     // Najdeme tabulku symbolů volání funkce
-    SymtablePtr table = frameArray.array[arg->variable->frameID]->frame;
+    AST_VarNode *var_node = arg->expression->expression;
+    SymtablePtr table = frameArray.array[var_node->frameID]->frame;
 
     for(size_t i = 0; i < data->param_count; i++){
         // Málo argumentů ve volání
@@ -680,14 +681,14 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
         }
 
         Semantic_Data actual_type;
-        if(arg->variable->identifier == NULL){
+        if(var_node->identifier == NULL){
             // Argument je literál
-            actual_type = semantic_literalToSemType(arg->variable->literalType);
+            actual_type = semantic_literalToSemType(var_node->literalType);
 
         }else{
             // Argument je proměnná
             // Najdeme argument v tabulce symbolů
-            sym_result = symtable_findItem(table, arg->variable->identifier, &item);
+            sym_result = symtable_findItem(table, var_node->identifier, &item);
             if(sym_result != SYMTABLE_SUCCESS){
                 string_free(key);
                 return ERROR_INTERNAL;
@@ -1142,19 +1143,20 @@ ErrorType semantic_checkIFJString(AST_FunCallNode *fun_node){
 
     // Parametr musí být string nebo string literál
     AST_ArgOrParamNode *arg = fun_node->arguments;
+    AST_VarNode *var_node = arg->expression->expression;
 
-    if(arg->variable->identifier == NULL){
+    if(var_node->identifier == NULL){
         // Argument je literál
-        if(semantic_literalToSemType(arg->variable->literalType) != SEM_DATA_STRING){
+        if(semantic_literalToSemType(var_node->literalType) != SEM_DATA_STRING){
             return ERROR_SEM_PARAMS_OR_RETVAL;
         }
 
     }else{
         // Argument je proměnná
         // Najdeme argument v tabulce symbolů
-        SymtablePtr table = frameArray.array[arg->variable->frameID]->frame;
+        SymtablePtr table = frameArray.array[var_node->frameID]->frame;
         SymtableItemPtr item;
-        if(symtable_findItem(table, arg->variable->identifier, &item) != SYMTABLE_SUCCESS){
+        if(symtable_findItem(table, var_node->identifier, &item) != SYMTABLE_SUCCESS){
             return ERROR_INTERNAL;
         }
 
