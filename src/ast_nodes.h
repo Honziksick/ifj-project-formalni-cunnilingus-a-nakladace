@@ -178,7 +178,7 @@ typedef enum AST_ExprType {
  */
 typedef struct AST_ProgramNode {
     enum   AST_NodeType   type;                 /**< Typ uzlu (AST_PROGRAM_NODE) */
-           DString        *importedFile;        /**< Prolog: cesta k importovanému modulu */
+    struct AST_VarNode    *importedFile;        /**< Prolog: proměnná s cestou k importovanému modulu */
     struct AST_FunDefNode *functionList;        /**< Seznam definic funkcí */
 } AST_ProgramNode;
 
