@@ -117,7 +117,7 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **o
             item->known_value = false;
             item->used = false;
             item->changed = false;
-            
+
             // Pokud je požadován odkaz na novou položku, vrátíme ho
             if(out_item != NULL) {
                 *out_item = item;
@@ -272,7 +272,7 @@ void symtable_deleteAll(Symtable *table, bool keep_data) {
                 // Pokud je položka string, uvolníme jako string
                 if(item.symbol_state == SYMTABLE_SYMBOL_VARIABLE_STRING ||
                    item.symbol_state == SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL){
-                    string_free(item.data);
+                    //string_free(item.data); change by Honziksick
                     item.data = NULL;
                 }
                 // Jinak jen uvolníme data
@@ -338,7 +338,7 @@ void symtable_print(Symtable *table, FILE *file, bool print_data, bool cut_data)
 
         // Vytiskneme index
         fprintf(file, "%-10zu", i);
-        
+
         // Vytiskneme data
         if(print_data){
             // Vytiskneme stav položky
@@ -402,7 +402,7 @@ void symtable_print(Symtable *table, FILE *file, bool print_data, bool cut_data)
                 fprintf(file, "%p", item.data);
             }
         }
-        // 
+        //
         fprintf(file, "\n");
     }
     if(empty){
