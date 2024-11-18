@@ -5,7 +5,7 @@ const ifj = @import("ifj24.zig");
 pub fn main() void {
     ifj.write("?xes ydk ...ezkaT\n");
 
-    var a: i32 = decrement(10, "Kys");  //[]u8 namísto i32
+    const a: i32 = decrement(10, "Kys");  //[]u8 namísto i32
 
     ifj.write(a);
 }

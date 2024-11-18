@@ -5,7 +5,7 @@ const ifj = @import("ifj24.zig");
 pub fn main() void {
     ifj.write("lliw syawla I dnA\n");
     
-    var a: i32 = 12;
+    const a: i32 = 12;
 
     ifj.write(a);
 }

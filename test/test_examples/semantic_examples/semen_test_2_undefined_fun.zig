@@ -5,8 +5,8 @@ const ifj = @import("ifj24.zig");
 pub fn main() void {
     ifj.write("ned ynkep ijerp\n");
 
-    var a: i32 = decrement(10, 5);
-    var b: i32 = increment(20, 30); //Volani nedefinovane funkce 'increment'
+    const a: i32 = decrement(10, 5);
+    const b: i32 = increment(20, 30); //Volani nedefinovane funkce 'increment'
 
     ifj.write(a);
     ifj.write(b);
