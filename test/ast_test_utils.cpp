@@ -129,14 +129,13 @@ void ASTutils_printProgramNode(AST_ProgramNode *node, ostream &out, int indent, 
     levels.push_back(!isLastChild);
 
     // Ověření existence importovaného souboru
-    if (node->importedFile != nullptr && node->importedFile->str != nullptr) {
+    if (node->importedFile != nullptr) {
         ASTutils_printIndent(indent + 1, out, levels, false);
-        char *importedFile = string_toConstChar(node->importedFile);
         if (useColors)
-            out << COLOR_BLUE << "Imported File: " << COLOR_RESET << importedFile << endl;
+            out << COLOR_BLUE << "Imported File: " << COLOR_RESET << endl;
         else
-            out << "Imported File: " << importedFile << endl;
-        free(importedFile);
+            out << "Imported File: " << endl;
+        ASTutils_printVarNode(node->importedFile, out, indent + 1, useColors, levels, true);
     } else {
         ASTutils_printIndent(indent + 1, out, levels, false);
         if (useColors)

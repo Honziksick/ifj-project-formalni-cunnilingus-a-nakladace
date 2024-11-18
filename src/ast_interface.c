@@ -163,9 +163,11 @@ void AST_destroyNode(AST_NodeType type, void *node) {
 /**
  * @brief Alokuje paměť pro globální kořen abstraktního syntaktického stromu
  */
-inline AST_ProgramNode *AST_createTree() {
-    AST_ProgramNode *root = AST_createProgramNode();
-    return root;
+inline void AST_initTree() {
+    ASTroot = (AST_ProgramNode *)AST_createNode(AST_PROGRAM_NODE);
+    if(ASTroot == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
 } // AST_createTree()
 
 /**
@@ -189,7 +191,7 @@ void AST_destroyTree() {
 /**
  * @brief Inicializuje kořenový uzel programu.
  */
-void AST_initNewProgramNode(AST_ProgramNode *node, DString *importedFile, \
+void AST_initNewProgramNode(AST_ProgramNode *node, AST_VarNode *importedFile, \
                             AST_FunDefNode *functionList) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
@@ -518,10 +520,8 @@ void AST_destroyProgramNode(AST_ProgramNode *node) {
         return;
     }
 
-    // Uvolníme dynamický string uvnitř uzlu
-    if(node->importedFile != NULL) {
-        string_free(node->importedFile);
-    }
+    // Uvolníme proměnnou s cestou k importovanému souboru
+    AST_destroyVarNode(node->importedFile);
 
     // Uvolníme všechny s uzlem svázané definice funkcí
     AST_destroyFunDefList(node->functionList);

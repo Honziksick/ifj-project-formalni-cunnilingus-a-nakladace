@@ -89,7 +89,7 @@ void AST_destroyNode(AST_NodeType type, void *node);
  *
  * @return Ukazatel na nový uzel AST typu `AST_ProgramNode`, nebo `NULL` při chybě alokace.
  */
-AST_ProgramNode *AST_createTree();
+void AST_initTree();
 
 /**
  * @brief Uvolní z paměti celý abstraktní syntaktický strom
@@ -120,7 +120,7 @@ void AST_destroyTree();
  * @param importedFile Ukazatel na dynamický string s cestou k importovanému modulu.
  * @param functionList Ukazatel na seznam definic funkcí.
  */
-void AST_initNewProgramNode(AST_ProgramNode *node, DString *importedFile, \
+void AST_initNewProgramNode(AST_ProgramNode *node, AST_VarNode *importedFile, \
                             AST_FunDefNode *functionList);
 
 /**

@@ -63,11 +63,16 @@ TEST(ASTtest_Root, UnInitRoot) {
  * @brief Test kořene, kde je pouze jednodušše inicializovaný kořenový uzel.
  */
 TEST(ASTtest_Root, InitRoot) {
-    ASTroot = AST_createTree();
+    AST_initTree();
     ASSERT_NE(ASTroot, nullptr);
-    ASTroot->importedFile = string_init();
-    ASSERT_NE(ASTroot->importedFile, nullptr);
-    ASSERT_EQ(string_append_char(ASTroot->importedFile, 'i'), STRING_SUCCESS);
+
+    AST_VarNode *importedFile = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(importedFile, nullptr);
+    ASTroot->importedFile = importedFile;
+    ASTroot->importedFile->identifier = string_init();
+    ASSERT_NE(ASTroot->importedFile->identifier, nullptr);
+    ASSERT_EQ(string_append_char(ASTroot->importedFile->identifier, 'i'), STRING_SUCCESS);
+
     ASSERT_EQ(ASTroot->type, AST_PROGRAM_NODE);
     ASSERT_EQ(ASTroot->functionList, nullptr);
 
@@ -82,9 +87,12 @@ TEST(ASTtest_Root, InitRoot) {
 TEST(ASTtest_Root, ManyFuncLinkedRoot) {
     AST_ProgramNode *root = (AST_ProgramNode *)AST_createNode(AST_PROGRAM_NODE);
     ASSERT_NE(root, nullptr);
-    root->importedFile = string_init();
-    ASSERT_NE(root->importedFile, nullptr);
-    ASSERT_EQ(string_append_char(root->importedFile, 'i'), STRING_SUCCESS);
+    AST_VarNode *importedFile = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(importedFile, nullptr);
+    root->importedFile = importedFile;
+    root->importedFile->identifier = string_init();
+    ASSERT_NE(root->importedFile->identifier, nullptr);
+    ASSERT_EQ(string_append_char(root->importedFile->identifier, 'i'), STRING_SUCCESS);
 
     AST_FunDefNode *func1 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
     ASSERT_NE(func1, nullptr);
@@ -842,9 +850,12 @@ TEST(ASTtest_Tree, SimpleTree) {
     // Vytvoření kořene stromu
     AST_ProgramNode *root = (AST_ProgramNode *)AST_createNode(AST_PROGRAM_NODE);
     ASSERT_NE(root, nullptr);
-    root->importedFile = string_init();
-    ASSERT_NE(root->importedFile, nullptr);
-    ASSERT_EQ(string_append_char(root->importedFile, 'i'), STRING_SUCCESS);
+    AST_VarNode *importedFile = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(importedFile, nullptr);
+    root->importedFile = importedFile;
+    root->importedFile->identifier = string_init();
+    ASSERT_NE(root->importedFile->identifier, nullptr);
+    ASSERT_EQ(string_append_char(root->importedFile->identifier, 'i'), STRING_SUCCESS);
 
     // Vytvoření funkce
     AST_FunDefNode *func = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
@@ -881,9 +892,12 @@ TEST(ASTtest_Tree, MoreComplexTree) {
     // Vytvoření kořene stromu
     AST_ProgramNode *root = (AST_ProgramNode *)AST_createNode(AST_PROGRAM_NODE);
     ASSERT_NE(root, nullptr);
-    root->importedFile = string_init();
-    ASSERT_NE(root->importedFile, nullptr);
-    ASSERT_EQ(string_append_char(root->importedFile, 'i'), STRING_SUCCESS);
+    AST_VarNode *importedFile = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(importedFile, nullptr);
+    root->importedFile = importedFile;
+    root->importedFile->identifier = string_init();
+    ASSERT_NE(root->importedFile->identifier, nullptr);
+    ASSERT_EQ(string_append_char(root->importedFile->identifier, 'i'), STRING_SUCCESS);
 
     // Vytvoření první funkce
     AST_FunDefNode *func1 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
@@ -945,11 +959,14 @@ TEST(ASTtest_Tree, MoreComplexTree) {
  */
 TEST(ASTtest_Tree, ComplexTree) {
     // Vytvoření kořene stromu
-    ASTroot = AST_createTree();
+    AST_initTree();
     ASSERT_NE(ASTroot, nullptr);
-    ASTroot->importedFile = string_init();
-    ASSERT_NE(ASTroot->importedFile, nullptr);
-    ASSERT_EQ(string_append_char(ASTroot->importedFile, 'i'), STRING_SUCCESS);
+    AST_VarNode *importedFile = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    ASSERT_NE(importedFile, nullptr);
+    ASTroot->importedFile = importedFile;
+    ASTroot->importedFile->identifier = string_init();
+    ASSERT_NE(ASTroot->importedFile->identifier, nullptr);
+    ASSERT_EQ(string_append_char(ASTroot->importedFile->identifier, 'i'), STRING_SUCCESS);
 
     // Vytvoření funkce main
     AST_FunDefNode *mainFunc = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
