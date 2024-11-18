@@ -341,7 +341,7 @@ void PrecStack_getTopPrecTerminal(PrecTerminals *terminal) {
 
     // Pokud nebyl na zásobníku teminál nalezen, nastala interní chyba překladače
     if(stackTopNode == NULL) {
-        error_handle(ERROR_INTERNAL);
+        *terminal = T_PREC_UNDEFINED;
     }
 
     PrecStack_mapStackSymbolToPrecTerminal(stackTopNode->symbol, terminal);
@@ -370,6 +370,35 @@ bool PrecStack_isHandleOnTop() {
     // Kontrola, zda je na vrcholu zásobníku symbol HANDLE
     return (stackTopNode->symbol == PREC_STACK_SYM_HANDLE);
 } // PrecStack_handleOnTop()
+
+/**
+ * @brief Získá výsledný AST uzel výrazu z precedenčního zásobníku.
+ */
+bool PrecStack_getResult(AST_ExprNode **result) {
+    // Kontrola, že zásobník není prázdný
+    if(PrecStack_isEmpty()) {
+        error_handle(ERROR_INTERNAL);
+        return false;
+    }
+
+    // Získáme vrchní prvek na zásobníku
+    PrecStackNode *topNode = PrecStack_top();
+    if(topNode == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return false;
+    }
+
+    // Ověříme, že vrchní prvek obsahuje výraz
+    if(topNode->symbol != PREC_STACK_SYM_EXPRESSION || topNode->node == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return false;
+    }
+
+    // Uložíme výsledný AST_ExprNode *
+    *result = topNode->node;
+
+    return true;
+} // PrecStack_getResult
 
 
 /*******************************************************************************

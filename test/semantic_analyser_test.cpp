@@ -31,19 +31,19 @@
 #include "gmock/gmock.h"
 
 extern "C" {
+#include "semantic_analyser.h"
+#include "scanner.h"
 #include "parser.h"
 #include "llparser.h"
-#include "semantic_analyser.h"
+#include "precedence_parser.h"
+#include "lltable.h"
+#include "precedence_table.h"
+#include "precedence_stack.h"
 }
 
 using namespace std;
 using namespace testing;
 using namespace internal;
-
-/**
- * @brief Globální kořen abstraktního syntaktického stromu.
- */
-AST_ProgramNode *ASTroot;
 
 void TestSemantic(){
     semantic_analyseProgram();
@@ -52,14 +52,14 @@ void TestSemantic(){
 
 TEST(Correct, Simplest){
     FILE* f = fopen("../ifj24_examples/ifj24_programs/semantic_examples/simplest.zig", "r");
-    ASSERT_NE(f, nullptr);
+    EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
     frameStack_init();
 
     ASTroot = LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     frameStack_destroyAll();
@@ -70,14 +70,14 @@ TEST(Correct, Simplest){
 
 TEST(Correct, Hello){
     FILE* f = fopen("../ifj24_examples/ifj24_programs/hello.zig", "r");
-    ASSERT_NE(f, nullptr);
+    EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
     frameStack_init();
 
     ASTroot = LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     frameStack_destroyAll();
@@ -87,14 +87,14 @@ TEST(Correct, Hello){
 
 TEST(Correct, Example1){
     FILE* f = fopen("../ifj24_examples/ifj24_programs/example1.zig", "r");
-    ASSERT_NE(f, nullptr);
+    EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
     frameStack_init();
 
     ASTroot = LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     frameStack_destroyAll();
@@ -104,14 +104,14 @@ TEST(Correct, Example1){
 
 TEST(Correct, Example2){
     FILE* f = fopen("../ifj24_examples/ifj24_programs/example2.zig", "r");
-    ASSERT_NE(f, nullptr);
+    EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
     frameStack_init();
 
     ASTroot = LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     frameStack_destroyAll();
@@ -121,14 +121,14 @@ TEST(Correct, Example2){
 
 TEST(Correct, Example3){
     FILE* f = fopen("../ifj24_examples/ifj24_programs/example3.zig", "r");
-    ASSERT_NE(f, nullptr);
+    EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
     frameStack_init();
 
     ASTroot = LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     frameStack_destroyAll();
@@ -138,14 +138,14 @@ TEST(Correct, Example3){
 
 TEST(Correct, Fun){
     FILE* f = fopen("../ifj24_examples/ifj24_programs/fun.zig", "r");
-    ASSERT_NE(f, nullptr);
+    EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
     frameStack_init();
 
     ASTroot = LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     frameStack_destroyAll();

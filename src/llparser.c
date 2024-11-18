@@ -28,18 +28,6 @@
 
 #include "llparser.h"
 
-
-/*******************************************************************************
- *                                                                             *
- *           FUNKCE LL-PARSERU URČENÉ K PARSOVÁNÍ POMOCÍ LL-GRAMATKY           *
- *                                                                             *
- ******************************************************************************/
-
-AST_StatementNode *LLparser_parseStatementRest(DString *identifier);
-AST_FunCallNode *LLparser_parseFunCall(DString *identifier, bool isBuiltIn);
-
-
-
 /*******************************************************************************
  *                                                                             *
  *           FUNKCE LL-PARSERU URČENÉ K PARSOVÁNÍ POMOCÍ LL-GRAMATKY           *
@@ -753,52 +741,6 @@ AST_DataType LLparser_parseDataType() {
     } // switch()
 } // LLparser_parseDataType()
 
-// <SEQUENCE> -> { <STATEMENT_LIST> }
-AST_StatementNode *LLparser_parseSequence() {
-    // Parsujeme "{"
-    if(currentToken.LLterminal != T_LEFT_CURLY_BRACKET) {
-        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-        return PARSING_SYNTAX_ERROR;
-    }
-
-    // Žádáme o další token
-    Parser_getNextToken(LL_PARSER);
-
-    // Pushneme nový rámec na zásobník rámců
-    frameStack_push(false);
-
-    // Vytvoříme si uzel reprezentující seznam příkazů a parsujeme <STATEMENT_LIST>
-    AST_StatementNode *statementList = LLparser_parseStatementList();
-
-    // Zkontrolujeme úspěšnost parsování <STATEMENT_LIST>
-    if(statementList == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
-        if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-            error_handle(ERROR_INTERNAL);
-        }
-        return PARSING_SYNTAX_ERROR;
-    }
-
-    // Parsujeme "}"
-    if(currentToken.LLterminal != T_RIGHT_CURLY_BRACKET) {
-        AST_destroyNode(AST_STATEMENT_NODE, statementList);
-        if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-            error_handle(ERROR_INTERNAL);
-        }
-        return PARSING_SYNTAX_ERROR;
-    }
-
-    // Žádáme o další token
-    Parser_getNextToken(LL_PARSER);
-
-    // Popneme rámec pro tuto sekvenci příkazů
-    if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-        error_handle(ERROR_INTERNAL);
-    }
-
-    // Vracíme sekvenci příkazů
-    return statementList;
-}
-
 // <STATEMENT_LIST> -> <STATEMENT> <STATEMENT_LIST> | ε
 AST_StatementNode *LLparser_parseStatementList() {
     // Vyhledáme pravidlo v LL tabulce
@@ -901,16 +843,15 @@ AST_StatementNode *LLparser_parseStatement() {
             AST_StatementNode *statementRest = LLparser_parseStatementRest(identifier);
 
             // Kontrola úspěcho parsování <STATEMENT_REST>
+            // string je v případě chyby uvolněn v LLparser_parseStatementRest
             if(statementRest == NULL) {
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                string_free(identifier);
                 return PARSING_SYNTAX_ERROR;
             }
 
             // Parsujeme ";"
             if (currentToken.LLterminal != T_SEMICOLON) {
                 AST_destroyNode(AST_STATEMENT_NODE, statementRest);
-                string_free(identifier);
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                 return PARSING_SYNTAX_ERROR;
             }
@@ -1162,5 +1103,731 @@ AST_StatementNode *LLparser_parseStatement() {
             return PARSING_SYNTAX_ERROR;
     }
 } // LLparser_parseStatement()
+
+
+// <VAR_DEF> -> <MODIFIABLE> id <POSSIBLE_TYPE> = [precedence_expression]
+AST_StatementNode *LLparser_parseVarDef() {
+    // Parsujeme <MODIFIABLE>
+    bool isModifiable;
+    LLparser_parseModifiable(&isModifiable);
+
+    // Kontrolujeme úspěch parsování <MODIFIABLE>
+    if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Parsujeme "id"
+    if(currentToken.LLterminal != T_ID) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Zkontrolujeme, že se nejedná o zastínění (sémantická chyba 5)
+    frame_stack_result shadowing = frameStack_findItem(currentToken.value, NULL);
+    if(shadowing != FRAME_STACK_ITEM_DOESNT_EXIST) {
+        error_handle(ERROR_SEM_REDEF_OR_CONSTDEF);
+    }
+
+    // Uchovávme hodnotu identifikátoru
+    DString *varName = currentToken.value;
+
+    // Žádáme o další token
+    Parser_getNextToken(LL_PARSER);
+
+    // Parsujeme <POSSIBLE_TYPE>
+    AST_DataType dataType = LLparser_parsePossibleType();
+
+    // Kontrolujeme úspěch parsování <POSSIBLE_TYPE>
+    if(dataType == AST_DATA_TYPE_NOT_DEFINED && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+        string_free(varName);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Parsujeme '='
+    if(currentToken.LLterminal != T_ASSIGNMENT) {
+        string_free(varName);
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Žádáme o další token
+    Parser_getNextToken(LL_PARSER);
+
+    // Parsujeme [precedence_expression]
+    AST_ExprNode *expr = PrecParser_parse(NT_VAR_DEF);
+
+    // Kontrolujeme úspěch parsování
+    if(expr == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+        string_free(varName);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Přidáme proměnnou do tabulky symbolů
+    SymtableItem *varItem = NULL;
+    symtable_symbolState state = SYMTABLE_SYMBOL_UNKNOWN;
+    Parser_mapASTDataTypeToSymtableState(dataType, &state);
+    frame_stack_result result = frameStack_addItemExpress(varName, state, isModifiable, &varItem);
+    if(result != FRAME_STACK_SUCCESS) {
+        string_free(varName);
+        AST_destroyNode(AST_EXPR_NODE, expr);
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Vytvoříme uzel pro proměnnou
+    AST_VarNode *varNode = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+    if(varNode == NULL) {
+        string_free(varName);
+        AST_destroyNode(AST_EXPR_NODE, expr);
+        error_handle(ERROR_INTERNAL);
+    }
+    AST_initNewVarNode(varNode, AST_VAR_NODE, varName, frameStack.currentID, AST_LITERAL_NOT_DEFINED, NULL);
+
+    // Vytvoříme uzel binární operace pro přiřazení "="
+    AST_BinOpNode *assignOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    if(assignOpNode == NULL) {
+        AST_destroyNode(AST_VAR_NODE, varNode);
+        AST_destroyNode(AST_EXPR_NODE, expr);
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Inicializujeme uzel pro operaci přiřazení
+    AST_ExprNode *TEMP = NULL;
+    AST_initNewBinOpNode(assignOpNode, AST_OP_ASSIGNMENT, TEMP, expr);
+
+    // Vytvoříme uzel výrazu pro přiřazení  "="
+    AST_ExprNode *assignExprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    if(assignExprNode == NULL) {
+        AST_destroyNode(AST_BIN_OP_NODE, assignOpNode);
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Inicializujeme uzel pro výraz s přiřazením
+    AST_initNewExprNode(assignExprNode, AST_EXPR_BINARY_OP, assignOpNode);
+
+    // Vytvoříme uzel příkazu pro definici proměnné
+    AST_StatementNode *varDefNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    if(varDefNode == NULL) {
+        AST_destroyNode(AST_EXPR_NODE, assignExprNode);
+        error_handle(ERROR_INTERNAL);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Inicializujeme uzel pro příkaz výrazem s přiřazením
+    AST_initNewStatementNode(varDefNode, frameStack.currentID, AST_STATEMENT_VAR_DEF, assignExprNode);
+
+    // Vracíme uzel příkazu definice proměnné
+    return varDefNode;
+} // LLparser_parseVarDef
+
+// <MODIFIABLE> -> var | const
+void LLparser_parseModifiable(bool *isModifiable) {
+    if(isModifiable == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Vyhledáme pravidlo v LL tabulce
+    LLRuleSet rule = RULE_UNDEFINED;
+
+    // Pokud příslušné pravidlo nebylo nalezeno, vracíme NULL
+    if(!LLtable_findRule(currentToken.LLterminal, NT_MODIFIABLE, &rule)) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        *isModifiable = PARSING_SYNTAX_ERROR;
+        return;
+    }
+
+    // Na <MODIFIABLE> lze aplikovat dvě různá pravidla
+    switch(rule) {
+        // <MODIFIABLE> -> var
+        case MODIFIABLE_1:
+            // Parsujeme "var"
+            if(currentToken.LLterminal != T_VAR) {
+                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+                return;
+            }
+
+            // Žádáme o další token
+            Parser_getNextToken(LL_PARSER);
+
+            // Vracíme true, jelikož "var" je modifikovatelná
+            *isModifiable = true;
+            return;
+
+        // <MODIFIABLE> -> const
+        case MODIFIABLE_2:
+            // Parsujeme "const"
+            if(currentToken.LLterminal != T_CONST) {
+                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+                return;
+            }
+
+            // Žádáme o další token
+            Parser_getNextToken(LL_PARSER);
+
+            // Vracíme false, jelikož "const" není modifikovatelná
+            *isModifiable = false;
+            return;
+
+        // Jinak došlo k syntaktické chybě
+        default:
+            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+            return;
+    }
+} // LLparser_parseModifiable()
+
+// <POSSIBLE_TYPE> -> : <DATA_TYPE> | ε
+AST_DataType LLparser_parsePossibleType() {
+    // Vyhledáme pravidlo v LL tabulce
+    LLRuleSet rule = RULE_UNDEFINED;
+
+    // Pokud příslušné pravidlo nebylo nalezeno, vracíme NULL
+    if(!LLtable_findRule(currentToken.LLterminal, NT_POSSIBLE_TYPE, &rule)) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return AST_DATA_TYPE_NOT_DEFINED;
+    }
+
+    // Na <POSSIBLE_TYPE> lze aplikovat dvě různá pravidla
+    switch(rule) {
+        // <POSSIBLE_TYPE> -> : <DATA_TYPE>
+        case POSSIBLE_TYPE_1:
+            // Parsujeme ":"
+            if(currentToken.LLterminal != T_COLON) {
+                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+                return AST_DATA_TYPE_NOT_DEFINED;
+            }
+
+            // Žádáme o další token
+            Parser_getNextToken(LL_PARSER);
+
+            // Parsujeme a vracíme datový typ proměnné
+            return LLparser_parseDataType();
+
+        // <POSSIBLE_TYPE> -> ε
+        case POSSIBLE_TYPE_2:
+            // Datový typ není uveden a tedy vracíme nedefinovaný datový typ
+            return AST_DATA_TYPE_NOT_DEFINED;
+
+        // Jinak došlo k syntaktické chybě
+        default:
+            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+            return AST_DATA_TYPE_NOT_DEFINED;
+    }
+} // LLparser_parsePossibleType()
+
+// <STATEMENT_REST> -> = [precedence_expression] | ( <ARGUMENTS> )
+AST_StatementNode *LLparser_parseStatementRest(DString *identifier) {
+    // Vyhledáme pravidlo v LL tabulce
+    LLRuleSet rule = RULE_UNDEFINED;
+
+    // Pokud příslušné pravidlo nebylo nalezeno, vracíme NULL
+    if(!LLtable_findRule(currentToken.LLterminal, NT_STATEMENT_REST, &rule)) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Na <STATEMENT_REST> lze aplikovat dvě různá pravidla
+    switch(rule) {
+        // <STATEMENT_REST> -> = [precedence_expression]
+        case STATEMENT_REST_1: {
+            // Parsujeme "="
+            if(currentToken.LLterminal != T_ASSIGNMENT) {
+                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+                return PARSING_SYNTAX_ERROR;
+            }
+            // Žádáme o další token
+            Parser_getNextToken(LL_PARSER);
+
+            // Parsujeme [precedence_expression]
+            AST_ExprNode *expr = PrecParser_parse(NT_STATEMENT_REST);
+            if(expr == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+                string_free(identifier);
+                return PARSING_SYNTAX_ERROR;
+            }
+
+            // Vyhledáme proměnnou v tabulce symbolů (již by měla být obsažena)
+            SymtableItem *varItem = NULL;
+            frame_stack_result result = frameStack_findItem(identifier, &varItem);
+            if(result != FRAME_STACK_SUCCESS) {
+                string_free(identifier);
+                AST_destroyNode(AST_EXPR_NODE, expr);
+                error_handle(ERROR_SEM_UNDEF);
+            }
+
+            // Pokud obsažena byla nastavíme, že byla změněna
+            varItem->changed = true;
+
+            // Vytvoříme uzel pro proměnnou
+            AST_VarNode *varNode = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+            if(varNode == NULL) {
+                string_free(identifier);
+                AST_destroyNode(AST_EXPR_NODE, expr);
+                error_handle(ERROR_INTERNAL);
+            }
+
+            // Inicializujeme uzel pro proměnnou
+            AST_initNewVarNode(varNode, AST_VAR_NODE, identifier, frameStack.currentID, AST_LITERAL_NOT_DEFINED, AST_VAL_UNDEFINED);
+
+            // Vytvoříme uzel operaci přiřazení
+            AST_BinOpNode *assignOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+            if(assignOpNode == NULL) {
+                AST_destroyNode(AST_VAR_NODE, varNode);
+                AST_destroyNode(AST_EXPR_NODE, expr);
+                error_handle(ERROR_INTERNAL);
+                return PARSING_SYNTAX_ERROR;
+            }
+            AST_ExprNode *TEMP = NULL;
+            AST_initNewBinOpNode(assignOpNode, AST_OP_ASSIGNMENT, TEMP, expr);
+
+            // Vytvoříme uzel výrazu pro přiřazení
+            AST_ExprNode *assignExprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+            if(assignExprNode == NULL) {
+                AST_destroyNode(AST_BIN_OP_NODE, assignOpNode);
+                error_handle(ERROR_INTERNAL);
+                return PARSING_SYNTAX_ERROR;
+            }
+
+            // Inicializujeme uzel pro výraz přiřazení
+            AST_initNewExprNode(assignExprNode, AST_EXPR_BINARY_OP, assignOpNode);
+
+            // Vytvoříme uzel příkazu
+            AST_StatementNode *statementNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+            if(statementNode == NULL) {
+                AST_destroyNode(AST_EXPR_NODE, assignExprNode);
+                error_handle(ERROR_INTERNAL);
+                return PARSING_SYNTAX_ERROR;
+            }
+
+            // Inicializujeme uzel pro příkaz
+            AST_initNewStatementNode(statementNode, frameStack.currentID, AST_STATEMENT_EXPR, assignExprNode);
+
+            // Vracíme uzel příkazu
+            return statementNode;
+        }
+
+        // <STATEMENT_REST> -> ( <ARGUMENTS> )
+        case STATEMENT_REST_2:
+        {
+            // Parsujeme "("
+            if (currentToken.LLterminal != T_LEFT_BRACKET) {
+                string_free(identifier);
+                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+                return NULL;
+            }
+
+            // Žádáme o další token
+            Parser_getNextToken(LL_PARSER);
+
+            // Parsujeme <ARGUMENTS>
+            AST_ArgOrParamNode *arguments = LLparser_parseArguments();
+            if (arguments == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+                string_free(identifier);
+                return NULL;
+            }
+
+            // Parsujeme ")"
+            if (currentToken.LLterminal != T_RIGHT_BRACKET) {
+                string_free(identifier);
+                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+                return NULL;
+            }
+            Parser_getNextToken(LL_PARSER);
+
+            // Vytvoříme uzel pro volání funkce
+            AST_FunCallNode *funCallNode = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
+            if (funCallNode == NULL) {
+                string_free(identifier);
+                error_handle(ERROR_INTERNAL);
+            }
+
+            // Inicializujeme uzel pro volání funkce
+            AST_initNewFunCallNode(funCallNode, identifier, false, arguments);
+
+            // Vytvoříme uzel příkazu
+            AST_StatementNode *statementNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+            if(statementNode == NULL) {
+                AST_destroyNode(AST_FUN_CALL_NODE, funCallNode);
+                error_handle(ERROR_INTERNAL);
+                return PARSING_SYNTAX_ERROR;
+            }
+
+            // Inicializujeme uzel pro příkaz voláním funkce
+            AST_initNewStatementNode(statementNode, frameStack.currentID, AST_STATEMENT_FUN_CALL, funCallNode);
+
+            // Vracíme uzel příkazu
+            return statementNode;
+        }
+
+        // Jinak došlo k syntaktické chybě
+        default:
+            string_free(identifier);
+            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+            return PARSING_SYNTAX_ERROR;
+    }
+} // LLparser_parseStatementRest
+
+AST_ExprNode *LLparser_parseThrowAway() {
+    return PrecParser_parse(NT_THROW_AWAY);
+}
+
+AST_IfNode *LLparser_parseIf() {
+    // Parsujeme "if"
+    if (currentToken.LLterminal != T_IF) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+    Parser_getNextToken(LL_PARSER);
+
+    // Parsujeme "("
+    if (currentToken.LLterminal != T_LEFT_BRACKET) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Žádáme o další token
+    Parser_getNextToken(LL_PARSER);
+
+    // Vytváříme uzel výrazu a parsujeme [precedence_expression] (čili podmínku if)
+    AST_ExprNode *condition = PrecParser_parse(NT_IF);
+    if(condition == NULL) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Parsujeme ")"
+    if (currentToken.LLterminal != T_RIGHT_BRACKET) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        AST_destroyNode(AST_EXPR_NODE, condition);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Žádáme o další token
+    Parser_getNextToken(LL_PARSER);
+
+    // Parsujeme <NULL_COND>
+    AST_VarNode *nullCond = LLparser_parseNullCond();
+    if (Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+        AST_destroyNode(AST_EXPR_NODE, condition);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Pushneme nový rámec pro "if" blok
+    frameStack_push(false);
+
+    // Vytváříme uzel pro sezna příkazů a parsujeme <SEQUENCE>
+    AST_StatementNode *thenBranch = LLparser_parseSequence();
+    if (thenBranch == NULL) {
+        AST_destroyNode(AST_EXPR_NODE, condition);
+        if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
+            error_handle(ERROR_INTERNAL);
+        }
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Popneme rámec pro "if" blok
+    if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Parsujeme "else"
+    if (currentToken.LLterminal != T_ELSE) {
+        AST_destroyNode(AST_EXPR_NODE, condition);
+        AST_destroyNode(AST_STATEMENT_NODE, thenBranch);
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+    Parser_getNextToken(LL_PARSER);
+
+    // Pushneme nový rámec pro "else" blok
+    frameStack_push(false);
+
+    // Vytváříme uzel pro seznam příkazů a parsujeme <SEQUENCE>
+    AST_StatementNode *elseBranch = LLparser_parseSequence();
+    if(elseBranch == NULL) {
+        AST_destroyNode(AST_EXPR_NODE, condition);
+        AST_destroyNode(AST_STATEMENT_NODE, thenBranch);
+        if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
+            error_handle(ERROR_INTERNAL);
+        }
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Popneme rámec pro "else" blok
+    if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Vytvoříme uzel pro "if" příkaz
+    AST_IfNode *ifNode = (AST_IfNode *)AST_createNode(AST_IF_NODE);
+    if (ifNode == NULL) {
+        AST_destroyNode(AST_EXPR_NODE, condition);
+        AST_destroyNode(AST_STATEMENT_NODE, thenBranch);
+        AST_destroyNode(AST_STATEMENT_NODE, elseBranch);
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Inicializace uzlu pro příkaz konstrukce "if"
+    AST_initNewIfNode(ifNode, condition, nullCond, thenBranch, elseBranch);
+
+    // Vracíme uzel pro konstrukci "if"
+    return ifNode;
+} // LLparser_parseIf()
+
+AST_VarNode *LLparser_parseNullCond() {
+    // Parsujeme "|"
+    if (currentToken.LLterminal != T_PIPE) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Žádáme o další token
+    Parser_getNextToken(LL_PARSER);
+
+    // Parsujeme "id"
+    if (currentToken.LLterminal != T_ID) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Žádáme o další token
+    Parser_getNextToken(LL_PARSER);
+
+    // Parsujeme "|"
+    if (currentToken.LLterminal != T_PIPE) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Žádáme o další token
+    Parser_getNextToken(LL_PARSER);
+    // TEMP
+    return NULL;
+} // LLparser_parseNullCond()
+
+// <SEQUENCE> -> { <STATEMENT_LIST> }
+AST_StatementNode *LLparser_parseSequence() {
+    // Parsujeme "{"
+    if(currentToken.LLterminal != T_LEFT_CURLY_BRACKET) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Žádáme o další token
+    Parser_getNextToken(LL_PARSER);
+
+    // Pushneme nový rámec na zásobník rámců
+    frameStack_push(false);
+
+    // Vytvoříme si uzel reprezentující seznam příkazů a parsujeme <STATEMENT_LIST>
+    AST_StatementNode *statementList = LLparser_parseStatementList();
+
+    // Zkontrolujeme úspěšnost parsování <STATEMENT_LIST>
+    if(statementList == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+        if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
+            error_handle(ERROR_INTERNAL);
+        }
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Parsujeme "}"
+    if(currentToken.LLterminal != T_RIGHT_CURLY_BRACKET) {
+        AST_destroyNode(AST_STATEMENT_NODE, statementList);
+        if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
+            error_handle(ERROR_INTERNAL);
+        }
+        return PARSING_SYNTAX_ERROR;
+    }
+
+    // Žádáme o další token
+    Parser_getNextToken(LL_PARSER);
+
+    // Popneme rámec pro tuto sekvenci příkazů
+    if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Vracíme sekvenci příkazů
+    return statementList;
+} // LLparser_parseSequence()
+
+AST_WhileNode *LLparser_parseWhile() {
+    // Parsujeme "while"
+    if (currentToken.LLterminal != T_WHILE) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return NULL;
+    }
+    Parser_getNextToken(LL_PARSER);
+
+    // Parsujeme "("
+    if (currentToken.LLterminal != T_LEFT_BRACKET) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return NULL;
+    }
+    Parser_getNextToken(LL_PARSER);
+
+    // Parsujeme [precedence_expression]
+    AST_ExprNode *condition = PrecParser_parse(NT_WHILE);
+    if (condition == NULL) {
+        return NULL;
+    }
+
+    // Parsujeme ")"
+    if (currentToken.LLterminal != T_RIGHT_BRACKET) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        AST_destroyNode(AST_EXPR_NODE, condition);
+        return NULL;
+    }
+    Parser_getNextToken(LL_PARSER);
+
+    // Parsujeme <NULL_COND>
+    AST_VarNode *nullCond = LLparser_parseNullCond();
+    if (Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+        AST_destroyNode(AST_EXPR_NODE, condition);
+        return NULL;
+    }
+
+    // Pushneme nový rámec pro 'while' blok
+    frameStack_push(false);
+
+    // Parsujeme <SEQUENCE>
+    AST_StatementNode *body = LLparser_parseSequence();
+    if (body == NULL) {
+        AST_destroyNode(AST_EXPR_NODE, condition);
+        frameStack_pop();
+        return NULL;
+    }
+
+    // Popneme rámec pro 'while' blok
+    frameStack_pop();
+
+    // Vytvoříme uzel pro 'while' příkaz
+    AST_WhileNode *whileNode = (AST_WhileNode *)AST_createNode(AST_WHILE_NODE);
+    if (whileNode == NULL) {
+        error_handle(ERROR_INTERNAL);
+        AST_destroyNode(AST_EXPR_NODE, condition);
+        AST_destroyNode(AST_STATEMENT_NODE, body);
+        return NULL;
+    }
+    AST_initNewWhileNode(whileNode, condition, nullCond, body);
+
+    return whileNode;
+} // LLparser_parseWhile()
+
+AST_StatementNode *LLparser_parseReturn() {
+    // Parsujeme "return"
+    if (currentToken.LLterminal != T_RETURN) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return NULL;
+    }
+    Parser_getNextToken(LL_PARSER);
+
+    // Parsujeme <RETURN_REST>
+    AST_ExprNode *expr = LLparser_parseReturnRest();
+    if (Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+        return NULL;
+    }
+
+    // Vytvoříme uzel pro 'return' příkaz
+    AST_StatementNode *returnNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+    if (returnNode == NULL) {
+        error_handle(ERROR_INTERNAL);
+        if (expr != NULL) {
+            AST_destroyNode(AST_EXPR_NODE, expr);
+        }
+        return NULL;
+    }
+    AST_initNewStatementNode(returnNode, frameStack.currentID, AST_STATEMENT_RETURN, expr);
+
+    return returnNode;
+} // LLparser_parseReturn()
+
+AST_ExprNode *LLparser_parseReturnRest() {
+    // Vyhledáme pravidlo v LL tabulce
+    LLRuleSet rule = RULE_UNDEFINED;
+    if (!LLtable_findRule(currentToken.LLterminal, NT_RETURN_REST, &rule)) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return NULL;
+    }
+
+    switch (rule) {
+        case RETURN_REST_1: // <RETURN_REST> -> [precedence_expression]
+            return PrecParser_parse(NT_RETURN_REST);
+        case RETURN_REST_2: // <RETURN_REST> -> ε
+            return NULL;
+        default:
+            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+            return NULL;
+    }
+} // LLparser_parseReturnRest()
+
+AST_ArgOrParamNode *LLparser_parseArguments() {
+    // Vyhledáme pravidlo v LL tabulce
+    LLRuleSet rule = RULE_UNDEFINED;
+    if (!LLtable_findRule(currentToken.LLterminal, NT_ARGUMENTS, &rule)) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return NULL;
+    }
+
+    switch (rule) {
+        case ARGUMENTS_1: // <ARGUMENTS> -> <ARG_LIST>
+            return LLparser_parseArgList();
+        case ARGUMENTS_2: // <ARGUMENTS> -> ε
+            return NULL;
+        default:
+            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+            return NULL;
+    }
+} // LLparser_parseArguments()
+
+AST_ArgOrParamNode *LLparser_parseArgList() {
+    // Parsujeme [precedence_expression]
+    AST_ExprNode *expr = PrecParser_parse(NT_ARG_LIST);
+    if (expr == NULL) {
+        return NULL;
+    }
+
+    // Vytvoříme uzel pro argument
+    AST_ArgOrParamNode *argNode = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+    if (argNode == NULL) {
+        error_handle(ERROR_INTERNAL);
+        AST_destroyNode(AST_EXPR_NODE, expr);
+        return NULL;
+    }
+
+    AST_VarNode *TEMP = NULL;
+    AST_initNewArgOrParamNode(argNode, AST_DATA_TYPE_NOT_DEFINED, TEMP);
+
+    // Parsujeme zbytek argumentů
+    AST_ArgOrParamNode *restArgs = LLparser_parseArg();
+    if (restArgs != NULL) {
+        argNode->next = restArgs;
+    }
+
+    return argNode;
+} // LLparser_parseArgList()
+
+AST_ArgOrParamNode *LLparser_parseArg() {
+    // Vyhledáme pravidlo v LL tabulce
+    LLRuleSet rule = RULE_UNDEFINED;
+    if (!LLtable_findRule(currentToken.LLterminal, NT_ARG, &rule)) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        return NULL;
+    }
+
+    switch (rule) {
+        case ARG_1: // <ARG> -> , <ARG_LIST>
+            if (currentToken.LLterminal != T_COMMA) {
+                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+                return NULL;
+            }
+            Parser_getNextToken(LL_PARSER);
+            return LLparser_parseArgList();
+        case ARG_2: // <ARG> -> ε
+            return NULL;
+        default:
+            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+            return NULL;
+    }
+} // LLparser_parseArg()
 
 /*** Konec souboru llparser.c ***/

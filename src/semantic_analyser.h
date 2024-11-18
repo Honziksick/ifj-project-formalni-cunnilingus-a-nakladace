@@ -30,7 +30,6 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include "parser.h"
 #include "ast_nodes.h"
 #include "ast_interface.h"
 #include "frame_stack.h"
@@ -55,7 +54,7 @@ typedef enum {
 
 /**
  * @brief Provede sémantickou analýzu celého programu.
- * 
+ *
  * @details Volá funkce pro dílčí sémantické analýzy programu:
  *          - semantic_checkProgramStructure()
  *          - semantic_checkFunctionDefinitions()
@@ -66,10 +65,10 @@ void semantic_analyseProgram();
 
 /**
  * @brief Provede sémantickou analýzu základní struktury programu.
- * 
+ *
  * @details Ověří, že existuje funkce main s návratovým typem void a bez parametrů
  *          Dále ověří sprvánost literálů v prologu programu
- * 
+ *
  * @return  '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  */
 ErrorType semantic_analyseProgramStructure();
@@ -77,10 +76,10 @@ ErrorType semantic_analyseProgramStructure();
 
 /**
  * @brief Provede sémantickou analýzu definic funkcí
- * 
+ *
  * @details Projde strom a pro každou definici funkce zavolá sémantickou sondu
  *          ()
- * 
+ *
  * @return '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  */
 ErrorType semantic_analyseFunctionDefinitions();
@@ -88,12 +87,12 @@ ErrorType semantic_analyseFunctionDefinitions();
 
 /**
  * @brief Provede sémantickou analýzu všech proměnných v programu
- * 
+ *
  * @details Projde všechny rámce v globálním poli a zkontroluje,
  *          že každá proměnná je využita,
  *          že každá nekonstantní proměnná je změněna,
  *          že žádná konstantní proměnná není změněna
- * 
+ *
  * @return '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  */
 ErrorType semantic_analyseVariables();
@@ -101,17 +100,17 @@ ErrorType semantic_analyseVariables();
 
 /**
  * @brief Provede sémantickou analýzu bloku funkce
- * 
+ *
  * @details Prochází blok příkaz po příkazu a podle typu volá další
  *          pomocné funkce podle typu příkazu.
- * 
+ *
  * @return  '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
- *          
+ *
  */
 ErrorType semantic_probeFunction(AST_FunDefNode *node);
 
 /**
- * @brief 
+ * @brief
  */
 ErrorType semantic_probeBlock(Semantic_Data fun_return,
                               AST_StatementNode *statement, bool* returned);

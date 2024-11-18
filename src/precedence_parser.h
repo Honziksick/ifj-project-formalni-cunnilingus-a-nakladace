@@ -152,7 +152,7 @@ extern const struct ReductionRuleSet reductionRuleSet[NUM_OF_REDUCTION_RULES];
  *
  * @param fromNonTerminal Neterminál předávající řízení precedenčnímu syntaktickému analyzátoru.
  */
-void PrecParser_parse(LLNonTerminals fromNonTerminal);
+AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal);
 
 
 /*******************************************************************************

@@ -115,7 +115,7 @@ typedef enum AST_BinOpType {
     AST_OP_SUBTRACT             = 8,            /**< Operátor rozdílu "-" */
     AST_OP_MULTIPLY             = 9,            /**< Operátor součinu "*" */
     AST_OP_DIVIDE               = 10,           /**< Operátor podílu "/" */
-    AST_OP_ASSIGNEMENT          = 11,           /**< Operátor přiřazení "=" */
+    AST_OP_ASSIGNMENT           = 11,           /**< Operátor přiřazení "=" */
 } AST_BinOpType;
 
 /**
