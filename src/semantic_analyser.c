@@ -650,6 +650,10 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
             string_append_char(key, fun_node->identifier->str[i]);
         }
     }else {
+        key = string_init();
+        if(key == NULL){
+            return ERROR_INTERNAL;
+        }
         if(string_copy(fun_node->identifier, key) != STRING_SUCCESS){
             return ERROR_INTERNAL;
         }
@@ -1125,6 +1129,7 @@ ErrorType semantic_checkIFJWrite(AST_FunCallNode *fun_node){
     } else if(fun_node->arguments->next != NULL){
         return ERROR_SEM_PARAMS_OR_RETVAL;
     }
+    return 0;
 }
 
 ErrorType semantic_checkIFJString(AST_FunCallNode *fun_node){
@@ -1138,26 +1143,25 @@ ErrorType semantic_checkIFJString(AST_FunCallNode *fun_node){
     // Parametr musí být string nebo string literál
     AST_ArgOrParamNode *arg = fun_node->arguments;
     
-    Semantic_Data actual_type;
-        if(arg->variable->identifier == NULL){
-            // Argument je literál
-            if(semantic_literalToSemType(arg->variable->literalType) != SEM_DATA_STRING){
-                return ERROR_SEM_PARAMS_OR_RETVAL;
-            }
-            
-        }else{
-            // Argument je proměnná
-            // Najdeme argument v tabulce symbolů
-            SymtablePtr table = frameArray.array[arg->variable->frameID]->frame;
-            SymtableItemPtr item;
-            if(symtable_findItem(table, arg->variable->identifier, &item) != SYMTABLE_SUCCESS){
-                return ERROR_INTERNAL;
-            }
-
-            if(semantic_stateToSemType(item->symbol_state) != SEM_DATA_STRING){
-                return ERROR_SEM_PARAMS_OR_RETVAL;
-            }
+    if(arg->variable->identifier == NULL){
+        // Argument je literál
+        if(semantic_literalToSemType(arg->variable->literalType) != SEM_DATA_STRING){
+            return ERROR_SEM_PARAMS_OR_RETVAL;
         }
+        
+    }else{
+        // Argument je proměnná
+        // Najdeme argument v tabulce symbolů
+        SymtablePtr table = frameArray.array[arg->variable->frameID]->frame;
+        SymtableItemPtr item;
+        if(symtable_findItem(table, arg->variable->identifier, &item) != SYMTABLE_SUCCESS){
+            return ERROR_INTERNAL;
+        }
+
+        if(semantic_stateToSemType(item->symbol_state) != SEM_DATA_STRING){
+            return ERROR_SEM_PARAMS_OR_RETVAL;
+        }
+    }
     return 0;       
 }
 

@@ -763,6 +763,12 @@ $(TEST_BUILD_DIR)/$(SEMANTIC)_test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test.o \
 											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
 											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
 											$(TEST_BUILD_DIR)/$(FRAME_STACK).o \
+											$(TEST_BUILD_DIR)/$(PARSER).o \
+											$(TEST_BUILD_DIR)/ll$(PARSER).o \
+											$(TEST_BUILD_DIR)/$(PRECSTACK).o \
+											$(TEST_BUILD_DIR)/$(LLTABLE).o \
+											$(TEST_BUILD_DIR)/$(PRECTABLE).o \
+											$(TEST_BUILD_DIR)/$(SCANNER).o \
 											$(TEST_BUILD_DIR)/$(AST_LIB).o \
 											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
 											$(TEST_BUILD_DIR)/gtest_main.a \
