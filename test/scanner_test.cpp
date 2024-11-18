@@ -113,6 +113,9 @@ void testTokenString(const char* expected_string){
     }
 }
 
+std::string exam_path = "../ifj24_examples/ifj24_programs/";
+std::string lex_path = "../test/test_examples/lexical_examples/";
+
 /**
  * @brief Test hasovací funkce pro klíčová slova
  */
@@ -629,7 +632,8 @@ TEST(FSM, FSM_OPERATOR_ERROR_2){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program hello.zig
  */
 TEST(Lex, Hello) {
-    FILE* f = fopen("../ifj24_examples/ifj24_programs/hello.zig", "r");
+    std::string path = exam_path + "hello.zig";
+    FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
@@ -709,7 +713,8 @@ TEST(Lex, Hello) {
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program fun.zig
  */
 TEST(Lex, Fun) {
-    FILE* f = fopen("../ifj24_examples/ifj24_programs/fun.zig", "r");
+    std::string path = exam_path + "fun.zig";
+    FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
@@ -861,7 +866,8 @@ TEST(Lex, Fun) {
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example1.zig
  */
 TEST(Lex, Example1){
-    FILE* f = fopen("../ifj24_examples/ifj24_programs/example1.zig", "r");
+    std::string path = exam_path + "example1.zig";
+    FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
@@ -1004,7 +1010,8 @@ TEST(Lex, Example1){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example2.zig
  */
 TEST(Lex, Example2) {
-    FILE* f = fopen("../ifj24_examples/ifj24_programs/example2.zig", "r");
+    std::string path = exam_path + "example2.zig";
+    FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
@@ -1152,7 +1159,8 @@ TEST(Lex, Example2) {
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example3.zig
  */
 TEST(Lex, Example3) {
-    FILE* f = fopen("../ifj24_examples/ifj24_programs/example3.zig", "r");
+    std::string path = exam_path + "example3.zig";
+    FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
@@ -1401,7 +1409,8 @@ TEST(Lex, Multiline){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi.zig
  */
 TEST(Lex, lex_test_multi){
-    FILE* f = fopen("../ifj24_examples/ifj24_programs/lex_test_multi.zig", "r");
+    std::string path = lex_path + "lex_test_multi.zig";
+    FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
@@ -1511,7 +1520,8 @@ TEST(Lex, lex_test_multi){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi2.zig
  */
 TEST(Lex, lex_test_multi2){
-    FILE* f = fopen("../ifj24_examples/ifj24_programs/lex_test_multi2.zig", "r");
+    std::string path = lex_path + "lex_test_multi2.zig";
+    FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
@@ -1614,7 +1624,8 @@ TEST(Lex, lex_test_multi2){
  * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_satanic.zig
  */
 TEST(Lex, Satanic) {
-    FILE* f = fopen("../ifj24_examples/ifj24_programs/lex_test_satanic.zig", "r");
+    std::string path = lex_path + "lex_test_satanic.zig";
+    FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
