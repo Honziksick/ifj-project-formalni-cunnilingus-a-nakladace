@@ -612,8 +612,8 @@ run-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test
 # Stavba testů pro syntaktický analyzátor
 $(TEST_BUILD_DIR)/$(PARSER)_test: $(TEST_BUILD_DIR)/$(PARSER)_test.o \
 											$(TEST_BUILD_DIR)/$(PARSER).o \
-											$(TEST_BUILD_DIR)/ll$(PARSER).o
-											$(TEST_BUILD_DIR)/precedence_$(PARSER).o
+											$(TEST_BUILD_DIR)/ll$(PARSER).o \
+											$(TEST_BUILD_DIR)/precedence_$(PARSER).o \
 											$(TEST_BUILD_DIR)/$(LLTABLE).o \
 											$(TEST_BUILD_DIR)/$(PRECTABLE).o \
 											$(TEST_BUILD_DIR)/$(PRECSTACK).o \
