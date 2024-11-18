@@ -696,7 +696,7 @@ void ASTutils_printBinOpNode(AST_BinOpNode *node, ostream &out, int indent, bool
             else
                 out << "/" << endl;
             break;
-        case AST_OP_ASSIGNEMENT:
+        case AST_OP_ASSIGNMENT:
             // Operátor přiřazení =
             if (useColors)
                 out << COLOR_GOLD << "=" << COLOR_RESET << endl;

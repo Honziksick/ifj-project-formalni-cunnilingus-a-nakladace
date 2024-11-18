@@ -331,6 +331,14 @@ bool PrecStack_isHandleOnTop();
  */
 bool PrecStack_isEmpty();
 
+/**
+ * @brief Získá výsledný AST uzel výrazu z precedenčního zásobníku.
+ *
+ * @param result Ukazatel na proměnnou, kam bude uložen výsledný AST_ExprNode *.
+ * @return true při úspěchu, false pokud došlo k chybě.
+ */
+bool PrecStack_getResult(AST_ExprNode **result);
+
 
 /*******************************************************************************
  *                                                                             *

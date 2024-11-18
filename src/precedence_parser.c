@@ -76,7 +76,7 @@ const struct ReductionRuleSet reductionRuleSet[NUM_OF_REDUCTION_RULES] = {
  *
  * @param fromNonTerminal Neterminál předávající řízení precedenčnímu syntaktickému analyzátoru.
  */
-void PrecParser_parse(LLNonTerminals fromNonTerminal) {
+AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     // Získání množiny ukončovacích "dolar" terminálů pro daný NEterminál
     PrecTable_getFollowSet(fromNonTerminal);
 
@@ -85,6 +85,10 @@ void PrecParser_parse(LLNonTerminals fromNonTerminal) {
 
     // Tvorba a inicializace precedenčního zásobníku počátečním symbolem
     PrecStack_create();
+    if(precStack == NULL) {
+        error_handle(ERROR_INTERNAL);
+        return NULL;
+    }
     PrecStack_init();
 
     // Načtení prvního tokenu
@@ -97,6 +101,13 @@ void PrecParser_parse(LLNonTerminals fromNonTerminal) {
         // Získání termínál, který je na zásobníku nejvýše
         PrecTerminals topTerminal = T_PREC_UNDEFINED;
         PrecStack_getTopPrecTerminal(&topTerminal);
+
+        if(topTerminal == T_PREC_UNDEFINED) {
+            PrecStack_dispose();
+            PrecStack_destroy();
+            error_handle(ERROR_INTERNAL);
+            return NULL;
+        }
 
         // Aktualizace úrovně zanoření na zákaldě vstupního terminálu
         if (inTerminal == T_PREC_LEFT_BRACKET) {
@@ -114,6 +125,12 @@ void PrecParser_parse(LLNonTerminals fromNonTerminal) {
         // Získání precedence pro aktuální terminál a terminál na vrcholu zásobníku
         Precedence precedence;
         PrecTable_findPrecedence(topTerminal, inTerminal, &precedence);
+        if(precedence == P_SYNTAX_ERROR) {
+            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+            PrecStack_dispose();
+            PrecStack_destroy();
+            return NULL;
+        }
 
         // Zpracování na základě precedence
         switch(precedence) {
@@ -164,12 +181,22 @@ void PrecParser_parse(LLNonTerminals fromNonTerminal) {
                     ReductionRule rule = REDUCE_RULE_UNDEFINED;
                     precParser_chooseReductionRule(&rule);
 
+                    if(rule == REDUCE_RULE_UNDEFINED) {
+                        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+                        PrecStack_dispose();
+                        PrecStack_destroy();
+                        return NULL;
+                    }
+
                     // Proedeme redukci na základě zvoleného pravidla
                     PrecParser_reduce(rule);
                 }
                 // Pokud na vrcholu zásobníku "handle" není, došlo k syntaktické chybě
                 else {
-                    error_handle(ERROR_SYNTAX);
+                    Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+                    PrecStack_dispose();
+                    PrecStack_destroy();
+                    return NULL;
                 }
                 break;
             } // case P_GREATER
@@ -177,8 +204,10 @@ void PrecParser_parse(LLNonTerminals fromNonTerminal) {
             // Prázdné políčko v precedenční tabulce => syntaktická chyba
             case P_SYNTAX_ERROR:
             default:
-                error_handle(ERROR_SYNTAX);
-                return;
+                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+                PrecStack_dispose();
+                PrecStack_destroy();
+                return NULL;
         } // switch()
 
         // Kontrola ukončení: pokud 'b' i 'top' jsou rovny '$'
@@ -187,12 +216,21 @@ void PrecParser_parse(LLNonTerminals fromNonTerminal) {
         }
     } // while()
 
-    // Zpracování případných zbývajících redukcí
-    while(!PrecStack_isEmpty()) {
-        ReductionRule rule = REDUCE_RULE_UNDEFINED;
-        precParser_chooseReductionRule(&rule);
-        PrecParser_reduce(rule);
+    // Po úspěšném parsování by měl na zásobníku zůstat jediný prvek s výsledným výrazem
+    AST_ExprNode *result = NULL;
+    if(!PrecStack_getResult(&result)) {
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+        PrecStack_dispose();
+        PrecStack_destroy();
+        return NULL;
     }
+
+    // Uvolníme zásobník
+    PrecStack_dispose();
+    PrecStack_destroy();
+
+    // Vracíme výsledný AST_ExprNode
+    return result;
 } // PrecParser_parse()
 
 
@@ -290,7 +328,8 @@ void precParser_chooseReductionRule(ReductionRule *rule) {
     }
 
     // Pokud nebylo nalezeno žádné pravidlo, hlásíme interní chybu
-    error_handle(ERROR_SYNTAX);
+    Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+    *rule = REDUCE_RULE_UNDEFINED;
 } // precParser_chooseReductionRule()
 
 /**

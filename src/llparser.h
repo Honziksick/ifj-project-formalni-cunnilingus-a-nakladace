@@ -165,7 +165,7 @@ AST_StatementNode *LLparser_parseVarDef();
  *
  * @return `true` při úspěšném parsování, jinak `false`.
  */
-bool LLparser_parseModifiable();
+void LLparser_parseModifiable(bool *isModifiable);
 
 /**
  * @brief Parsuje neterminál `<POSSIBLE_TYPE>`.
@@ -181,7 +181,7 @@ AST_DataType LLparser_parsePossibleType();
  * @return Ukazatel na uzel příkazu (AST_StatementNode) při úspěšném parsování,
  *         jinak `NULL`.
  */
-AST_StatementNode *LLparser_parseStatementRest();
+AST_StatementNode *LLparser_parseStatementRest(DString *identifier);
 
 /**
  * @brief Parsuje neterminál `<THROW_AWAY>`.

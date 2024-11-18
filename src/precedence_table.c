@@ -114,7 +114,7 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
         if(precedenceTable[mid].key == stackTopTerminal) {
             // Pokud pravidlo neexistuje, došlo k syntaktické chybě
             if(precedenceTable[mid].value[inputTerminal] == P_SYNTAX_ERROR) {
-                error_handle(ERROR_SYNTAX);
+                *precedence = P_SYNTAX_ERROR;
             }
             // Jinak pravidlo existuje a vrátíme ho
             else {
