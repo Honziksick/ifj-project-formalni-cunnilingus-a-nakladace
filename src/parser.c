@@ -317,6 +317,11 @@ void Parser_mapTokenToLLTerminal(TokenType tokenType, LLTerminals *terminalType)
             *terminalType = T_EOF;
             break;
 
+        // Mapování: TOKEN_STRING -> T_IMPORT_PATH
+        case TOKEN_STRING:
+            *terminalType = T_IMPORT_PATH;
+            break;
+
         // Cokoliv jiného značí lexikální chybu
         default:
             error_handle(ERROR_SYNTAX);
