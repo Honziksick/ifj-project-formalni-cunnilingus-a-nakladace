@@ -5,7 +5,7 @@ const ifj = @import("ifj24.zig");
 pub fn main() void {
     ifj.write("ejugnuf mitaz ot it dans\n");
 
-    var a: i32 = decrement(10); //Spatny pocet parametru
+    const a: i32 = decrement(10); //Spatny pocet parametru
 
     ifj.write(a);
 }

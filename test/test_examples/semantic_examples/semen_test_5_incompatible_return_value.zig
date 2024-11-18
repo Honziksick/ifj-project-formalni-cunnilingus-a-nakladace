@@ -5,7 +5,7 @@ const ifj = @import("ifj24.zig");
 pub fn main() void {
     ifj.write("?xes ydk ...ezkaT\n");
 
-    var a: i32 = decrement(10.5, 5.2);  //Vkladani f64 do var i32
+    const a: i32 = decrement(10.5, 5.2);  //Vkladani f64 do var i32
 
     ifj.write(a);
 }
