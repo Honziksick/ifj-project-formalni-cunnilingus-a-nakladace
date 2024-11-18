@@ -256,7 +256,7 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item) {
  * @brief Přidá novou položku s daty do vrchního rámce zásobníku.
  */
 frame_stack_result frameStack_addItemExpress(DString *key,
-                    symtable_symbolState state, bool constant, void* data){
+                    symtable_symbolState state, bool constant, void* data, SymtableItem **out_item){
     SymtableItemPtr item;
     frame_stack_result result = frameStack_addItem(key, &item);
     if(result != FRAME_STACK_SUCCESS){
@@ -266,6 +266,11 @@ frame_stack_result frameStack_addItemExpress(DString *key,
     item->symbol_state = state;
     item->constant = constant;
     item->data = data;
+
+    if(out_item != NULL) {
+        *out_item = item;
+    }
+
     return FRAME_STACK_SUCCESS;
 } // frameStack_addItemExpress()
 
@@ -465,7 +470,7 @@ void frameStack_addEmbeddedFunctions(){
     if(frameStack_addFunction("ifj.chr", data) != FRAME_STACK_SUCCESS){
         error_handle(ERROR_INTERNAL);
     }
-    
+
 }
 
 frame_stack_result frameStack_addFunction(const char* key, void* data){
