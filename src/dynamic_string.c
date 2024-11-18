@@ -72,8 +72,14 @@ void string_free(DString *str) {
     // Pokud string existuje, smažeme ho
     if(str != NULL) {
         // Nejdříve ukazatel na pole a až pak strukturu
-        free(str->str);
+        if(str->str != NULL) {
+            free(str->str);
+            str->str = NULL;
+        }
+
+        // Nakonec uvolníme celý DString
         free(str);
+        str = NULL;
     }
 } /* konec string_free() */
 
