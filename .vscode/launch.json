@@ -346,7 +346,7 @@
             "name": "(gdb) run-semantic-test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/test/build_test/semantic_test",
+            "program": "${workspaceFolder}/test/build_test/semantic_analyser_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/src",
