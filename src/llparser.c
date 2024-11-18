@@ -49,7 +49,7 @@ AST_ProgramNode *LLparser_parseProgram() {
     LLRuleSet rule = RULE_UNDEFINED;
 
     // Pokud nebylo pravidlo nalazene, nastala syntaktická chyba
-    if(!LLtable_findRule(currentToken.LLterminal, NT_FUN_DEF_LIST, &rule)) {
+    if(!LLtable_findRule(currentToken.LLterminal, NT_PROGRAM, &rule)) {
         AST_destroyNode(AST_PROGRAM_NODE, programNode);
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
@@ -431,7 +431,7 @@ AST_ArgOrParamNode *LLparser_parseParameters(size_t *paramCount) {
     LLRuleSet rule = RULE_UNDEFINED;
 
     // Pokud nastal syntax error, vracíme NULL
-    if(!LLtable_findRule(currentToken.LLterminal, NT_FUN_DEF_LIST, &rule)) {
+    if(!LLtable_findRule(currentToken.LLterminal, NT_PARAMETERS, &rule)) {
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
     }
