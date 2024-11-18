@@ -1621,6 +1621,110 @@ TEST(Lex, lex_test_multi2){
 /**
  * @brief Testuje lexikální analyzátor pro vstupní program
  * 
+ * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_string_escapes.zig
+ */
+TEST(Lex, lex_test_string_escapes){
+    std::string path = lex_path + "lex_test_string_escapes.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // ifj.concat(
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS,
+
+        // první multiline
+        TOKEN_STRING,
+
+        // ,
+        TOKEN_COMMA,
+
+        // druhý multiline
+        TOKEN_STRING,
+
+        // );
+        TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+    };
+
+    const char* expected_strings[] = {
+        "Toto je test escape sekvenci stringu. Lomeno n: \n; Lomeno lomeno: \\; Lomeno uvozovky: \"; Lomeno r: \r; Lomeno t: \t.",
+        "Toto je test x escape sekvence stringu. :(58) = :; }(125) = }; NL(10) = \n; ú(250) = ú."
+    };
+
+
+    /**
+     * @brief TESTOVACÍ STRUKTURA PRO NAČÍTÁNÍ MNOŽINY TOKENŮ S VALUE U STRINGŮ
+     */
+    for (unsigned long i = 0, j = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Uložíme si pozici vstupu
+        long int current_pos = ftell(stdin);
+        
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Potomek zavolá testTokenType a ukončí se
+            if(expected_arr[i] == TOKEN_STRING){
+                if(j > sizeof(expected_strings) / sizeof(char*)){
+                    cerr << "Error in token " << i << endl;
+                    cerr << "Expected strings is too small: " << endl;
+                    FAIL();
+                }
+                testTokenString(expected_strings[j]);
+            } else {
+                testTokenType(expected_arr[i]);
+            }
+
+            exit(0);
+        } else {
+            // Rodičovský proces čeká na potomka
+            int status;
+            waitpid(pid, &status, 0);
+            if(WEXITSTATUS(status) == 0){
+                if(expected_arr[i] == TOKEN_STRING){
+                    j++;
+                }
+                continue;
+            }else if (WEXITSTATUS(status) == 2) {
+                // Potomek failnul testy, ale ne lex chybou
+                ADD_FAILURE();
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+            }else if (WEXITSTATUS(status) == 1) {
+                // Potomek skončil s lex chybou
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Vypíšeme zbytek vstupu
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+                
+                FAIL();
+            }
+            if(expected_arr[i] == TOKEN_STRING){
+                j++;
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+
+}
+
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
  * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_satanic.zig
  */
 TEST(Lex, Satanic) {
