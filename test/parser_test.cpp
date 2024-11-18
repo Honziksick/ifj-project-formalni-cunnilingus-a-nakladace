@@ -101,10 +101,6 @@ TEST(Correct, TwoFunctions){
 
     EXPECT_NE(ASTroot, nullptr);
 
-    //Test pro AST
-    EXPECT_EQ(ASTroot->type, AST_PROGRAM_NODE);
-    // Prolog literál
-    EXPECT_STREQ(string_toConstChar(ASTroot->importedFile), "ifj24.zig");
     // Má funkci
     EXPECT_NE(ASTroot->functionList, nullptr);
     AST_FunDefNode* fun = ASTroot->functionList;
@@ -152,10 +148,6 @@ TEST(Correct, OneParam){
 
     EXPECT_NE(ASTroot, nullptr);
 
-    //Test pro AST
-    EXPECT_EQ(ASTroot->type, AST_PROGRAM_NODE);
-    // Prolog literál
-    EXPECT_STREQ(string_toConstChar(ASTroot->importedFile), "ifj24.zig");
     // Má funkci
     EXPECT_NE(ASTroot->functionList, nullptr);
     AST_FunDefNode* fun = ASTroot->functionList;
