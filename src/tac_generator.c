@@ -66,11 +66,6 @@ TAC_Instruction *TAC_initInstruction(){
  * @brief Vytvoří novou tříadresnou instrukci.
  */
 TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_Operand src1, TAC_Operand src2){
-    // Inicializace listu instrukcí
-    TAC_InstructionList *list = TAC_createInstructionList();
-    if(list == NULL){
-        return NULL;
-    }
     // Alokace paměti a inicializace pro novou instrukci
     TAC_Instruction *instr = TAC_initInstruction();
     if(instr == NULL){
@@ -122,18 +117,18 @@ TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_O
 /**
  * @brief Přidá instrukci na konec seznamu instrukcí.
  */
-void TAC_appendInstruction(TAC_InstructionList *list, TAC_Instruction *instr){
+void TAC_appendInstruction(TAC_InstructionList *tacList, TAC_Instruction *instr){
     // Přidání první instrukce do seznamu
-    if(list->head == NULL){
-        list->head = instr;
-        list->tail = instr;
+    if(tacList->head == NULL){
+        tacList->head = instr;
+        tacList->tail = instr;
     }
     // Přidání dalších instrukcí na konec seznamu
     else{
-        list->tail->next = instr;
-        list->tail = instr;
+        tacList->tail->next = instr;
+        tacList->tail = instr;
         // Konec ukazuje na NULL
-        list->tail->next = NULL;
+        tacList->tail->next = NULL;
     }
 } // TAC_appendInstruction
 
@@ -236,14 +231,14 @@ void TAC_printInstruction(TAC_Instruction *instr){
 /**
  * @brief Vytiskne všechny instrukce v seznamu tříadresného kódu.
  */
-void TAC_printInstructionList(TAC_InstructionList *list){
+void TAC_printInstructionList(TAC_InstructionList *tacList){
     // Pokud je seznam prázdný, nemáme co tisknout
-    if(list->head == NULL){
+    if(tacList->head == NULL){
         return;
     }
 
     // Postupné tisknutí instrukcí od hlavičky
-    TAC_Instruction *current = list->head;
+    TAC_Instruction *current = tacList->head;
 
     // Dokud máme, co tisknout
     while(current != NULL){
@@ -270,7 +265,7 @@ bool TAC_generateProgramCode(AST_ProgramNode *programNode, TAC_InstructionList *
     instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("GF@$retval")}, (TAC_Operand){.type = TAC_OPERAND_NIL}, (TAC_Operand){.type = TAC_OPERAND_NONE});
     TAC_appendInstruction(tacList, instr);
     return true;
-}
+} // TAC_generateProgramCode
 
 /**
  * @brief Testovací funkce pro generování tříadresného kódu.
@@ -282,8 +277,12 @@ bool TAC_generateTestCode(TAC_InstructionList *tacList){
     return true;
 }
 
+/**
+ * @brief Uvolní operand.
+ */
 void TAC_destroyOperand(TAC_Operand *operand){
     switch (operand->type){
+        // Uvolní dynamický řetězec varName
         case TAC_OPERAND_VAR:
         case TAC_OPERAND_TEMP:
         case TAC_OPERAND_STRING:
@@ -291,10 +290,12 @@ void TAC_destroyOperand(TAC_Operand *operand){
             string_free(operand->value.varName);
             break;
 
+        // Uvolní dynamický řetězec labelName
         case TAC_OPERAND_LABEL:
             string_free(operand->value.labelName);
             break;
 
+        // Pokud operand nemá dynamický řetězec, nemáme co uvolnit
         default:
             break;
     }
@@ -315,9 +316,9 @@ void TAC_destroyInstruction(TAC_Instruction *instr){
         case TAC_OP_IF_GT:
         case TAC_OP_NOT:
 
-            TAC_destroyOperand(&instr->dest);
-            TAC_destroyOperand(&instr->src1);
-            TAC_destroyOperand(&instr->src2);
+            TAC_destroyOperand(&(instr->dest));
+            TAC_destroyOperand(&(instr->src1));
+            TAC_destroyOperand(&(instr->src2));
             return;
 
         // dest
@@ -328,7 +329,7 @@ void TAC_destroyInstruction(TAC_Instruction *instr){
         case TAC_OP_CALL:
         case TAC_OP_LABEL:
 
-            TAC_destroyOperand(&instr->dest);
+            TAC_destroyOperand(&(instr->dest));
             return;
 
         // dest, src1
@@ -336,8 +337,8 @@ void TAC_destroyInstruction(TAC_Instruction *instr){
         case TAC_OP_TYPE:
         case TAC_OP_READ:
 
-            TAC_destroyOperand(&instr->dest);
-            TAC_destroyOperand(&instr->src1);
+            TAC_destroyOperand(&(instr->dest));
+            TAC_destroyOperand(&(instr->src1));
             return;
 
         // Pokud instrukce nepotřebuje žádný operand
@@ -349,18 +350,18 @@ void TAC_destroyInstruction(TAC_Instruction *instr){
 /**
  * @brief Uvolní všechny instrukce v seznamu tříadresného kódu.
  */
-void TAC_freeInstructionList(TAC_InstructionList *list){
+void TAC_freeInstructionList(TAC_InstructionList *tacList){
     // Pokud je seznam prázdný, nemáme, co mazat
-    if(list->head == NULL){
+    if(tacList->head == NULL){
         return;
     }
 
     // Dokud máme, co mazat
-    while(list->head != NULL){
+    while(tacList->head != NULL){
         // Postupné mazání instrukcí od hlavičky
-        TAC_Instruction *current = list->head;
+        TAC_Instruction *current = tacList->head;
 
-        list->head = list->head->next;
+        tacList->head = tacList->head->next;
 
         TAC_destroyInstruction(current);
         free(current);
@@ -370,9 +371,9 @@ void TAC_freeInstructionList(TAC_InstructionList *list){
 /**
  * @brief Uvolní všechny instrukce v seznamu tříadresného kódu a potom samotný seznam.
  */
-void TAC_destroyInstructionList(TAC_InstructionList *list){
-    TAC_freeInstructionList(list);
-    free(list);
+void TAC_destroyInstructionList(TAC_InstructionList *tacList){
+    TAC_freeInstructionList(tacList);
+    free(tacList);
 } // TAC_destroyInstructionList
 
 /*** Konec souboru tac_generator.c ***/

@@ -58,6 +58,17 @@ TEST(TAC_EMPTY, Create_InstrList){
 }
 
 /**
+ * @brief Testuje funkci `TAC_createInstruction` pro vytvoření instrukce.
+ */
+TEST(TAC_EMPTY, Destroy_InstrList){
+    TAC_InstructionList *list = TAC_createInstructionList();
+    ASSERT_NE(list, nullptr);
+
+    TAC_freeInstructionList(list);
+    free(list);
+}
+
+/**
  * @brief Testuje funkci `TAC_destroyInstruction` pro zničení instrukce.
  */
 TEST(TAC_EMPTY, Destroy_Instruction){
@@ -89,17 +100,6 @@ TEST(TAC_EMPTY, Destroy_Operand){
 
     free(operand);
     free(operand2);
-}
-
-/**
- * @brief Testuje funkci `TAC_createInstruction` pro vytvoření instrukce.
- */
-TEST(TAC_EMPTY, Destroy_InstrList){
-    TAC_InstructionList *list = TAC_createInstructionList();
-    ASSERT_NE(list, nullptr);
-
-    TAC_freeInstructionList(list);
-    free(list);
 }
 
 /**
@@ -197,3 +197,22 @@ TEST(TAC, Print){
 
     TAC_destroyInstructionList(list);
 }
+
+/**
+ * @brief Testuje funkci `TAC_generateTestCode` pro vytvoření testovacího kódu.
+ *
+
+TEST(TAC, Generate_Program){
+    TAC_InstructionList *list = TAC_createInstructionList();
+    ASSERT_NE(list, nullptr);
+
+    AST_ProgramNode *programNode = AST_createProgramNode();
+    ASSERT_NE(programNode, nullptr);
+
+    TAC_generateProgramCode(programNode, list);
+
+    TAC_printInstructionList(list);
+
+    TAC_destroyInstructionList(list);
+    AST_destroyProgramNode(programNode);
+    } */
