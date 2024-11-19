@@ -131,12 +131,12 @@ Token scanner_FSM() {
     StateFSM state = STATE0_START;
     DString *str = string_init();
     Token lexToken;
+    int keytest = 0;
 
     //Běh FSM po jednom volání od Syntaktického analyzátoru
     while(stopFSM == false)
     {
         int x = 0;
-        int keytest = 0;
         //printf("State num: %d\n", state);
 
         switch (state) {
@@ -243,9 +243,14 @@ Token scanner_FSM() {
                 //printf("S2 Start\n");
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case LETTER:
-                        stopFSM = true;
-                        //printf("S2 Let\n");
-                        error_handle(ERROR_LEXICAL);        //ERROR - načítá se písmeno do Tokenu Int
+                        if(c == 'e') {
+                            string_append_char(str, (char)c);
+                            state = STATE33_FLOAT_UNREADY_E1;
+                        } else {
+                            stopFSM = true;
+                            //printf("S2 Let\n");
+                            error_handle(ERROR_LEXICAL);        //ERROR - načítá se písmeno do Tokenu Int
+                        }
                         break;
                     case NUMBER:
                         string_append_char(str, (char)c);
@@ -296,6 +301,39 @@ Token scanner_FSM() {
                         break;
                     default:    //LETTER + NOT_IN_LANGUAGE + SIMPLE + COMPLEX + CHAR_EOF
                         //printf("S3 DEF\n");
+                        stopFSM = true;
+                        error_handle(ERROR_LEXICAL);        //ERROR - nebylo načteno číslo do Tokenu nehotového floatu
+                        break;
+                }
+                break;
+            /*
+            -------------------------
+            Stav 33: FLOAT_UNREADY_E1
+            -------------------------
+            */
+            case STATE33_FLOAT_UNREADY_E1:
+                //printf("S33 Start\n");
+                c = scanner_getNextChar();  //Vstup jednoho znaku z STDIN
+                switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
+                    case SIMPLE:
+                        if(c == '+') {
+                            string_append_char(str, (char)c);
+                            state = STATE4_FLOAT_READY;
+                        } else if (c == '-') {
+                            string_append_char(str, (char)c);
+                            state = STATE4_FLOAT_READY;
+                        } else {
+                            stopFSM = true;
+                            error_handle(ERROR_LEXICAL);        //ERROR - nebylo načteno +/- do Tokenu nehotového floatu varianty exponent
+                        }
+                        break;
+                    case NUMBER:
+                        //printf("S33 Num\n");
+                        string_append_char(str, (char)c);
+                        state = STATE4_FLOAT_READY;
+                        break;
+                    default:    //LETTER + NOT_IN_LANGUAGE + COMPLEX + CHAR_EOF
+                        //printf("S33 DEF\n");
                         stopFSM = true;
                         error_handle(ERROR_LEXICAL);        //ERROR - nebylo načteno číslo do Tokenu nehotového floatu
                         break;
@@ -1034,7 +1072,7 @@ Token scanner_FSM() {
         }
     }
 
-    if(lexToken.value == NULL || strcmp(lexToken.value->str, "import") == 0) {
+    if(lexToken.value == NULL || strcmp(lexToken.value->str, "import") == 0 || (keytest != 0 && keytest != 1)) {
         string_free(str);
     }
     return lexToken;
