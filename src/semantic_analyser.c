@@ -105,7 +105,9 @@ ErrorType semantic_analyseProgramStructure() {
 
 }
 
-
+/**
+ * @brief Provede sémantickou analýzu definic funkcí
+ */
 ErrorType semantic_analyseFunctionDefinitions() {
     AST_FunDefNode *node = ASTroot->functionList;
     while(node != NULL) {
@@ -119,7 +121,9 @@ ErrorType semantic_analyseFunctionDefinitions() {
     return 0;
 }
 
-
+/**
+ * @brief Provede sémantickou analýzu všech proměnných v programu
+ */
 ErrorType semantic_analyseVariables() {
     // Projdeme všechny rámce
     for(size_t i = 1; i <= frameStack.currentID; i++) {
@@ -170,7 +174,9 @@ ErrorType semantic_analyseVariables() {
     return 0;
 }
 
-
+/**
+ * @brief Provede sémantickou analýzu bloku funkce
+ */
 ErrorType semantic_probeFunction(AST_FunDefNode *FunDefNode) {
     bool reachedReturn = false;
     Semantic_Data return_type = semantic_ASTToSemType(FunDefNode->returnType);
@@ -196,7 +202,7 @@ ErrorType semantic_probeFunction(AST_FunDefNode *FunDefNode) {
 }
 
 /**
- * @brief Analyzuje blok příkazů a volá další funkce podle typu příkazu
+ * @brief Provede sémantickou analýzu bloku příkazů
  */
 ErrorType semantic_probeBlock(Semantic_Data fun_return,      \
                               AST_StatementNode *statement, bool* returned) {
@@ -269,7 +275,7 @@ ErrorType semantic_probeBlock(Semantic_Data fun_return,      \
 }
 
 /**
- * @brief Pro binární operátory
+ * @brief Provede sémantickou analýzu binárního operátoru
  */
 ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** value) {
     AST_BinOpNode bin_node = *(AST_BinOpNode*)node->expression;
@@ -471,7 +477,9 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
     return 0;
 }
 
-
+/**
+ * @brief Provede sémantickou analýzu definice proměnné
+ */
 ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
     AST_BinOpNode assignNode = *(AST_BinOpNode*)statement->statement;
 
@@ -479,7 +487,7 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
         return ERROR_INTERNAL;
     }
 
-    // Zjitíme typ rhs
+    // Zjitíme typ pravé strany
     Semantic_Data r_type;
     void *value;
     ErrorType result = semantic_analyseExpr(assignNode.right, &r_type, &value);
@@ -487,7 +495,7 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
         return result;
     }
 
-    // Zjistíme typ proměnné
+    // Zjistíme typ proměnné na levé straně
     SymtablePtr table = frameArray.array[statement->frameID]->frame;
     SymtableItemPtr item;
     DString *identifier = ((AST_VarNode*)assignNode.left)->identifier;
@@ -516,8 +524,24 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
         // Zkontrolujeme, že typy jsou kompatibilní
         result = semantic_compatibleAssign(l_type, r_type);
         if(result != 0) {
-            return result;
+            // Podíváme se, jestli můžeme provést konverzi
+            if( (l_type == SEM_DATA_FLOAT || l_type == SEM_DATA_FLOAT_OR_NULL)  \
+                && r_type == SEM_DATA_INT && value != NULL){
+                result = semantic_toFloat(assignNode.right);
+                if(result != 0){
+                    return result;
+                }
+            }else if( (l_type == SEM_DATA_INT || l_type == SEM_DATA_INT_OR_NULL)
+                      && r_type == SEM_DATA_FLOAT && value != NULL){
+                result = semantic_toInt(assignNode.right);
+                if(result != 0){
+                    return result;
+                }
+            }else {
+                return result;
+            }
         }
+        
     }
 
     if(item->constant == true){
@@ -532,7 +556,9 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
     return 0;
 }
 
-
+/**
+ * @brief Provede sémantickou analýzu výrazu
+ */
 ErrorType semantic_analyseExpr(AST_ExprNode *expr_node, Semantic_Data *type, void **value){
     // Podle typu výrazu buď vyhodnotíme jeho typ a hodnotu nebo voláme další funkce
     ErrorType result;
@@ -626,7 +652,7 @@ ErrorType semantic_analyseExpr(AST_ExprNode *expr_node, Semantic_Data *type, voi
 }
 
 /**
- * @brief Kontroluje typ a počet parametrů funkce
+ * @brief Provede sémantickou analýzu volání funkce
  */
 ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *return_type){
     SymtableItemPtr item;
@@ -645,7 +671,7 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
         return semantic_checkIFJString(fun_node);
     }
 
-
+    // Pokud je funkce vestavěná, tak přidáme prefix ifj.
     if(fun_node->isBuiltIn){
         key = string_charToDString("ifj.");
         if(key == NULL){
@@ -727,7 +753,9 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
     return 0;
 }
 
-
+/**
+ * @brief Provede sémantickou analýzu podmíněného příkazu if
+ */
 ErrorType semantic_analyseIf(Semantic_Data fun_return,       \
                              AST_IfNode *if_node, bool *returned){
     bool then_returned = false;
@@ -774,6 +802,9 @@ ErrorType semantic_analyseIf(Semantic_Data fun_return,       \
     return 0;
 }
 
+/**
+ * @brief Provede sémantickou analýzu cyklu while
+ */
 ErrorType semantic_analyseWhile(Semantic_Data fun_return,       \
                                 AST_WhileNode *while_node, bool *returned){
 
@@ -797,6 +828,9 @@ ErrorType semantic_analyseWhile(Semantic_Data fun_return,       \
     return 0;
 }
 
+/**
+ * @brief Provede sémantickou analýzu návratového příkazu return
+ */
 ErrorType semantic_analyseReturn(Semantic_Data fun_return, AST_ExprNode *node){
     // Pokud return nemá výraz
     if(node == NULL){
@@ -857,7 +891,9 @@ ErrorType semantic_analyseReturn(Semantic_Data fun_return, AST_ExprNode *node){
     AST_VarNode *new_node =
 }*/
 
-
+/**
+ * @brief Vyhodnotí, zda lze provést přiřazení z typu from do typu to
+ */
 ErrorType semantic_compatibleAssign(Semantic_Data to, Semantic_Data from) {
     switch(to){
         // Pro typy bez NULL se musí typy rovnat
@@ -905,6 +941,9 @@ ErrorType semantic_compatibleAssign(Semantic_Data to, Semantic_Data from) {
     return 0;
 }
 
+/**
+ * @brief Vyhodnotí, zda lze provést aritmetickou operaci mezi typy
+ */
 ErrorType semantic_compatibleArithmetic(Semantic_Data type_1, Semantic_Data type_2){
     if(type_1 != SEM_DATA_INT && type_1 != SEM_DATA_FLOAT){
         return ERROR_SEM_TYPE_COMPATIBILITY;
@@ -915,6 +954,9 @@ ErrorType semantic_compatibleArithmetic(Semantic_Data type_1, Semantic_Data type
     return 0;
 }
 
+/**
+ * @brief Vyhodnotí, zda lze provést rovnostní operaci mezi typy
+ */
 ErrorType semantic_compatibleEqual(Semantic_Data type_1, Semantic_Data type_2){
     switch(type_1){
         case SEM_DATA_INT:
@@ -953,6 +995,9 @@ ErrorType semantic_compatibleEqual(Semantic_Data type_1, Semantic_Data type_2){
     return ERROR_SEM_TYPE_COMPATIBILITY;
 }
 
+/**
+ * @brief Vyhodnotí, zda lze provést relační operaci mezi typy
+ */
 ErrorType semantic_compatibleRelation(Semantic_Data type_1, Semantic_Data type_2){
     switch(type_1){
         case SEM_DATA_INT:
@@ -972,7 +1017,7 @@ ErrorType semantic_compatibleRelation(Semantic_Data type_1, Semantic_Data type_2
 }
 
 /**
- *
+ * @brief Převede hodnotu enum symtable_symbolState na typ Semantic_Data
  */
 Semantic_Data semantic_stateToSemType(symtable_symbolState state){
     switch(state){
@@ -993,7 +1038,9 @@ Semantic_Data semantic_stateToSemType(symtable_symbolState state){
     }
 }
 
-
+/**
+ * @brief Převede hodnotu enum symtable_functionReturnType na typ Semantic_Data
+ */
 Semantic_Data semantic_returnToSemType(symtable_functionReturnType type){
     switch(type){
         case SYMTABLE_TYPE_DOUBLE:
@@ -1015,7 +1062,9 @@ Semantic_Data semantic_returnToSemType(symtable_functionReturnType type){
     }
 }
 
-
+/**
+ * @brief Převede hodnotu enum AST_LiteralType na typ Semantic_Data
+ */
 Semantic_Data semantic_literalToSemType(AST_LiteralType type){
     switch(type){
         case AST_LITERAL_INT:
@@ -1031,7 +1080,9 @@ Semantic_Data semantic_literalToSemType(AST_LiteralType type){
     }
 }
 
-
+/**
+ * @brief Převede hodnotu enum AST_DataType na typ Semantic_Data
+ */
 Semantic_Data semantic_ASTToSemType(AST_DataType type){
     switch(type){
         case AST_DATA_TYPE_FLOAT:
@@ -1055,6 +1106,9 @@ Semantic_Data semantic_ASTToSemType(AST_DataType type){
     }
 }
 
+/**
+ * @brief Převede hodnotu z typu int na typ float
+ */
 ErrorType semantic_toFloat(AST_ExprNode *node) {
     AST_VarNode *var_node = node->expression;
 
@@ -1072,6 +1126,9 @@ ErrorType semantic_toFloat(AST_ExprNode *node) {
     return 0;
 }
 
+/**
+ * @brief Převede hodnotu z typu float na typ int
+ */
 ErrorType semantic_toInt(AST_ExprNode *node) {
     AST_VarNode *var_node = node->expression;
     double value = *(double*)var_node->value;
@@ -1096,6 +1153,9 @@ ErrorType semantic_toInt(AST_ExprNode *node) {
     return 0;
 }
 
+/**
+ * @brief Převede hodnotu typu Semantic_Data na enum symtable_symbolState
+ */
 symtable_symbolState semantic_semTypeToState(Semantic_Data type){
     switch(type){
         case SEM_DATA_FLOAT:
@@ -1115,6 +1175,9 @@ symtable_symbolState semantic_semTypeToState(Semantic_Data type){
     }
 }
 
+/**
+ * @brief Převede hodnotu typu Semantic_Data na enum AST_LiteralType
+ */
 AST_LiteralType semantic_semToLiteral(Semantic_Data type){
     switch(type){
         case SEM_DATA_FLOAT:
@@ -1128,6 +1191,9 @@ AST_LiteralType semantic_semToLiteral(Semantic_Data type){
     }
 }
 
+/**
+ * @brief Kontroluje počet parametrů volání funkce ifj.write
+ */
 ErrorType semantic_checkIFJWrite(AST_FunCallNode *fun_node){
     // Funkce má právě jeden parametr
     if(fun_node->arguments == NULL){
@@ -1138,6 +1204,9 @@ ErrorType semantic_checkIFJWrite(AST_FunCallNode *fun_node){
     return 0;
 }
 
+/**
+ * @brief Kontroluje typ a počet parametrů volání funkce ifj.string
+ */
 ErrorType semantic_checkIFJString(AST_FunCallNode *fun_node){
     // Funkce má právě jeden parametr
     if(fun_node->arguments == NULL){
