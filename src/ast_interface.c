@@ -444,7 +444,7 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
             double floatValue = strtod(value->str, &endptr);
 
             // Kontrola přetečení nebo podtečení - ostatní sémantická chyba (10)
-            if(floatValue < HUGE_VAL || floatValue > -HUGE_VAL) {
+            if(floatValue == HUGE_VAL || floatValue == -HUGE_VAL) {
                 error_handle(ERROR_SEM_OTHER);
             }
 
