@@ -301,6 +301,28 @@ void frameStack_destroyAll() {
 } // frameStack_destroyAll()
 
 /**
+ * @brief Vytiskne obsah pole rámců
+ */
+void frameStack_printArray(FILE *file, bool print_data, bool cut_data) {
+    for(size_t i = 0; i <= frameStack.currentID; i++) {
+        if(frameArray.array == NULL) {
+            return;
+        }
+
+        fprintf(file, "Frame ID: %-10zu", (frameArray.array[i])->frameID);
+
+        if((frameArray.array[i])->searchStop) {
+            fprintf(file, "is searchStop frame");
+        }
+
+        fprintf(file, "\n");
+        symtable_print((frameArray.array[i])->frame, file, print_data, cut_data);
+        fprintf(file, "\n");
+
+    }
+} // frameStack_printArray()
+
+/**
  * @brief Vytiskne obsah zásobníku rámců
  */
 void frameStack_print(FILE *file, bool print_data, bool cut_data) {

@@ -53,20 +53,27 @@ AST_ProgramNode *ASTroot = NULL;                // počáteční inicializace
 /**
  * @brief Získá další token ze scanneru a aktualizuje globální současný token.
  */
-Terminal Parser_getNextToken(bool LLparser) {
+Terminal Parser_getNextToken(GetNextTokenState state) {
     // Static proměnná pro uchování lookahead tokenu
     static Terminal lookaheadToken = { T_UNDEFINED, T_PREC_UNDEFINED, NULL };
 
+    if(state == RESET_STATIC) {
+        lookaheadToken.LLterminal = T_UNDEFINED;
+        lookaheadToken.PrecTerminal = T_PREC_UNDEFINED;
+        lookaheadToken.value = NULL;
+        return lookaheadToken;
+    }
+
     // Pokud lookahead token není inicializován, načti ho
     if(lookaheadToken.LLterminal == T_UNDEFINED && lookaheadToken.PrecTerminal == T_PREC_UNDEFINED) {
-        lookaheadToken = Parser_pokeScanner(LLparser);
+        lookaheadToken = Parser_pokeScanner(state);
     }
 
     // Aktualizuj currentToken na aktuální lookaheadToken
     currentToken = lookaheadToken;
 
     // Načti další lookahead token voláním scanneru
-    lookaheadToken = Parser_pokeScanner(LLparser);
+    lookaheadToken = Parser_pokeScanner(state);
 
     return lookaheadToken;
 } // Parser_getNextToken()
@@ -136,19 +143,16 @@ inline void Parser_checkAppendSuccess(int error) {
 /**
  * @brief Získá další token ze scanneru a namapuje ho na typ LL terminálu.
  */
-Terminal Parser_pokeScanner(bool LLparser) {
+Terminal Parser_pokeScanner(GetNextTokenState state) {
     Token receivedToken = scanner_getNextToken();
     LLTerminals llType = T_UNDEFINED;
     PrecTerminals precType = T_PREC_UNDEFINED;
-
-    if(LLparser) {
-        Parser_mapTokenToLLTerminal(receivedToken.type, &llType);
-    }
-    else {
-        Parser_mapTokenToPrecTerminal(receivedToken.type, &precType);
-    }
-
     Terminal terminal;
+
+    (void)state;
+    Parser_mapTokenToLLTerminal(receivedToken.type, &llType);
+    Parser_mapTokenToPrecTerminal(receivedToken.type, &precType);
+
     terminal.LLterminal = llType;
     terminal.PrecTerminal = precType;
     terminal.value = receivedToken.value;
@@ -317,14 +321,9 @@ void Parser_mapTokenToLLTerminal(TokenType tokenType, LLTerminals *terminalType)
             *terminalType = T_EOF;
             break;
 
-        // Mapování: TOKEN_STRING -> T_IMPORT_PATH
-        case TOKEN_STRING:
-            *terminalType = T_IMPORT_PATH;
-            break;
-
         // Cokoliv jiného značí lexikální chybu
         default:
-            error_handle(ERROR_SYNTAX);
+            *terminalType = T_UNDEFINED;
             break;
     } // switch()
 } // Parser_mapTokenToLLTerminal()
@@ -446,7 +445,7 @@ void Parser_mapTokenToPrecTerminal(TokenType tokenType, PrecTerminals *terminal)
 
         // Defaultní případ: syntaktická chyba
         default:
-            error_handle(ERROR_SYNTAX);
+            *terminal = T_PREC_UNDEFINED;
             break;
     } // switch()
 } // Parser_mapTokenToPrecTerminal()

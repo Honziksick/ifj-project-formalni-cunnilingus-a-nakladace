@@ -42,6 +42,9 @@ AST_ProgramNode *LLparser_parseProgram() {
         error_handle(ERROR_INTERNAL);
     }
 
+    // Raději vyresetujeme statickou proměnnou ve funkci Parser_getNextToken()
+    Parser_getNextToken(RESET_STATIC);
+
     // Inicializujeme prvním voláním scanneru "currentToken" a "lookaheadToken"
     Parser_getNextToken(LL_PARSER);
 
@@ -151,7 +154,7 @@ AST_VarNode *LLparser_parsePrologue() {
     Parser_getNextToken(LL_PARSER);
 
     // Parsujeme `"ifj24.zig"`
-    if(currentToken.LLterminal != T_IMPORT_PATH) {
+    if(currentToken.PrecTerminal != T_PREC_STRING_LITERAL) {
         string_free(importVar);
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
@@ -213,9 +216,6 @@ AST_VarNode *LLparser_parsePrologue() {
 
 // <FUN_DEF_LIST> -> <FUN_DEF> <FUN_DEF_LIST> | ε
 AST_FunDefNode *LLparser_parseFunDefList() {
-    // Statická proměnná pro uchování seznamu definic funkcí
-    static AST_FunDefNode *funDefListHead = NULL;
-
     // Vyhledáme pravidlo v LL tabulce
     LLRuleSet rule = RULE_UNDEFINED;
 
@@ -235,27 +235,24 @@ AST_FunDefNode *LLparser_parseFunDefList() {
             // Kontrola úspěchu parsování <FUN_DEF>
             if(funDef == NULL) {
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                AST_destroyFunDefList(funDefListHead);
-                funDefListHead = NULL;
                 return PARSING_SYNTAX_ERROR;
             }
 
-            // Připojíme novou definici funkce do seznamu definic funkcí
-            AST_insertFirstFunDefNode(&funDefListHead, funDef);
-
-            // Parsujeme <FUN_DEF_LIST>
+            // Parsujeme zbytek seznamu <FUN_DEF_LIST>
             AST_FunDefNode *funDefList = LLparser_parseFunDefList();
 
             // Kontrola úspěchu parsování <FUN_DEF_LIST>
             if(funDefList == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+                AST_destroyFunDefNode(funDef);
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                AST_destroyFunDefList(funDefListHead);
-                funDefListHead = NULL;
                 return PARSING_SYNTAX_ERROR;
             }
 
+            // Připojíme aktuální definici funkce na začátek seznamu
+            funDef->next = funDefList;
+
             // Vrátíme ukazatel na seznam definic funkcí
-            return funDefListHead;
+            return funDef;
         }
 
         // <FUN_DEF_LIST> -> ε
@@ -265,8 +262,6 @@ AST_FunDefNode *LLparser_parseFunDefList() {
         // Defaultní stav: došlo k syntaktické chybě
         default:
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-            AST_destroyFunDefList(funDefListHead);
-            funDefListHead = NULL;
             return PARSING_SYNTAX_ERROR;
     } // switch()
 } // LLparser_parseFunDefList()
@@ -419,7 +414,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
     AST_ArgOrParamNode *paramNode = parameters;
     symtable_functionReturnType funType = SYMTABLE_TYPE_UNKNOWN;
     for(size_t i = 0; i < paramCount; i++) {
-        if(paramNode->expression->exprType == AST_EXPR_VARIABLE) {
+        if(paramNode->expression->exprType != AST_EXPR_VARIABLE) {
             string_free(functionName);
             AST_destroyArgOrParamList(parameters);
             AST_destroyStatementList(sequence);

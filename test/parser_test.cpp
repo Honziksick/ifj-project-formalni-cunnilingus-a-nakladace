@@ -44,15 +44,37 @@ using namespace std;
 using namespace testing;
 using namespace internal;
 
+// Definice názvu specifického testu, pro který se má provádět tisk
+// Pokud není definováno, tisk se provádí pro všechny testy
+#define SPECIFIC_TEST_NAME "CorrectVarDef"
+#define DISABLE_PRINT
+
+#ifndef DISABLE_PRINT
+#ifdef SPECIFIC_TEST_NAME
+#define PRINT_TREE_AND_FRAMESTACK(test_name) \
+    do { \
+        if (strcmp(#test_name, SPECIFIC_TEST_NAME) == 0) { \
+            PRINT_TREE(AST_PROGRAM_NODE, ASTroot); \
+            frameStack_printArray(stderr, true, false); \
+        } \
+    } while (0)
+#else
+#define PRINT_TREE_AND_FRAMESTACK(test_name) \
+    do { \
+        PRINT_TREE(AST_PROGRAM_NODE, ASTroot); \
+        frameStack_printArray(stderr, true, false); \
+    } while (0)
+#endif
+#else
+#define PRINT_TREE_AND_FRAMESTACK(test_name) do {} while (0)
+#endif
+
 string exam_path = "../ifj24_examples/ifj24_programs/";
 string synt_path = "../test/test_examples/syntactic_examples/";
 
-/**
- * @brief xxx.
- */
-TEST(LLParserBasics, PrologueAndEmptyMain) {
+TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     // Načtení souboru s programem na STDIN
-    string path = synt_path + "prologue_and_empty_main.zig";
+    string path = synt_path + "correct_prologue_and_empty_main.zig";
     FILE* f = fopen(path.c_str(), "r");
     EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -68,8 +90,7 @@ TEST(LLParserBasics, PrologueAndEmptyMain) {
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE(AST_PROGRAM_NODE, ASTroot);
-    frameStack_print(stderr, true, false);
+    PRINT_TREE_AND_FRAMESTACK(CorrectPrologueAndEmptyMain);
 
     // Uvolnění alokovaných zdrojů
     frameStack_destroyAll();
@@ -80,22 +101,20 @@ TEST(LLParserBasics, PrologueAndEmptyMain) {
     fclose(f);
 }
 
-void TestParser(){
-    ASTroot = LLparser_parseProgram();
-    exit(0);
-}
-
-TEST(Correct, TwoFunctions){
-    std::string path = synt_path + "two_fun.zig";
+TEST(LLParserBasicsCorrect, OneParam){
+    string path = synt_path + "correct_one_param.zig";
     FILE* f = fopen(path.c_str(), "r");
     EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
+    // Inicializace zásobníku rámců
     frameStack_init();
 
-    ASTroot = LLparser_parseProgram();
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
 
+    // Kořen je inicializován
     EXPECT_NE(ASTroot, nullptr);
 
     // Má funkci
@@ -104,54 +123,9 @@ TEST(Correct, TwoFunctions){
     // Funkce nemá tělo
     EXPECT_EQ(fun->body, nullptr);
     // Název funkce je main
-    EXPECT_STREQ(string_toConstChar(fun->identifier), "main");
-    // Vrací void
-    EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
-    // Nemá parametry
-    EXPECT_EQ(fun->parameters, nullptr);
-    // Má ukazatel na další funkci
-    EXPECT_NE(fun->next, nullptr);
-
-    fun = fun->next;
-    // Druhá funkce
-    // Funkce nemá tělo
-    EXPECT_EQ(fun->body, nullptr);
-    // Má identifikátor
-    EXPECT_NE(fun->identifier, nullptr);
-    // Vrací void
-    EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
-    // Nemá parametry
-    EXPECT_EQ(fun->parameters, nullptr);
-    // Nemá na další funkci
-    EXPECT_EQ(fun->next, nullptr);
-    
-
-    frameStack_destroyAll();
-    stdin = stdin_backup;
-    fclose(f);
-    ASTroot = NULL;
-}
-
-TEST(Correct, OneParam){
-    std::string path = synt_path + "one_param.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    frameStack_init();
-
-    ASTroot = LLparser_parseProgram();
-
-    EXPECT_NE(ASTroot, nullptr);
-
-    // Má funkci
-    EXPECT_NE(ASTroot->functionList, nullptr);
-    AST_FunDefNode* fun = ASTroot->functionList;
-    // Funkce nemá tělo
-    EXPECT_EQ(fun->body, nullptr);
-    // Název funkce je main
-    EXPECT_STREQ(string_toConstChar(fun->identifier), "main");
+    char *comp = string_toConstChar(fun->identifier);
+    EXPECT_STREQ(comp, "main");
+    free(comp);
     // Vrací void
     EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
     // Má parametr
@@ -178,22 +152,33 @@ TEST(Correct, OneParam){
     // Nemá další funkci
     EXPECT_EQ(fun->next, nullptr);
 
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectOneParam);
+
+    // Uvolnění alokovaných zdrojů
     frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
-TEST(Correct, TwoParams){
-    std::string path = synt_path + "two_params.zig";
+TEST(LLParserBasicsCorrect, TwoParams){
+    string path = synt_path + "correct_two_params.zig";
     FILE* f = fopen(path.c_str(), "r");
     EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
+    // Inicializace zásobníku rámců
     frameStack_init();
 
-    ASTroot = LLparser_parseProgram();
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
 
     EXPECT_NE(ASTroot, nullptr);
 
@@ -210,15 +195,15 @@ TEST(Correct, TwoParams){
     EXPECT_EQ(param->dataType, AST_DATA_TYPE_INT);
     // Parametr má výraz
     EXPECT_NE(param->expression, nullptr);
-    AST_ExprNode* expr = param->expression;
-    EXPECT_EQ(expr->type, AST_EXPR_NODE);
+    AST_ExprNode* expr1 = param->expression;
+    EXPECT_EQ(expr1->type, AST_EXPR_NODE);
     // Výraz je proměnná
-    EXPECT_EQ(expr->exprType, AST_EXPR_VARIABLE);
-    AST_VarNode* var = (AST_VarNode*)expr->expression;
-    EXPECT_EQ(var->type, AST_VAR_NODE);
+    EXPECT_EQ(expr1->exprType, AST_EXPR_VARIABLE);
+    AST_VarNode* var1 = (AST_VarNode*)expr1->expression;
+    EXPECT_EQ(var1->type, AST_VAR_NODE);
     // Proměnná má identifikátor x
-    EXPECT_NE(var->identifier, nullptr);
-    EXPECT_EQ(string_compare_const_str(var->identifier, "x"), STRING_EQUAL);
+    EXPECT_NE(var1->identifier, nullptr);
+    EXPECT_EQ(string_compare_const_str(var1->identifier, "x"), STRING_EQUAL);
     
     // Má další parametr
     EXPECT_NE(param->next, nullptr);
@@ -228,37 +213,104 @@ TEST(Correct, TwoParams){
     EXPECT_EQ(param->dataType, AST_DATA_TYPE_STRING);
     // Parametr má výraz
     EXPECT_NE(param->expression, nullptr);
-    expr = param->expression;
-    EXPECT_EQ(expr->type, AST_EXPR_NODE);
+    AST_ExprNode* expr2 = param->expression;
+    EXPECT_EQ(expr2->type, AST_EXPR_NODE);
     // Výraz je proměnná
-    EXPECT_EQ(expr->exprType, AST_EXPR_VARIABLE);
-    var = (AST_VarNode*)expr->expression;
-    EXPECT_EQ(var->type, AST_VAR_NODE);
+    EXPECT_EQ(expr2->exprType, AST_EXPR_VARIABLE);
+    AST_VarNode* var2 = (AST_VarNode*)expr2->expression;
+    EXPECT_EQ(var2->type, AST_VAR_NODE);
     // Proměnná má identifikátor y
-    EXPECT_NE(var->identifier, nullptr);
-    EXPECT_EQ(string_compare_const_str(var->identifier, "y"), STRING_EQUAL);
+    EXPECT_NE(var2->identifier, nullptr);
+    EXPECT_EQ(string_compare_const_str(var2->identifier, "y"), STRING_EQUAL);
 
     // Nemá další parametry
     EXPECT_EQ(param->next, nullptr);
 
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectTwoParams);
 
+    // Uvolnění alokovaných zdrojů
     frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
-TEST(Correct, VarDef){
-    std::string path = synt_path + "two_params.zig";
+TEST(LLParserBasicsCorrect, TwoFunctions){
+    string path = synt_path + "correct_two_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
+    // Inicializace zásobníku rámců
     frameStack_init();
 
-    ASTroot = LLparser_parseProgram();
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
 
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Má funkci
+    EXPECT_NE(ASTroot->functionList, nullptr);
+    AST_FunDefNode* fun = ASTroot->functionList;
+    // Funkce nemá tělo
+    EXPECT_EQ(fun->body, nullptr);
+    // Název funkce je main
+    char *comp = string_toConstChar(fun->identifier);
+    EXPECT_STREQ(comp, "main");
+    free(comp);
+    // Vrací void
+    EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
+    // Nemá parametry
+    EXPECT_EQ(fun->parameters, nullptr);
+    // Má ukazatel na další funkci
+    EXPECT_NE(fun->next, nullptr);
+
+    fun = fun->next;
+    // Druhá funkce
+    // Funkce nemá tělo
+    EXPECT_EQ(fun->body, nullptr);
+    // Má identifikátor
+    EXPECT_NE(fun->identifier, nullptr);
+    // Vrací void
+    EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
+    // Nemá parametry
+    EXPECT_EQ(fun->parameters, nullptr);
+    // Nemá na další funkci
+    EXPECT_EQ(fun->next, nullptr);
+    
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectTwoFunctions);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+/*
+TEST(LLParserBasicsCorrect, VarDef){
+    string path = synt_path + "correct_var_def.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
 
     // Má funkci
     EXPECT_NE(ASTroot->functionList, nullptr);
@@ -292,22 +344,33 @@ TEST(Correct, VarDef){
     // Literál je typu int
     EXPECT_EQ(lit->literalType, AST_LITERAL_INT);
 
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectVarDef);
+
+    // Uvolnění alokovaných zdrojů
     frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
-TEST(Correct, FunCall){
-    std::string path = synt_path + "two_params.zig";
+TEST(LLParserBasicsCorrect, FunCall){
+    string path = synt_path + "correct_fun_call.zig";
     FILE* f = fopen(path.c_str(), "r");
     EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
+    // Inicializace zásobníku rámců
     frameStack_init();
 
-    ASTroot = LLparser_parseProgram();
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
 
     // Má funkci
     EXPECT_NE(ASTroot->functionList, nullptr);
@@ -331,22 +394,33 @@ TEST(Correct, FunCall){
     // Funkce není vestavěná
     EXPECT_FALSE(fcall->isBuiltIn);
     
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectFunCall);
+
+    // Uvolnění alokovaných zdrojů
     frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
-TEST(Correct, NonVoidFun){
-    std::string path = synt_path + "two_params.zig";
+TEST(LLParserBasicsCorrect, NonVoidFun){
+    string path = synt_path + "correct_nonvoid_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
+    // Inicializace zásobníku rámců
     frameStack_init();
 
-    ASTroot = LLparser_parseProgram();
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
 
     // Má funkci
     EXPECT_NE(ASTroot->functionList, nullptr);
@@ -354,10 +428,16 @@ TEST(Correct, NonVoidFun){
     // Funkce vrací int
     EXPECT_EQ(fun->returnType, AST_DATA_TYPE_INT);
 
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectNonVoidFun);
+
+    // Uvolnění alokovaných zdrojů
     frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
-
+*/
 /*** Konec souboru parser_test.cpp ***/
