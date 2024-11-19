@@ -47,7 +47,7 @@
  *                                                                             *
  ******************************************************************************/
 
-#define NUM_OF_REDUCTION_RULES 20   /**< Počet různých redukčních pravidel. */
+#define NUM_OF_REDUCTION_RULES 21   /**< Počet různých redukčních pravidel. */
 #define MAX_SYMBOLS_TO_REDUCE  6    /**< Maximální počet symbolů, nad kterými může být prováděna redukce. */
 
 
@@ -65,25 +65,28 @@
  *          pravidlo reprezentuje jednu možnou redukci v syntaktickém stromu.
  */
 typedef enum ReductionRule {
-    REDUCE_RULE_UNDEFINED           = -1,     /**<  Zatím nebylo zvoleno žádné redukční pravidlo */
+    REDUCE_RULE_UNDEFINED           = -2,     /**<  Zatím nebylo zvoleno žádné redukční pravidlo         */
     REDUCE_E_ID                     = 0,      /**<  E -> id                        */
-    REDUCE_E_LITERAL                = 1,      /**<  E -> literal                   */
-    REDUCE_E_PLUS_E                 = 2,      /**<  E -> E + E                     */
-    REDUCE_E_MINUS_E                = 3,      /**<  E -> E - E                     */
-    REDUCE_E_MULT_E                 = 4,      /**<  E -> E * E                     */
-    REDUCE_E_DIV_E                  = 5,      /**<  E -> E / E                     */
-    REDUCE_E_IDENTITY_E             = 6,      /**<  E -> E == E                    */
-    REDUCE_E_NOT_EQUAL_E            = 7,      /**<  E -> E != E                    */
-    REDUCE_E_LESS_THAN_E            = 8,      /**<  E -> E < E                     */
-    REDUCE_E_GREATER_THAN_E         = 9,      /**<  E -> E > E                     */
-    REDUCE_E_LESS_EQUAL_E           = 10,     /**<  E -> E <= E                    */
-    REDUCE_E_GREATER_EQUAL_E        = 11,     /**<  E -> E >= E                    */
-    REDUCE_E_INTO_BRACKETS          = 12,     /**<  E -> ( E )                     */
-    REDUCE_E_FUN_CALL               = 13,     /**<  E -> id ( <ARGUMENTS> )        */
-    REDUCE_E_IFJ_CALL               = 14,     /**<  E -> ifj . id ( <ARGUMENTS> )  */
-    REDUCE_ARGUMENTS_TO_ARG_LIST    = 15,     /**<  <ARGUMENTS> -> <ARG_LIST>      */
-    REDUCE_ARG_LIST_TO_E_ARG        = 16,     /**<  <ARG_LIST> -> E <ARG>          */
-    REDUCE_ARG_TO_COMMA_E_ARG       = 17,     /**<  <ARG> -> , E <ARG>             */
+    REDUCE_E_INT_LITERAL            = 1,      /**<  E -> i32 literal               */
+    REDUCE_E_FLOAT_LITERAL          = 2,      /**<  E -> f64 literal               */
+    REDUCE_E_STRING_LITERAL         = 3,      /**<  E -> []u8 literal              */
+    REDUCE_E_NULL_LITERAL           = 4,      /**<  E -> NULL literal              */
+    REDUCE_E_PLUS_E                 = 5,      /**<  E -> E + E                     */
+    REDUCE_E_MINUS_E                = 6,      /**<  E -> E - E                     */
+    REDUCE_E_MULT_E                 = 7,      /**<  E -> E * E                     */
+    REDUCE_E_DIV_E                  = 8,      /**<  E -> E / E                     */
+    REDUCE_E_IDENTITY_E             = 9,      /**<  E -> E == E                    */
+    REDUCE_E_NOT_EQUAL_E            = 10,     /**<  E -> E != E                    */
+    REDUCE_E_LESS_THAN_E            = 11,     /**<  E -> E < E                     */
+    REDUCE_E_GREATER_THAN_E         = 12,     /**<  E -> E > E                     */
+    REDUCE_E_LESS_EQUAL_E           = 13,     /**<  E -> E <= E                    */
+    REDUCE_E_GREATER_EQUAL_E        = 14,     /**<  E -> E >= E                    */
+    REDUCE_E_INTO_BRACKETS          = 15,     /**<  E -> ( E )                     */
+    REDUCE_E_FUN_CALL               = 16,     /**<  E -> id ( <ARGUMENTS> )        */
+    REDUCE_E_IFJ_CALL               = 17,     /**<  E -> ifj . id ( <ARGUMENTS> )  */
+    REDUCE_ARGUMENTS_TO_ARG_LIST    = 18,     /**<  <ARGUMENTS> -> <ARG_LIST>      */
+    REDUCE_ARG_LIST_TO_E_ARG        = 19,     /**<  <ARG_LIST> -> E <ARG>          */
+    REDUCE_ARG_TO_COMMA_E_ARG       = 20,     /**<  <ARG> -> , E <ARG>             */
 } ReductionRule;
 
 

@@ -263,7 +263,7 @@ void symtable_deleteAll(Symtable *table, bool keep_data) {
                 if(item.symbol_state == SYMTABLE_SYMBOL_FUNCTION){
                     SymtableFunctionData *data = (SymtableFunctionData *)item.data;
                     for(size_t j = 0; j < data->param_count; j++){
-                        string_free(data->params[j].id);
+                        //string_free(data->params[j].id); change by Honziksick
                     }
                     free(data->params);
                     free(item.data);

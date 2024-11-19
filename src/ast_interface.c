@@ -471,8 +471,9 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
             break;
         }
 
-        // Hodnotou je NULL
-        case AST_LITERAL_NULL: {
+        // Hodnotou je NULL nebo není typ literálu
+        case AST_LITERAL_NULL:
+        case AST_LITERAL_NOT_DEFINED: {
             node->value = NULL;
             break;
         }

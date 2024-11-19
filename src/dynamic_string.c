@@ -74,6 +74,8 @@ void string_free(DString *str) {
         // Nejdříve ukazatel na pole a až pak strukturu
         if(str->str != NULL) {
             free(str->str);
+            str->allocatedSize = 0;
+            str->length = 0;
             str->str = NULL;
         }
 

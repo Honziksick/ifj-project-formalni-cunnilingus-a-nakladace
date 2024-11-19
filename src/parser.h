@@ -53,8 +53,6 @@
 #define FRAME_ID_SEPARATOR '$'      /**< Znak používaný jako odělovač ID rámce od názvu proměnné v jejím identifikátoru. */
 #define SET_SYNTAX_ERROR true       /**< Parametr pro funkci `Parser_watchSyntaxError`, aby nastavila stav syntax error na `true`. */
 #define IS_SYNTAX_ERROR false       /**< Parametr pro funkci `Parser_watchSyntaxError`, aby zkontrolovala aktuální stav syntax error. */
-#define LL_PARSER true
-#define PREC_PARSER false
 
 /*******************************************************************************
  *                                                                             *
@@ -130,6 +128,14 @@ extern FrameStack stack;
 extern FrameArray frameArray;
 
 
+typedef enum {
+    RESET_STATIC = 1,
+    LL_PARSER = 2,
+    PREC_PARSER = 3,
+} GetNextTokenState;
+
+
+
 /*******************************************************************************
  *                                                                             *
  *                     DEKLARACE VEŘEJNÝCH FUNKCÍ PARSERU                      *
@@ -149,7 +155,7 @@ extern FrameArray frameArray;
  *
  * @return Vrací @c lookaheadToken.
  */
-Terminal Parser_getNextToken(bool LLparser);
+Terminal Parser_getNextToken(GetNextTokenState state);
 
 /**
  * @brief Nastaví nebo zkontroluje stav syntax error.
@@ -207,7 +213,7 @@ void Parser_checkAppendSuccess(int error);
  *
  * @return Struktura `Terminal` obsahující typ a hodnotu tokenu.
  */
-Terminal Parser_pokeScanner(bool LLparser);
+Terminal Parser_pokeScanner(GetNextTokenState state);
 
 /**
  * @brief Namapuje typ tokenu na typ LL terminálu.
