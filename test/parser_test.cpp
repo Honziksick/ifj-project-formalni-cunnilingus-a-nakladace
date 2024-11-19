@@ -46,7 +46,7 @@ using namespace internal;
 
 // Definice názvu specifického testu, pro který se má provádět tisk
 // Pokud není definováno, tisk se provádí pro všechny testy
-#define SPECIFIC_TEST_NAME "CorrectVarDef"
+//#define SPECIFIC_TEST_NAME "CorrectVarDef"
 #define DISABLE_PRINT
 
 #ifndef DISABLE_PRINT
@@ -294,7 +294,11 @@ TEST(LLParserBasicsCorrect, TwoFunctions){
     stdin = stdin_backup;
     fclose(f);
 }
-/*
+
+/**
+ * @warning Někde je tam memmory leak. Myslím, že to bude nějakej string.
+ * 
+ */
 TEST(LLParserBasicsCorrect, VarDef){
     string path = synt_path + "correct_var_def.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -307,7 +311,6 @@ TEST(LLParserBasicsCorrect, VarDef){
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
-
 
     // Kořen je inicializován
     EXPECT_NE(ASTroot, nullptr);
@@ -439,5 +442,5 @@ TEST(LLParserBasicsCorrect, NonVoidFun){
     stdin = stdin_backup;
     fclose(f);
 }
-*/
+
 /*** Konec souboru parser_test.cpp ***/

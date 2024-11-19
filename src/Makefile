@@ -235,6 +235,11 @@ clean-build:
 clean-test:
 	rm -rf $(TEST_BUILD_DIR)
 
+### C # clean-test-bin: # Odstraní adresář obsah '../test/build-test' bez GoogleTest knihoven
+clean-test-bin:
+	find $(TEST_BUILD_DIR) -type f ! -name 'gtest.a' ! -name 'gtest_main.a' ! -name 'gtest_main.o' ! -name 'gtest-all.o' -delete
+	find $(TEST_BUILD_DIR) -type d -empty -delete
+
 ### C # clean-doc: # Odstraní veškerý obsah adresáře '../doc' (kromě '../doc/resources/')
 clean-doc:
 	find $(DOC_DIR) -mindepth 1 ! -path '$(DOC_DIR)/resources*' -delete || true

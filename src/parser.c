@@ -57,7 +57,8 @@ Terminal Parser_getNextToken(GetNextTokenState state) {
     // Static proměnná pro uchování lookahead tokenu
     static Terminal lookaheadToken = { T_UNDEFINED, T_PREC_UNDEFINED, NULL };
 
-    if(state == RESET_STATIC) {
+    // Reset signál pro statickou proměnnou
+    if(state == RESET_LOOKAHEAD) {
         lookaheadToken.LLterminal = T_UNDEFINED;
         lookaheadToken.PrecTerminal = T_PREC_UNDEFINED;
         lookaheadToken.value = NULL;
@@ -81,12 +82,17 @@ Terminal Parser_getNextToken(GetNextTokenState state) {
 /**
  * @brief Nastaví nebo zkontroluje stav syntax error.
  */
-bool Parser_watchSyntaxError(bool setError) {
+bool Parser_watchSyntaxError(PropagateError state) {
     // Počáteční inicializace flagu pro sledování SYNTAX_ERROR
     static bool syntaxError = false;
 
+    // Reset signál pro statickou proměnnou
+    if(state == RESET_ERROR_FLAG) {
+        syntaxError = false;
+    }
+
     // Pokud byl předán true, signalizuj flagem SYNTAX_ERROR
-    if(setError) {
+    if(state == SET_SYNTAX_ERROR) {
         syntaxError = true;
     }
 

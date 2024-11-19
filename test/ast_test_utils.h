@@ -72,10 +72,12 @@ using namespace std;  /**< Jmenný prostor standardní knihovny C++ */
 #if PRINT_TREE_OUTPUT
 #define PRINT_TREE(type, node) \
     do { \
-        const ::testing::TestInfo* test_info = ::testing::UnitTest::GetInstance()->current_test_info(); \
-        string output = ASTutils_printCapturedOutput(type, (void *)node, true); \
-        cerr << endl << COLOR_PINK << "Output Tree for " << test_info->test_case_name() << "." << test_info->name() << ":" << COLOR_RESET << endl; \
-        cerr << output << endl; \
+        if(node != nullptr) { \
+            const ::testing::TestInfo* test_info = ::testing::UnitTest::GetInstance()->current_test_info(); \
+            string output = ASTutils_printCapturedOutput(type, (void *)node, true); \
+            cerr << endl << COLOR_PINK << "Output Tree for " << test_info->test_case_name() << "." << test_info->name() << ":" << COLOR_RESET << endl; \
+            cerr << output << endl; \
+        } \
     } while (0)
 #else
 #define PRINT_TREE(type, node) do {} while (0)

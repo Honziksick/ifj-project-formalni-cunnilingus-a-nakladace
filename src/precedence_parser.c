@@ -106,7 +106,6 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
 
         if(topTerminal == T_PREC_UNDEFINED) {
             PrecStack_dispose();
-            PrecStack_destroy();
             error_handle(ERROR_INTERNAL);
             return NULL;
         }
@@ -130,7 +129,6 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
         if(precedence == P_SYNTAX_ERROR) {
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
             PrecStack_dispose();
-            PrecStack_destroy();
             return NULL;
         }
 
@@ -186,7 +184,6 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
                     if(rule == REDUCE_RULE_UNDEFINED) {
                         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                         PrecStack_dispose();
-                        PrecStack_destroy();
                         return NULL;
                     }
 
@@ -197,7 +194,6 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
                 else {
                     Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                     PrecStack_dispose();
-                    PrecStack_destroy();
                     return NULL;
                 }
                 break;
@@ -208,7 +204,6 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
             default:
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                 PrecStack_dispose();
-                PrecStack_destroy();
                 return NULL;
         } // switch()
 
@@ -225,10 +220,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
         precParser_chooseReductionRule(&rule);
 
         if(rule == REDUCE_RULE_UNDEFINED) {
-            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-            PrecStack_dispose();
-            PrecStack_destroy();
-            return NULL;
+            break;
         }
 
         // Proedeme redukci na základě zvoleného pravidla
@@ -240,13 +232,11 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     if(!PrecStack_getResult(&result)) {
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         PrecStack_dispose();
-        PrecStack_destroy();
         return NULL;
     }
 
     // Uvolníme zásobník
     PrecStack_dispose();
-    PrecStack_destroy();
 
     // Vracíme výsledný AST_ExprNode
     return result;
@@ -334,6 +324,7 @@ void precParser_chooseReductionRule(ReductionRule *rule) {
         // Pokud najdeme stejnou sekvenci symbolů, vrátíme odpovídající pravidlo
         if(cmp == 0) {
             *rule = reductionRuleSet[mid].rule;
+            return;
         }
 
         // Hledaná sekvence je výše, posouváme levý index doprava
@@ -347,7 +338,6 @@ void precParser_chooseReductionRule(ReductionRule *rule) {
     }
 
     // Pokud nebylo nalezeno žádné pravidlo, hlásíme interní chybu
-    Parser_watchSyntaxError(SET_SYNTAX_ERROR);
     *rule = REDUCE_RULE_UNDEFINED;
 } // precParser_chooseReductionRule()
 

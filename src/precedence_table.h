@@ -44,7 +44,7 @@
  *                                                                             *
  ******************************************************************************/
 
-#define PREC_TERMINAL_COUNT 20              /**< Celkový počet terminálů v precedenční SA. */
+#define PREC_TERMINAL_COUNT 21              /**< Celkový počet terminálů v precedenční SA. */
 
 #define FOLLOW_NON_TERMINALS_COUNT 9        /**< Počet NEterminálů, ze kterých jde přejít do precedenční SA. */
 #define MAX_DOLLARS_IN_SET 2                /**< Maximální počet "dolar" terminálů v množině FOLLOW. */

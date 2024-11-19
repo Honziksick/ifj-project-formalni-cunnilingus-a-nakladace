@@ -295,17 +295,12 @@ void PrecStack_dispose() {
         PrecStackNode* toDelete = precStack->top;
         precStack->top = toDelete->next;
 
-        // Uvolníme uzel AST, pokud je připojen k StackNode
-        if(toDelete->node != NULL) {
-            AST_destroyNode(toDelete->nodeType, toDelete->node);
-        }
-
         // Uvolníme paměť pro první prvek
         free(toDelete);
     }
 
     // Uvedeme zásbník do počátečního stavu
-    PrecStack_init();
+    PrecStack_destroy();
 } // PrecStack_dispose()
 
 /**
@@ -317,6 +312,7 @@ inline void PrecStack_destroy() {
     }
 
     free(precStack);
+    precStack = NULL;
 } // PrecStack_destroy()
 
 /**
