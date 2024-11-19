@@ -567,6 +567,7 @@ void AST_destroyFunDefNode(AST_FunDefNode *node) {
     // Uvolníme dynamický string uvnitř uzlu
     if(node->identifier != NULL) {
         string_free(node->identifier);
+        node->identifier = NULL;
     }
 
     // Uvolníme všechny s uzlem svázané parametry
@@ -658,32 +659,32 @@ void AST_destroyStatementNode(AST_StatementNode *node) {
 
             // Definice proměnné
             case AST_STATEMENT_VAR_DEF:
-                AST_destroyNode(AST_VAR_NODE, node->statement);
+                AST_destroyExprNode(node->statement);
                 break;
 
             // Výraz
             case AST_STATEMENT_EXPR:
-                AST_destroyNode(AST_EXPR_NODE, node->statement);
+                AST_destroyExprNode(node->statement);
                 break;
 
             // Volání funkce
             case AST_STATEMENT_FUN_CALL:
-                AST_destroyNode(AST_FUN_CALL_NODE, node->statement);
+                AST_destroyFunCallNode(node->statement);
                 break;
 
             // Podmíněný příkaz "if"
             case AST_STATEMENT_IF:
-                AST_destroyNode(AST_IF_NODE, node->statement);
+                AST_destroyIfNode(node->statement);
                 break;
 
             // Cyklus "while"
             case AST_STATEMENT_WHILE:
-                AST_destroyNode(AST_WHILE_NODE, node->statement);
+                AST_destroyWhileNode(node->statement);
                 break;
 
             // Příkaz "return"
             case AST_STATEMENT_RETURN:
-                AST_destroyNode(AST_EXPR_NODE, node->statement);
+                AST_destroyExprNode(node->statement);
                 break;
 
             // Jinak se nic nestane
@@ -730,6 +731,7 @@ void AST_destroyFunCallNode(AST_FunCallNode *node) {
     // Uvolníme dynamický string uvnitř uzlu
     if(node->identifier != NULL) {
         string_free(node->identifier);
+        node->identifier = NULL;
     }
 
     // Uvolníme všechny s uzlem svázané argumenty
@@ -975,6 +977,7 @@ void AST_destroyVarNode(AST_VarNode *node) {
     // Uvolníme dynamický string uvnitř uzlu
     if(node->identifier != NULL) {
         string_free(node->identifier);
+        node->identifier = NULL;
     }
 
     // Pokud je ukazatel na příslušnou hodnotu proměnné/literálu platný, ...
@@ -998,6 +1001,7 @@ void AST_destroyVarNode(AST_VarNode *node) {
             // Literál typu []u8
             case AST_LITERAL_STRING:
                 string_free((DString *)(node->value));
+                node->value = NULL;
                 break;
 
             // Literál typu NULL (pro ten nemusíme provádět žádnou operaci)
@@ -1096,7 +1100,7 @@ void AST_destroyArgOrParamList(AST_ArgOrParamNode *list) {
     // Cyklicky mažeme vždy první uzel pro argument/parametr v seznamu
     while(currArgOrParamNode != NULL) {
         AST_ArgOrParamNode *nextArgOrParamNode = currArgOrParamNode->next;
-        AST_destroyNode(AST_ARG_OR_PARAM_NODE, currArgOrParamNode);
+        AST_destroyArgOrParamNode(currArgOrParamNode);
         currArgOrParamNode = nextArgOrParamNode;
     }
 } // AST_destroyArgOrParamList()
@@ -1116,7 +1120,7 @@ void AST_destroyStatementList(AST_StatementNode *list) {
     // Cyklicky mažeme vždy první uzel pro příkaz v seznamu
     while(currStatementNode != NULL) {
         AST_StatementNode *nextStatementNode = currStatementNode->next;
-        AST_destroyNode(AST_STATEMENT_NODE, currStatementNode);
+        AST_destroyStatementNode(currStatementNode);
         currStatementNode = nextStatementNode;
     }
 } // AST_destroyStatementList()
@@ -1136,7 +1140,7 @@ void AST_destroyFunDefList(AST_FunDefNode *list) {
     // Cyklicky mažeme vždy první uzel pro definici funkce v seznamu
     while(currFunDefNode != NULL) {
         AST_FunDefNode *nextFunDefNode = currFunDefNode->next;
-        AST_destroyNode(AST_FUN_DEF_NODE, currFunDefNode);
+        AST_destroyFunDefNode(currFunDefNode);
         currFunDefNode = nextFunDefNode;
     }
 } // AST_destroyFunDefList()

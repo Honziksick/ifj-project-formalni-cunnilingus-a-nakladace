@@ -42,8 +42,9 @@ AST_ProgramNode *LLparser_parseProgram() {
         error_handle(ERROR_INTERNAL);
     }
 
-    // Raději vyresetujeme statickou proměnnou ve funkci Parser_getNextToken()
-    Parser_getNextToken(RESET_STATIC);
+    // Raději vyresetujeme statické proměnné
+    Parser_getNextToken(RESET_LOOKAHEAD);
+    Parser_watchSyntaxError(RESET_ERROR_FLAG);
 
     // Inicializujeme prvním voláním scanneru "currentToken" a "lookaheadToken"
     Parser_getNextToken(LL_PARSER);
@@ -53,7 +54,7 @@ AST_ProgramNode *LLparser_parseProgram() {
 
     // Pokud nebylo pravidlo nalazene, nastala syntaktická chyba
     if(!LLtable_findRule(currentToken.LLterminal, NT_PROGRAM, &rule)) {
-        AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+        AST_destroyTree();
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
     }
@@ -64,7 +65,7 @@ AST_ProgramNode *LLparser_parseProgram() {
         // Parsujeme <PROLOGUE>
         ASTroot->importedFile = LLparser_parsePrologue();
         if(ASTroot->importedFile == NULL) {
-            AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+            AST_destroyTree();
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
             return PARSING_SYNTAX_ERROR;
         }
@@ -77,7 +78,7 @@ AST_ProgramNode *LLparser_parseProgram() {
 
         // Jelikož <FUN_DEF_LIST> může být rozvinutou na ε, musíme kromě NULL zkontrolovat error flag
         if(funDefNode == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
-            AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+            AST_destroyTree();
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
             return PARSING_SYNTAX_ERROR;
         }
@@ -85,14 +86,14 @@ AST_ProgramNode *LLparser_parseProgram() {
 
         // Parsujeme `EOF`
         if(currentToken.LLterminal != T_EOF) {
-            AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+            AST_destroyTree();
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
             return PARSING_SYNTAX_ERROR;
         }
     }
     // Pokud již dříve nebyla hlášena ERROR_SYNTAX, tak je tato větev ERROR_INTERNAL
     else {
-        AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+        AST_destroyTree();
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
     }
@@ -1189,7 +1190,7 @@ AST_StatementNode *LLparser_parseVarDef() {
     AST_ExprNode *rightOperand = PrecParser_parse(NT_VAR_DEF);
 
     // Kontrolujeme úspěch parsování
-    if(rightOperand == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+    if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
         string_free(varName);
         return PARSING_SYNTAX_ERROR;
     }

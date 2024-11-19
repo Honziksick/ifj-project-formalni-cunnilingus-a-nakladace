@@ -51,8 +51,7 @@
 
 #define MAX_SIZE_T_DIGITS 20        /**< Maximální počet číslic, které mohou být použity pro reprezentaci hodnoty typu `size_t`. */
 #define FRAME_ID_SEPARATOR '$'      /**< Znak používaný jako odělovač ID rámce od názvu proměnné v jejím identifikátoru. */
-#define SET_SYNTAX_ERROR true       /**< Parametr pro funkci `Parser_watchSyntaxError`, aby nastavila stav syntax error na `true`. */
-#define IS_SYNTAX_ERROR false       /**< Parametr pro funkci `Parser_watchSyntaxError`, aby zkontrolovala aktuální stav syntax error. */
+
 
 /*******************************************************************************
  *                                                                             *
@@ -128,12 +127,18 @@ extern FrameStack stack;
 extern FrameArray frameArray;
 
 
-typedef enum {
-    RESET_STATIC = 1,
+typedef enum GetNextTokenState {
+    RESET_LOOKAHEAD = 1,
     LL_PARSER = 2,
     PREC_PARSER = 3,
 } GetNextTokenState;
 
+
+typedef enum PropagateError{
+    RESET_ERROR_FLAG = 1,
+    IS_SYNTAX_ERROR = 2,       /**< Parametr pro funkci `Parser_watchSyntaxError`, aby zkontrolovala aktuální stav syntax error. */
+    SET_SYNTAX_ERROR = 3,       /**< Parametr pro funkci `Parser_watchSyntaxError`, aby nastavila stav syntax error na `true`. */
+} PropagateError;
 
 
 /*******************************************************************************
@@ -165,7 +170,7 @@ Terminal Parser_getNextToken(GetNextTokenState state);
  *
  * @return Aktuální stav syntax error.
  */
-bool Parser_watchSyntaxError(bool setError);
+bool Parser_watchSyntaxError(PropagateError state);
 
 /**
  * @brief Přidá suffix k jménu proměnné ve formátu @c $frameID$.
