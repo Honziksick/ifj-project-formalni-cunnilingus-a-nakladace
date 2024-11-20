@@ -56,6 +56,7 @@ typedef enum TAC_Operation {\
     TAC_OP_CREATEFRAME,    /**< Vytvoření nového rámce */
     TAC_OP_PUSHFRAME,      /**< Přidání prázdného rámce na zásobník rámců */
     TAC_OP_POPFRAME,       /**< Pop prvek zásobníku rámců */
+    TAC_OP_CLEARS,         /**< Vyčištění zásobníku volání */
     TAC_OP_ADD,            /**< Sčítání */
     TAC_OP_SUB,            /**< Odčítání */
     TAC_OP_MUL,            /**< Násobení */
@@ -208,24 +209,60 @@ void TAC_destroyOperand(TAC_Operand *operand);
 void TAC_appendInstruction(TAC_InstructionList *tacList, TAC_Instruction *instr);
 
 /**
- * @brief Generuje tříadresný kód pro daný uzel programu.
+ * @brief Generuje tříadresný kód pro začátek programu.
  *
  * @param programNode Ukazatel na kořenový uzel programu.
  * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
  *
  * @return `true`, pokud generování kódu proběhlo úspěšně, jinak `false`.
  */
-bool TAC_generateProgramCode(AST_ProgramNode *programNode, TAC_InstructionList *tacList);
+bool TAC_generateProgramCodeBegin(AST_ProgramNode *programNode, TAC_InstructionList *tacList);
 
 /**
- * @brief Generuje tříadresný kód pro definici funkce.
+ * @brief Generuje tříadresný kód pro konecprogramu.
+ *
+ * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
+ *
+ * @return `true`, pokud generování kódu proběhlo úspěšně, jinak `false`.
+ */
+bool TAC_generateProgramCodeEnd(TAC_InstructionList *tacList);
+
+/**
+ * @brief Generuje tříadresný kód pro začátek definice funkce.
  *
  * @param funDefNode Ukazatel na uzel definice funkce.
  * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
  *
  * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
  */
-bool TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode, TAC_InstructionList *tacList);
+bool TAC_generateFunctionDefinitionBegin(AST_FunDefNode *funDefNode, TAC_InstructionList *tacList);
+
+/*******************************************************************************
+ *                                                                             *
+ *                                  TODO                                       *
+ *                           Zbylé typy nodes v middle                         *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Generuje tříadresný kód pro instrukce uvnitř definované funkce.
+ *
+ * @param funDefNode Ukazatel na uzel definice funkce.
+ * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
+ *
+ * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
+ */
+bool TAC_generateFunctionDefinitionMiddle(AST_FunDefNode *funDefNode, TAC_InstructionList *tacList);
+
+/**
+ * @brief Generuje tříadresný kód pro konec definice funkce.
+ *
+ * @param funDefNode Ukazatel na uzel definice funkce.
+ * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
+ *
+ * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
+ */
+bool TAC_generateFunctionDefinitionEnd(TAC_InstructionList *tacList);
 
 /**
  * @brief Generuje tříadresný kód pro argument nebo parametr.
@@ -282,20 +319,23 @@ bool TAC_generateWhileLoop(AST_WhileNode *whileNode, TAC_InstructionList *tacLis
  *
  * @param expressionNode Ukazatel na uzel výrazu.
  * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
+ * @param varNode Ukazatel na uzel proměnné, do které bude výsledek uložen.
+ * @param exprNode Ukazatel na uzel výrazu, který bude vyhodnocen.
  *
  * @return TAC_Operand Výstupní operand reprezentující výsledek výrazu.
  */
-TAC_Operand TAC_generateExpression(AST_ExprNode *expressionNode, TAC_InstructionList *tacList);
+bool TAC_generateExpression(AST_BinOpNode *binOp, AST_VarNode *varNode, TAC_InstructionList *tacList);
 
 /**
  * @brief Generuje tříadresný kód pro binární operaci.
  *
  * @param binOpNode Ukazatel na uzel binární operace.
  * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
+ * @param varNode Ukazatel na uzel proměnné, do které bude výsledek uložen.
  *
  * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
  */
-bool TAC_generateBinOp(AST_BinOpNode *binOpNode, TAC_InstructionList *tacList);
+bool TAC_generateBinOp(AST_BinOpNode *binOp, AST_VarNode *varNode, TAC_InstructionList *tacList);
 
 /**
  * @brief Generuje tříadresný kód pro návratový příkaz.
