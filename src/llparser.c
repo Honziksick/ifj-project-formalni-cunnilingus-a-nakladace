@@ -1555,7 +1555,9 @@ AST_IfNode *LLparser_parseIf() {
     }
 
     // Pushneme nový rámec pro "if" blok
-    frameStack_push(false);
+    if(nullCond == NULL) {
+        frameStack_push(false);
+    }
 
     // Vytváříme uzel pro sezna příkazů a parsujeme <SEQUENCE>
     AST_StatementNode *thenBranch = LLparser_parseSequence();
@@ -1650,14 +1652,28 @@ AST_VarNode *LLparser_parseNullCond() {
 
             // Zkontrolujeme, že se nejedná o zastínění (sémantická chyba 5)
             SymtableItem *item = NULL;
-            frame_stack_result result = frameStack_findItem(currentToken.value, &item);
-            if(result != FRAME_STACK_SUCCESS) {
-                error_handle(ERROR_SEM_UNDEF);
+            frame_stack_result findResult = frameStack_findItem(currentToken.value, &item);
+            if(findResult == FRAME_STACK_SUCCESS) {
+                error_handle(ERROR_SEM_REDEF_OR_CONSTDEF);
             }
-            item->used = true;
+            else if(findResult != FRAME_STACK_ITEM_DOESNT_EXIST) {
+                error_handle(ERROR_INTERNAL);
+            }
 
             // Uchovávme hodnotu identifikátoru
             DString *identifier = currentToken.value;
+
+            // Vytvoříme rámce pro "if" větev
+            frameStack_push(false);
+
+            // Vložíme do rámce pro "if" větev "id_bez_null"
+            frame_stack_result addResult = frameStack_addItemExpress(identifier, SYMTABLE_SYMBOL_UNKNOWN, false, NULL, NULL);
+
+            // Kontrola úspěšného vložení do tabulky symbolů
+            if(addResult != FRAME_STACK_SUCCESS) {
+                string_free(identifier);
+                error_handle(ERROR_INTERNAL);
+            }
 
             // Žádáme o další token
             Parser_getNextToken(LL_PARSER);
