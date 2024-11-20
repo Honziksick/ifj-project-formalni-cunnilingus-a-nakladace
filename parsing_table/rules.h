@@ -66,11 +66,7 @@ Rules ruleSet = {
     {NT_RETURN, {T_RETURN, NT_RETURN_REST}},
     {NT_RETURN_REST, {T_CALL_PRECEDENCE}},
     {NT_RETURN_REST, {T_EPSILON}},
-    {NT_ARGUMENTS, {NT_ARG_LIST}},
-    {NT_ARGUMENTS, {T_EPSILON}},
-    {NT_ARG_LIST, {T_CALL_PRECEDENCE, NT_ARG}},
-    {NT_ARG, {T_COMMA, T_CALL_PRECEDENCE, NT_ARG}},
-    {NT_ARG, {T_EPSILON}},
+    {NT_ARGUMENTS, {T_CALL_PRECEDENCE}},
 };
 
 // Mapování hodnot na odpovídající řetězce
@@ -120,11 +116,7 @@ std::map<int, std::string> valueMap = {
     {41, "RETURN"},
     {42, "RETURN_REST_1"},
     {43, "RETURN_REST_2"},
-    {44, "ARGUMENTS_1"},
-    {45, "ARGUMENTS_2"},
-    {46, "ARG_LIST"},
-    {47, "ARG_1"},
-    {48, "ARG_2"}
+    {44, "ARGUMENTS"},
 };
 
 
