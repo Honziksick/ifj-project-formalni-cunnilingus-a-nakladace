@@ -38,6 +38,8 @@ AST_ProgramNode *LLparser_parseProgram() {
     // Alokujeme kořen AST a zkontrolujeme úspěšnost alokace
     AST_initTree();
 
+    PrecStackList_create();
+
     if(ASTroot == NULL) {
         error_handle(ERROR_INTERNAL);
     }
@@ -97,6 +99,8 @@ AST_ProgramNode *LLparser_parseProgram() {
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
     }
+
+    PrecStackList_destroy();
 
     // Vracíme ukazatel na AST_ProgramNode
     return ASTroot;

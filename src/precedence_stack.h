@@ -151,7 +151,12 @@ typedef struct PrecStackNode {
  */
 typedef struct PrecStack {
     PrecStackNode *top;           /**< Ukazatel na vrchol stacku */
+    struct PrecStack *next;
 } PrecStack;
+
+typedef struct PrecStackList {
+    PrecStack *stack;
+} PrecStackList;
 
 /*******************************************************************************
  *                                                                             *
@@ -166,7 +171,7 @@ typedef struct PrecStack {
  *          který je používán během syntaktické analýzy. Zásobník je inicializován
  *          na začátku analýzy a uvolněn po jejím dokončení.
  */
-extern struct PrecStack *precStack;
+extern struct PrecStackList *precStackList;
 
 
 /*******************************************************************************
@@ -176,30 +181,39 @@ extern struct PrecStack *precStack;
  ******************************************************************************/
 
 /**
- * @brief Alokuje paměť pro globální precedenční zásobník.
- *
- * @details Tato funkce alokuje paměť pro globální proměnnou `precStack`,
- *          která představuje precedenční zásobník. Pokud se alokace paměti
- *          nezdaří, funkce zavolá funkci `error_handle()` s chybovým kódem
- *          `ERROR_INTERNAL`.
- *
- * @note Alokovaný stack je globální, proto funkci voláme pouze jako
- *       `PrecStack_create()`. Funkce je definována jako @c inline.
+ * @brief Inicializuje globální seznam precedenčních zásobníků.
  */
-void PrecStack_create();
+void PrecStackList_create();
 
 /**
- * @brief Inicializuje globální precedenční zásobník.
- *
- * @details Tato funkce inicializuje globální precedenční zásobník tím, že na něj
- *          pushne počáteční symbol `PREC_STACK_SYM_DOLLAR`. Tento symbol slouží
- *          jako počáteční bod pro precedenční syntaktickou analýzu.
- *
- * @note `param [in] stack`: Ukazatel na globální precedenční zásobník
- *       @c PrecStack, který má být inicializován. Funkce je definována
- *       jako @c inline.
+ * @brief Přidá nový precedenční zásobník na vrchol seznamu a inicializuje jej.
  */
-void PrecStack_init();
+void PrecStackList_push();
+
+/**
+ * @brief Odebere a uvolní vrcholový zásobník ze seznamu (bez uvolnění AST uzlů).
+ */
+void PrecStackList_popAndDispose();
+
+/**
+ * @brief Odebere a uvolní vrcholový zásobník ze seznamu (včetně uvolnění AST uzlů).
+ */
+void PrecStackList_popAndPurge();
+
+/**
+ * @brief Uvolní všechny zásobníky ze seznamu pomocí popAndDispose a následně uvolní samotný seznam.
+ */
+void PrecStackList_dispose();
+
+/**
+ * @brief Uvolní všechny zásobníky ze seznamu pomocí popAndPurge a následně uvolní samotný seznam.
+ */
+void PrecStackList_purge();
+
+/**
+ * @brief Uvolní globální strukturu seznamu zásobníků.
+ */
+void PrecStackList_destroy();
 
 /**
  * @brief Pushne terminál na globální precedenční zásobník.
@@ -276,6 +290,12 @@ PrecStackNode* PrecStack_top();
 void PrecStack_freeNode(PrecStackNode *node);
 
 /**
+ * @brief Uvolní všechny uzly z globálního precedenčního zásobníku pomocí
+ *        funkce PrecStack_freeNode a nakonec zničí zásobník.
+ */
+void PrecStack_purgeStack(PrecStack *stack);
+
+/**
  * @brief Uvolní všechny uzly z globálního precedenčního zásobníku a
  *        inicializuje ho do počátečního stavu.
  *
@@ -284,7 +304,7 @@ void PrecStack_freeNode(PrecStackNode *node);
  *
  * @note `param [in] stack`: Ukazatel na @c PrecStack, který má být uvolněn.
  */
-void PrecStack_dispose();
+void PrecStack_dispose(PrecStack *stack);
 
 /**
  * @brief Uvolní z paměti samotnou strukturu precedenčního zásobníku.
@@ -306,6 +326,11 @@ void PrecStack_destroy();
  *              terminál.
  */
 void PrecStack_getTopPrecTerminal(PrecTerminals *terminal);
+
+/**
+ * @brief Zkontroluje, zda je na vrcholu zásobníku symbol HANDLE.
+ */
+bool PrecStack_isIdOnTop();
 
 /**
  * @brief Zkontroluje, zda je na vrcholu zásobníku symbol HANDLE.
