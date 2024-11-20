@@ -46,7 +46,7 @@ using namespace internal;
 
 // Definice názvu specifického testu, pro který se má provádět tisk
 // Pokud není definováno, tisk se provádí pro všechny testy
-#define SPECIFIC_TEST_NAME "CorrectFunCallStatOneParam"
+#define SPECIFIC_TEST_NAME "CorrectFunCallStatVar"
 //#define DISABLE_PRINT
 
 #ifndef DISABLE_PRINT
@@ -71,7 +71,8 @@ using namespace internal;
 
 string exam_path = "../ifj24_examples/ifj24_programs/";
 string synt_path = "../test/test_examples/syntactic_examples/";
-/*
+
+
 TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     // Načtení souboru s programem na STDIN
     string path = synt_path + "correct_prologue_and_empty_main.zig";
@@ -294,12 +295,7 @@ TEST(LLParserBasicsCorrect, TwoFunctions){
     stdin = stdin_backup;
     fclose(f);
 }
-*/
-/**
- * @warning Někde je tam memmory leak. Myslím, že to bude nějakej string.
- * 
- */
-/*
+
 TEST(LLParserBasicsCorrect, VarDef){
     string path = synt_path + "correct_var_def.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -528,7 +524,7 @@ TEST(LLParserBasicsCorrect, FunCallStatStringLit){
     stdin = stdin_backup;
     fclose(f);
 }
-*/
+
 TEST(LLParserBasicsCorrect, FunCallStatVar){
     string path = synt_path + "correct_fun_call_stat_var.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -556,4 +552,6 @@ TEST(LLParserBasicsCorrect, FunCallStatVar){
     stdin = stdin_backup;
     fclose(f);
 }
+
+
 /*** Konec souboru parser_test.cpp ***/
