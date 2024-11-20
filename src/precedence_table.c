@@ -174,8 +174,11 @@ void PrecTable_getFollowSet(LLNonTerminals fromNonTerminal) {
 
         case NT_IF:
         case NT_WHILE:
-        case NT_ARGUMENTS:
             currentDollar = DOLLAR_T_RIGHT_BRACKET;
+            break;
+
+        case NT_ARGUMENTS:
+            currentDollar = DOLLAR_T_COMMA;
             break;
 
         default:

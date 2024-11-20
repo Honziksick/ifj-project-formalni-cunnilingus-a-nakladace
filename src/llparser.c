@@ -1187,7 +1187,7 @@ AST_StatementNode *LLparser_parseVarDef() {
     Parser_getNextToken(LL_PARSER);
 
     // Parsujeme [precedence_expression]
-    AST_ExprNode *rightOperand = (AST_ExprNode *)PrecParser_parse(NT_VAR_DEF);
+    AST_ExprNode *rightOperand = PrecParser_parse(NT_VAR_DEF);
 
     // Kontrolujeme úspěch parsování
     if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
@@ -1231,7 +1231,7 @@ AST_StatementNode *LLparser_parseVarDef() {
     }
 
     // Vytvoříme uzel výrazu pro cíl přiřazení
-    AST_ExprNode *leftOperand = (AST_ExprNode *)AST_createNode(AST_BIN_OP_NODE);
+    AST_ExprNode *leftOperand = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     if(leftOperand == NULL) {
         AST_destroyNode(AST_VAR_NODE, varNode);
         AST_destroyNode(AST_EXPR_NODE, rightOperand);
@@ -1388,7 +1388,7 @@ AST_StatementNode *LLparser_parseStatementRest(DString *identifier) {
             Parser_getNextToken(LL_PARSER);
 
             // Parsujeme [precedence_expression]
-            AST_ExprNode *expr = (AST_ExprNode *)PrecParser_parse(NT_STATEMENT_REST);
+            AST_ExprNode *expr = PrecParser_parse(NT_STATEMENT_REST);
             if(expr == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
                 string_free(identifier);
                 return PARSING_SYNTAX_ERROR;
@@ -1527,7 +1527,7 @@ AST_StatementNode *LLparser_parseStatementRest(DString *identifier) {
 } // LLparser_parseStatementRest
 
 AST_ExprNode *LLparser_parseThrowAway() {
-    return (AST_ExprNode *)PrecParser_parse(NT_THROW_AWAY);
+    return PrecParser_parse(NT_THROW_AWAY);
 }
 
 AST_IfNode *LLparser_parseIf() {
@@ -1548,7 +1548,7 @@ AST_IfNode *LLparser_parseIf() {
     Parser_getNextToken(LL_PARSER);
 
     // Vytváříme uzel výrazu a parsujeme [precedence_expression] (čili podmínku if)
-    AST_ExprNode *condition = (AST_ExprNode *)PrecParser_parse(NT_IF);
+    AST_ExprNode *condition = PrecParser_parse(NT_IF);
     if(condition == NULL) {
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
@@ -1756,7 +1756,7 @@ AST_WhileNode *LLparser_parseWhile() {
     Parser_getNextToken(LL_PARSER);
 
     // Parsujeme [precedence_expression]
-    AST_ExprNode *condition = (AST_ExprNode *)PrecParser_parse(NT_WHILE);
+    AST_ExprNode *condition = PrecParser_parse(NT_WHILE);
     if (condition == NULL) {
         return PARSING_SYNTAX_ERROR;
     }
@@ -1856,7 +1856,7 @@ AST_ExprNode *LLparser_parseReturnRest() {
     switch (rule) {
         // <RETURN_REST> -> [precedence_expression]
         case RETURN_REST_1:
-            return (AST_ExprNode *)PrecParser_parse(NT_RETURN_REST);
+            return PrecParser_parse(NT_RETURN_REST);
 
         // <RETURN_REST> -> ε
         case RETURN_REST_2:
@@ -1871,7 +1871,41 @@ AST_ExprNode *LLparser_parseReturnRest() {
 
 // <ARGUMENTS> -> [precedence_expression]
 AST_ArgOrParamNode *LLparser_parseArguments() {
-    return (AST_ArgOrParamNode *)PrecParser_parse(NT_ARGUMENTS);
+    AST_ArgOrParamNode *argList = NULL;
+    AST_ArgOrParamNode *currentArg = NULL;
+
+    AST_ExprNode *arg = NULL;
+    do {
+        arg = PrecParser_parse(NT_ARGUMENTS);
+        if (arg == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+            // Uvolnění již alokovaných uzlů v případě chyby
+            AST_destroyArgOrParamList(argList);
+            return PARSING_SYNTAX_ERROR;
+        }
+
+        if (arg != NULL) {
+            // Vytvoření nového uzlu pro argument/parametr
+            AST_ArgOrParamNode *newArg = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
+            if (newArg == NULL) {
+                // Uvolnění již alokovaných uzlů v případě chyby
+                AST_destroyArgOrParamList(argList);
+                error_handle(ERROR_INTERNAL);
+            }
+
+            // Inicializace nového uzlu
+            AST_initNewArgOrParamNode(newArg, AST_DATA_TYPE_NOT_DEFINED, arg);
+
+            // Připojení nového uzlu do seznamu
+            if (argList == NULL) {
+                argList = newArg;
+            } else {
+                currentArg->next = newArg;
+            }
+            currentArg = newArg;
+        }
+    } while (arg != NULL);
+
+    return argList;
 } // LLparser_parseArguments()
 
 /*** Konec souboru llparser.c ***/
