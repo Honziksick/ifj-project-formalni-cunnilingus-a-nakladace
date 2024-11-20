@@ -170,7 +170,10 @@ Terminal Parser_getNextToken(GetNextTokenState state);
  *
  * @return Aktuální stav syntax error.
  */
-bool Parser_watchSyntaxError(PropagateError state);
+bool Parser_watchSyntaxErrorInternal(PropagateError state, const char *file, int line, const char *func);
+
+#define Parser_watchSyntaxError(state) Parser_watchSyntaxErrorInternal(state, __FILE__, __LINE__, __func__)
+
 
 /**
  * @brief Přidá suffix k jménu proměnné ve formátu @c $frameID$.

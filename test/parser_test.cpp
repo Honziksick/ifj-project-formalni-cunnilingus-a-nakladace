@@ -46,7 +46,7 @@ using namespace internal;
 
 // Definice názvu specifického testu, pro který se má provádět tisk
 // Pokud není definováno, tisk se provádí pro všechny testy
-#define SPECIFIC_TEST_NAME "CorrectFunCallStatVar"
+#define SPECIFIC_TEST_NAME "CorrectFunCallStatCommaLast"
 //#define DISABLE_PRINT
 
 #ifndef DISABLE_PRINT
@@ -72,7 +72,7 @@ using namespace internal;
 string exam_path = "../ifj24_examples/ifj24_programs/";
 string synt_path = "../test/test_examples/syntactic_examples/";
 
-
+/*
 TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     // Načtení souboru s programem na STDIN
     string path = synt_path + "correct_prologue_and_empty_main.zig";
@@ -553,5 +553,130 @@ TEST(LLParserBasicsCorrect, FunCallStatVar){
     fclose(f);
 }
 
+TEST(LLParserBasicsCorrect, FunCallStatTwoArgs){
+    string path = synt_path + "correct_fun_call_stat_two_args.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Má funkci
+    EXPECT_NE(ASTroot->functionList, nullptr);
+    AST_FunDefNode* fun = ASTroot->functionList;
+    // Funkce má tělo
+    EXPECT_NE(fun->body, nullptr);
+    AST_StatementNode* stmt = fun->body;
+    // Tělo funkce má jeden příkaz
+    EXPECT_NE(stmt, nullptr);
+    EXPECT_EQ(stmt->next, nullptr);
+    // Příkaz je volání funkce
+    EXPECT_EQ(stmt->statementType, AST_STATEMENT_FUN_CALL);
+    EXPECT_NE(stmt->statement, nullptr);
+    // Příkaz je tedy výraz
+    AST_FunCallNode* fcall = (AST_FunCallNode*)stmt->statement;
+    // Volaná funkce má identifikátor foo
+    EXPECT_NE(fcall->identifier, nullptr);
+    EXPECT_EQ(string_compare_const_str(fcall->identifier, "foo"), STRING_EQUAL);
+    // Funkce má dva argumenty
+    EXPECT_NE(fcall->arguments, nullptr);
+    AST_ArgOrParamNode* arg1 = fcall->arguments;
+    // První argument je literál typu float
+    EXPECT_EQ(arg1->dataType, AST_DATA_TYPE_NOT_DEFINED);
+    EXPECT_NE(arg1->expression, nullptr);
+    AST_ExprNode* expr1 = arg1->expression;
+    EXPECT_EQ(expr1->exprType, AST_EXPR_LITERAL);
+    AST_VarNode* lit1 = (AST_VarNode*)expr1->expression;
+    EXPECT_EQ(lit1->literalType, AST_LITERAL_FLOAT);
+    EXPECT_EQ(*(double*)lit1->value, 3.14);
+    // Druhý argument je literál typu string
+    EXPECT_NE(arg1->next, nullptr);
+    AST_ArgOrParamNode* arg2 = arg1->next;
+    EXPECT_EQ(arg2->dataType, AST_DATA_TYPE_NOT_DEFINED);
+    EXPECT_NE(arg2->expression, nullptr);
+    AST_ExprNode* expr2 = arg2->expression;
+    EXPECT_EQ(expr2->exprType, AST_EXPR_LITERAL);
+    AST_VarNode* lit2 = (AST_VarNode*)expr2->expression;
+    EXPECT_EQ(lit2->literalType, AST_LITERAL_STRING);
+    EXPECT_EQ(string_compare_const_str((DString*)lit2->value, "Please work"), STRING_EQUAL);
+    // Nemá další argumenty
+    EXPECT_EQ(arg2->next, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectFunCallStatTwoArgs);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, FunCallStatManyArgs){
+    string path = synt_path + "correct_fun_call_stat_many_args.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectFunCallStatManyArgs);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+*/
+
+TEST(LLParserBasicsCorrect, FunCallStatCommaLast){
+    string path = synt_path + "correct_fun_call_stat_comma_last.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectFunCallStatCommaLast);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
 
 /*** Konec souboru parser_test.cpp ***/

@@ -1082,14 +1082,6 @@ AST_StatementNode *LLparser_parseStatement() {
                 return PARSING_SYNTAX_ERROR;
             }
 
-            // Parsujeme ")"
-            if (currentToken.LLterminal != T_RIGHT_BRACKET) {
-                AST_destroyNode(AST_ARG_OR_PARAM_NODE, arguments);
-                string_free(identifier);
-                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                return PARSING_SYNTAX_ERROR;
-            }
-
             // Žádáme o další token
             Parser_getNextToken(LL_PARSER);
 
@@ -1486,12 +1478,7 @@ AST_StatementNode *LLparser_parseStatementRest(DString *identifier) {
                 return NULL;
             }
 
-            // Parsujeme ")"
-            if (currentToken.LLterminal != T_RIGHT_BRACKET) {
-                string_free(identifier);
-                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                return NULL;
-            }
+            // Žádáme o další token
             Parser_getNextToken(LL_PARSER);
 
             // Vytvoříme uzel pro volání funkce
@@ -1904,7 +1891,13 @@ AST_ArgOrParamNode *LLparser_parseArguments() {
             }
             currentArg = newArg;
         }
-    } while (arg != NULL);
+
+        // Žádáme o další token
+        if(currentToken.LLterminal == T_COMMA) {
+            Parser_getNextToken(LL_PARSER);
+        }
+
+    } while(currentToken.LLterminal != T_RIGHT_BRACKET);
 
     return argList;
 } // LLparser_parseArguments()
