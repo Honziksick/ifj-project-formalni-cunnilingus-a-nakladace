@@ -370,7 +370,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
     }
 
     // Parsujeme <SEQUENCE>
-    AST_StatementNode *sequence = LLparser_parseSequence();
+    AST_StatementNode *sequence = LLparser_parseSequence(false);
 
     // Kontrola úspěchu parsování <SEQUENCE>
     if(sequence == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
@@ -1554,13 +1554,8 @@ AST_IfNode *LLparser_parseIf() {
         return PARSING_SYNTAX_ERROR;
     }
 
-    // Pushneme nový rámec pro "if" blok
-    if(nullCond == NULL) {
-        frameStack_push(false);
-    }
-
-    // Vytváříme uzel pro sezna příkazů a parsujeme <SEQUENCE>
-    AST_StatementNode *thenBranch = LLparser_parseSequence();
+    // Vytváříme uzel pro seznam příkazů a parsujeme <SEQUENCE>
+    AST_StatementNode *thenBranch = LLparser_parseSequence(nullCond == NULL);
     if (Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
         AST_destroyNode(AST_EXPR_NODE, condition);
         if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
@@ -1584,11 +1579,8 @@ AST_IfNode *LLparser_parseIf() {
     }
     Parser_getNextToken(LL_PARSER);
 
-    // Pushneme nový rámec pro "else" blok
-    frameStack_push(false);
-
     // Vytváříme uzel pro seznam příkazů a parsujeme <SEQUENCE>
-    AST_StatementNode *elseBranch = LLparser_parseSequence();
+    AST_StatementNode *elseBranch = LLparser_parseSequence(true);
     if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
         AST_destroyNode(AST_EXPR_NODE, condition);
         AST_destroyNode(AST_STATEMENT_NODE, thenBranch);
@@ -1715,7 +1707,7 @@ AST_VarNode *LLparser_parseNullCond() {
 } // LLparser_parseNullCond()
 
 // <SEQUENCE> -> { <STATEMENT_LIST> }
-AST_StatementNode *LLparser_parseSequence() {
+AST_StatementNode *LLparser_parseSequence(bool createFrame) {
     // Parsujeme "{"
     if(currentToken.LLterminal != T_LEFT_CURLY_BRACKET) {
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
@@ -1726,35 +1718,26 @@ AST_StatementNode *LLparser_parseSequence() {
     Parser_getNextToken(LL_PARSER);
 
     // Pushneme nový rámec na zásobník rámců
-    frameStack_push(false);
+    if(createFrame) {
+        frameStack_push(false);
+    }
 
     // Vytvoříme si uzel reprezentující seznam příkazů a parsujeme <STATEMENT_LIST>
     AST_StatementNode *statementList = LLparser_parseStatementList();
 
     // Zkontrolujeme úspěšnost parsování <STATEMENT_LIST>
     if(statementList == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
-        if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-            error_handle(ERROR_INTERNAL);
-        }
         return PARSING_SYNTAX_ERROR;
     }
 
     // Parsujeme "}"
     if(currentToken.LLterminal != T_RIGHT_CURLY_BRACKET) {
         AST_destroyNode(AST_STATEMENT_NODE, statementList);
-        if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-            error_handle(ERROR_INTERNAL);
-        }
         return PARSING_SYNTAX_ERROR;
     }
 
     // Žádáme o další token
     Parser_getNextToken(LL_PARSER);
-
-    // Popneme rámec pro tuto sekvenci příkazů
-    if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-        error_handle(ERROR_INTERNAL);
-    }
 
     // Vracíme sekvenci příkazů
     return statementList;
@@ -1802,11 +1785,8 @@ AST_WhileNode *LLparser_parseWhile() {
         return PARSING_SYNTAX_ERROR;
     }
 
-    // Pushneme nový rámec pro "while" blok
-    frameStack_push(false);
-
     // Parsujeme <SEQUENCE>
-    AST_StatementNode *body = LLparser_parseSequence();
+    AST_StatementNode *body = LLparser_parseSequence(nullCond == NULL);
     if (body == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
         AST_destroyNode(AST_EXPR_NODE, condition);
         if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {

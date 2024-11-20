@@ -212,7 +212,7 @@ AST_VarNode *LLparser_parseNullCond();
  * @return Ukazatel na uzel sekvence příkazů (AST_StatementNode) při
  *         úspěšném parsování, jinak `NULL`.
  */
-AST_StatementNode *LLparser_parseSequence();
+AST_StatementNode *LLparser_parseSequence(bool createFrame);
 
 /**
  * @brief Parsuje neterminál `<WHILE>`.
