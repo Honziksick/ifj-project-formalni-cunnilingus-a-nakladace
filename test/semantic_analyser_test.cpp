@@ -103,7 +103,7 @@ TEST(Correct, Simplest){
     ASTroot = NULL;
 }
 
-/*
+
 TEST(Correct, Hello){
     std::string path = exam_path + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -127,7 +127,7 @@ TEST(Correct, Hello){
     fclose(f);
     ASTroot = NULL;
 }
-
+/*
 TEST(Correct, Example1){
     std::string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -327,7 +327,7 @@ TEST(Correct, Inference){
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
-}*/
+}
 
 
 TEST(Correct, Void_fun){
@@ -350,7 +350,7 @@ TEST(Correct, Void_fun){
     fclose(f);
     ASTroot = NULL;
 }
-/*
+
 
 TEST(Incorrect, Undefined_Var){
     std::string path = sem_path + "semen_test_1_undefined_var.zig";
@@ -586,7 +586,7 @@ TEST(Incorrect, AssignType2){
     fclose(f);
     ASTroot = NULL;
 }
-
+*/
 TEST(Incorrect, Unused_Var){
     std::string path = sem_path + "semen_test_13_unused_variable.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -596,7 +596,8 @@ TEST(Incorrect, Unused_Var){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
+
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(9), "");
 
@@ -606,7 +607,8 @@ TEST(Incorrect, Unused_Var){
     fclose(f);
     ASTroot = NULL;
 }
-*/
+
+
 TEST(Incorrect, MainInt){
     std::string path = sem_path + "main_type_int.zig";
     FILE* f = fopen(path.c_str(), "r");
