@@ -122,7 +122,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
         }
 
         // Získání precedence pro aktuální terminál a terminál na vrcholu zásobníku
-        Precedence precedence;
+        Precedence precedence = P_SYNTAX_ERROR;
         PrecTable_findPrecedence(topTerminal, inTerminal, &precedence);
         if(precedence == P_SYNTAX_ERROR) {
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
@@ -152,7 +152,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
              *        3) Čti další symbol 'b' ze vstupu
              */
             case P_LESS: {
-                if(PrecStack_isIdOnTop()) {
+                if(PrecStack_isIdOnTop() && (inTerminal == T_PREC_LEFT_BRACKET)) {
                     // Pushneme na zásobník symbol "handle"
                     Parser_getNextToken(PREC_PARSER);
                     AST_ArgOrParamNode *argList = LLparser_parseArguments();
@@ -165,7 +165,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
                 }
                 else {
                     // Pushneme na zásobník symbol "handle"
-                    PrecStack_pushPrecNonTerminal(PREC_STACK_NT_HANDLE, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
+                    PrecStack_pushHandleAfterFirstTerminal();
                     // Pushneme na zásboník inicializovaný "PrecStackNode"
                     PrecStack_pushBothStackAndASTNode(inTerminal);
                     // Čtení dalšího symbolu ze vstupu
@@ -174,6 +174,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
 
                 // Mapování dalšího symbolu na precedenční terminál
                 PrecParser_mapToDollar(bracketDepth, &inTerminal);
+                PrecStack_getTopPrecTerminal(&topTerminal);
 
                 break;
             } // case P_LESS
@@ -204,9 +205,10 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
                 }
                 else {
                     PrecParser_reduce(rule);
-                    if(rule == REDUCE_E_FUN_CALL) {
-                        PrecStack_getTopPrecTerminal(&topTerminal);
-                    }
+                    //if(rule == REDUCE_E_FUN_CALL) {
+                    //    PrecStack_getTopPrecTerminal(&topTerminal);
+                    //}
+                    PrecStack_getTopPrecTerminal(&topTerminal);
                 }
                 break;
             } // case P_GREATER

@@ -255,6 +255,8 @@ void PrecStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType ty
  */
 void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal);
 
+void PrecStack_pushHandleAfterFirstTerminal();
+
 /**
  * @brief Popne uzel AST z globálního precedenčního zásobníku.
  *
