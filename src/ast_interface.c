@@ -435,6 +435,9 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
             // Převádíme řetězec na integer
             *intPtr = (int)intValue;
             node->value = intPtr;
+
+            // Uvolníme úvodním obsah tokenu
+            string_free(value);
             break;
         } // case AST_LITERAL_INT
 
@@ -462,6 +465,9 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
             // Převádíme řetězec na float
             *floatPtr = (float)floatValue;
             node->value = floatPtr;
+
+            // Uvolníme úvodním obsah tokenu
+            string_free(value);
             break;
         } // case AST_LITERAL_FLOAT
 
