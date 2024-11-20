@@ -700,16 +700,16 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
 
     AST_ArgOrParamNode *arg = fun_node->arguments;
 
-    // Najdeme tabulku symbolů volání funkce
-    AST_VarNode *var_node = arg->expression->expression;
-    SymtablePtr table = frameArray.array[var_node->frameID]->frame;
-
     for(size_t i = 0; i < data->param_count; i++){
         // Málo argumentů ve volání
         if(arg == NULL){
             string_free(key);
             return ERROR_SEM_PARAMS_OR_RETVAL;
         }
+
+        // Najdeme tabulku symbolů pro argument
+        AST_VarNode *var_node = arg->expression->expression;
+        SymtablePtr table = frameArray.array[var_node->frameID]->frame;
 
         Semantic_Data actual_type;
         if(var_node->identifier == NULL){

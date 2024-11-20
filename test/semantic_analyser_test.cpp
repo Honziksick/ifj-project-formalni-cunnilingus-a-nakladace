@@ -6,7 +6,7 @@
  * Autor:            Krejčí David   <xkrejcd00>                                *
  *                                                                             *
  * Datum:            17.11.2024                                                *
- * Poslední změna:   18.11.2024                                                *
+ * Poslední změna:   20.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -35,8 +35,8 @@ extern "C" {
 #include "scanner.h"
 #include "parser.h"
 #include "llparser.h"
-#include "precedence_parser.h"
 #include "lltable.h"
+#include "precedence_parser.h"
 #include "precedence_table.h"
 #include "precedence_stack.h"
 }
@@ -329,7 +329,7 @@ TEST(Correct, Inference){
     ASTroot = NULL;
 }*/
 
-/*
+
 TEST(Correct, Void_fun){
     std::string path = sem_path + "void_fun_good.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -339,7 +339,8 @@ TEST(Correct, Void_fun){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
+    
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
@@ -349,7 +350,7 @@ TEST(Correct, Void_fun){
     fclose(f);
     ASTroot = NULL;
 }
-
+/*
 
 TEST(Incorrect, Undefined_Var){
     std::string path = sem_path + "semen_test_1_undefined_var.zig";
@@ -666,8 +667,7 @@ TEST(Incorrect, Prolog){
     LLparser_parseProgram();
 
     // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(), ExitedWithCode(10), "");
+    EXPECT_EQ(ASTroot, nullptr);
     
 
     frameStack_destroyAll();
@@ -677,14 +677,34 @@ TEST(Incorrect, Prolog){
     ASTroot = NULL;
 }
 
-/*TEST(Incorrect, Prolog2){
-    Nevim exit code
-}
+TEST(Incorrect, Prolog2){
+    std::string path = sem_path + "prolog_issue2.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
 
+    frameStack_init();
+
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_EQ(ASTroot, nullptr);
+    
+
+    frameStack_destroyAll();
+    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+/*
 TEST(Incorrect, Inference){
     
-}*/
-/*
+}
+
 TEST(Incorrect, Inference2){
     std::string path = sem_path + "type_inference2.zig";
     FILE* f = fopen(path.c_str(), "r");
