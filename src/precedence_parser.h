@@ -47,7 +47,7 @@
  *                                                                             *
  ******************************************************************************/
 
-#define NUM_OF_REDUCTION_RULES 21   /**< Počet různých redukčních pravidel. */
+#define NUM_OF_REDUCTION_RULES 23   /**< Počet různých redukčních pravidel. */
 #define MAX_SYMBOLS_TO_REDUCE  6    /**< Maximální počet symbolů, nad kterými může být prováděna redukce. */
 
 
@@ -65,7 +65,8 @@
  *          pravidlo reprezentuje jednu možnou redukci v syntaktickém stromu.
  */
 typedef enum ReductionRule {
-    REDUCE_RULE_UNDEFINED           = -2,     /**<  Zatím nebylo zvoleno žádné redukční pravidlo         */
+    REDUCE_RULE_UNDEFINED           = -2,     /**<  Zatím nebylo zvoleno žádné redukční pravidlo          */
+    REDUCE_RULE_WAIT                = -1,     /**<  Pokud je následující token "(", neaplikuje  "E -> id" */
     REDUCE_E_ID                     = 0,      /**<  E -> id                        */
     REDUCE_E_INT_LITERAL            = 1,      /**<  E -> i32 literal               */
     REDUCE_E_FLOAT_LITERAL          = 2,      /**<  E -> f64 literal               */
@@ -82,11 +83,12 @@ typedef enum ReductionRule {
     REDUCE_E_LESS_EQUAL_E           = 13,     /**<  E -> E <= E                    */
     REDUCE_E_GREATER_EQUAL_E        = 14,     /**<  E -> E >= E                    */
     REDUCE_E_INTO_BRACKETS          = 15,     /**<  E -> ( E )                     */
-    REDUCE_E_FUN_CALL               = 16,     /**<  E -> id ( <ARGUMENTS> )        */
-    REDUCE_E_IFJ_CALL               = 17,     /**<  E -> ifj . id ( <ARGUMENTS> )  */
-    REDUCE_ARGUMENTS_TO_ARG_LIST    = 18,     /**<  <ARGUMENTS> -> <ARG_LIST>      */
-    REDUCE_ARG_LIST_TO_E_ARG        = 19,     /**<  <ARG_LIST> -> E <ARG>          */
-    REDUCE_ARG_TO_COMMA_E_ARG       = 20,     /**<  <ARG> -> , E <ARG>             */
+    REDUCE_E_FUN_CALL               = 16,     /**<  E -> id ( <ARG_LIST> )         */
+    REDUCE_E_IFJ_CALL               = 17,     /**<  E -> ifj . id ( <ARG_LIST> )   */
+    REDUCE_ARG_LIST_TO_E_ARG        = 18,     /**<  <ARG_LIST> -> E <ARG>          */
+    REDUCE_ARG_TO_COMMA_E_ARG       = 19,     /**<  <ARG> -> , E <ARG>             */
+    REDUCE_ARG_TO_COMMA             = 20,     /**<  <ARG> -> ,                     */
+    REDUCE_TO_EPSILON               = 21,     /**<  <ARG_LIST> | <ARG> -> ε        */
 } ReductionRule;
 
 
@@ -155,7 +157,7 @@ extern const struct ReductionRuleSet reductionRuleSet[NUM_OF_REDUCTION_RULES];
  *
  * @param fromNonTerminal Neterminál předávající řízení precedenčnímu syntaktickému analyzátoru.
  */
-AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal);
+void *PrecParser_parse(LLNonTerminals fromNonTerminal);
 
 
 /*******************************************************************************
@@ -252,23 +254,23 @@ void PrecParser_reduceFunCall();
 void PrecParser_reduceIfjFunCall();
 
 /**
- * @brief Redukce pro argumenty <ARGUMENTS> -> <ARG_LIST>.
+ * @brief Redukce pro argumenty <ARG_LIST> -> E <ARG>.
  *
- * @details Tato funkce provádí redukci pro argumenty <ARGUMENTS> -> <ARG_LIST>.
+ * @details Tato funkce provádí redukci pro argumenty <ARG_LIST> -> E <ARG>.
  *          Popne uzel pro seznam argumentů ze zásobníku a poté pushne nový
  *          neterminál <ARGUMENTS> na zásobník s uzlem argumentů.
  */
-void PrecParser_reduceArguments();
+void PrecParser_reduceArgListExprArg();
 
 /**
- * @brief Redukce pro seznam argumentů <ARG_LIST> -> E <ARG>.
+ * @brief Redukce pro seznam argumentů <ARG_LIST> -> ε.
  *
- * @details Tato funkce provádí redukci pro seznam argumentů <ARG_LIST> -> E <ARG>.
+ * @details Tato funkce provádí redukci pro seznam argumentů <ARG_LIST> -> ε.
  *          Popne uzly pro argument a výraz ze zásobníku, vytvoří nový uzel pro
  *          argument, a poté pushne nový neterminál <ARG_LIST> na zásobník
  *          s uzlem argumentů.
  */
-void PrecParser_reduceArgList();
+void PrecParser_reduceArgListEpsilon();
 
 /**
  * @brief Redukce pro argument <ARG> -> , E <ARG>.
@@ -278,7 +280,17 @@ void PrecParser_reduceArgList();
  *          uzel pro argument, a poté pushne nový neterminál <ARG> na zásobník
  *          s uzlem argumentů.
  */
-void PrecParser_reduceArg();
+void PrecParser_reduceArgCommaExprArg();
+
+/**
+ * @brief Redukce pro argument <ARG> -> ,
+ */
+void PrecParser_reduceArgComma();
+
+/**
+ * @brief Redukce pro argument <ARG> -> ε
+ */
+void PrecParser_reduceArgEpsilon();
 
 
 /*******************************************************************************

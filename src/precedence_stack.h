@@ -85,10 +85,9 @@ typedef enum PrecStackSymbol {
     PREC_STACK_SYM_COMMA                 = 19,       /**<  Symbol čárky "," uvnitř argumentů volání funkce  */
     PREC_STACK_SYM_DOLLAR                = 20,       /**<  Řízení parsování předáno LL parseru */
     PREC_STACK_SYM_EXPRESSION            = 21,       /**<  NEterminál pro výraz  */
-    PREC_STACK_SYM_ARGUMENTS             = 22,       /**<  NEterminál pro argumenty funkce */
-    PREC_STACK_SYM_ARG_LIST              = 23,       /**<  NEterminál pro seznam argumentů  */
-    PREC_STACK_SYM_ARG                   = 24,       /**<  NEterminál pro argument  */
-    PREC_STACK_SYM_HANDLE                = 25,       /**<  Speciální symbol "<" pro handle  */
+    PREC_STACK_SYM_ARG_LIST              = 22,       /**<  NEterminál pro seznam argumentů  */
+    PREC_STACK_SYM_ARG                   = 23,       /**<  NEterminál pro argument  */
+    PREC_STACK_SYM_HANDLE                = 24,       /**<  Speciální symbol "<" pro handle  */
 } PrecStackSymbol;
 
 /**
@@ -101,7 +100,6 @@ typedef enum PrecStackSymbol {
 typedef enum PrecStackNonTerminals {
     PREC_STACK_NT_UNEDFINED     = PREC_STACK_SYM_UNEDFINED,     /**<  Typ "stack" neterminálu zatím není známý */
     PREC_STACK_NT_EXPRESSION    = PREC_STACK_SYM_EXPRESSION,    /**<  NEterminál pro výraz  */
-    PREC_STACK_NT_ARGUMENTS     = PREC_STACK_SYM_ARGUMENTS,     /**<  NEterminál pro argumenty funkce */
     PREC_STACK_NT_ARG_LIST      = PREC_STACK_SYM_ARG_LIST,      /**<  NEterminál pro seznam argumentů  */
     PREC_STACK_NT_ARG           = PREC_STACK_SYM_ARG,           /**<  NEterminál pro argument  */
     PREC_STACK_NT_HANDLE        = PREC_STACK_SYM_HANDLE,        /**<  Speciální symbol "<" pro handle  */
@@ -119,7 +117,6 @@ typedef enum PrecStackNodeType {
     STACK_NODE_TYPE_TERMINAL     = 1,        /**< Uzel reprezentující terminál */
     STACK_NODE_TYPE_NONTERMINAL  = 2,        /**< Uzel reprezentující neterminál */
     STACK_NODE_TYPE_HANDLE       = 3,        /**< Speciální symbol pro handle */
-    STACK_NODE_TYPE_DOLLAR       = 4,        /**< Počáteční symbol na zásobníku */
 } PrecStackNodeType;
 
 

@@ -820,7 +820,7 @@ AST_StatementNode *LLparser_parseStatementList() {
     }
 } // LLaprser_parseStatementList()
 
-// <STATEMENT> -> <VAR_DEF> ; | id <STATEMENT_REST> ; | _ = <THROW_AWAY> ; | <IF> | <WHILE> | return <RETURN_REST> ;
+// <STATEMENT> -> <VAR_DEF> ; | id <STATEMENT_REST> ; | _ = <THROW_AWAY> ; | <IF> | <WHILE> | return <RETURN_REST> ; | ifj . id ( <ARGUMENTS> ) ;
 AST_StatementNode *LLparser_parseStatement() {
     // Vyhledáme pravidlo v LL tabulce
     LLRuleSet rule = RULE_UNDEFINED;
@@ -1187,7 +1187,7 @@ AST_StatementNode *LLparser_parseVarDef() {
     Parser_getNextToken(LL_PARSER);
 
     // Parsujeme [precedence_expression]
-    AST_ExprNode *rightOperand = PrecParser_parse(NT_VAR_DEF);
+    AST_ExprNode *rightOperand = (AST_ExprNode *)PrecParser_parse(NT_VAR_DEF);
 
     // Kontrolujeme úspěch parsování
     if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
@@ -1383,11 +1383,12 @@ AST_StatementNode *LLparser_parseStatementRest(DString *identifier) {
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                 return PARSING_SYNTAX_ERROR;
             }
+
             // Žádáme o další token
             Parser_getNextToken(LL_PARSER);
 
             // Parsujeme [precedence_expression]
-            AST_ExprNode *expr = PrecParser_parse(NT_STATEMENT_REST);
+            AST_ExprNode *expr = (AST_ExprNode *)PrecParser_parse(NT_STATEMENT_REST);
             if(expr == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
                 string_free(identifier);
                 return PARSING_SYNTAX_ERROR;
@@ -1526,7 +1527,7 @@ AST_StatementNode *LLparser_parseStatementRest(DString *identifier) {
 } // LLparser_parseStatementRest
 
 AST_ExprNode *LLparser_parseThrowAway() {
-    return PrecParser_parse(NT_THROW_AWAY);
+    return (AST_ExprNode *)PrecParser_parse(NT_THROW_AWAY);
 }
 
 AST_IfNode *LLparser_parseIf() {
@@ -1547,7 +1548,7 @@ AST_IfNode *LLparser_parseIf() {
     Parser_getNextToken(LL_PARSER);
 
     // Vytváříme uzel výrazu a parsujeme [precedence_expression] (čili podmínku if)
-    AST_ExprNode *condition = PrecParser_parse(NT_IF);
+    AST_ExprNode *condition = (AST_ExprNode *)PrecParser_parse(NT_IF);
     if(condition == NULL) {
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
@@ -1755,7 +1756,7 @@ AST_WhileNode *LLparser_parseWhile() {
     Parser_getNextToken(LL_PARSER);
 
     // Parsujeme [precedence_expression]
-    AST_ExprNode *condition = PrecParser_parse(NT_WHILE);
+    AST_ExprNode *condition = (AST_ExprNode *)PrecParser_parse(NT_WHILE);
     if (condition == NULL) {
         return PARSING_SYNTAX_ERROR;
     }
@@ -1855,7 +1856,7 @@ AST_ExprNode *LLparser_parseReturnRest() {
     switch (rule) {
         // <RETURN_REST> -> [precedence_expression]
         case RETURN_REST_1:
-            return PrecParser_parse(NT_RETURN_REST);
+            return (AST_ExprNode *)PrecParser_parse(NT_RETURN_REST);
 
         // <RETURN_REST> -> ε
         case RETURN_REST_2:
@@ -1868,98 +1869,9 @@ AST_ExprNode *LLparser_parseReturnRest() {
     }
 } // LLparser_parseReturnRest()
 
-// <ARGUMENTS> -> <ARG_LIST> | ε
+// <ARGUMENTS> -> [precedence_expression]
 AST_ArgOrParamNode *LLparser_parseArguments() {
-    // Vyhledáme pravidlo v LL tabulce
-    LLRuleSet rule = RULE_UNDEFINED;
-    if (!LLtable_findRule(currentToken.LLterminal, NT_ARGUMENTS, &rule)) {
-        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-        return NULL;
-    }
-
-    // Na <ARGUMENTS> lze aplikovat dvě různá pravidla
-    switch (rule) {
-        // <ARGUMENTS> -> <ARG_LIST>
-        case ARGUMENTS_1:
-            return LLparser_parseArgList();
-
-        // <ARGUMENTS> -> ε
-        case ARGUMENTS_2:
-            return NULL;    // Rozvíjíme na epsilon, ted NULL je korektní hodnotou
-
-        // Jinak došlo k syntaktické chybě
-        default:
-            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-            return PARSING_SYNTAX_ERROR;
-    }
+    return (AST_ArgOrParamNode *)PrecParser_parse(NT_ARGUMENTS);
 } // LLparser_parseArguments()
-
-AST_ArgOrParamNode *LLparser_parseArgList() {
-    // Parsujeme [precedence_expression]
-    AST_ExprNode *expr = PrecParser_parse(NT_ARG_LIST);
-    if (expr == NULL) {
-        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-        return PARSING_SYNTAX_ERROR;
-    }
-
-    // Vytvoříme uzel pro argument
-    AST_ArgOrParamNode *argNode = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    if (argNode == NULL) {
-        AST_destroyNode(AST_EXPR_NODE, expr);
-        error_handle(ERROR_INTERNAL);
-    }
-
-    // Inicializujeme uzel pro argument funkce
-    AST_initNewArgOrParamNode(argNode, AST_DATA_TYPE_NOT_DEFINED, expr);
-
-    // Parsujeme zbytek argumentů
-    AST_ArgOrParamNode *restArgs = LLparser_parseArg();
-    if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)){
-        AST_destroyNode(AST_ARG_OR_PARAM_NODE, argNode);
-        return PARSING_SYNTAX_ERROR;
-    }
-
-    if (restArgs != NULL) {
-        argNode->next = restArgs;
-    }
-
-    return argNode;
-} // LLparser_parseArgList()
-
-// <ARG> -> , <ARG_LIST> | ε
-AST_ArgOrParamNode *LLparser_parseArg() {
-    // Vyhledáme pravidlo v LL tabulce
-    LLRuleSet rule = RULE_UNDEFINED;
-    if (!LLtable_findRule(currentToken.LLterminal, NT_ARG, &rule)) {
-        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-        return PARSING_SYNTAX_ERROR;
-    }
-
-    // Na <ARG> lze aplikovat dvě různá pravidla
-    switch (rule) {
-        // <ARG> -> , <ARG_LIST>
-        case ARG_1:
-            // Parsujeme ","
-            if (currentToken.LLterminal != T_COMMA) {
-                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                return PARSING_SYNTAX_ERROR;
-            }
-
-            // Žádáme o další token
-            Parser_getNextToken(LL_PARSER);
-
-            // Vracíme aktualizovaný seznam argumentů
-            return LLparser_parseArgList();
-
-        // <ARG> -> ε
-        case ARG_2:
-            return NULL;    // Epsilon se rozvíjí na NULL, což je korektní
-
-        // Jinak došlo k syntaktické chybě
-        default:
-            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-            return PARSING_SYNTAX_ERROR;
-    }
-} // LLparser_parseArg()
 
 /*** Konec souboru llparser.c ***/
