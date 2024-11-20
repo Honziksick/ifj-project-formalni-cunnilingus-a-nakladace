@@ -280,6 +280,44 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
 } // PrecStack_pushBothStackAndASTNode()
 
 /**
+ * @brief Pushne handle za první terminál na zásobníku.
+ */
+void PrecStack_pushHandleAfterFirstTerminal() {
+    if (precStackList == NULL || precStackList->stack == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    PrecStackNode *current = PrecStack_top();
+    PrecStackNode *prev = NULL;
+
+    // Najdeme první terminál na zásobníku
+    while (current != NULL && current->symbolType != STACK_NODE_TYPE_TERMINAL) {
+        prev = current;
+        current = current->next;
+    }
+
+    if (current == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Vytvoření nového uzlu pro handle
+    PrecStackNode *handleNode = PrecStack_createStackNode();
+    handleNode->symbolType = STACK_NODE_TYPE_HANDLE;
+    handleNode->symbol = PREC_STACK_SYM_HANDLE;
+    handleNode->nodeType = SN_WITHOUT_AST_TYPE;
+    handleNode->node = SN_WITHOUT_AST_PTR;
+
+    // Vložení handle za první terminál
+    if (prev == NULL) {
+        handleNode->next = PrecStack_top();
+        precStackList->stack->top = handleNode;
+    } else {
+        handleNode->next = current;
+        prev->next = handleNode;
+    }
+}
+
+/**
  * @brief Popne uzel AST z globálního precedenčního zásobníku.
  */
 PrecStackNode* PrecStack_pop() {
