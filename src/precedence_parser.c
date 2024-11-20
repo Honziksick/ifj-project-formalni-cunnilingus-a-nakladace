@@ -144,6 +144,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
 
                 // Mapování dalšího symbolu na precedenční terminál
                 PrecParser_mapToDollar(bracketDepth, &inTerminal);
+                PrecStack_getTopPrecTerminal(&topTerminal);
                 break;
             } // case P_EQUAL
 
