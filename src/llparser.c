@@ -164,6 +164,7 @@ AST_VarNode *LLparser_parsePrologue() {
     // Kontrolujeme přijetí očekávaného souboru k importování
     if(string_compare_const_str(currentToken.value, "ifj24.zig") != STRING_EQUAL) {
         string_free(importVar);
+        string_free(currentToken.value);
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
     }
