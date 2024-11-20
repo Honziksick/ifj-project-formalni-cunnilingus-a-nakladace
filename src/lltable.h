@@ -45,7 +45,7 @@
  ******************************************************************************/
 
 #define LL_TERMINAL_COUNT 31       /**<  Celkový počet terminálů v LL gramatice. */
-#define LL_NON_TERMINAL_COUNT 26   /**<  Celkový počet neterminálů v LL gramatice. */
+#define LL_NON_TERMINAL_COUNT 24   /**<  Celkový počet neterminálů v LL gramatice. */
 
 
 /*******************************************************************************
@@ -128,8 +128,6 @@ typedef enum LLNonTerminals {
     NT_RETURN          = 21,    /**<  Neterminál pro příkaz návratu  */
     NT_RETURN_REST     = 22,    /**<  Neterminál pro zbytek příkazu návratu  */
     NT_ARGUMENTS       = 23,    /**<  Neterminál pro argumenty  */
-    NT_ARG_LIST        = 24,    /**<  Neterminál pro seznam argumentů  */
-    NT_ARG             = 25,    /**<  Neterminál pro argument  */
 } LLNonTerminals;
 
 /**
@@ -186,11 +184,7 @@ typedef enum LLRuleSet {
     RETURN            = 41,     /**<  <RETURN> -> return <RETURN_REST>                                  */
     RETURN_REST_1     = 42,     /**<  <RETURN_REST> -> [precedence_expr]                                */
     RETURN_REST_2     = 43,     /**<  <RETURN_REST> -> ε                                                */
-    ARGUMENTS_1       = 44,     /**<  <ARGUMENTS> -> <ARG_LIST>                                         */
-    ARGUMENTS_2       = 45,     /**<  <ARGUMENTS> -> ε                                                  */
-    ARG_LIST          = 46,     /**<  <ARG_LIST> -> [precedence_expr] <ARG>                             */
-    ARG_1             = 47,     /**<  <ARG> -> , [precedence_expr] <ARG>                                */
-    ARG_2             = 48,     /**<  <ARG> -> ε                                                        */
+    ARGUMENTS         = 44,     /**<  <ARGUMENTS> -> [precedence_expr]                                  */
 } LLRuleSet;
 
 
