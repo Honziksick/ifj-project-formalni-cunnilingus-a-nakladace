@@ -46,9 +46,7 @@
 
 #define PREC_TERMINAL_COUNT 21              /**< Celkový počet terminálů v precedenční SA. */
 
-#define FOLLOW_NON_TERMINALS_COUNT 9        /**< Počet NEterminálů, ze kterých jde přejít do precedenční SA. */
-#define MAX_DOLLARS_IN_SET 2                /**< Maximální počet "dolar" terminálů v množině FOLLOW. */
-
+#define FOLLOW_NON_TERMINALS_COUNT 7        /**< Počet NEterminálů, ze kterých jde přejít do precedenční SA. */
 
 /*******************************************************************************
  *                                                                             *
@@ -116,8 +114,6 @@ typedef enum CallPrecNonTerminals {
     CALL_PREC_NT_WHILE          = 4,        /**< Neterminál pro cyklus while */
     CALL_PREC_NT_RETURN_REST    = 5,        /**< Neterminál pro zbytek příkazu návratu */
     CALL_PREC_NT_ARGUMENTS      = 6,        /**< Neterminál pro argumenty funkce */
-    CALL_PREC_NT_ARG_LIST       = 7,        /**< Neterminál pro seznam argumentů */
-    CALL_PREC_NT_ARG            = 8,        /**< Neterminál pro argument */
 } CallPrecNonTerminals;
 
 typedef enum DollarTerminals {
@@ -158,7 +154,7 @@ struct PrecedenceTable{
  */
 typedef struct PrecDollars {
     CallPrecNonTerminals fromNonTerminal;           /**< NEterminál, ze kterého je FOLOW množina určena */
-    DollarTerminals followSet[MAX_DOLLARS_IN_SET];  /**< Množinina FOLLOW obsahující "dollar" terminály předávající řízení zpět LL parseru */
+    DollarTerminals followSet;  /**< Množinina FOLLOW obsahující "dollar" terminály předávající řízení zpět LL parseru */
 } PrecDollars;
 
 
@@ -196,7 +192,7 @@ extern const struct PrecDollars followSets[FOLLOW_NON_TERMINALS_COUNT];
  *          @c CURRENT_DOLLAR_UNDEFINED a aktualizována během zahájení
  *          precedenční syntaktické analýzy.
  */
-extern DollarTerminals currentDollar[MAX_DOLLARS_IN_SET];
+extern DollarTerminals currentDollar;
 
 
 /*******************************************************************************

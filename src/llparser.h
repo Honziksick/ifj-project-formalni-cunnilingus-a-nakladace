@@ -246,22 +246,6 @@ AST_ExprNode *LLparser_parseReturnRest();
  */
 AST_ArgOrParamNode *LLparser_parseArguments();
 
-/**
- * @brief Parsuje neterminál `<ARG_LIST>`.
- *
- * @return Ukazatel na první uzel seznamu argumentů (AST_ArgOrParamNode) při
- *         úspěšném parsování, jinak `NULL`.
- */
-AST_ArgOrParamNode *LLparser_parseArgList();
-
-/**
- * @brief Parsuje neterminál `<ARG>`.
- *
- * @return Ukazatel na uzel argumentu (AST_ArgOrParamNode) při úspěšném
- *         parsování, jinak `NULL`.
- */
-AST_ArgOrParamNode *LLparser_parseArg();
-
 #endif // LLPARSER_H_
 
 /*** Konec souboru llparser.h ***/

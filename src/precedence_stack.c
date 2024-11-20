@@ -122,7 +122,6 @@ void PrecStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType ty
     // Nastavení typu symbolu nového uzlu na základě typu neterminálu
     switch(symbol) {
         case PREC_STACK_NT_EXPRESSION:
-        case PREC_STACK_NT_ARGUMENTS:
         case PREC_STACK_NT_ARG_LIST:
         case PREC_STACK_NT_ARG:
             newStackNode->symbolType = STACK_NODE_TYPE_NONTERMINAL;
@@ -155,6 +154,7 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
             // Zkontrolujeme, že se nesnažíme použít proměnnou mimo její rozsah platnosti
             SymtableItem *foundItem = NULL;
             frame_stack_result res = frameStack_findItem(currentToken.value, &foundItem);
+            foundItem->used = true;
 
             // Pokud byla proměnná v tabulce nalezena, pushneme ji na stack
             if(res == FRAME_STACK_SUCCESS) {
@@ -688,11 +688,6 @@ void PrecStack_mapStackNonTerminalToStackSymbol(PrecStackNonTerminals stackNonTe
         // Mapování: PREC_STACK_NT_EXPRESSION -> PREC_STACK_SYM_EXPRESSION
         case PREC_STACK_NT_EXPRESSION:
             *symbol = PREC_STACK_SYM_EXPRESSION;
-            break;
-
-        // Mapování: PREC_STACK_NT_ARGUMENTS -> PREC_STACK_SYM_ARGUMENTS
-        case PREC_STACK_NT_ARGUMENTS:
-            *symbol = PREC_STACK_SYM_ARGUMENTS;
             break;
 
         // Mapování: PREC_STACK_NT_ARG_LIST -> PREC_STACK_SYM_ARG_LIST

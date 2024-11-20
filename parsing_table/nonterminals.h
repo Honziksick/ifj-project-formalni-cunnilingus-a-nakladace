@@ -26,8 +26,6 @@ enum NonTerminal {
     NT_RETURN          = 21,    /**<  Neterminál pro příkaz návratu  */
     NT_RETURN_REST     = 22,    /**<  Neterminál pro zbytek příkazu návratu  */
     NT_ARGUMENTS       = 23,    /**<  Neterminál pro argumenty  */
-    NT_ARG_LIST        = 24,    /**<  Neterminál pro seznam argumentů  */
-    NT_ARG             = 25,    /**<  Neterminál pro argument  */
     NON_TERMINAL_COUNT
 };
 
@@ -56,7 +54,5 @@ std::array<std::string, NON_TERMINAL_COUNT> invNonTerminalMap = {
     "RETURN",
     "RETURN_REST",
     "ARGUMENTS",
-    "ARG_LIST",
-    "ARG",
 };
 #endif // NONTERMINALS_H

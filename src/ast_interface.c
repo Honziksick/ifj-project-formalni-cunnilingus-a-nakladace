@@ -594,6 +594,7 @@ AST_ArgOrParamNode *AST_createArgOrParamNode() {
 
     // Počáteční inicializace členů uzlu
     node->type = AST_ARG_OR_PARAM_NODE;
+    node->dataType =  AST_DATA_TYPE_NOT_DEFINED;
     node->expression = NULL;
     node->next = NULL;
 
