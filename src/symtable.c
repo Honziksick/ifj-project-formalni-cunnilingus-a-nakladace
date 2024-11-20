@@ -418,7 +418,7 @@ void symtable_print(Symtable *table, FILE *file, bool print_data, bool cut_data)
 */
 size_t symtable_hashFunction(DString *key) {
     size_t hash = 5381;
-    for(size_t i = 0; i < key->length;i++) {
+    for(size_t i = 0; i < key->length; i++) {
         hash = ((hash << 5) + hash) + (size_t)key->str[i];
     }
     return hash;
