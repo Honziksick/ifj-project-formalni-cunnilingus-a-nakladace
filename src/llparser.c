@@ -1138,8 +1138,8 @@ AST_StatementNode *LLparser_parseStatement() {
 // <VAR_DEF> -> <MODIFIABLE> id <POSSIBLE_TYPE> = [precedence_expression]
 AST_StatementNode *LLparser_parseVarDef() {
     // Parsujeme <MODIFIABLE>
-    bool isModifiable;
-    LLparser_parseModifiable(&isModifiable);
+    bool isConstant;
+    LLparser_parseModifiable(&isConstant);
 
     // Kontrolujeme úspěch parsování <MODIFIABLE>
     if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
@@ -1196,7 +1196,7 @@ AST_StatementNode *LLparser_parseVarDef() {
     SymtableItem *varItem = NULL;
     symtable_symbolState state = SYMTABLE_SYMBOL_UNKNOWN;
     Parser_mapASTDataTypeToSymtableState(dataType, &state);
-    frame_stack_result result = frameStack_addItemExpress(varName, state, isModifiable, NULL, &varItem);
+    frame_stack_result result = frameStack_addItemExpress(varName, state, isConstant, NULL, &varItem);
     if(result != FRAME_STACK_SUCCESS) {
         string_free(varName);
         AST_destroyNode(AST_EXPR_NODE, rightOperand);
@@ -1296,7 +1296,7 @@ void LLparser_parseModifiable(bool *isModifiable) {
             Parser_getNextToken(LL_PARSER);
 
             // Vracíme true, jelikož "var" je modifikovatelná
-            *isModifiable = true;
+            *isModifiable = false;
             return;
 
         // <MODIFIABLE> -> const
@@ -1311,7 +1311,7 @@ void LLparser_parseModifiable(bool *isModifiable) {
             Parser_getNextToken(LL_PARSER);
 
             // Vracíme false, jelikož "const" není modifikovatelná
-            *isModifiable = false;
+            *isModifiable = true;
             return;
 
         // Jinak došlo k syntaktické chybě
