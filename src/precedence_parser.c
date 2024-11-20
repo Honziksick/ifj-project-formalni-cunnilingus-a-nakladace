@@ -80,7 +80,7 @@ const struct ReductionRuleSet reductionRuleSet[NUM_OF_REDUCTION_RULES] = {
  *
  * @param fromNonTerminal Neterminál předávající řízení precedenčnímu syntaktickému analyzátoru.
  */
-void *PrecParser_parse(LLNonTerminals fromNonTerminal) {
+AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     if(fromNonTerminal == NT_ARGUMENTS && currentToken.LLterminal == T_RIGHT_BRACKET) {
         return NULL;
     }
@@ -103,15 +103,10 @@ void *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     PrecTerminals inTerminal = T_PREC_UNDEFINED;
     PrecParser_mapToDollar(bracketDepth, &inTerminal);
 
-    // Získání termínál, který je na zásobníku nejvýše
-    PrecTerminals topTerminal = T_PREC_UNDEFINED;
-    PrecStack_getTopPrecTerminal(&topTerminal);
-
     // Hlavní cyklus precedenční analýzy
-    // Kontrola ukončení: pokud 'b' i 'top' jsou rovny '$'
     while(true) {
         // Získání termínál, který je na zásobníku nejvýše
-        topTerminal = T_PREC_UNDEFINED;
+        PrecTerminals topTerminal = T_PREC_UNDEFINED;
         PrecStack_getTopPrecTerminal(&topTerminal);
 
         if(topTerminal == T_PREC_UNDEFINED) {
@@ -219,6 +214,7 @@ void *PrecParser_parse(LLNonTerminals fromNonTerminal) {
                 return NULL;
         } // switch()
 
+        // Kontrola ukončení: pokud 'b' i 'top' jsou rovny '$'
         if(inTerminal == T_PREC_DOLLAR && topTerminal == T_PREC_DOLLAR) {
             break;
         }
@@ -337,7 +333,7 @@ void precParser_chooseReductionRule(ReductionRule *rule) {
 
         // Pokud najdeme stejnou sekvenci symbolů, vrátíme odpovídající pravidlo
         if(cmp == 0) {
-            if(reductionRuleSet[mid].rule == REDUCE_E_ID && currentToken.PrecTerminal == T_PREC_RIGHT_BRACKET) {
+            if(reductionRuleSet[mid].rule == REDUCE_E_ID && currentToken.PrecTerminal == T_PREC_LEFT_BRACKET) {
                 *rule = REDUCE_RULE_WAIT;
             }
             else {
@@ -758,6 +754,9 @@ void PrecParser_mapToDollar(int bracketDepth, PrecTerminals *terminal) {
         // Mapování: T_PREC_RIGHT_BRACKET -> T_PREC_RIGHT_BRACKET nebo T_PREC_DOLLAR
         case T_PREC_RIGHT_BRACKET:
             if (currentDollar ==  DOLLAR_T_RIGHT_BRACKET && bracketDepth == 0) {
+                *terminal = T_PREC_DOLLAR;
+            }
+            if (currentDollar ==  DOLLAR_T_COMMA && bracketDepth == 0) {
                 *terminal = T_PREC_DOLLAR;
             }
             break;
