@@ -844,8 +844,10 @@ void ASTutils_printLiteralNode(AST_VarNode *node, ostream &out, int indent, bool
         case AST_LITERAL_FLOAT:
             // Literál typu float
             if(useColors) {
+                double *value = (double*)(node->value);
+                double print = *value;
                 if (node->value != nullptr)
-                    out << COLOR_GOLD << "Float: " << COLOR_RESET << *(double*)(node->value) << endl;
+                    out << COLOR_GOLD << "Float: " << COLOR_RESET << print << endl;
                 else
                     out << COLOR_GOLD << "Float: " << COLOR_RESET << "(null)" << endl;
             } else {

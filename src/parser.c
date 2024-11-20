@@ -82,7 +82,7 @@ Terminal Parser_getNextToken(GetNextTokenState state) {
 /**
  * @brief Nastaví nebo zkontroluje stav syntax error.
  */
-bool Parser_watchSyntaxError(PropagateError state) {
+bool Parser_watchSyntaxErrorInternal(PropagateError state, const char *file, int line, const char *func) {
     // Počáteční inicializace flagu pro sledování SYNTAX_ERROR
     static bool syntaxError = false;
 
@@ -93,6 +93,8 @@ bool Parser_watchSyntaxError(PropagateError state) {
 
     // Pokud byl předán true, signalizuj flagem SYNTAX_ERROR
     if(state == SET_SYNTAX_ERROR) {
+        const char* fileName = error_getFileName(file);
+        fprintf(stderr, YELLOW_COLOR "In file: %s:%d (%s)\n" RESET_COLOR, fileName, line, func);
         syntaxError = true;
     }
 

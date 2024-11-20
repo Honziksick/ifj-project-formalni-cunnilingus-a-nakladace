@@ -441,9 +441,9 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
             break;
         } // case AST_LITERAL_INT
 
-        // Obsah DString bude převeden na float "f64"
+        // Obsah DString bude převeden na double "f64"
         case AST_LITERAL_FLOAT: {
-            // Provádíme bezpečný převod řetězce na float
+            // Provádíme bezpečný převod řetězce na double
             double floatValue = strtod(value->str, &endptr);
 
             // Kontrola přetečení nebo podtečení - ostatní sémantická chyba (10)
@@ -457,13 +457,13 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
             }
 
             // Alokujeme paměť pro hodnotu
-            float *floatPtr = malloc(sizeof(float));
+            double *floatPtr = malloc(sizeof(double));
             if(floatPtr == NULL) {
                 error_handle(ERROR_INTERNAL);
             }
 
-            // Převádíme řetězec na float
-            *floatPtr = (float)floatValue;
+            // Převádíme řetězec na double
+            *floatPtr = (double)floatValue;
             node->value = floatPtr;
 
             // Uvolníme úvodním obsah tokenu

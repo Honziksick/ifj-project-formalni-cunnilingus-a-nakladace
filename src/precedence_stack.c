@@ -154,7 +154,6 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
             // Zkontrolujeme, že se nesnažíme použít proměnnou mimo její rozsah platnosti
             SymtableItem *foundItem = NULL;
             frame_stack_result res = frameStack_findItem(currentToken.value, &foundItem);
-            foundItem->used = true;
 
             // Pokud byla proměnná v tabulce nalezena, pushneme ji na stack
             if(res == FRAME_STACK_SUCCESS) {
@@ -174,6 +173,8 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
             else {
                 error_handle(ERROR_INTERNAL);
             }
+
+            foundItem->used = true;
 
             break;
         } // case T_PREC_ID
