@@ -113,7 +113,7 @@ extern AST_ProgramNode *ASTroot;
  *          rámci. Každý rámec obsahuje tabulku symbolů, unikátní identifikátor
  *          a další informace potřebné pro analýzu a generování kódu.
  */
-extern FrameStack stack;
+extern FrameStack frameStack;
 
 /**
  * @brief Globální pole všech vytvořených rámců.

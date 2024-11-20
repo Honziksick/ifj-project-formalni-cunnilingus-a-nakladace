@@ -26,6 +26,7 @@
  */
 
 #include "precedence_parser.h"
+#include "llparser.h"
 
 
 /*******************************************************************************
@@ -41,29 +42,25 @@
  * redukční pravidla používané při syntaktické analýze.
  */
 const struct ReductionRuleSet reductionRuleSet[NUM_OF_REDUCTION_RULES] = {
-    { REDUCE_E_ID,                      { PREC_STACK_SYM_ID,              PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_INT_LITERAL,             { PREC_STACK_SYM_INT_LITERAL,     PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_FLOAT_LITERAL,           { PREC_STACK_SYM_FLOAT_LITERAL,   PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_STRING_LITERAL,          { PREC_STACK_SYM_STRING_LITERAL,  PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_NULL_LITERAL,            { PREC_STACK_SYM_NULL_LITERAL,    PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_PLUS_E,                  { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_PLUS,                   PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_MINUS_E,                 { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_MINUS,                  PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_MULT_E,                  { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_MULTIPLICATION,         PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_DIV_E,                   { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_DIVISION,               PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_IDENTITY_E,              { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_IDENTITY,               PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_NOT_EQUAL_E,             { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_NOT_EQUAL,              PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_LESS_THAN_E,             { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_LESS_THAN,              PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_GREATER_THAN_E,          { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_GREATER_THAN,           PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_LESS_EQUAL_E,            { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_LESS_THAN_OR_EQUAL,     PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_GREATER_EQUAL_E,         { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_GREATER_THAN_OR_EQUAL,  PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_INTO_BRACKETS,           { PREC_STACK_SYM_LEFT_BRACKET,    PREC_STACK_SYM_EXPRESSION,             PREC_STACK_SYM_RIGHT_BRACKET,   PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_FUN_CALL,                { PREC_STACK_SYM_ID,              PREC_STACK_SYM_LEFT_BRACKET,           PREC_STACK_SYM_ARG_LIST,        PREC_STACK_SYM_RIGHT_BRACKET,  PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_E_IFJ_CALL,                { PREC_STACK_SYM_IFJ,             PREC_STACK_SYM_DOT,                    PREC_STACK_SYM_ID,              PREC_STACK_SYM_LEFT_BRACKET,   PREC_STACK_SYM_ARG_LIST,   PREC_STACK_SYM_RIGHT_BRACKET } },
-    { REDUCE_ARG_LIST_TO_E_ARG,         { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_ARG,                    PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_ARG_TO_COMMA_E_ARG,        { PREC_STACK_SYM_COMMA,           PREC_STACK_SYM_EXPRESSION,             PREC_STACK_SYM_ARG,             PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_ARG_TO_COMMA,              { PREC_STACK_SYM_COMMA,           PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-    { REDUCE_TO_EPSILON,                { PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,  PREC_STACK_SYM_UNEDFINED     } },
-}; // ReductionRuleSet reductionRuleSet[];
+    { REDUCE_E_ID,                      { PREC_STACK_SYM_ID,              PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_INT_LITERAL,             { PREC_STACK_SYM_INT_LITERAL,     PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_FLOAT_LITERAL,           { PREC_STACK_SYM_FLOAT_LITERAL,   PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_STRING_LITERAL,          { PREC_STACK_SYM_STRING_LITERAL,  PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_NULL_LITERAL,            { PREC_STACK_SYM_NULL_LITERAL,    PREC_STACK_SYM_UNEDFINED,              PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_PLUS_E,                  { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_PLUS,                   PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_MINUS_E,                 { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_MINUS,                  PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_MULT_E,                  { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_MULTIPLICATION,         PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_DIV_E,                   { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_DIVISION,               PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_IDENTITY_E,              { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_IDENTITY,               PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_NOT_EQUAL_E,             { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_NOT_EQUAL,              PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_LESS_THAN_E,             { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_LESS_THAN,              PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_GREATER_THAN_E,          { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_GREATER_THAN,           PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_LESS_EQUAL_E,            { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_LESS_THAN_OR_EQUAL,     PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_GREATER_EQUAL_E,         { PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_GREATER_THAN_OR_EQUAL,  PREC_STACK_SYM_EXPRESSION,      PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_INTO_BRACKETS,           { PREC_STACK_SYM_RIGHT_BRACKET,   PREC_STACK_SYM_EXPRESSION,             PREC_STACK_SYM_LEFT_BRACKET,    PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_FUN_CALL,                { PREC_STACK_SYM_ARG_LIST,        PREC_STACK_SYM_ID,                     PREC_STACK_SYM_UNEDFINED,       PREC_STACK_SYM_UNEDFINED,      PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+    { REDUCE_E_IFJ_CALL,                { PREC_STACK_SYM_ARG_LIST,        PREC_STACK_SYM_ID,                     PREC_STACK_SYM_DOT,             PREC_STACK_SYM_IFJ,            PREC_STACK_SYM_UNEDFINED,     PREC_STACK_SYM_UNEDFINED  } },
+ }; // ReductionRuleSet reductionRuleSet[];
 
 
 /*******************************************************************************
@@ -92,25 +89,21 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     int bracketDepth = 0;
 
     // Tvorba a inicializace precedenčního zásobníku počátečním symbolem
-    PrecStack_create();
-    if(precStack == NULL) {
-        error_handle(ERROR_INTERNAL);
-        return NULL;
-    }
-    PrecStack_init();
+    PrecStackList_push();
 
     // Zjištění precedence pro první přednačtený token
     PrecTerminals inTerminal = T_PREC_UNDEFINED;
     PrecParser_mapToDollar(bracketDepth, &inTerminal);
 
+    // Získání terminál, který je na zásobníku nejvýše
+    PrecTerminals topTerminal = T_PREC_UNDEFINED;
+    PrecStack_getTopPrecTerminal(&topTerminal);
+
     // Hlavní cyklus precedenční analýzy
     while(true) {
-        // Získání termínál, který je na zásobníku nejvýše
-        PrecTerminals topTerminal = T_PREC_UNDEFINED;
-        PrecStack_getTopPrecTerminal(&topTerminal);
-
         if(topTerminal == T_PREC_UNDEFINED) {
-            PrecStack_dispose();
+            PrecStackList_purge();
+            PrecStackList_destroy();
             error_handle(ERROR_INTERNAL);
             return NULL;
         }
@@ -133,7 +126,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
         PrecTable_findPrecedence(topTerminal, inTerminal, &precedence);
         if(precedence == P_SYNTAX_ERROR) {
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-            PrecStack_dispose();
+            PrecStackList_popAndPurge();
             return NULL;
         }
 
@@ -159,17 +152,29 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
              *        3) Čti další symbol 'b' ze vstupu
              */
             case P_LESS: {
-                // Pushneme na zásobník symbol "handle"
-                PrecStack_pushPrecNonTerminal(PREC_STACK_NT_HANDLE, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
-
-                // Pushneme na zásboník inicializovaný "PrecStackNode"
-                PrecStack_pushBothStackAndASTNode(inTerminal);
-
-                // Čtení dalšího symbolu ze vstupu
-                Parser_getNextToken(PREC_PARSER);
+                if(PrecStack_isIdOnTop()) {
+                    // Pushneme na zásobník symbol "handle"
+                    Parser_getNextToken(PREC_PARSER);
+                    AST_ArgOrParamNode *argList = LLparser_parseArguments();
+                    PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARG_LIST, AST_ARG_OR_PARAM_NODE, argList);
+                    //PrecStack_getTopPrecTerminal(&topTerminal);
+                    bracketDepth--;
+                    // Čtení dalšího symbolu ze vstupu
+                    Parser_getNextToken(PREC_PARSER);
+                    PrecStack_getTopPrecTerminal(&topTerminal);
+                }
+                else {
+                    // Pushneme na zásobník symbol "handle"
+                    PrecStack_pushPrecNonTerminal(PREC_STACK_NT_HANDLE, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
+                    // Pushneme na zásboník inicializovaný "PrecStackNode"
+                    PrecStack_pushBothStackAndASTNode(inTerminal);
+                    // Čtení dalšího symbolu ze vstupu
+                    Parser_getNextToken(PREC_PARSER);
+                }
 
                 // Mapování dalšího symbolu na precedenční terminál
                 PrecParser_mapToDollar(bracketDepth, &inTerminal);
+
                 break;
             } // case P_LESS
 
@@ -180,28 +185,28 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
              *          b) NE: chyba
              */
             case P_GREATER: {
-                // Kontrola, zda je na vrcholu zásobníku "handle"
-                if(PrecStack_isHandleOnTop()) {
-                    // Vybereme redukční pravidlo
-                    ReductionRule rule = REDUCE_RULE_UNDEFINED;
-                    precParser_chooseReductionRule(&rule);
+                // Vybereme redukční pravidlo
+                ReductionRule rule = REDUCE_RULE_UNDEFINED;
+                precParser_chooseReductionRule(&rule);
 
-                    if(rule == REDUCE_RULE_UNDEFINED) {
-                        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                        PrecStack_dispose();
-                        return NULL;
-                    }
-
-                    // Provedeme redukci na základě zvoleného pravidla
-                    if(rule != REDUCE_RULE_WAIT) {
-                        PrecParser_reduce(rule);
-                    }
-                }
-                // Pokud na vrcholu zásobníku "handle" není, došlo k syntaktické chybě
-                else {
+                if(rule == REDUCE_RULE_UNDEFINED) {
                     Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                    PrecStack_dispose();
+                    PrecStackList_popAndPurge();
                     return NULL;
+                }
+
+                // Provedeme redukci na základě zvoleného pravidla
+                if(rule == REDUCE_RULE_WAIT) {
+                    PrecStack_pushPrecTerminal(T_PREC_LEFT_BRACKET, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
+                    Parser_getNextToken(PREC_PARSER);
+                    // Mapování dalšího symbolu na precedenční terminál
+                    PrecParser_mapToDollar(bracketDepth, &inTerminal);
+                }
+                else {
+                    PrecParser_reduce(rule);
+                    if(rule == REDUCE_E_FUN_CALL) {
+                        PrecStack_getTopPrecTerminal(&topTerminal);
+                    }
                 }
                 break;
             } // case P_GREATER
@@ -210,7 +215,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
             case P_SYNTAX_ERROR:
             default:
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                PrecStack_dispose();
+                PrecStackList_popAndPurge();
                 return NULL;
         } // switch()
 
@@ -220,8 +225,8 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
         }
     } // while()
 
-    // Kontrola, zda je na vrcholu zásobníku "handle"
-    while(true) {
+    PrecStack_getTopPrecTerminal(&topTerminal);
+    while(topTerminal != T_PREC_DOLLAR) {
         // Vybereme redukční pravidlo
         ReductionRule rule = REDUCE_RULE_UNDEFINED;
         precParser_chooseReductionRule(&rule);
@@ -232,18 +237,19 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
 
         // Provedeme redukci na základě zvoleného pravidla
         PrecParser_reduce(rule);
+        PrecStack_getTopPrecTerminal(&topTerminal);
     }
 
     // Po úspěšném parsování by měl na zásobníku zůstat jediný prvek s výsledným výrazem
     AST_ExprNode *result = NULL;
     if(!PrecStack_getResult(&result)) {
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-        PrecStack_dispose();
-        return NULL;
+        PrecStackList_popAndPurge();
+        return PARSING_SYNTAX_ERROR;
     }
 
     // Uvolníme zásobník
-    PrecStack_dispose();
+    PrecStackList_popAndDispose();
 
     // Vracíme výsledný AST_ExprNode
     return result;
@@ -318,37 +324,19 @@ void precParser_chooseReductionRule(ReductionRule *rule) {
         }
     }
 
-    // Nastavení indexů pro binární vyhledávání
-    int left = 0;
-    int right = NUM_OF_REDUCTION_RULES - 1;
-    int mid;
-
-    // Binární vyhledávání v tabulec redukčních pravidel
-    while(left <= right) {
-        mid = (left + right) / 2;
-
+    // Sekvenční vyhledávání v seznamu redukčních pravidel
+    for (int i = 0; i < NUM_OF_REDUCTION_RULES; i++) {
         // Porovnání získané sekvence symbolů s příslušnými sekvencemi pro pravidla
-        int cmp = memcmp(toReduce.symbolArr, reductionRuleSet[mid].symbolArr, \
-                         MAX_SYMBOLS_TO_REDUCE * sizeof(PrecStackSymbol));
+        int cmp = memcmp(toReduce.symbolArr, reductionRuleSet[i].symbolArr, MAX_SYMBOLS_TO_REDUCE * sizeof(PrecStackSymbol));
 
         // Pokud najdeme stejnou sekvenci symbolů, vrátíme odpovídající pravidlo
-        if(cmp == 0) {
-            if(reductionRuleSet[mid].rule == REDUCE_E_ID && currentToken.PrecTerminal == T_PREC_LEFT_BRACKET) {
+        if (cmp == 0) {
+            if (reductionRuleSet[i].rule == REDUCE_E_ID && currentToken.PrecTerminal == T_PREC_LEFT_BRACKET) {
                 *rule = REDUCE_RULE_WAIT;
-            }
-            else {
-                *rule = reductionRuleSet[mid].rule;
+            } else {
+                *rule = reductionRuleSet[i].rule;
             }
             return;
-        }
-
-        // Hledaná sekvence je výše, posouváme levý index doprava
-        if(cmp > 0) {
-            left = mid + 1;
-        }
-        // Hledaná sekvence je níže, posouváme pravý index doleva
-        else {
-            right = mid - 1;
         }
     }
 
@@ -444,7 +432,7 @@ void PrecParser_reduce(ReductionRule rule) {
         case REDUCE_E_IFJ_CALL:
             PrecParser_reduceIfjFunCall();
             break;
-
+/*
         // Redukce: <ARG_LIST> -> E <ARG>
         case REDUCE_ARG_LIST_TO_E_ARG:
             PrecParser_reduceArgListExprArg();
@@ -463,9 +451,11 @@ void PrecParser_reduce(ReductionRule rule) {
         // Redukce: <ARG_LIST> | <ARG> -> ε
         case REDUCE_TO_EPSILON:
             break;
-
+*/
         // Pokud jsme dostali neznámé pravidlo, jde o interní chybu
         default:
+            PrecStackList_purge();
+            PrecStackList_destroy();
             error_handle(ERROR_INTERNAL);
             break;
     } // switch()
@@ -485,13 +475,46 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
     // Popnutí uzlu s proměnnou/literálem ze zásobníku
     PrecStackNode *stackNode = PrecStack_pop();
 
+    // Popnutí a uvolnění handle
+    PrecStackNode *handleNode = PrecStack_pop();
+    free(handleNode);
+
     // Vytvoření AST uzlu pro výraz
     AST_ExprNode *exprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    if(exprNode == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    AST_VarNode *variable;
 
     // AST_ExprNode propojíme s příslušným AST_VarNode
     switch(nodeType) {
         // Když jde o uzel proměnné
         case AST_VAR_NODE:
+            // Zkontrolujeme, že se nesnažíme použít proměnnou mimo její rozsah platnosti
+            variable = (AST_VarNode *)stackNode->node;
+            SymtableItem *foundItem = NULL;
+            frame_stack_result res = frameStack_findItem(variable->identifier, &foundItem);
+
+            // Pokud NEbyla proměnná v tabulce nalezena, hlásíme sémantickou chybu (3)
+            if(res == FRAME_STACK_ITEM_DOESNT_EXIST) {
+                PrecStack_freeNode(stackNode);
+                AST_destroyNode(AST_EXPR_NODE, exprNode);
+                PrecStackList_popAndPurge();
+                error_handle(ERROR_SEM_UNDEF);
+            }
+            // Jiný kód výsledku vyhledávací funkec znamená interní chybu překladače
+            else if(res != FRAME_STACK_SUCCESS) {
+                PrecStack_freeNode(stackNode);
+                AST_destroyNode(AST_EXPR_NODE, exprNode);
+                PrecStackList_popAndPurge();
+                error_handle(ERROR_INTERNAL);
+            }
+
+            // Pokud nalezena byla, označíme ji jako použitou
+            foundItem->used = true;
+
+            // Nyní můžeme inicializovat uzel pro výraz
             AST_initNewExprNode(exprNode, AST_EXPR_VARIABLE, stackNode->node);
             break;
 
@@ -528,6 +551,10 @@ void PrecParser_reduceBinOp(AST_BinOpType binOp) {
     // Popnutí levého operandu E
     PrecStackNode *leftNode = PrecStack_pop();
 
+    // Popnutí a uvolnění handle
+    PrecStackNode *handleNode = PrecStack_pop();
+    free(handleNode);
+
     // Vytvoření a inicializace AST uzlu pro binární operaci
     AST_BinOpNode *binOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
     AST_initNewBinOpNode(binOpNode, binOp, leftNode->node, rightNode->node);
@@ -559,6 +586,10 @@ void PrecParser_reduceBrackets() {
     PrecStackNode *leftBracket = PrecStack_pop();
     free(leftBracket);
 
+    // Popnutí a uvolnění handle
+    PrecStackNode *handleNode = PrecStack_pop();
+    free(handleNode);
+
     // Pushnutí E zpět na zásobník bez změny (výraz v závorkách)
     PrecStack_pushPrecNonTerminal(PREC_STACK_NT_EXPRESSION, exprNode->nodeType, exprNode->node);
 
@@ -570,19 +601,15 @@ void PrecParser_reduceBrackets() {
  * @brief Redukce pro volání funkce E -> id ( <ARG_LIST> ).
  */
 void PrecParser_reduceFunCall() {
-    // Popnutí a uvolnění ')'
-    PrecStackNode *rightBracket = PrecStack_pop();
-    free(rightBracket);
-
     // Popnutí '<ARG_LIST>'
     PrecStackNode *argumentsNode = PrecStack_pop();
 
-    // Popnutí a uvolnění '('
-    PrecStackNode *leftBracket = PrecStack_pop();
-    free(leftBracket);
-
     // Popnutí 'id'
     PrecStackNode *varNode = PrecStack_pop();
+
+    // Popnutí a uvolnění handle
+    PrecStackNode *handleNode = PrecStack_pop();
+    free(handleNode);
 
     // Vytvoření AST uzlu pro volání funkce
     AST_FunCallNode *funCallNode = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
@@ -606,16 +633,8 @@ void PrecParser_reduceFunCall() {
  * @brief Redukce pro volání vestavěné funkce E -> ifj . id ( <ARG_LIST> ).
  */
 void PrecParser_reduceIfjFunCall() {
-    // Popnutí a uvolnění ')'
-    PrecStackNode *rightBracket = PrecStack_pop();
-    free(rightBracket);
-
     // Popnutí '<ARG_LIST>'
     PrecStackNode *argumentsNode = PrecStack_pop();
-
-    // Popnutí a uvolnění '('
-    PrecStackNode *leftBracket = PrecStack_pop();
-    free(leftBracket);
 
     // Popnutí 'id'
     PrecStackNode *varNode = PrecStack_pop();
@@ -627,6 +646,10 @@ void PrecParser_reduceIfjFunCall() {
     // Popnutí a uvolnění 'ifj'
     PrecStackNode *ifj = PrecStack_pop();
     free(ifj);
+
+    // Popnutí a uvolnění handle
+    PrecStackNode *handleNode = PrecStack_pop();
+    free(handleNode);
 
     // Vytvoření AST uzlu pro volání funkce
     AST_FunCallNode *funCallNode = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
@@ -655,6 +678,10 @@ void PrecParser_reduceArgListExprArg() {
 
     // Popnutí 'E'
     PrecStackNode *exprNode = PrecStack_pop();
+
+    // Popnutí a uvolnění handle
+    PrecStackNode *handleNode = PrecStack_pop();
+    free(handleNode);
 
     // Vytvoření nového uzlu pro argument
     AST_ArgOrParamNode *argList = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
@@ -694,6 +721,10 @@ void PrecParser_reduceArgCommaExprArg() {
     PrecStackNode *commaNode = PrecStack_pop();
     PrecStack_freeNode(commaNode);
 
+    // Popnutí a uvolnění handle
+    PrecStackNode *handleNode = PrecStack_pop();
+    free(handleNode);
+
     // Vytvoření nového uzlu pro argument
     AST_ArgOrParamNode *arg = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
     AST_initNewArgOrParamNode(arg, AST_DATA_TYPE_NOT_DEFINED, exprNode->node);
@@ -714,6 +745,10 @@ void PrecParser_reduceArgComma() {
     // Popnutí ','
     PrecStackNode *commaNode = PrecStack_pop();
     PrecStack_freeNode(commaNode);
+
+    // Popnutí a uvolnění handle
+    PrecStackNode *handleNode = PrecStack_pop();
+    free(handleNode);
 
     // Vytvoření nového prázdného uzlu pro argument
     AST_ArgOrParamNode *arg = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
@@ -755,9 +790,11 @@ void PrecParser_mapToDollar(int bracketDepth, PrecTerminals *terminal) {
         case T_PREC_RIGHT_BRACKET:
             if (currentDollar ==  DOLLAR_T_RIGHT_BRACKET && bracketDepth == 0) {
                 *terminal = T_PREC_DOLLAR;
-            }
-            if (currentDollar ==  DOLLAR_T_COMMA && bracketDepth == 0) {
+            } else if (currentDollar ==  DOLLAR_T_COMMA && bracketDepth == 0) {
                 *terminal = T_PREC_DOLLAR;
+            }
+            else {
+                *terminal = currentToken.PrecTerminal;
             }
             break;
 
@@ -765,6 +802,9 @@ void PrecParser_mapToDollar(int bracketDepth, PrecTerminals *terminal) {
         case T_PREC_COMMA:
             if (currentDollar ==  DOLLAR_T_COMMA && bracketDepth == 0) {
                 *terminal = T_PREC_DOLLAR;
+            }
+            else {
+                *terminal = currentToken.PrecTerminal;
             }
             break;
 
@@ -869,7 +909,7 @@ void PrecParser_mapNonTerminalToRule(PrecStackSymbol symbol, ReductionRule *rule
         case PREC_STACK_SYM_DOT:
             *rule = REDUCE_E_IFJ_CALL;
             break;
-
+/*
         // Mapování: Seznam argumentů na základní výraz -> REDUCE_ARG_LIST_TO_E_ARG
         case PREC_STACK_SYM_ARG_LIST:
             *rule = REDUCE_ARG_LIST_TO_E_ARG;
@@ -879,7 +919,7 @@ void PrecParser_mapNonTerminalToRule(PrecStackSymbol symbol, ReductionRule *rule
         case PREC_STACK_SYM_COMMA:
             *rule = REDUCE_ARG_TO_COMMA_E_ARG;
             break;
-
+*/
         // Defaultní případ: interní chyba
         default:
             error_handle(ERROR_INTERNAL);

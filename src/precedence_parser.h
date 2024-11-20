@@ -47,7 +47,7 @@
  *                                                                             *
  ******************************************************************************/
 
-#define NUM_OF_REDUCTION_RULES 23   /**< Počet různých redukčních pravidel. */
+#define NUM_OF_REDUCTION_RULES 18   /**< Počet různých redukčních pravidel. */
 #define MAX_SYMBOLS_TO_REDUCE  6    /**< Maximální počet symbolů, nad kterými může být prováděna redukce. */
 
 
@@ -85,10 +85,6 @@ typedef enum ReductionRule {
     REDUCE_E_INTO_BRACKETS          = 15,     /**<  E -> ( E )                     */
     REDUCE_E_FUN_CALL               = 16,     /**<  E -> id ( <ARG_LIST> )         */
     REDUCE_E_IFJ_CALL               = 17,     /**<  E -> ifj . id ( <ARG_LIST> )   */
-    REDUCE_ARG_LIST_TO_E_ARG        = 18,     /**<  <ARG_LIST> -> E <ARG>          */
-    REDUCE_ARG_TO_COMMA_E_ARG       = 19,     /**<  <ARG> -> , E <ARG>             */
-    REDUCE_ARG_TO_COMMA             = 20,     /**<  <ARG> -> ,                     */
-    REDUCE_TO_EPSILON               = 21,     /**<  <ARG_LIST> | <ARG> -> ε        */
 } ReductionRule;
 
 
