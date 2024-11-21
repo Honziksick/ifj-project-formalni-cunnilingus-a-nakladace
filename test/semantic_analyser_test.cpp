@@ -52,7 +52,7 @@ void TestSemantic(){
 }
 
 void TestParser(){
-    ASTroot = LLparser_parseProgram();
+    LLparser_parseProgram();
     exit(0);
 }
 
@@ -127,7 +127,7 @@ TEST(Correct, Hello){
     fclose(f);
     ASTroot = NULL;
 }
-/*
+
 TEST(Correct, Example1){
     std::string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -137,9 +137,15 @@ TEST(Correct, Example1){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
+
+    frameStack_printArray(stderr, true, false);
+    PRINT_TREE(AST_PROGRAM_NODE, ASTroot);
+
     EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
+    TestSemantic();
+
+    
 
     frameStack_destroyAll();
     AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
@@ -147,7 +153,7 @@ TEST(Correct, Example1){
     fclose(f);
     ASTroot = NULL;
 }
-
+/*
 TEST(Correct, Example2){
     std::string path = exam_path + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");

@@ -11,6 +11,6 @@ pub fn main() void {
 }
 
 pub fn decrement(n: i32, m: i32) i32 {
-    var b: i32 = 16;    //Nevyuzita promenna
+    const b: i32 = 16;    //Nevyuzita promenna
     return n - m;
 }

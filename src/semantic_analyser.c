@@ -350,22 +350,18 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
             AST_VarNode* new_node = semantic_magic(node);
         }*/
 
-        // Pokud neznáme ani jednu hodnotu, tak typy musí být stejné
-        if(left_value == NULL && right_value == NULL){
-            if(left_type != right_type){
-                return ERROR_SEM_TYPE_COMPATIBILITY;
-            }
-            return 0;
-        }
-
-        // Pokud známe alespoň jednu hodnotu
-        // Pokud typy jsou stejné, tak nic neřešíme
+        // Pokud jsou typy stejné, tak nic neřešíme
         if(left_type == right_type){
             *type = left_type;
             if(value != NULL){
                 *value = NULL;
             }
             return 0;
+        }
+
+        // Pokud neznáme ani jednu hodnotu a typy nejsou stejné, tak je chyba
+        if(left_value == NULL && right_value == NULL){
+            return ERROR_SEM_TYPE_COMPATIBILITY;
         }
 
         // Pokud jsou typy rozdílné, tak se pokusíme o konverzi
@@ -407,9 +403,11 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
             if(left_value != NULL){
                 //konverze left na float
                 result = semantic_toFloat(bin_node.left);
+                *type = SEM_DATA_FLOAT;
             }else if(right_value != NULL){
                 // konverze right na int
                 result = semantic_toInt(bin_node.right);
+                *type = SEM_DATA_INT;
             }else{
                 return ERROR_SEM_TYPE_COMPATIBILITY;
             }
@@ -417,9 +415,11 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
             if(right_value != NULL){
                 //konverze right na float
                 result = semantic_toFloat(bin_node.right);
+                *type = SEM_DATA_FLOAT;
             }else if(left_value != NULL){
                 // konverze left na int
                 result = semantic_toInt(bin_node.left);
+                *type = SEM_DATA_INT;
             }else{
                 return ERROR_SEM_TYPE_COMPATIBILITY;
             }
@@ -446,9 +446,11 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
             if(left_value != NULL){
                 //konverze left na float
                 result = semantic_toFloat(bin_node.left);
+                *type = SEM_DATA_FLOAT;
             }else if(right_value != NULL){
                 // konverze right na int
                 result = semantic_toInt(bin_node.right);
+                *type = SEM_DATA_INT;
             }else{
                 return ERROR_SEM_TYPE_COMPATIBILITY;
             }
@@ -456,9 +458,11 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
             if(right_value != NULL){
                 //konverze right na float
                 result = semantic_toFloat(bin_node.right);
+                *type = SEM_DATA_FLOAT;
             }else if(left_value != NULL){
                 // konverze left na int
                 result = semantic_toInt(bin_node.left);
+                *type = SEM_DATA_INT;
             }else{
                 return ERROR_SEM_TYPE_COMPATIBILITY;
             }
@@ -693,7 +697,7 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
     }
 
     symtable_result sym_result = symtable_findItem(frameStack.bottom->frame,
-                                               fun_node->identifier, &item);
+                                               key, &item);
     if(sym_result != SYMTABLE_SUCCESS){
         string_free(key);
         return ERROR_INTERNAL;
@@ -763,9 +767,13 @@ ErrorType semantic_analyseIf(Semantic_Data fun_return,       \
     bool then_returned = false;
     bool else_returned = false;
 
+    //bool then_unreachable = false;
+    //bool else_unreachable = false;
+
     // Zjistíme typ výsledku výrazu v podmínce
     Semantic_Data type;
-    ErrorType result = semantic_analyseExpr(if_node->condition, &type, NULL);
+    void *condition_value;
+    ErrorType result = semantic_analyseExpr(if_node->condition, &type, &condition_value);
     if(result != 0){
         return result;
     }
@@ -784,6 +792,66 @@ ErrorType semantic_analyseIf(Semantic_Data fun_return,       \
            type != SEM_DATA_STRING_OR_NULL){
             return ERROR_SEM_TYPE_COMPATIBILITY;
         }
+
+        // Odvodíme typ hodnoty bez null
+        Semantic_Data type_without_null;
+        if(type == SEM_DATA_NULL){
+            //then_unreachable = true;
+            // Zatím vrátíme chybu, ale můžeme později přidat odstranění mrtvého kódu
+            return ERROR_SEM_OTHER;
+        }else if(type == SEM_DATA_FLOAT_OR_NULL){
+            type_without_null = SEM_DATA_FLOAT;
+        }else if(type == SEM_DATA_INT_OR_NULL){
+            type_without_null = SEM_DATA_INT;
+        }else {
+            type_without_null = SEM_DATA_STRING;
+        }
+
+        DString *key = if_node->nullCondition->identifier;
+        SymtableItemPtr item;
+        SymtablePtr table = frameArray.array[if_node->nullCondition->frameID]->frame;
+        if(symtable_findItem(table, key, &item) != SYMTABLE_SUCCESS){
+            return ERROR_INTERNAL;
+        }
+        // Hodnota bez null se může, ale nemusí měnit
+        item->constant = false;
+        item->changed = true;
+        item->symbol_state = semantic_semTypeToState(type_without_null);
+        item->used = false;
+        
+        if(condition_value != NULL){
+            // Pokud máme hodnotu, tak ji uložíme
+            item->known_value = true;
+            if(type_without_null == SEM_DATA_STRING){
+                DString *str = string_init();
+                if(str == NULL){
+                    return ERROR_INTERNAL;
+                }
+                if(string_copy((DString*)condition_value, str) != STRING_SUCCESS){
+                    return ERROR_INTERNAL;
+                }
+                item->data = str;
+            }else if(type_without_null == SEM_DATA_INT){
+                int *val = malloc(sizeof(int));
+                if(val == NULL){
+                    return ERROR_INTERNAL;
+                }
+                *val = *(int*)condition_value;
+                item->data = val;
+            }else{
+                double *val = malloc(sizeof(double));
+                if(val == NULL){
+                    return ERROR_INTERNAL;
+                }
+                *val = *(double*)condition_value;
+                item->data = val;
+            }
+            if_node->nullCondition->value = item->data;
+
+            // Známe hodnotu a není NULL, takže se nedostaneme do then větve
+            //then_unreachable = true;
+        }
+
     }
 
 
