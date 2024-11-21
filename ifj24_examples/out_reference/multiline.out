@@ -1,5 +1,5 @@
-Toto 
+To\tto 
  je 
 
- nejaky 
- text  // ve viceradkovem retezcovem literalu nelze mit komentar
+ nejaky\n 
+  text  // ve viceradkovem retezcovem literalu nelze mit komentar
