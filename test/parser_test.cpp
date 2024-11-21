@@ -46,7 +46,7 @@ using namespace internal;
 
 // Definice názvu specifického testu, pro který se má provádět tisk
 // Pokud není definováno, tisk se provádí pro všechny testy
-#define SPECIFIC_TEST_NAME "Example1"
+#define SPECIFIC_TEST_NAME "CorrectReturn"
 //#define DISABLE_PRINT
 
 #ifndef DISABLE_PRINT
@@ -1624,6 +1624,34 @@ TEST(LLParserBasicsCorrect, WhileNullCondition){
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
     PRINT_TREE_AND_FRAMESTACK(CorrectWhileNullCondition);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, Return){
+    string path = synt_path + "correct_return.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectReturn);
 
     // Uvolnění alokovaných zdrojů
     frameStack_destroyAll();

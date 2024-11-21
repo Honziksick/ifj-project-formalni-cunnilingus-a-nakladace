@@ -835,7 +835,7 @@ AST_StatementNode *LLparser_parseStatementList() {
     }
 } // LLaprser_parseStatementList()
 
-// <STATEMENT> -> <VAR_DEF> ; | id <STATEMENT_REST> ; | _ = <THROW_AWAY> ; | <IF> | <WHILE> | return <RETURN_REST> ; | ifj . id ( <ARGUMENTS> ) ;
+// <STATEMENT> -> <VAR_DEF> ; | id <STATEMENT_REST> ; | _ = <THROW_AWAY> ; | <IF> | <WHILE> | return [precedence_expression] ; | ifj . id ( <ARGUMENTS> ) ;
 AST_StatementNode *LLparser_parseStatement() {
     // Vyhledáme pravidlo v LL tabulce
     LLRuleSet rule = RULE_UNDEFINED;
@@ -1063,18 +1063,10 @@ AST_StatementNode *LLparser_parseStatement() {
             return statementNode;
         }
 
-        // <STATEMENT> -> <RETURN> ;
+        // <STATEMENT> -> return [precedence_expression] ;
         case STATEMENT_6: {
-            // Vytvoříme uzel pro příkaz a parsujeme <RETURN>
-            AST_StatementNode *returnNode = LLparser_parseReturn();
-            if (returnNode == NULL) {
-                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                return PARSING_SYNTAX_ERROR;
-            }
-
-            // Parsujeme ";"
-            if (currentToken.LLterminal != T_SEMICOLON) {
-                AST_destroyNode(AST_STATEMENT_NODE, returnNode);
+            // Parsujeme "return"
+            if (currentToken.LLterminal != T_RETURN) {
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                 return PARSING_SYNTAX_ERROR;
             }
@@ -1082,8 +1074,35 @@ AST_StatementNode *LLparser_parseStatement() {
             // Žádáme o další token
             Parser_getNextToken(LL_PARSER);
 
+            // Vytvoříme uzel pro příkaz a parsujeme [precedence_expression]
+            AST_ExprNode *returnExpr = PrecParser_parse(NT_STATEMENT);
+            if (Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+                return PARSING_SYNTAX_ERROR;
+            }
+
+            // Parsujeme ";"
+            if (currentToken.LLterminal != T_SEMICOLON) {
+                AST_destroyNode(AST_STATEMENT_NODE, returnExpr);
+                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
+                return PARSING_SYNTAX_ERROR;
+            }
+
+            // Žádáme o další token
+            Parser_getNextToken(LL_PARSER);
+
+            // Vytvoříme uzel pro příkaz a zkontrolujeme úspěšnost alokace
+            AST_StatementNode *statementNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+            if (statementNode == NULL) {
+                AST_destroyNode(AST_STATEMENT_NODE, returnExpr);
+                error_handle(ERROR_INTERNAL);
+            }
+
+            // Inicializujeme uzel pro příkaz
+            AST_initNewStatementNode(statementNode, frameStack.currentID, AST_STATEMENT_RETURN, returnExpr);
+
+
             // Vracíme návratový příkaz
-            return returnNode;
+            return statementNode;
         }
 
         // <STATEMENT> -> ifj . id ( <ARGUMENTS> ) ;
@@ -1875,68 +1894,6 @@ AST_WhileNode *LLparser_parseWhile() {
     // Vracíme uzel pro cyklus while
     return whileNode;
 } // LLparser_parseWhile()
-
-// <RETURN_REST> -> [precedence_expression] |
-AST_StatementNode *LLparser_parseReturn() {
-    // Parsujeme "return"
-    if (currentToken.LLterminal != T_RETURN) {
-        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-        return PARSING_SYNTAX_ERROR;
-    }
-
-    // Žádáme o další token
-    Parser_getNextToken(LL_PARSER);
-
-    // Parsujeme <RETURN_REST>
-    //AST_ExprNode *expr = LLparser_parseReturnRest();
-    AST_ExprNode *expr = PrecParser_parse(NT_RETURN_REST);
-    if (expr == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
-        return PARSING_SYNTAX_ERROR;
-    }
-
-    // Vytvoříme uzel pro příkaz "return"
-    AST_StatementNode *returnNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    if (returnNode == NULL) {
-        if (expr != NULL) {
-            AST_destroyNode(AST_EXPR_NODE, expr);
-        }
-        error_handle(ERROR_INTERNAL);
-    }
-
-    // Incializujeme uzel pro návratový příkaz
-    AST_initNewStatementNode(returnNode, frameStack.currentID, AST_STATEMENT_RETURN, expr);
-
-    return returnNode;
-} // LLparser_parseReturn()
-
-
-// <RETURN_REST> -> [precedence_expression] | ε
-AST_ExprNode *LLparser_parseReturnRest() {
-    // Vyhledáme pravidlo v LL tabulce
-    LLRuleSet rule = RULE_UNDEFINED;
-
-    // Pokud příslušné pravidlo nebylo nalezeno, vracíme NULL
-    if(!LLtable_findRule(currentToken.LLterminal, NT_RETURN_REST, &rule)) {
-        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-        return AST_DATA_TYPE_NOT_DEFINED;
-    }
-
-    // Na <RETURN_REST> lze aplikovat dvě různá pravidla
-    switch (rule) {
-        // <RETURN_REST> -> [precedence_expression]
-        case RETURN_REST_1:
-            return PrecParser_parse(NT_RETURN_REST);
-
-        // <RETURN_REST> -> ε
-        case RETURN_REST_2:
-            return NULL;    // Rozvíjíme na epsilon, ted NULL je korektní hodnotou
-
-        // Jinak dochází k syntaktické chybě
-        default:
-            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-            return PARSING_SYNTAX_ERROR;
-    }
-} // LLparser_parseReturnRest()
 
 // <ARGUMENTS> -> [precedence_expression]
 AST_ArgOrParamNode *LLparser_parseArguments() {

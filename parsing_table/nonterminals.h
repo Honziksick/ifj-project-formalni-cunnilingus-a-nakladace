@@ -23,9 +23,7 @@ enum NonTerminal {
     NT_NULL_COND       = 18,    /**<  Neterminál pro podmínku null  */
     NT_SEQUENCE        = 19,    /**<  Neterminál pro sekvenci příkazů (blok)  */
     NT_WHILE           = 20,    /**<  Neterminál pro cyklus while  */
-    NT_RETURN          = 21,    /**<  Neterminál pro příkaz návratu  */
-    NT_RETURN_REST     = 22,    /**<  Neterminál pro zbytek příkazu návratu  */
-    NT_ARGUMENTS       = 23,    /**<  Neterminál pro argumenty  */
+    NT_ARGUMENTS       = 21,    /**<  Neterminál pro argumenty  */
     NON_TERMINAL_COUNT
 };
 
@@ -51,8 +49,6 @@ std::array<std::string, NON_TERMINAL_COUNT> invNonTerminalMap = {
     "NULL_COND",
     "SEQUENCE",
     "WHILE",
-    "RETURN",
-    "RETURN_REST",
     "ARGUMENTS",
 };
 #endif // NONTERMINALS_H

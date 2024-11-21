@@ -132,9 +132,9 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
 void PrecTable_getFollowSet(LLNonTerminals fromNonTerminal) {
     switch(fromNonTerminal) {
         case NT_VAR_DEF:
+        case NT_STATEMENT:
         case NT_STATEMENT_REST:
         case NT_THROW_AWAY:
-        case NT_RETURN_REST:
             currentDollar = DOLLAR_T_SEMICOLON;
             break;
 
