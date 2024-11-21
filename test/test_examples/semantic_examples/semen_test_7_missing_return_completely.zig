@@ -1,5 +1,5 @@
 // Program: Chybejici return ve volane funkci, ktera ma neco vratit
-//ERR4
+//ERR6
 
 const ifj = @import("ifj24.zig");
 pub fn main() void {

@@ -108,11 +108,11 @@ typedef enum Precedence {
 typedef enum CallPrecNonTerminals {
     CALL_PREC_NT_UNDEFINED      = -1,       /**< Aktuální "follow" neterminál je zatím neznámý. */
     CALL_PREC_NT_VAR_DEF        = 0,        /**< Neterminál pro definici proměnné */
-    CALL_PREC_NT_STATEMENT_REST = 1,        /**< Neterminál pro zbytek příkazu */
-    CALL_PREC_NT_THROW_AWAY     = 2,        /**< Neterminál pro zahození návratové hodnoty */
-    CALL_PREC_NT_IF             = 3,        /**< Neterminál pro podmínku if */
-    CALL_PREC_NT_WHILE          = 4,        /**< Neterminál pro cyklus while */
-    CALL_PREC_NT_RETURN_REST    = 5,        /**< Neterminál pro zbytek příkazu návratu */
+    CALL_PREC_NT_STATEMENT      = 1,        /**< Neterminál pro příkaz (resp. return) */
+    CALL_PREC_NT_STATEMENT_REST = 2,        /**< Neterminál pro zbytek příkazu */
+    CALL_PREC_NT_THROW_AWAY     = 3,        /**< Neterminál pro zahození návratové hodnoty */
+    CALL_PREC_NT_IF             = 4,        /**< Neterminál pro podmínku if */
+    CALL_PREC_NT_WHILE          = 5,        /**< Neterminál pro cyklus while */
     CALL_PREC_NT_ARGUMENTS      = 6,        /**< Neterminál pro argumenty funkce */
 } CallPrecNonTerminals;
 
@@ -146,17 +146,6 @@ struct PrecedenceTable{
     Precedence value[PREC_TERMINAL_COUNT];    /**<  Pole hodnot reprezentující precedence mezi terminály  */
 };
 
-/**
- * @brief Struktura reprezentující FOLOW množinu pro NEterminál.
- *
- * @details Tato struktura obsahuje NEterminál, počet terminálů v konkrétní
- *          FOLOW množině a pole terminálů, které tvoří FOLOW množinu.
- */
-typedef struct PrecDollars {
-    CallPrecNonTerminals fromNonTerminal;           /**< NEterminál, ze kterého je FOLOW množina určena */
-    DollarTerminals followSet;  /**< Množinina FOLLOW obsahující "dollar" terminály předávající řízení zpět LL parseru */
-} PrecDollars;
-
 
 /*******************************************************************************
  *                                                                             *
@@ -173,16 +162,6 @@ typedef struct PrecDollars {
  *          určují vztah precedence mezi dvěma terminály.
  */
 extern const struct PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT];
-
-/**
- * @brief Pole FOLLOW množin pro všechny NEterminály, ze kterých se dá předat
- *        řízení precedenčnímu syntaktickému analyzátoru.
- *
- * @details Toto pole obsahuje FOLOW množiny pro všechny NEterminály, ze kterýCH
- *          se dá předat řízení precedenčnímu SA, s explicitním počtem symbolů
- *          v každé množině.
- */
-extern const struct PrecDollars followSets[FOLLOW_NON_TERMINALS_COUNT];
 
 /**
  * @brief Globální proměnná pro aktuální množinu dollar neterinálů.

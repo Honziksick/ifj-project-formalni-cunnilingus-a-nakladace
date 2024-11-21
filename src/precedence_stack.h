@@ -101,7 +101,6 @@ typedef enum PrecStackNonTerminals {
     PREC_STACK_NT_UNEDFINED     = PREC_STACK_SYM_UNEDFINED,     /**<  Typ "stack" neterminálu zatím není známý */
     PREC_STACK_NT_EXPRESSION    = PREC_STACK_SYM_EXPRESSION,    /**<  NEterminál pro výraz  */
     PREC_STACK_NT_ARG_LIST      = PREC_STACK_SYM_ARG_LIST,      /**<  NEterminál pro seznam argumentů  */
-    PREC_STACK_NT_ARG           = PREC_STACK_SYM_ARG,           /**<  NEterminál pro argument  */
     PREC_STACK_NT_HANDLE        = PREC_STACK_SYM_HANDLE,        /**<  Speciální symbol "<" pro handle  */
 } PrecStackNonTerminals;
 

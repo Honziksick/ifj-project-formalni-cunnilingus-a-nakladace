@@ -52,7 +52,7 @@ void TestSemantic(){
 }
 
 void TestParser(){
-    ASTroot = LLparser_parseProgram();
+    LLparser_parseProgram();
     exit(0);
 }
 
@@ -103,7 +103,7 @@ TEST(Correct, Simplest){
     ASTroot = NULL;
 }
 
-/*
+
 TEST(Correct, Hello){
     std::string path = exam_path + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -137,9 +137,11 @@ TEST(Correct, Example1){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
+
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
+    
 
     frameStack_destroyAll();
     AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
@@ -147,7 +149,7 @@ TEST(Correct, Example1){
     fclose(f);
     ASTroot = NULL;
 }
-
+/*
 TEST(Correct, Example2){
     std::string path = exam_path + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -157,7 +159,7 @@ TEST(Correct, Example2){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
@@ -177,7 +179,7 @@ TEST(Correct, Example3){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
@@ -197,7 +199,7 @@ TEST(Correct, Fun){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
@@ -206,7 +208,7 @@ TEST(Correct, Fun){
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
-}
+}*/
 
 TEST(Correct, Implicit_to_float){
     std::string path = sem_path + "implicit_to_float.zig";
@@ -225,10 +227,7 @@ TEST(Correct, Implicit_to_float){
     // Kořen je inicializován
     EXPECT_NE(ASTroot, nullptr);
 
-    //PRINT_TREE(AST_PROGRAM_NODE, ASTroot);
-    //frameStack_printArray(stderr, true, false);
-
-    TestSemantic();
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     frameStack_destroyAll();
     AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
@@ -327,7 +326,7 @@ TEST(Correct, Inference){
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
-}*/
+}
 
 
 TEST(Correct, Void_fun){
@@ -350,7 +349,28 @@ TEST(Correct, Void_fun){
     fclose(f);
     ASTroot = NULL;
 }
-/*
+
+TEST(Correct, Void_fun2){
+    std::string path = sem_path + "void_fun_good2.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    frameStack_init();
+
+    LLparser_parseProgram();
+    
+    EXPECT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
+
+    frameStack_destroyAll();
+    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+
 
 TEST(Incorrect, Undefined_Var){
     std::string path = sem_path + "semen_test_1_undefined_var.zig";
@@ -379,7 +399,8 @@ TEST(Incorrect, Undefined_Fun){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
+    
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
 
@@ -400,7 +421,7 @@ TEST(Incorrect, ParamCount){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
@@ -420,7 +441,7 @@ TEST(Incorrect, ParamType){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
@@ -440,7 +461,7 @@ TEST(Incorrect, Return){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
@@ -460,9 +481,9 @@ TEST(Incorrect, Return2){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(6), "");
 
     frameStack_destroyAll();
     AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
@@ -480,9 +501,9 @@ TEST(Incorrect, Return3){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(6), "");
 
     frameStack_destroyAll();
     AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
@@ -508,7 +529,7 @@ TEST(Incorrect, Redefined_Var){
     fclose(f);
     ASTroot = NULL;
 }
-
+/*
 TEST(Incorrect, Redefined_Fun){
     std::string path = sem_path + "semen_test_9_redefining_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -525,7 +546,7 @@ TEST(Incorrect, Redefined_Fun){
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
-}
+}*/
 
 TEST(Incorrect, ConstAssign){
     std::string path = sem_path + "semen_test_10_assigning_value_to_const.zig";
@@ -536,7 +557,7 @@ TEST(Incorrect, ConstAssign){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(5), "");
 
@@ -556,7 +577,7 @@ TEST(Incorrect, AssignType){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(7), "");
 
@@ -576,7 +597,7 @@ TEST(Incorrect, AssignType2){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(7), "");
 
@@ -596,7 +617,8 @@ TEST(Incorrect, Unused_Var){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
+
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(9), "");
 
@@ -606,7 +628,8 @@ TEST(Incorrect, Unused_Var){
     fclose(f);
     ASTroot = NULL;
 }
-*/
+
+
 TEST(Incorrect, MainInt){
     std::string path = sem_path + "main_type_int.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -629,7 +652,7 @@ TEST(Incorrect, MainInt){
     fclose(f);
     ASTroot = NULL;
 }
-/**/
+
 TEST(Incorrect, NoMain){
     std::string path = sem_path + "missing_main.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -700,9 +723,27 @@ TEST(Incorrect, Prolog2){
     fclose(f);
     ASTroot = NULL;
 }
-/*
+
 TEST(Incorrect, Inference){
+    std::string path = sem_path + "type_inference.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    frameStack_init();
+
+
+    LLparser_parseProgram();
+    EXPECT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
     
+
+    frameStack_destroyAll();
+    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
 }
 
 TEST(Incorrect, Inference2){
@@ -715,7 +756,7 @@ TEST(Incorrect, Inference2){
     frameStack_init();
 
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
     
@@ -737,7 +778,7 @@ TEST(Incorrect, Unchanged_var){
     frameStack_init();
 
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(9), "");
     
@@ -747,14 +788,10 @@ TEST(Incorrect, Unchanged_var){
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
-}*/
-
-/*TEST(Incorrect, Unused_value){
-    
-}*/
+}
 /*
-TEST(Incorrect, Unused_value2){
-    std::string path = sem_path + "unused_value2.zig";
+TEST(Incorrect, Unused_value){
+    std::string path = sem_path + "unused_value.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -763,7 +800,7 @@ TEST(Incorrect, Unused_value2){
     frameStack_init();
 
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(0), "");
+    LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
     
@@ -775,8 +812,48 @@ TEST(Incorrect, Unused_value2){
     ASTroot = NULL;
 }*/
 
-/*TEST(Incorrect, Void_fun){
+TEST(Incorrect, Unused_value2){
+    std::string path = sem_path + "unused_value2.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    frameStack_init();
+
+
+    LLparser_parseProgram();
+    EXPECT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
     
-}*/
+
+    frameStack_destroyAll();
+    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+
+TEST(Incorrect, Void_fun){
+    std::string path = sem_path + "void_fun_bad.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    frameStack_init();
+
+
+    LLparser_parseProgram();
+    EXPECT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
+    
+
+    frameStack_destroyAll();
+    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
 
 

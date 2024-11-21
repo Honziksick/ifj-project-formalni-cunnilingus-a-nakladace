@@ -275,6 +275,40 @@ frame_stack_result frameStack_addItemExpress(DString *key,
 } // frameStack_addItemExpress()
 
 /**
+ * @brief Vrátí ID rámce, ve kterém je položka s daným klíčem.
+ */
+size_t frameStack_getId(DString *key) {
+    // Pokud je klíč NULL, vrátíme chybu
+    if(key == NULL) {
+        return FRAME_STACK_KEY_NULL;
+    }
+
+    // Pokud není zásobník inicializován, vrátíme chybu
+    if(frameStack.top == NULL) {
+        return FRAME_STACK_NOT_INITIALIZED;
+    }
+
+    // Nastavíme začátek prohledávání na vrchol zásobníku
+    FramePtr frame = frameStack.top;
+
+    // Cyklus prohledávání rámců
+    while(true) {
+        // Prohledáme rámec
+        symtable_result result = symtable_findItem(frame->frame, key, NULL);
+        if(result == SYMTABLE_SUCCESS) {
+            // Pokud byla položka nalezena, vrátíme úspěch
+            return frame->frameID;
+        }
+        else {
+            // Jinak pokračujeme v prohledávání dalšího rámce
+            frame = frame->next;
+        }
+    }
+
+    return 0;
+} // frameStack_getId()
+
+/**
  * @brief Uvolní všechny rámce v zásobníku a uvede zásobník do počátečního stavu.
  */
 void frameStack_destroyAll() {

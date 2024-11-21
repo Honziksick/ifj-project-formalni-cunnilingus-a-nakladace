@@ -78,7 +78,8 @@ const struct ReductionRuleSet reductionRuleSet[NUM_OF_REDUCTION_RULES] = {
  * @param fromNonTerminal Neterminál předávající řízení precedenčnímu syntaktickému analyzátoru.
  */
 AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
-    if(fromNonTerminal == NT_ARGUMENTS && currentToken.LLterminal == T_RIGHT_BRACKET) {
+    if((fromNonTerminal == NT_ARGUMENTS && currentToken.LLterminal == T_RIGHT_BRACKET) ||
+       (fromNonTerminal == NT_STATEMENT && currentToken.LLterminal == T_SEMICOLON)) {
         return NULL;
     }
 
@@ -104,15 +105,14 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
         if(topTerminal == T_PREC_UNDEFINED) {
             PrecStackList_purge();
             PrecStackList_destroy();
-            error_handle(ERROR_INTERNAL);
-            return NULL;
+            Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         }
 
         // Aktualizace úrovně zanoření na zákaldě vstupního terminálu
-        if (inTerminal == T_PREC_LEFT_BRACKET) {
+        if (inTerminal == T_PREC_LEFT_BRACKET && !PrecStack_isIdOnTop()) {
             bracketDepth++;
         }
-        else if (inTerminal == T_PREC_RIGHT_BRACKET) {
+        else if (inTerminal == T_PREC_RIGHT_BRACKET && precStackList->stack->top->symbolType != STACK_NODE_TYPE_NONTERMINAL) {
             bracketDepth--;
 
             // Ukončení parsování, pokud je závorka ve Follow množině a úroveň zanoření je 0
@@ -126,8 +126,8 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
         PrecTable_findPrecedence(topTerminal, inTerminal, &precedence);
         if(precedence == P_SYNTAX_ERROR) {
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-            PrecStackList_popAndPurge();
-            return NULL;
+            PrecStackList_purge();
+            return PARSING_SYNTAX_ERROR;
         }
 
         // Zpracování na základě precedence
@@ -156,19 +156,26 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
                 if(PrecStack_isIdOnTop() && (inTerminal == T_PREC_LEFT_BRACKET)) {
                     // Pushneme na zásobník symbol "handle"
                     Parser_getNextToken(PREC_PARSER);
+
                     AST_ArgOrParamNode *argList = LLparser_parseArguments();
+
                     PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARG_LIST, AST_ARG_OR_PARAM_NODE, argList);
-                    //PrecStack_getTopPrecTerminal(&topTerminal);
-                    bracketDepth--;
+                    if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+                        return PARSING_SYNTAX_ERROR;
+                    }
+
                     // Čtení dalšího symbolu ze vstupu
                     Parser_getNextToken(PREC_PARSER);
+
                     PrecStack_getTopPrecTerminal(&topTerminal);
                 }
                 else {
                     // Pushneme na zásobník symbol "handle"
                     PrecStack_pushHandleAfterFirstTerminal();
+
                     // Pushneme na zásboník inicializovaný "PrecStackNode"
                     PrecStack_pushBothStackAndASTNode(inTerminal);
+
                     // Čtení dalšího symbolu ze vstupu
                     Parser_getNextToken(PREC_PARSER);
                 }
@@ -193,8 +200,8 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
 
                 if(rule == REDUCE_RULE_UNDEFINED) {
                     Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                    PrecStackList_popAndPurge();
-                    return NULL;
+                    PrecStackList_purge();
+                    return PARSING_SYNTAX_ERROR;
                 }
 
                 // Provedeme redukci na základě zvoleného pravidla
@@ -206,10 +213,10 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
                 }
                 else {
                     PrecParser_reduce(rule);
-                    //if(rule == REDUCE_E_FUN_CALL) {
-                    //    PrecStack_getTopPrecTerminal(&topTerminal);
-                    //}
                     PrecStack_getTopPrecTerminal(&topTerminal);
+                    if(topTerminal == T_PREC_DOLLAR && inTerminal == T_PREC_RIGHT_BRACKET) {
+                        PrecParser_mapToDollar(bracketDepth, &inTerminal);
+                    }
                 }
                 break;
             } // case P_GREATER
@@ -218,8 +225,8 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
             case P_SYNTAX_ERROR:
             default:
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                PrecStackList_popAndPurge();
-                return NULL;
+                PrecStackList_purge();
+                return PARSING_SYNTAX_ERROR;
         } // switch()
 
         // Kontrola ukončení: pokud 'b' i 'top' jsou rovny '$'
@@ -247,7 +254,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     AST_ExprNode *result = NULL;
     if(!PrecStack_getResult(&result)) {
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-        PrecStackList_popAndPurge();
+        PrecStackList_purge();
         return PARSING_SYNTAX_ERROR;
     }
 
@@ -287,6 +294,8 @@ void precParser_chooseReductionRule(ReductionRule *rule) {
     PrecStackNode* stackNode = PrecStack_top();
 
     if(stackNode == NULL) {
+        PrecStackList_purge();
+        PrecStackList_destroy();
         error_handle(ERROR_INTERNAL);
     }
 
@@ -435,26 +444,7 @@ void PrecParser_reduce(ReductionRule rule) {
         case REDUCE_E_IFJ_CALL:
             PrecParser_reduceIfjFunCall();
             break;
-/*
-        // Redukce: <ARG_LIST> -> E <ARG>
-        case REDUCE_ARG_LIST_TO_E_ARG:
-            PrecParser_reduceArgListExprArg();
-            break;
 
-        // Redukce: <ARG> -> , E <ARG>
-        case REDUCE_ARG_TO_COMMA_E_ARG:
-            PrecParser_reduceArgCommaExprArg();
-            break;
-
-        // Redukce: <ARG> -> ,
-        case REDUCE_ARG_TO_COMMA:
-            PrecParser_reduceArgComma();
-            break;
-
-        // Redukce: <ARG_LIST> | <ARG> -> ε
-        case REDUCE_TO_EPSILON:
-            break;
-*/
         // Pokud jsme dostali neznámé pravidlo, jde o interní chybu
         default:
             PrecStackList_purge();
@@ -485,10 +475,12 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
     // Vytvoření AST uzlu pro výraz
     AST_ExprNode *exprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     if(exprNode == NULL) {
+        PrecStackList_purge();
+        PrecStackList_destroy();
         error_handle(ERROR_INTERNAL);
     }
 
-    AST_VarNode *variable;
+    AST_VarNode *variable = NULL;
 
     // AST_ExprNode propojíme s příslušným AST_VarNode
     switch(nodeType) {
@@ -503,19 +495,22 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
             if(res == FRAME_STACK_ITEM_DOESNT_EXIST) {
                 PrecStack_freeNode(stackNode);
                 AST_destroyNode(AST_EXPR_NODE, exprNode);
-                PrecStackList_popAndPurge();
+                PrecStackList_purge();
                 error_handle(ERROR_SEM_UNDEF);
             }
-            // Jiný kód výsledku vyhledávací funkec znamená interní chybu překladače
+            // Jiný kód výsledku vyhledávací funkce znamená interní chybu překladače
             else if(res != FRAME_STACK_SUCCESS) {
                 PrecStack_freeNode(stackNode);
                 AST_destroyNode(AST_EXPR_NODE, exprNode);
-                PrecStackList_popAndPurge();
+                PrecStackList_purge();
                 error_handle(ERROR_INTERNAL);
             }
 
             // Pokud nalezena byla, označíme ji jako použitou
             foundItem->used = true;
+
+            // Nastavíme správné ID
+            variable->frameID = frameStack_getId(variable->identifier);
 
             // Nyní můžeme inicializovat uzel pro výraz
             AST_initNewExprNode(exprNode, AST_EXPR_VARIABLE, stackNode->node);
@@ -529,6 +524,8 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
         // Jakýkoliv jiný typ uzlu způsobí vnitřní chybu
         default:
             PrecStack_freeNode(stackNode);
+            PrecStackList_purge();
+            PrecStackList_destroy();
             error_handle(ERROR_INTERNAL);
             break;
     } // switch()
@@ -582,8 +579,8 @@ void PrecParser_reduceBrackets() {
     PrecStackNode *rightBracket = PrecStack_pop();
     free(rightBracket);
 
-    // Popnutí E
-    PrecStackNode *exprNode = PrecStack_pop();
+    // Popnutí E nebo <ARG_LIST>
+    PrecStackNode *innerNode = PrecStack_pop();
 
     // Popnutí a uvolnění '('
     PrecStackNode *leftBracket = PrecStack_pop();
@@ -594,14 +591,14 @@ void PrecParser_reduceBrackets() {
     free(handleNode);
 
     // Pushnutí E zpět na zásobník bez změny (výraz v závorkách)
-    PrecStack_pushPrecNonTerminal(PREC_STACK_NT_EXPRESSION, exprNode->nodeType, exprNode->node);
+    PrecStack_pushPrecNonTerminal(PREC_STACK_NT_EXPRESSION, innerNode->nodeType, innerNode->node);
 
     // Uvolníme původní StackNode pro výraz E
-    free(exprNode);
+    free(innerNode);
 } // PrecParser_reduceBrackets()
 
 /**
- * @brief Redukce pro volání funkce E -> id ( <ARG_LIST> ).
+ * @brief Redukce pro volání funkce E -> id <ARG_LIST>.
  */
 void PrecParser_reduceFunCall() {
     // Popnutí '<ARG_LIST>'
@@ -633,7 +630,7 @@ void PrecParser_reduceFunCall() {
 } // PrecParser_reduceFunCall()
 
 /**
- * @brief Redukce pro volání vestavěné funkce E -> ifj . id ( <ARG_LIST> ).
+ * @brief Redukce pro volání vestavěné funkce E -> ifj . id <ARG_LIST>.
  */
 void PrecParser_reduceIfjFunCall() {
     // Popnutí '<ARG_LIST>'
@@ -672,106 +669,6 @@ void PrecParser_reduceIfjFunCall() {
     free(argumentsNode);
 } // PrecParser_reduceIfjFunCall()
 
-/**
- * @brief Redukce pro argumenty <ARG_LIST> -> E <ARG>.
- */
-void PrecParser_reduceArgListExprArg() {
-    // Popnutí '<ARG>'
-    PrecStackNode *argNode = PrecStack_pop();
-
-    // Popnutí 'E'
-    PrecStackNode *exprNode = PrecStack_pop();
-
-    // Popnutí a uvolnění handle
-    PrecStackNode *handleNode = PrecStack_pop();
-    free(handleNode);
-
-    // Vytvoření nového uzlu pro argument
-    AST_ArgOrParamNode *argList = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    AST_initNewArgOrParamNode(argList, AST_DATA_TYPE_NOT_DEFINED, exprNode->node);
-    argList->next = argNode->node;
-
-    // Pushnutí neterminálu '<ARG_LIST>' s uzlem argumentů
-    PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARG_LIST, AST_ARG_OR_PARAM_NODE, argList);
-
-    // Uvolnění popnutých uzlů, protože jejich AST uzly byly již použity
-    free(argNode);
-    free(exprNode);
-} // PrecParser_reduceArgListExprArg()
-
-/**
- * @brief Redukce pro seznam argumentů <ARG_LIST> -> ε.
- */
-void PrecParser_reduceArgListEpsilon() {
-    // Vytvoření nového prázdného uzlu pro argument
-    AST_ArgOrParamNode *argList = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-
-    // Pushnutí neterminálu '<ARG_LIST>' s uzlem argumentů
-    PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARG_LIST, AST_ARG_OR_PARAM_NODE, argList);
-} // PrecParser_reduceArgListEpsilon()
-
-/**
- * @brief Redukce pro argument <ARG> -> , E <ARG>.
- */
-void PrecParser_reduceArgCommaExprArg() {
-    // Popnutí '<ARG>'
-    PrecStackNode *argNode = PrecStack_pop();
-
-    // Popnutí 'E'
-    PrecStackNode *exprNode = PrecStack_pop();
-
-    // Popnutí ','
-    PrecStackNode *commaNode = PrecStack_pop();
-    PrecStack_freeNode(commaNode);
-
-    // Popnutí a uvolnění handle
-    PrecStackNode *handleNode = PrecStack_pop();
-    free(handleNode);
-
-    // Vytvoření nového uzlu pro argument
-    AST_ArgOrParamNode *arg = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    AST_initNewArgOrParamNode(arg, AST_DATA_TYPE_NOT_DEFINED, exprNode->node);
-    arg->next = argNode->node;
-
-    // Pushnutí neterminálu '<ARG>' s uzlem argumentů
-    PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARG, AST_ARG_OR_PARAM_NODE, arg);
-
-    // Uvolnění popnutých uzlů, protože jejich AST uzly byly již použity
-    free(argNode);
-    free(exprNode);
-} // PrecParser_reduceArgCommaExprArg()
-
-/**
- * @brief Redukce pro argument <ARG> -> ,
- */
-void PrecParser_reduceArgComma() {
-    // Popnutí ','
-    PrecStackNode *commaNode = PrecStack_pop();
-    PrecStack_freeNode(commaNode);
-
-    // Popnutí a uvolnění handle
-    PrecStackNode *handleNode = PrecStack_pop();
-    free(handleNode);
-
-    // Vytvoření nového prázdného uzlu pro argument
-    AST_ArgOrParamNode *arg = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-
-    // Pushnutí neterminálu '<ARG_LIST>' s uzlem argumentů
-    PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARG, AST_ARG_OR_PARAM_NODE, arg);
-} // PrecParser_reduceArgComma()
-
-
-/**
- * @brief Redukce pro argument <ARG> -> ε
- */
-void PrecParser_reduceArgEpsilon() {
-    // Vytvoření nového prázdného uzlu pro argument
-    AST_ArgOrParamNode *arg = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-
-    // Pushnutí neterminálu '<ARG_LIST>' s uzlem argumentů
-    PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARG, AST_ARG_OR_PARAM_NODE, arg);
-} // PrecParser_reduceArgEpsilon()
-
 
 /*******************************************************************************
  *                                                                             *
@@ -785,6 +682,8 @@ void PrecParser_reduceArgEpsilon() {
 void PrecParser_mapToDollar(int bracketDepth, PrecTerminals *terminal) {
     // Ověření platnosti předaného ukazatele
     if (terminal == NULL) {
+        PrecStackList_purge();
+        PrecStackList_destroy();
         error_handle(ERROR_INTERNAL);
     }
 
@@ -824,6 +723,8 @@ void PrecParser_mapToDollar(int bracketDepth, PrecTerminals *terminal) {
 void PrecParser_mapNonTerminalToRule(PrecStackSymbol symbol, ReductionRule *rule) {
     // Ověření platnosti předaného ukazatele
     if (rule == NULL) {
+        PrecStackList_purge();
+        PrecStackList_destroy();
         error_handle(ERROR_INTERNAL);
     }
 
@@ -912,19 +813,11 @@ void PrecParser_mapNonTerminalToRule(PrecStackSymbol symbol, ReductionRule *rule
         case PREC_STACK_SYM_DOT:
             *rule = REDUCE_E_IFJ_CALL;
             break;
-/*
-        // Mapování: Seznam argumentů na základní výraz -> REDUCE_ARG_LIST_TO_E_ARG
-        case PREC_STACK_SYM_ARG_LIST:
-            *rule = REDUCE_ARG_LIST_TO_E_ARG;
-            break;
 
-        // Mapování: Oddělovač argumentů v seznamu -> REDUCE_ARG_TO_COMMA_E_ARG
-        case PREC_STACK_SYM_COMMA:
-            *rule = REDUCE_ARG_TO_COMMA_E_ARG;
-            break;
-*/
         // Defaultní případ: interní chyba
         default:
+            PrecStackList_purge();
+            PrecStackList_destroy();
             error_handle(ERROR_INTERNAL);
             break;
     } // switch()

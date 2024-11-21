@@ -223,22 +223,6 @@ AST_StatementNode *LLparser_parseSequence(bool createFrame);
 AST_WhileNode *LLparser_parseWhile();
 
 /**
- * @brief Parsuje neterminál `<RETURN>`.
- *
- * @return Ukazatel na uzel návratového příkazu (AST_StatementNode) při
- *         úspěšném parsování, jinak `NULL`.
- */
-AST_StatementNode *LLparser_parseReturn();
-
-/**
- * @brief Parsuje neterminál `<RETURN_REST>`.
- *
- * @return Ukazatel na výraz (AST_ExprNode), může být `NULL` pokud
- *         není uveden výraz.
- */
-AST_ExprNode *LLparser_parseReturnRest();
-
-/**
  * @brief Parsuje neterminál `<ARGUMENTS>`.
  *
  * @return Ukazatel na první uzel seznamu argumentů (AST_ArgOrParamNode) při
