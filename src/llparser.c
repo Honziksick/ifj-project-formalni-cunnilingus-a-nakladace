@@ -807,7 +807,8 @@ AST_StatementNode *LLparser_parseStatementList() {
             AST_StatementNode *statement = LLparser_parseStatement();
 
             // Kontrola úspěšnosti parsování <STATEMENT>
-            if(statement == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+            if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+                AST_destroyStatementList(statement);
                 return PARSING_SYNTAX_ERROR;
             }
 
@@ -854,6 +855,7 @@ AST_StatementNode *LLparser_parseStatement() {
 
             // Kontrola úspěšnosti parsování <VAR_DEF>
             if (varDef == NULL) {
+                AST_destroyStatementList(varDef);
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                 return PARSING_SYNTAX_ERROR;
             }
@@ -892,6 +894,7 @@ AST_StatementNode *LLparser_parseStatement() {
             // Kontrola úspěcho parsování <STATEMENT_REST>
             // string je v případě chyby uvolněn v LLparser_parseStatementRest
             if(statementRest == NULL) {
+                AST_destroyStatementList(statementRest);
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                 return PARSING_SYNTAX_ERROR;
             }
@@ -1001,6 +1004,7 @@ AST_StatementNode *LLparser_parseStatement() {
             // Vytvoříme uzel pro příkaz a zkontrolujeme úspěšnost alokace
             AST_StatementNode *statementNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
             if (statementNode == NULL) {
+                AST_destroyStatementList(statementNode);
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                 AST_destroyNode(AST_WHILE_NODE, whileNode);
                 error_handle(ERROR_INTERNAL);
@@ -1115,7 +1119,7 @@ AST_StatementNode *LLparser_parseStatement() {
             // Vytvoříme uzel pro příkaz a zkontrolujeme úspěch alokace paměti
             AST_StatementNode *statementNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
             if (statementNode == NULL) {
-                AST_destroyNode(AST_FUN_CALL_NODE, funCallNode);
+                AST_destroyStatementList(statementNode);
                 error_handle(ERROR_INTERNAL);
                 return PARSING_SYNTAX_ERROR;
             }
@@ -1566,7 +1570,7 @@ AST_IfNode *LLparser_parseIf() {
     // Vytváříme uzel pro seznam příkazů a parsujeme <SEQUENCE>
     AST_StatementNode *thenBranch = LLparser_parseSequence(nullCond == NULL);
     if (Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
-        AST_destroyNode(AST_EXPR_NODE, condition);
+        AST_destroyStatementList(thenBranch);
         if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
             error_handle(ERROR_INTERNAL);
         }
@@ -1591,8 +1595,9 @@ AST_IfNode *LLparser_parseIf() {
     // Vytváříme uzel pro seznam příkazů a parsujeme <SEQUENCE>
     AST_StatementNode *elseBranch = LLparser_parseSequence(true);
     if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+        AST_destroyStatementList(elseBranch);
         AST_destroyNode(AST_EXPR_NODE, condition);
-        AST_destroyNode(AST_STATEMENT_NODE, thenBranch);
+        AST_destroyStatementList(thenBranch);
         if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
             error_handle(ERROR_INTERNAL);
         }
@@ -1736,12 +1741,13 @@ AST_StatementNode *LLparser_parseSequence(bool createFrame) {
 
     // Zkontrolujeme úspěšnost parsování <STATEMENT_LIST>
     if(statementList == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+        AST_destroyStatementList(statementList);
         return PARSING_SYNTAX_ERROR;
     }
 
     // Parsujeme "}"
     if(currentToken.LLterminal != T_RIGHT_CURLY_BRACKET) {
-        AST_destroyNode(AST_STATEMENT_NODE, statementList);
+        AST_destroyStatementList(statementList);
         return PARSING_SYNTAX_ERROR;
     }
 
