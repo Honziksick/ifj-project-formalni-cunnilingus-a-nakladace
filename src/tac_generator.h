@@ -315,7 +315,7 @@ bool TAC_generateWhileLoop(AST_WhileNode *whileNode, TAC_InstructionList *tacLis
  *
  * @return TAC_Operand Výstupní operand reprezentující výsledek výrazu.
  */
-bool TAC_generateExpression(AST_BinOpNode *binOp, AST_ExprNode *exprNode, TAC_InstructionList *tacList);
+bool TAC_generateExpression(AST_ExprNode *exprNode, TAC_InstructionList *tacList);
 
 /**
  * @brief Generuje tříadresný kód pro binární operaci.
