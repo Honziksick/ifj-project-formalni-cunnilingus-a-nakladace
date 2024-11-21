@@ -232,6 +232,8 @@ ErrorType semantic_analyseWhile(Semantic_Data fun_return,       \
  */
 ErrorType semantic_analyseReturn(Semantic_Data fun_return, AST_ExprNode *node);
 
+ErrorType semantic_analyseCondition(AST_IfNode *if_while_node);
+
 /**
  * @brief Vyhodnotí, zda lze provést přiřazení z typu from do typu to
  * 
