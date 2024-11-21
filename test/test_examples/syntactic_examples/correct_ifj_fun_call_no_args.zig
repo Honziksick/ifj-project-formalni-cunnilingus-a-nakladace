@@ -1,5 +1,8 @@
 const ifj = @import("ifj24.zig");
 pub fn main() void {
-    const x : ?f64 = 0.000005;
-    x = x * x;
+    ifj.foo();
+}
+
+pub fn foo() void {
+    
 }

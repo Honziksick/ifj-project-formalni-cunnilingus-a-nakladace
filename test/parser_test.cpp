@@ -46,7 +46,7 @@ using namespace internal;
 
 // Definice názvu specifického testu, pro který se má provádět tisk
 // Pokud není definováno, tisk se provádí pro všechny testy
-#define SPECIFIC_TEST_NAME "ExampleHello"
+//#define SPECIFIC_TEST_NAME "CorrectIfjDotEtc"
 //#define DISABLE_PRINT
 
 #ifndef DISABLE_PRINT
@@ -356,8 +356,8 @@ TEST(LLParserBasicsCorrect, VarDef){
     fclose(f);
 }
 
-TEST(LLParserBasicsCorrect, FunCallNoParam){
-    string path = synt_path + "correct_fun_call_no_param.zig";
+TEST(LLParserBasicsCorrect, FunCallNoArgs){
+    string path = synt_path + "correct_fun_call_no_args.zig";
     FILE* f = fopen(path.c_str(), "r");
     EXPECT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -678,6 +678,850 @@ TEST(LLParserBasicsCorrect, FunCallCommaLast){
     fclose(f);
 }
 
+TEST(LLParserBasicsCorrect, IFJFunCallNoArgs){
+    string path = synt_path + "correct_ifj_fun_call_no_args.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallIntLit);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+
+TEST(LLParserBasicsCorrect, IFJFunCallIntLit){
+    string path = synt_path + "correct_ifj_fun_call_int_lit.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallIntLit);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+
+TEST(LLParserBasicsCorrect, IFJFunCallFloatLit){
+    string path = synt_path + "correct_ifj_fun_call_float_lit.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallFloatLit);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, IFJFunCallStringLit){
+    string path = synt_path + "correct_ifj_fun_call_string_lit.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallStringLit);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, IFJFunCallVar){
+    string path = synt_path + "correct_ifj_fun_call_var.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallVar);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, IFJFunCallTwoArgs){
+    string path = synt_path + "correct_ifj_fun_call_two_args.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallTwoArgs);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, IFJFunCallManyArgs){
+    string path = synt_path + "correct_ifj_fun_call_many_args.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallManyArgs);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, IFJFunCallCommaLast){
+    string path = synt_path + "correct_ifj_fun_call_comma_last.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallCommaLast);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+
+TEST(LLParserBasicsCorrect, IfjDotEtc){
+    string path = synt_path + "X_correct_ifj_dot_etc.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectIfjDotEtc);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, AddOperatorsMinus){
+    string path = synt_path + "X_correct_add_operators_minus.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectAddOperatorsMinus);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, AddOperatorsPlus){
+    string path = synt_path + "X_correct_add_operators_plus.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectAddOperatorsPlus);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, MultiOperatorsAsterisk){
+    string path = synt_path + "X_correct_multi_operators_asterisk.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectMultiOperatorsAsterisk);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, MultiOperatorsSlash){
+    string path = synt_path + "X_correct_multi_operators_slash.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectMultiOperatorsSlash);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, RelOperatorsEE){
+    string path = synt_path + "X_correct_rel_operators_EE.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsEE);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, RelOperatorsG){
+    string path = synt_path + "X_correct_rel_operators_G.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsG);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, RelOperatorsGE){
+    string path = synt_path + "X_correct_rel_operators_GE.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsGE);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, RelOperatorsL){
+    string path = synt_path + "X_correct_rel_operators_L.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsL);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, RelOperatorsLE){
+    string path = synt_path + "X_correct_rel_operators_LE.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsLE);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, RelOperatorsNE){
+    string path = synt_path + "X_correct_rel_operators_NE.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsNE);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, DataTypes){
+    string path = synt_path + "X_correct_data_types.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectDataTypes);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+
+TEST(LLParserBasicsCorrect, IfNullCondition){
+    string path = synt_path + "correct_if_null_condition.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectIfNullCondition);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, ThrowAway){
+    string path = synt_path + "X_correct_throw_away.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectThrowAway);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, FunReturn){
+    string path = synt_path + "X_correct_fun_return.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectFunReturn);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, IfElse){
+    string path = synt_path + "X_correct_if_else.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectIfElse);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, While){
+    string path = synt_path + "X_correct_while.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectWhile);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, WhileNullCondition){
+    string path = synt_path + "X_correct_while_null_condition.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectWhileNullCondition);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserExamples, Example1){
+    string path = exam_path + "example1.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(Example1);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserExamples, Example2){
+    string path = exam_path + "example2.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(Example2);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserExamples, Example3){
+    string path = exam_path + "example3.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(Example3);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserExamples, Fun){
+    string path = exam_path + "fun.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(Fun);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
 TEST(LLParserExamples, Hello){
     string path = exam_path + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -695,7 +1539,7 @@ TEST(LLParserExamples, Hello){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(ExampleHello);
+    PRINT_TREE_AND_FRAMESTACK(Hello);
 
     // Uvolnění alokovaných zdrojů
     frameStack_destroyAll();
@@ -705,4 +1549,33 @@ TEST(LLParserExamples, Hello){
     stdin = stdin_backup;
     fclose(f);
 }
+
+TEST(LLParserExamples, Multiline){
+    string path = exam_path + "multiline.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    EXPECT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(Multiline);
+
+    // Uvolnění alokovaných zdrojů
+    frameStack_destroyAll();
+    AST_destroyTree();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
 /*** Konec souboru parser_test.cpp ***/
