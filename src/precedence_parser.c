@@ -78,7 +78,8 @@ const struct ReductionRuleSet reductionRuleSet[NUM_OF_REDUCTION_RULES] = {
  * @param fromNonTerminal Neterminál předávající řízení precedenčnímu syntaktickému analyzátoru.
  */
 AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
-    if(fromNonTerminal == NT_ARGUMENTS && currentToken.LLterminal == T_RIGHT_BRACKET) {
+    if((fromNonTerminal == NT_ARGUMENTS && currentToken.LLterminal == T_RIGHT_BRACKET) ||
+       (fromNonTerminal == NT_STATEMENT && currentToken.LLterminal == T_SEMICOLON)) {
         return NULL;
     }
 

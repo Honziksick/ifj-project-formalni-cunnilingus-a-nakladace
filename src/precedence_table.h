@@ -108,11 +108,11 @@ typedef enum Precedence {
 typedef enum CallPrecNonTerminals {
     CALL_PREC_NT_UNDEFINED      = -1,       /**< Aktuální "follow" neterminál je zatím neznámý. */
     CALL_PREC_NT_VAR_DEF        = 0,        /**< Neterminál pro definici proměnné */
-    CALL_PREC_NT_STATEMENT_REST = 1,        /**< Neterminál pro zbytek příkazu */
-    CALL_PREC_NT_THROW_AWAY     = 2,        /**< Neterminál pro zahození návratové hodnoty */
-    CALL_PREC_NT_IF             = 3,        /**< Neterminál pro podmínku if */
-    CALL_PREC_NT_WHILE          = 4,        /**< Neterminál pro cyklus while */
-    CALL_PREC_NT_RETURN_REST    = 5,        /**< Neterminál pro zbytek příkazu návratu */
+    CALL_PREC_NT_STATEMENT      = 1,        /**< Neterminál pro příkaz (resp. return) */
+    CALL_PREC_NT_STATEMENT_REST = 2,        /**< Neterminál pro zbytek příkazu */
+    CALL_PREC_NT_THROW_AWAY     = 3,        /**< Neterminál pro zahození návratové hodnoty */
+    CALL_PREC_NT_IF             = 4,        /**< Neterminál pro podmínku if */
+    CALL_PREC_NT_WHILE          = 5,        /**< Neterminál pro cyklus while */
     CALL_PREC_NT_ARGUMENTS      = 6,        /**< Neterminál pro argumenty funkce */
 } CallPrecNonTerminals;
 

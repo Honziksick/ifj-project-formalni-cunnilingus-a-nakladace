@@ -45,7 +45,7 @@
  ******************************************************************************/
 
 #define LL_TERMINAL_COUNT 31       /**<  Celkový počet terminálů v LL gramatice. */
-#define LL_NON_TERMINAL_COUNT 24   /**<  Celkový počet neterminálů v LL gramatice. */
+#define LL_NON_TERMINAL_COUNT 22   /**<  Celkový počet neterminálů v LL gramatice. */
 
 
 /*******************************************************************************
@@ -126,9 +126,7 @@ typedef enum LLNonTerminals {
     NT_NULL_COND       = 18,    /**<  Neterminál pro podmínku null  */
     NT_SEQUENCE        = 19,    /**<  Neterminál pro sekvenci příkazů (blok)  */
     NT_WHILE           = 20,    /**<  Neterminál pro cyklus while  */
-    NT_RETURN          = 21,    /**<  Neterminál pro příkaz návratu  */
-    NT_RETURN_REST     = 22,    /**<  Neterminál pro zbytek příkazu návratu  */
-    NT_ARGUMENTS       = 23,    /**<  Neterminál pro argumenty  */
+    NT_ARGUMENTS       = 21,    /**<  Neterminál pro argumenty  */
 } LLNonTerminals;
 
 /**
@@ -167,7 +165,7 @@ typedef enum LLRuleSet {
     STATEMENT_3       = 23,     /**<  <STATEMENT> -> _ = <THROW_AWAY> ;                                 */
     STATEMENT_4       = 24,     /**<  <STATEMENT> -> <IF>                                               */
     STATEMENT_5       = 25,     /**<  <STATEMENT> -> <WHILE>                                            */
-    STATEMENT_6       = 26,     /**<  <STATEMENT> -> <RETURN> ;                                         */
+    STATEMENT_6       = 26,     /**<  <STATEMENT> -> return [precedence_expr] ;                         */
     STATEMENT_7       = 27,     /**<  <STATEMENT> -> ifj . id ( <ARGUMENTS> ) ;                         */
     VAR_DEF           = 28,     /**<  <VAR_DEF> -> <MODIFIABLE> id <POSSIBLE_TYPE> = [precedence_expr]  */
     MODIFIABLE_1      = 29,     /**<  <MODIFIABLE> -> var                                               */
@@ -182,10 +180,7 @@ typedef enum LLRuleSet {
     NULL_COND_2       = 38,     /**<  <NULL_COND> -> ε                                                  */
     SEQUENCE          = 39,     /**<  <SEQUENCE> -> { <STATEMENT_LIST> }                                */
     WHILE             = 40,     /**<  <WHILE> -> while ( [precedence_expr] ) <NULL_COND> <SEQUENCE>     */
-    RETURN            = 41,     /**<  <RETURN> -> return <RETURN_REST>                                  */
-    RETURN_REST_1     = 42,     /**<  <RETURN_REST> -> [precedence_expr]                                */
-    RETURN_REST_2     = 43,     /**<  <RETURN_REST> -> ε                                                */
-    ARGUMENTS         = 44,     /**<  <ARGUMENTS> -> [precedence_expr]                                  */
+    ARGUMENTS         = 41,     /**<  <ARGUMENTS> -> [precedence_expr]                                  */
 } LLRuleSet;
 
 
