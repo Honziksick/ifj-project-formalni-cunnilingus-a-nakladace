@@ -46,7 +46,7 @@ using namespace internal;
 
 // Definice názvu specifického testu, pro který se má provádět tisk
 // Pokud není definováno, tisk se provádí pro všechny testy
-#define SPECIFIC_TEST_NAME "CorrectThrowAway"
+#define SPECIFIC_TEST_NAME "Example1"
 //#define DISABLE_PRINT
 
 #ifndef DISABLE_PRINT

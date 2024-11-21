@@ -1462,7 +1462,7 @@ AST_StatementNode *LLparser_parseStatementRest(DString *identifier) {
             }
 
             // Inicializujeme uzel pro proměnnou
-            AST_initNewVarNode(varNode, AST_VAR_NODE, identifier, frameStack.currentID, AST_LITERAL_NOT_DEFINED, AST_VAL_UNDEFINED);
+            AST_initNewVarNode(varNode, AST_VAR_NODE, identifier, frameStack_getId(identifier), AST_LITERAL_NOT_DEFINED, AST_VAL_UNDEFINED);
 
             // Vytvoříme uzel operaci přiřazení
             AST_BinOpNode *assignOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
