@@ -72,6 +72,7 @@ typedef enum TAC_Operation {\
     TAC_OP_CALL,           /**< Volání funkce */
     TAC_OP_PARAM,          /**< Parametr pro volání funkce */
     TAC_OP_CONCAT,         /**< Konkatenace */
+    TAC_OP_OR,             /**< Logický OR */
     TAC_OP_LABEL           /**< Označení místa (label) ve kódu */
 } TAC_Operation;
 
@@ -245,16 +246,6 @@ bool TAC_generateFunctionDefinitionBegin(AST_FunDefNode *funDefNode, TAC_Instruc
  ******************************************************************************/
 
 /**
- * @brief Generuje tříadresný kód pro instrukce uvnitř definované funkce.
- *
- * @param funDefNode Ukazatel na uzel definice funkce.
- * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
- *
- * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
- */
-bool TAC_generateFunctionDefinitionMiddle(AST_FunDefNode *funDefNode, TAC_InstructionList *tacList);
-
-/**
  * @brief Generuje tříadresný kód pro konec definice funkce.
  *
  * @param funDefNode Ukazatel na uzel definice funkce.
@@ -324,7 +315,7 @@ bool TAC_generateWhileLoop(AST_WhileNode *whileNode, TAC_InstructionList *tacLis
  *
  * @return TAC_Operand Výstupní operand reprezentující výsledek výrazu.
  */
-bool TAC_generateExpression(AST_BinOpNode *binOp, AST_VarNode *varNode, TAC_InstructionList *tacList);
+bool TAC_generateExpression(AST_BinOpNode *binOp, AST_ExprNode *exprNode, TAC_InstructionList *tacList);
 
 /**
  * @brief Generuje tříadresný kód pro binární operaci.
@@ -335,7 +326,7 @@ bool TAC_generateExpression(AST_BinOpNode *binOp, AST_VarNode *varNode, TAC_Inst
  *
  * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
  */
-bool TAC_generateBinOp(AST_BinOpNode *binOp, AST_VarNode *varNode, TAC_InstructionList *tacList);
+bool TAC_generateBinOp(AST_BinOpNode *binOp, TAC_InstructionList *tacList);
 
 /**
  * @brief Generuje tříadresný kód pro návratový příkaz.
