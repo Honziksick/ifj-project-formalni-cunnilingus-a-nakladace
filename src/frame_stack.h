@@ -220,6 +220,18 @@ frame_stack_result frameStack_addItemExpress(DString *key,
                     symtable_symbolState state, bool constant, void* data, SymtableItem **out_item);
 
 /**
+ * @brief Vrátí ID rámce, ve kterém je položka s daným klíčem.
+ * 
+ * @details Volá symtable_findItem na rámce od vrcholu dolů dokud nenajde položku.
+ * 
+ * @param [in] key Klíč položky
+ * 
+ * @return ID rámce, ve kterém je položka s daným klíčem
+ *         nebo 0 pokud se položku nepodařilo najít.
+ */
+size_t frameStack_getId(DString *key);
+
+/**
  * @brief Uvolní všechny rámce v zásobníku a uvede zásobník do počátečního stavu.
  *
  * @details Tato funkce uvolní všechny rámce uložené v zásobníku, včetně
