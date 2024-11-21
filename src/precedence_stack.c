@@ -225,8 +225,8 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
             // Vytvoření a konkrétní inicializace uzlu pro proměnnou
             AST_VarNode *pushNode = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
             AST_initNewVarNode(pushNode, AST_VAR_NODE, currentToken.value,
-                            frameStack.currentID, AST_LITERAL_NOT_DEFINED,
-                            AST_VAL_UNDEFINED);
+                               frameStack.currentID, AST_LITERAL_NOT_DEFINED,
+                               AST_VAL_UNDEFINED);
 
             // Pushnutí uzlu na zásobník
             PrecStack_pushPrecTerminal(inTerminal, AST_VAR_NODE, pushNode);

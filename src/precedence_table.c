@@ -73,7 +73,7 @@ const struct PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT] = {
  * precedenčním parserem. Je aktualizována při zahájení precedenční syntaktické
  * analýzy a deinicializována při vrácení řízení zpět do LL parseru.
  */
-PrecDollars currentDollar = { NT_UNDEFINED, CURRENT_DOLLAR_UNDEFINED };
+DollarTerminals currentDollar = CURRENT_DOLLAR_UNDEFINED;
 
 
 /*******************************************************************************
@@ -135,25 +135,22 @@ void PrecTable_getFollowSet(LLNonTerminals fromNonTerminal) {
         case NT_STATEMENT_REST:
         case NT_THROW_AWAY:
         case NT_RETURN_REST:
-            currentDollar.followSet = DOLLAR_T_SEMICOLON;
+            currentDollar = DOLLAR_T_SEMICOLON;
             break;
 
         case NT_IF:
         case NT_WHILE:
-            currentDollar.followSet = DOLLAR_T_RIGHT_BRACKET;
+            currentDollar = DOLLAR_T_RIGHT_BRACKET;
             break;
 
         case NT_ARGUMENTS:
-            currentDollar.followSet = DOLLAR_T_COMMA;
+            currentDollar = DOLLAR_T_COMMA;
             break;
 
         default:
-            currentDollar.followSet = CURRENT_DOLLAR_UNDEFINED;
+            currentDollar = CURRENT_DOLLAR_UNDEFINED;
             break;
     }
-
-    // Uložíme neterminál, ze kterého jmen do precedenčního parseru vstoupili
-    currentDollar.fromNonTerminal = fromNonTerminal;
 } // PrecTable_getFollowSet()
 
 /*** Konec souboru precedence_table.c ***/

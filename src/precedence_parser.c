@@ -115,7 +115,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
             bracketDepth--;
 
             // Ukončení parsování, pokud je závorka ve Follow množině a úroveň zanoření je 0
-            if (bracketDepth == 0 && currentDollar.followSet ==  DOLLAR_T_RIGHT_BRACKET) {
+            if (bracketDepth == 0 && currentDollar ==  DOLLAR_T_RIGHT_BRACKET) {
                 break;
             }
         }
@@ -508,9 +508,8 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
             // Pokud nalezena byla, označíme ji jako použitou
             foundItem->used = true;
 
-            if(currentDollar.fromNonTerminal == NT_ARGUMENTS) {
-                variable->frameID = frameStack_getId(variable->identifier);
-            }
+            // Nastavíme správné ID
+            variable->frameID = frameStack_getId(variable->identifier);
 
             // Nyní můžeme inicializovat uzel pro výraz
             AST_initNewExprNode(exprNode, AST_EXPR_VARIABLE, stackNode->node);
@@ -690,9 +689,9 @@ void PrecParser_mapToDollar(int bracketDepth, PrecTerminals *terminal) {
     switch(currentToken.PrecTerminal) {
         // Mapování: T_PREC_RIGHT_BRACKET -> T_PREC_RIGHT_BRACKET nebo T_PREC_DOLLAR
         case T_PREC_RIGHT_BRACKET:
-            if (currentDollar.followSet ==  DOLLAR_T_RIGHT_BRACKET && bracketDepth == 0) {
+            if (currentDollar ==  DOLLAR_T_RIGHT_BRACKET && bracketDepth == 0) {
                 *terminal = T_PREC_DOLLAR;
-            } else if (currentDollar.followSet ==  DOLLAR_T_COMMA && bracketDepth == 0) {
+            } else if (currentDollar ==  DOLLAR_T_COMMA && bracketDepth == 0) {
                 *terminal = T_PREC_DOLLAR;
             }
             else {
@@ -702,7 +701,7 @@ void PrecParser_mapToDollar(int bracketDepth, PrecTerminals *terminal) {
 
         // Mapování: T_PREC_COMMA -> T_PREC_COMMA nebo T_PREC_DOLLAR
         case T_PREC_COMMA:
-            if (currentDollar.followSet ==  DOLLAR_T_COMMA && bracketDepth == 0) {
+            if (currentDollar ==  DOLLAR_T_COMMA && bracketDepth == 0) {
                 *terminal = T_PREC_DOLLAR;
             }
             else {
