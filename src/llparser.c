@@ -921,28 +921,84 @@ AST_StatementNode *LLparser_parseStatement() {
                 return PARSING_SYNTAX_ERROR;
             }
 
+            // Vytvoříme uzel pro proměnnou
+            AST_VarNode *dumpVar = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
+            if(dumpVar == NULL) {
+                error_handle(ERROR_INTERNAL);
+            }
+
+            // Vytvoříme identifikátor pro pseudoproměnnou "_"
+            DString *underscore = string_charToDString("_");
+
+            // Inicializujeme uzel pro proměnnou
+            AST_initNewVarNode(dumpVar, AST_VAR_NODE, underscore, frameStack.currentID, AST_LITERAL_NOT_DEFINED, NULL);
+
             // Žádáme o další token
             Parser_getNextToken(LL_PARSER);
 
             // Parsujeme "="
             if (currentToken.LLterminal != T_ASSIGNMENT) {
+                AST_destroyNode(AST_VAR_NODE, dumpVar);
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                 return PARSING_SYNTAX_ERROR;
             }
+
+            // Vytvoříme uzel výrazu pro cíl přiřazení
+            AST_ExprNode *leftOperand = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+            if(leftOperand == NULL) {
+                AST_destroyNode(AST_VAR_NODE, dumpVar);
+                error_handle(ERROR_INTERNAL);
+            }
+
+            //Inicializujeme uzel pro levý operand
+            AST_initNewExprNode(leftOperand, AST_EXPR_VARIABLE, dumpVar);
 
             // Žádáme o další token
             Parser_getNextToken(LL_PARSER);
 
             // Vytváříme uzel pro výraz a parsujeme <THROW_AWAY>
-            AST_ExprNode *expr = LLparser_parseThrowAway();
-            if(expr == NULL) {
+            AST_ExprNode *rightOperand = LLparser_parseThrowAway();
+            if(rightOperand == NULL) {
+                AST_destroyNode(AST_EXPR_NODE, leftOperand);
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                 return PARSING_SYNTAX_ERROR;
             }
 
+            // Vytvoříme uzel binární operace pro přiřazení "="
+            AST_BinOpNode *assignBinOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+            if(assignBinOpNode == NULL) {
+                AST_destroyNode(AST_EXPR_NODE, leftOperand);
+                AST_destroyNode(AST_EXPR_NODE, rightOperand);
+                error_handle(ERROR_INTERNAL);
+            }
+
+            // Inicializujeme uzel pro operaci přiřazení
+            AST_initNewBinOpNode(assignBinOpNode, AST_OP_ASSIGNMENT, leftOperand, rightOperand);
+
+            // Vložíme uzel pro výraz přířazení
+            AST_ExprNode *assignExprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+            if(assignExprNode == NULL) {
+                AST_destroyNode(AST_BIN_OP_NODE, assignBinOpNode);
+                error_handle(ERROR_INTERNAL);
+            }
+
+            // Inicializujeme uzel pro operaci přiřazení
+            AST_initNewExprNode(assignExprNode, AST_EXPR_BINARY_OP, assignBinOpNode);
+
+            // Vytvoříme uzel příkazu pro definici proměnné
+            AST_StatementNode *dumpStatement = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
+            if(dumpStatement == NULL) {
+                AST_destroyNode(AST_BIN_OP_NODE, assignExprNode);
+                error_handle(ERROR_INTERNAL);
+                return PARSING_SYNTAX_ERROR;
+            }
+
+            // Inicializujeme uzel pro příkaz výrazem s přiřazením
+            AST_initNewStatementNode(dumpStatement, frameStack.currentID, AST_STATEMENT_EXPR, assignExprNode);
+
             // Parsujeme ";"
             if (currentToken.LLterminal != T_SEMICOLON) {
-                AST_destroyNode(AST_EXPR_NODE, expr);
+                AST_destroyNode(AST_STATEMENT_NODE, dumpStatement);
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                 return PARSING_SYNTAX_ERROR;
             }
@@ -950,18 +1006,8 @@ AST_StatementNode *LLparser_parseStatement() {
             // Žádáme o další token
             Parser_getNextToken(LL_PARSER);
 
-            // Vytvoříme uzel pro příkaz a zkontrolujeme úspěšnost alokace
-            AST_StatementNode *statementNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-            if(statementNode == NULL) {
-                Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-                error_handle(ERROR_INTERNAL);
-            }
-
-            // Inicializujeme uzel pro příkaz
-            AST_initNewStatementNode(statementNode, frameStack.currentID, AST_STATEMENT_EXPR, expr);
-
             // Vracíme příkaz pro zahození výsledku
-            return statementNode;
+            return dumpStatement;
         }
 
         // <STATEMENT> -> <IF>
