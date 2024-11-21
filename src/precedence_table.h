@@ -153,7 +153,7 @@ struct PrecedenceTable{
  *          FOLOW množině a pole terminálů, které tvoří FOLOW množinu.
  */
 typedef struct PrecDollars {
-    CallPrecNonTerminals fromNonTerminal;           /**< NEterminál, ze kterého je FOLOW množina určena */
+    LLNonTerminals fromNonTerminal;           /**< NEterminál, ze kterého je FOLOW množina určena */
     DollarTerminals followSet;  /**< Množinina FOLLOW obsahující "dollar" terminály předávající řízení zpět LL parseru */
 } PrecDollars;
 
@@ -175,16 +175,6 @@ typedef struct PrecDollars {
 extern const struct PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT];
 
 /**
- * @brief Pole FOLLOW množin pro všechny NEterminály, ze kterých se dá předat
- *        řízení precedenčnímu syntaktickému analyzátoru.
- *
- * @details Toto pole obsahuje FOLOW množiny pro všechny NEterminály, ze kterýCH
- *          se dá předat řízení precedenčnímu SA, s explicitním počtem symbolů
- *          v každé množině.
- */
-extern const struct PrecDollars followSets[FOLLOW_NON_TERMINALS_COUNT];
-
-/**
  * @brief Globální proměnná pro aktuální množinu dollar neterinálů.
  *
  * @details Tato proměnná uchovává aktuální množinu dollar terminálů, které
@@ -192,7 +182,7 @@ extern const struct PrecDollars followSets[FOLLOW_NON_TERMINALS_COUNT];
  *          @c CURRENT_DOLLAR_UNDEFINED a aktualizována během zahájení
  *          precedenční syntaktické analýzy.
  */
-extern DollarTerminals currentDollar;
+extern PrecDollars currentDollar;
 
 
 /*******************************************************************************

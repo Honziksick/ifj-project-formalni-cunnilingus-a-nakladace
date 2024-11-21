@@ -104,6 +104,7 @@ typedef enum LLTerminals {
  *          hodnotou, která je využívaná v LL tabulce.
  */
 typedef enum LLNonTerminals {
+    NT_UNDEFINED       = -1,    /**<  Neterminál zatím nebyl definován */
     NT_PROGRAM         = 0,     /**<  Neterminál pro program  */
     NT_PROLOGUE        = 1,     /**<  Neterminál pro prolog  */
     NT_FUN_DEF_LIST    = 2,     /**<  Neterminál pro seznam definic funkcí  */

@@ -83,8 +83,8 @@ typedef enum ReductionRule {
     REDUCE_E_LESS_EQUAL_E           = 13,     /**<  E -> E <= E                    */
     REDUCE_E_GREATER_EQUAL_E        = 14,     /**<  E -> E >= E                    */
     REDUCE_E_INTO_BRACKETS          = 15,     /**<  E -> ( E )                     */
-    REDUCE_E_FUN_CALL               = 16,     /**<  E -> id ( <ARG_LIST> )         */
-    REDUCE_E_IFJ_CALL               = 17,     /**<  E -> ifj . id ( <ARG_LIST> )   */
+    REDUCE_E_FUN_CALL               = 16,     /**<  E -> id <ARG_LIST>             */
+    REDUCE_E_IFJ_CALL               = 17,     /**<  E -> ifj . id <ARG_LIST>       */
 } ReductionRule;
 
 
@@ -248,46 +248,6 @@ void PrecParser_reduceFunCall();
  *          a poté pushne nový neterminál (výraz) E na zásobník s vytvořeným AST uzlem.
  */
 void PrecParser_reduceIfjFunCall();
-
-/**
- * @brief Redukce pro argumenty <ARG_LIST> -> E <ARG>.
- *
- * @details Tato funkce provádí redukci pro argumenty <ARG_LIST> -> E <ARG>.
- *          Popne uzel pro seznam argumentů ze zásobníku a poté pushne nový
- *          neterminál <ARGUMENTS> na zásobník s uzlem argumentů.
- */
-void PrecParser_reduceArgListExprArg();
-
-/**
- * @brief Redukce pro seznam argumentů <ARG_LIST> -> ε.
- *
- * @details Tato funkce provádí redukci pro seznam argumentů <ARG_LIST> -> ε.
- *          Popne uzly pro argument a výraz ze zásobníku, vytvoří nový uzel pro
- *          argument, a poté pushne nový neterminál <ARG_LIST> na zásobník
- *          s uzlem argumentů.
- */
-void PrecParser_reduceArgListEpsilon();
-
-/**
- * @brief Redukce pro argument <ARG> -> , E <ARG>.
- *
- * @details Tato funkce provádí redukci pro argument <ARG> -> , E <ARG>.
- *          Popne uzly pro argument, výraz a čárku ze zásobníku, vytvoří nový
- *          uzel pro argument, a poté pushne nový neterminál <ARG> na zásobník
- *          s uzlem argumentů.
- */
-void PrecParser_reduceArgCommaExprArg();
-
-/**
- * @brief Redukce pro argument <ARG> -> ,
- */
-void PrecParser_reduceArgComma();
-
-/**
- * @brief Redukce pro argument <ARG> -> ε
- */
-void PrecParser_reduceArgEpsilon();
-
 
 /*******************************************************************************
  *                                                                             *
