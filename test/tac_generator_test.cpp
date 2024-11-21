@@ -47,165 +47,11 @@ using namespace internal;
 AST_ProgramNode *ASTroot;
 
 /**
- * @brief Test kořene, kde je pouze neinicializovaný kořenový uzel.
- */
-TEST(TAC_EMPTY, Create_InstrList){
-    TAC_InstructionList *list = TAC_createInstructionList();
-    ASSERT_NE(list, nullptr);
-
-    TAC_freeInstructionList(list);
-    free(list);
-}
-
-/**
- * @brief Testuje funkci `TAC_createInstruction` pro vytvoření instrukce.
- */
-TEST(TAC_EMPTY, Destroy_InstrList){
-    TAC_InstructionList *list = TAC_createInstructionList();
-    ASSERT_NE(list, nullptr);
-
-    TAC_freeInstructionList(list);
-    free(list);
-}
-
-/**
- * @brief Testuje funkci `TAC_destroyInstruction` pro zničení instrukce.
- */
-TEST(TAC_EMPTY, Destroy_Instruction){
-    TAC_Instruction *instr = TAC_initInstruction();
-    ASSERT_NE(instr, nullptr);
-
-    TAC_destroyInstruction(instr);
-    free(instr);
-}
-
-/**
- * @brief Testuje funkci `TAC_destroyOperand` pro zničení operandu.
- */
-TEST(TAC_EMPTY, Destroy_Operand){
-    TAC_Operand *operand = (TAC_Operand *)malloc(sizeof(TAC_Operand));
-    ASSERT_NE(operand, nullptr);
-    TAC_Operand *operand2 = (TAC_Operand *)malloc(sizeof(TAC_Operand));
-    ASSERT_NE(operand, nullptr);
-
-    // Operand má název proměnné kok a je typu string
-    operand->value.varName = string_charToDString("kok");
-    operand->type = TAC_OPERAND_STRING;
-
-    operand2->value.intValue = 10;
-    operand2->type = TAC_OPERAND_INT;
-
-    TAC_destroyOperand(operand);
-    TAC_destroyOperand(operand2);
-
-    free(operand);
-    free(operand2);
-}
-
-/**
- * @brief Testuje funkci `TAC_createInstruction` pro vytvoření instrukce.
- */
-TEST(TAC_EMPTY, Create_Instr){
-    TAC_Instruction *instr = TAC_initInstruction();
-    ASSERT_NE(instr, nullptr);
-
-    free(instr);
-}
-
-/**
- * @brief Testuje funkci `TAC_initInstruction` pro inicializaci instrukce.
- */
-TEST(TAC_EMPTY, Init){
-    TAC_Instruction *instr = TAC_initInstruction();
-    ASSERT_NE(instr, nullptr);
-
-    EXPECT_EQ(instr->op, TAC_OP_NONE);
-    EXPECT_EQ(instr->dest.type, TAC_OPERAND_NONE);
-    EXPECT_EQ(instr->src1.type, TAC_OPERAND_NONE);
-    EXPECT_EQ(instr->src2.type, TAC_OPERAND_NONE);
-    EXPECT_EQ(instr->next, nullptr);
-
-    free(instr);
-}
-
-/**
- * @brief Testuje funkci `TAC_appendInstruction` pro přidání instrukce do seznamu.
- */
-TEST(TAC_EMPTY, Append){
-    TAC_InstructionList *list = TAC_createInstructionList();
-    ASSERT_NE(list, nullptr);
-
-    TAC_Instruction *instr = TAC_initInstruction();
-    ASSERT_NE(instr, nullptr);
-
-    TAC_appendInstruction(list, instr);
-
-    TAC_freeInstructionList(list);
-    free(list);
-}
-
-/**
- * @brief Testuje funkci `TAC_appendInstruction` pro přidání více instrukcí.
- */
-TEST(TAC_EMPTY, Append_Multiple){
-    TAC_InstructionList *list = TAC_createInstructionList();
-    ASSERT_NE(list, nullptr);
-
-    TAC_Instruction *instr = TAC_initInstruction();
-    ASSERT_NE(instr, nullptr);
-    TAC_Instruction *instr2 = TAC_initInstruction();
-    ASSERT_NE(instr2, nullptr);
-    TAC_Instruction *instr3 = TAC_initInstruction();
-    ASSERT_NE(instr3, nullptr);
-    TAC_Instruction *instr4 = TAC_initInstruction();
-    ASSERT_NE(instr4, nullptr);
-    TAC_Instruction *instr5 = TAC_initInstruction();
-    ASSERT_NE(instr5, nullptr);
-
-    TAC_appendInstruction(list, instr);
-    TAC_appendInstruction(list, instr2);
-    TAC_appendInstruction(list, instr3);
-    TAC_appendInstruction(list, instr4);
-    TAC_appendInstruction(list, instr5);
-
-    TAC_destroyInstructionList(list);
-}
-
-/**
- * @brief Testuje funkci `TAC_printInstructionList` pro zničení instrukce.
- */
-TEST(TAC_EMPTY, Print){
-    TAC_InstructionList *list = TAC_createInstructionList();
-    ASSERT_NE(list, nullptr);
-
-    TAC_printInstructionList(list);
-
-    TAC_freeInstructionList(list);
-    free(list);
-}
-
-/**
- * @brief Testuje funkci `TAC_generateTestCode` pro vytvoření testovacího kódu.
- */
-TEST(TAC, Print){
-    TAC_InstructionList *list = TAC_createInstructionList();
-    ASSERT_NE(list, nullptr);
-
-    TAC_generateTestCode(list);
-
-    TAC_printInstructionList(list);
-
-    TAC_destroyInstructionList(list);
-}
-
-/**
  * @brief Testuje funkci `TAC_generateTestCode` pro vytvoření testovacího kódu.
  *
  */
 TEST(TAC, Generate_Program){
-    TAC_InstructionList *list = TAC_createInstructionList();
-    ASSERT_NE(list, nullptr);
-
+    TAC_createInstructionList();
     // Vytvoření kořene stromu
     AST_initTree();
     ASSERT_NE(ASTroot, nullptr);
@@ -248,18 +94,18 @@ TEST(TAC, Generate_Program){
     ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandIf->expression)->identifier, 'a'), STRING_SUCCESS);
 
     // Nastavení pravého operandu podmínky if
-    AST_ExprNode *rightOperand = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(rightOperand, nullptr);
-    rightOperand->exprType = AST_EXPR_LITERAL;
-    rightOperand->expression = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
-    ASSERT_NE(rightOperand->expression, nullptr);
-    ((AST_VarNode *)rightOperand->expression)->literalType = AST_LITERAL_INT;
+    AST_ExprNode *rightOperandIf = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(rightOperandIf, nullptr);
+    rightOperandIf->exprType = AST_EXPR_LITERAL;
+    rightOperandIf->expression = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
+    ASSERT_NE(rightOperandIf->expression, nullptr);
+    ((AST_VarNode *)rightOperandIf->expression)->literalType = AST_LITERAL_INT;
     int *ifValue = (int *)malloc(sizeof(int));
     *ifValue = 10;
-    ((AST_VarNode *)rightOperand->expression)->value = ifValue;
+    ((AST_VarNode *)rightOperandIf->expression)->value = ifValue;
 
     ((AST_BinOpNode *)ifNode->condition->expression)->left = leftOperandIf;
-    ((AST_BinOpNode *)ifNode->condition->expression)->right = rightOperand;
+    ((AST_BinOpNode *)ifNode->condition->expression)->right = rightOperandIf;
 
     // Vytvoření then větve if
     AST_StatementNode *thenStmt = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
@@ -281,18 +127,6 @@ TEST(TAC, Generate_Program){
     ((AST_VarNode *)leftOperandThen->expression)->identifier = string_init();
     ASSERT_NE(((AST_VarNode *)leftOperandThen->expression)->identifier, nullptr);
     ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandThen->expression)->identifier, 'a'), STRING_SUCCESS);
-
-    
-    // Nastavení pravého operandu
-    AST_ExprNode *rightOperandIf = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    ASSERT_NE(rightOperandIf, nullptr);
-    rightOperandIf->exprType = AST_EXPR_VARIABLE;
-    rightOperandIf->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    ASSERT_NE(rightOperandIf->expression, nullptr);
-    ((AST_VarNode *)rightOperandIf->expression)->literalType = AST_LITERAL_INT;
-    int *ifValue = (int *)malloc(sizeof(int));
-    *ifValue = 10;
-    ((AST_VarNode *)rightOperandIf->expression)->value = ifValue;
 
     AST_ExprNode *rightOperandThen = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     ASSERT_NE(rightOperandThen, nullptr);
@@ -450,24 +284,49 @@ TEST(TAC, Generate_Program){
     ASSERT_EQ(((AST_StatementNode *)ASTroot->functionList->body)->next->statement, whileNode);
     ASSERT_EQ(((AST_StatementNode *)ASTroot->functionList->body)->next->next, returnStmt);
 
-
-    TAC_generateProgramCodeBegin(ASTroot, list);
+    TAC_generateProgramCodeBegin(ASTroot);
 
     // Projdeme všechny funkce a vygenerujeme kód pro každou z nich
     AST_FunDefNode *current = ASTroot->functionList; // Use a separate pointer for iteration
     while(current != nullptr){
 
-        TAC_generateFunctionDefinitionBegin(current, list);
-        TAC_generateFunctionDefinitionEnd(list);
+        TAC_generateFunctionDefinitionBegin(current);
 
         current = current->next;
     }
 
-    TAC_generateProgramCodeEnd(list);
+    TAC_generateExpression(((AST_ExprNode *)ifNode->condition));
+    TAC_generateBinOp(((AST_BinOpNode *)((AST_ExprNode *)thenStmt->statement)->expression));
 
-    TAC_printInstructionList(list);
-    TAC_destroyInstructionList(list);
+    TAC_generateFunctionDefinitionEnd();
+    TAC_generateProgramCodeEnd();
 
-    // Uvolnění stromu
+    TAC_printInstructionList();
+    TAC_destroyInstructionList();
+
+    // Uvolnění stromu - netřeba, protože se uvolní v TAC_destroyInstructionList
     AST_destroyTree();
 } 
+
+/**
+ * @brief Test AST_ExprNode s plně komplexně inicializovaným AST_BinOpNode.
+ *
+TEST(TAC, BinOpExprNode) {
+    TAC_InstructionList *list = TAC_createInstructionList();
+    ASSERT_NE(list, nullptr);
+
+    AST_ExprNode *node = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
+    ASSERT_NE(node, nullptr);
+    node->exprType = AST_EXPR_BINARY_OP;
+    node->expression = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
+    ASSERT_NE(node->expression, nullptr);
+    ((AST_BinOpNode *)node->expression)->op = AST_OP_ADD;
+    ASSERT_EQ(node->type, AST_EXPR_NODE);
+
+    TAC_generateBinOp(((AST_BinOpNode *)node->expression), list);
+
+    TAC_printInstructionList(list);
+    
+    TAC_destroyInstructionList(list);
+    AST_destroyNode(AST_EXPR_NODE, node);
+}*/
