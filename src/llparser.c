@@ -57,6 +57,7 @@ AST_ProgramNode *LLparser_parseProgram() {
     // Pokud nebylo pravidlo nalazene, nastala syntaktická chyba
     if(!LLtable_findRule(currentToken.LLterminal, NT_PROGRAM, &rule)) {
         AST_destroyTree();
+        PrecStackList_destroy();
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
     }
@@ -68,6 +69,7 @@ AST_ProgramNode *LLparser_parseProgram() {
         ASTroot->importedFile = LLparser_parsePrologue();
         if(ASTroot->importedFile == NULL) {
             AST_destroyTree();
+            PrecStackList_destroy();
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
             return PARSING_SYNTAX_ERROR;
         }
@@ -81,6 +83,7 @@ AST_ProgramNode *LLparser_parseProgram() {
         // Jelikož <FUN_DEF_LIST> může být rozvinutou na ε, musíme kromě NULL zkontrolovat error flag
         if(funDefNode == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
             AST_destroyTree();
+            PrecStackList_destroy();
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
             return PARSING_SYNTAX_ERROR;
         }
@@ -89,6 +92,7 @@ AST_ProgramNode *LLparser_parseProgram() {
         // Parsujeme `EOF`
         if(currentToken.LLterminal != T_EOF) {
             AST_destroyTree();
+            PrecStackList_destroy();
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
             return PARSING_SYNTAX_ERROR;
         }
@@ -96,6 +100,7 @@ AST_ProgramNode *LLparser_parseProgram() {
     // Pokud již dříve nebyla hlášena ERROR_SYNTAX, tak je tato větev ERROR_INTERNAL
     else {
         AST_destroyTree();
+        PrecStackList_destroy();
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
     }
@@ -119,6 +124,10 @@ AST_VarNode *LLparser_parsePrologue() {
 
     // Parsujeme "ifj"
     if(currentToken.LLterminal != T_IFJ) {
+        if(currentToken.value != NULL) {
+            string_free(currentToken.value);
+            currentToken.value = NULL;
+        }
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
     }
