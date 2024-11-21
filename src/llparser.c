@@ -204,7 +204,7 @@ AST_VarNode *LLparser_parsePrologue() {
     }
 
     // Inicializujeme tento uzel
-    AST_initNewVarNode(importedFile, AST_VAR_NODE, importVar, frameStack.currentID, AST_LITERAL_STRING, path);
+    AST_initNewVarNode(importedFile, AST_VAR_NODE, importVar, frameStack.top->frameID, AST_LITERAL_STRING, path);
 
     // Žádáme o další token
     Parser_getNextToken(LL_PARSER);
@@ -614,14 +614,14 @@ AST_ArgOrParamNode *LLparser_parseParam() {
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
     }
-    AST_initNewVarNode(varNode, AST_VAR_NODE, paramId, frameStack.currentID, AST_LITERAL_NOT_DEFINED, AST_VAL_UNDEFINED);
+    AST_initNewVarNode(varNode, AST_VAR_NODE, paramId, frameStack.top->frameID, AST_LITERAL_NOT_DEFINED, AST_VAL_UNDEFINED);
 
     // Mapujeme AST datový typ na Symtable SymbolState
     symtable_symbolState state = SYMTABLE_SYMBOL_UNKNOWN;
     Parser_mapASTDataTypeToSymtableState(dataType, &state);
 
     // Přidáme parametr do tabulky symbolů jako lokální proměnnou
-    frame_stack_result result = frameStack_addItemExpress(paramId, state, false, NULL, NULL);
+    frame_stack_result result = frameStack_addItemExpress(paramId, state, true, NULL, NULL);
     if (result != FRAME_STACK_SUCCESS) {
         string_free(paramId);
         AST_destroyNode(AST_VAR_NODE, varNode);
@@ -931,7 +931,7 @@ AST_StatementNode *LLparser_parseStatement() {
             DString *underscore = string_charToDString("_");
 
             // Inicializujeme uzel pro proměnnou
-            AST_initNewVarNode(dumpVar, AST_VAR_NODE, underscore, frameStack.currentID, AST_LITERAL_NOT_DEFINED, NULL);
+            AST_initNewVarNode(dumpVar, AST_VAR_NODE, underscore, frameStack.top->frameID, AST_LITERAL_NOT_DEFINED, NULL);
 
             // Žádáme o další token
             Parser_getNextToken(LL_PARSER);
@@ -994,7 +994,7 @@ AST_StatementNode *LLparser_parseStatement() {
             }
 
             // Inicializujeme uzel pro příkaz výrazem s přiřazením
-            AST_initNewStatementNode(dumpStatement, frameStack.currentID, AST_STATEMENT_EXPR, assignExprNode);
+            AST_initNewStatementNode(dumpStatement, frameStack.top->frameID, AST_STATEMENT_EXPR, assignExprNode);
 
             // Parsujeme ";"
             if (currentToken.LLterminal != T_SEMICOLON) {
@@ -1030,7 +1030,7 @@ AST_StatementNode *LLparser_parseStatement() {
             }
 
             // Inicializujeme uzel pro příkaz
-            AST_initNewStatementNode(statementNode, frameStack.currentID, AST_STATEMENT_IF, ifNode);
+            AST_initNewStatementNode(statementNode, frameStack.top->frameID, AST_STATEMENT_IF, ifNode);
 
             // Vracíme příkaz obsahující podmíněný příkaz if()
             return statementNode;
@@ -1057,7 +1057,7 @@ AST_StatementNode *LLparser_parseStatement() {
             }
 
             // Inicializujeme uzel pro příkaz
-            AST_initNewStatementNode(statementNode, frameStack.currentID, AST_STATEMENT_WHILE, whileNode);
+            AST_initNewStatementNode(statementNode, frameStack.top->frameID, AST_STATEMENT_WHILE, whileNode);
 
             // Vracíme příkaz obsahující cyklus while()
             return statementNode;
@@ -1098,7 +1098,7 @@ AST_StatementNode *LLparser_parseStatement() {
             }
 
             // Inicializujeme uzel pro příkaz
-            AST_initNewStatementNode(statementNode, frameStack.currentID, AST_STATEMENT_RETURN, returnExpr);
+            AST_initNewStatementNode(statementNode, frameStack.top->frameID, AST_STATEMENT_RETURN, returnExpr);
 
 
             // Vracíme návratový příkaz
@@ -1190,7 +1190,7 @@ AST_StatementNode *LLparser_parseStatement() {
             }
 
             // Inicializujeme uzel pro příkaz
-            AST_initNewStatementNode(statementNode, frameStack.currentID, AST_STATEMENT_FUN_CALL, funCallNode);
+            AST_initNewStatementNode(statementNode, frameStack.top->frameID, AST_STATEMENT_FUN_CALL, funCallNode);
 
             // Vracíme příkaz pro volání vestavěné funkce
             return statementNode;
@@ -1286,7 +1286,7 @@ AST_StatementNode *LLparser_parseVarDef() {
     }
 
     // Inicializujeme uzel pro proměnnou
-    AST_initNewVarNode(varNode, AST_VAR_NODE, varName, frameStack.currentID, AST_LITERAL_NOT_DEFINED, NULL);
+    AST_initNewVarNode(varNode, AST_VAR_NODE, varName, frameStack.top->frameID, AST_LITERAL_NOT_DEFINED, NULL);
 
     // Vytvoříme uzel binární operace pro přiřazení "="
     AST_BinOpNode *assignOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
@@ -1329,7 +1329,7 @@ AST_StatementNode *LLparser_parseVarDef() {
     }
 
     // Inicializujeme uzel pro příkaz výrazem s přiřazením
-    AST_initNewStatementNode(varDefNode, frameStack.currentID, AST_STATEMENT_VAR_DEF, assignExprNode);
+    AST_initNewStatementNode(varDefNode, frameStack.top->frameID, AST_STATEMENT_VAR_DEF, assignExprNode);
 
     // Vracíme uzel příkazu definice proměnné
     return varDefNode;
@@ -1525,7 +1525,7 @@ AST_StatementNode *LLparser_parseStatementRest(DString *identifier) {
             }
 
             // Inicializujeme uzel pro příkaz
-            AST_initNewStatementNode(statementNode, frameStack.currentID, AST_STATEMENT_EXPR, assignExprNode);
+            AST_initNewStatementNode(statementNode, frameStack.top->frameID, AST_STATEMENT_EXPR, assignExprNode);
 
             // Vracíme uzel příkazu
             return statementNode;
@@ -1573,7 +1573,7 @@ AST_StatementNode *LLparser_parseStatementRest(DString *identifier) {
             }
 
             // Inicializujeme uzel pro příkaz voláním funkce
-            AST_initNewStatementNode(statementNode, frameStack.currentID, AST_STATEMENT_FUN_CALL, funCallNode);
+            AST_initNewStatementNode(statementNode, frameStack.top->frameID, AST_STATEMENT_FUN_CALL, funCallNode);
 
             // Vracíme uzel příkazu
             return statementNode;
@@ -1758,7 +1758,7 @@ AST_VarNode *LLparser_parseNullCond() {
             }
 
             // Inicializujeme uzel pro příkaz voláním funkce
-            AST_initNewVarNode(nullCond, AST_VAR_NODE, identifier, frameStack.currentID, AST_LITERAL_NOT_DEFINED, AST_VAL_UNDEFINED);
+            AST_initNewVarNode(nullCond, AST_VAR_NODE, identifier, frameStack.top->frameID, AST_LITERAL_NOT_DEFINED, AST_VAL_UNDEFINED);
 
             // Parsujeme "|"
             if (currentToken.LLterminal != T_PIPE) {
