@@ -209,6 +209,9 @@ ErrorType semantic_probeBlock(Semantic_Data fun_return,      \
     ErrorType result = 0;
     Semantic_Data type;
 
+    AST_ExprNode *expr;     /**< Pouze pro přiřazení */
+    AST_BinOpNode bin_op;   /**< Pouze pro přiřazení */
+
     // Procházíme všechny příkazy těla funkce
     while(statement != NULL) {
         switch(statement->statementType) {
@@ -221,7 +224,18 @@ ErrorType semantic_probeBlock(Semantic_Data fun_return,      \
                 break;
 
             case(AST_STATEMENT_EXPR):
-                // Toto je blbě, statement může být přiřazení, je to v ...
+                // Pokud je přiřazení, tak je ok, jinak je zahození hodnoty
+                expr = (AST_ExprNode*)statement->statement;
+                if(expr->exprType == AST_EXPR_BINARY_OP){
+                    bin_op = *(AST_BinOpNode*)expr->expression;
+                    if(bin_op.op == AST_OP_ASSIGNMENT){
+                        result = semantic_analyseBinOp(expr, &type, NULL);
+                        if(result != 0){
+                            return result;
+                        }
+                        break;
+                    }
+                }
                 result = ERROR_SEM_OTHER;
                 break;
 
@@ -289,6 +303,13 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
             return ERROR_SEM_OTHER;
         }
 
+        AST_VarNode *left_node = bin_node.left->expression;
+        // Pokud je vlevo pseudoproměnná, tak jen zkontrolujeme pravou stranu
+        if(string_compare_const_str(left_node->identifier, "_" ) == STRING_EQUAL){
+            result = semantic_analyseExpr(bin_node.right, type, NULL);
+            return result;
+        }
+
         // Zjitíme typ rhs
         Semantic_Data r_type;
         void *r_value;
@@ -297,8 +318,7 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
             return result;
         }
 
-        // Zjistíme typ proměnné
-        AST_VarNode *left_node = bin_node.left->expression;
+        // Zjistíme typ proměnné vlevo
         SymtablePtr table = frameArray.array[left_node->frameID]->frame;
         SymtableItemPtr item;
         symtable_result sym_res = symtable_findItem(table, left_node->identifier, &item);
@@ -315,6 +335,9 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
 
         result = semantic_compatibleAssign(l_type, r_type);
         if(result != 0) {
+            if(result == ERROR_SEM_PARAMS_OR_RETVAL){
+                return ERROR_SEM_TYPE_COMPATIBILITY;
+            }
             return result;
         }
 
@@ -500,11 +523,16 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
         return result;
     }
 
+    // Vlevo musí být proměnná
+    if(assignNode.left->exprType != AST_EXPR_VARIABLE){
+        return ERROR_INTERNAL;
+    }
+    AST_VarNode *left_node = assignNode.left->expression;
+
     // Zjistíme typ proměnné na levé straně
-    SymtablePtr table = frameArray.array[statement->frameID]->frame;
+    SymtablePtr table = frameArray.array[left_node->frameID]->frame;
     SymtableItemPtr item;
-    AST_ExprNode *left_expr = assignNode.left;
-    DString *identifier = ((AST_VarNode*)left_expr->expression)->identifier;
+    DString *identifier = left_node->identifier;
     symtable_result sym_res = symtable_findItem(table, identifier, &item);
 
     if(sym_res != SYMTABLE_SUCCESS){
@@ -575,11 +603,6 @@ ErrorType semantic_analyseExpr(AST_ExprNode *expr_node, Semantic_Data *type, voi
             node = expr_node->expression;
             // Nastavíme typ výrazu podle typu literálu
             *type = semantic_literalToSemType(node->literalType);
-
-            if(node->value == NULL){
-                // Literál nemá hodnotu, chyba je v implementaci
-                return ERROR_INTERNAL;
-            }
 
             // Předáme ukazatel na hodnotu
             if(value != NULL){
@@ -700,7 +723,7 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
                                                key, &item);
     if(sym_result != SYMTABLE_SUCCESS){
         string_free(key);
-        return ERROR_INTERNAL;
+        return ERROR_SEM_UNDEF;
     }
     SymtableFunctionData *data = (SymtableFunctionData*)item->data;
 

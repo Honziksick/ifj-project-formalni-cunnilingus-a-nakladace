@@ -4,6 +4,6 @@ pub fn main() void {
     const x = foo();
 }
 
-pub fn foo(){
+pub fn foo() void{
     ifj.write("hello");
 }

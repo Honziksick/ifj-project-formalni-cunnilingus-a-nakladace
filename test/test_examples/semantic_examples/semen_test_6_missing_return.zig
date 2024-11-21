@@ -1,5 +1,5 @@
 // Program: Chybejici navratova hodnota
-//ERR4
+//ERR6
 
 const ifj = @import("ifj24.zig");
 pub fn main() void {
