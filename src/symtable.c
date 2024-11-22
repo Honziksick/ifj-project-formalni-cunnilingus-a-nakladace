@@ -278,7 +278,7 @@ void symtable_deleteAll(Symtable *table, bool keep_data) {
                 }
                 // Jinak jen uvolníme data
                 else{
-                    free(item.data);
+                    //free(item.data);
                     item.data = NULL;
                 }
             }

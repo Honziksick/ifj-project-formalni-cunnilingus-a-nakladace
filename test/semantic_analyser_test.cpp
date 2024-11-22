@@ -655,7 +655,7 @@ TEST(Incorrect, Prolog){
     frameStack_init();
 
     // Syntaktická analýza programu
-    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(3), "");
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
 
     // Kořen je inicializován
     EXPECT_EQ(ASTroot, nullptr);
@@ -678,7 +678,7 @@ TEST(Incorrect, Prolog2){
 
 
     // Syntaktická analýza programu
-    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(3), "");
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
 
     // Kořen je inicializován
     EXPECT_EQ(ASTroot, nullptr);
