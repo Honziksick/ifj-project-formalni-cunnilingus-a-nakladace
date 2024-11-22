@@ -660,4 +660,62 @@ bool TAC_generateTestCode(){
     return true;
 }
 
+bool TAC_generateFunCall(AST_FunCallNode *funCallNode, TAC_InstructionList *tacList){
+    TAC_Instruction *instr;
+    // Vytvoříme temporary frame pro parametry funkce
+    instr = TAC_createInstruction(TAC_OP_CREATEFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_appendInstruction(instr);
+
+    // Najdeme definici funkce
+    SymtableItemPtr function;
+    if(symtable_findItem(frameStack.bottom->frame, funCallNode->identifier, &function) != SYMTABLE_SUCCESS){
+        error_handler(ERROR_INTERNAL);
+    }
+    SymtableFunctionData *functionData = function->data;    /**< Definovaná data funkce */
+    
+    AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
+    // Pro všechny parametry
+    for(size_t i = 0; i < functionData->param_count; i++){
+        // Vytvoříme instrukci DEFVAR pro parametr
+        instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = functionData->params[i].id}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+        TAC_appendInstruction(instr);
+        AST_VarNode *var_node = (AST_VarNode*)arg->expression->expression;
+        // Do nově definováné proměnné vložíme hodnotu
+        // Vložíme hodnotu literálu
+        if(var_node->identifier == NULL){
+            TAC_Operand src;
+            switch (var_node->literalType)
+            {
+            case AST_LITERAL_INT:
+                src = (TAC_Operand){.type = TAC_OPERAND_INT, .value.intValue = *(int*)var_node->value};
+                break;
+            case AST_LITERAL_FLOAT:
+                src = (TAC_Operand){.type = TAC_OPERAND_FLOAT, .value.floatValue = *(double*)var_node->value};
+                break;
+            case AST_LITERAL_STRING:
+                src = (TAC_Operand){.type = TAC_OPERAND_STRING, .value.varName = var_node->value};
+                break;
+            case AST_LITERAL_NULL:
+                src = (TAC_Operand){.type = TAC_OPERAND_NIL, .value.intValue = NULL};
+                break;
+            
+            default:
+                error_handle(ERROR_INTERNAL);
+                break;
+            }
+            instr = TAC_createInstruction(TAC_OP_ASSIGN, (TAC_Operand){.value.varName = functionData->params[i].id, .type = TAC_OPERAND_VAR}, src, (TAC_Operand){.type = TAC_OPERAND_NONE});
+        }
+        // Vložíme hodnotu proměnné ve volání funkce
+        else {
+            instr = TAC_createInstruction(TAC_OP_ASSIGN, (TAC_Operand){.value.varName = functionData->params[i].id, .type = TAC_OPERAND_VAR}, (TAC_Operand){.value.varName = var_node->identifier, .type = TAC_OPERAND_VAR}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+
+        }
+        TAC_appendInstruction(instr);
+    }
+    // Přidáme skok na návěští funkce
+    instr = TAC_createInstruction(TAC_OP_JUMP, (TAC_Operand){.value.labelName = funCallNode->identifier, .type = TAC_OP_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_appendInstruction(instr);
+
+}
+
 /*** Konec souboru tac_generator.c ***/
