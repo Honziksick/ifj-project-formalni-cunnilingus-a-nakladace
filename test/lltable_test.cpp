@@ -25,17 +25,11 @@
  *          frameworku Google Test.
  */
 
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-extern "C" {
-#include "lltable.h"
-}
-
-using namespace std;
-using namespace testing;
-using namespace internal;
-
+#include "ifj24_compiler_test_utils.h"
 
 /**
  * @brief Testovací případ pro funkci `LLtable_findRule` a neterminál `<PROGRAM>`.

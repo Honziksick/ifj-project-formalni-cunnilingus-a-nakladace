@@ -26,18 +26,17 @@
  *          struktury AST během testování.
  */
 
-#include "ast_test_utils.h"
+#include "ifj24_compiler_test_utils.h"
 
 using namespace std;
+using namespace testing;
+using namespace internal;
 
-// Příklad debug výpisu
-void debug_print_levels(const vector<bool> &levels) {
-    cerr << "Current levels: ";
-    for(auto level : levels) {
-        cerr << level << " ";
-    }
-    cerr << endl;
-}
+string lex_path = "../test/test_examples/lexical_examples/";
+string exam_path = "../ifj24_examples/ifj24_programs/";
+string synt_path = "../test/test_examples/syntactic_examples/";
+string synt_error_path = synt_path + "syntax_error/";
+string sem_path = "../test/test_examples/semantic_examples/";
 
 /*******************************************************************************
  *                                                                             *
@@ -98,17 +97,6 @@ string ASTutils_printCapturedOutput(AST_NodeType type, void *node, bool useColor
 
     return buffer.str();
 }  // ASTutils_printCapturedOutput()
-
-/**
- * @brief Vytiskne výstup testu a referenční výstup.
- */
-void ASTutils_printDiff(string output, string reference, ostream &out) {
-    out << endl << COLOR_PINK << "Test result output:" << COLOR_RESET << endl;
-    out << output << endl;
-    out << COLOR_PINK << "Referential output:" << COLOR_RESET << endl;
-    out << reference << endl;
-}  // ASTutils_printDiff()
-
 
 /*******************************************************************************
  *                                                                             *

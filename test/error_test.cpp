@@ -28,13 +28,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-extern "C" {
-#include "error.h"
-}
-
-using namespace std;
-using namespace testing;
-using namespace internal;
+#include "ifj24_compiler_test_utils.h"
 
 /**
  * @brief Testuje funkci `error_handle` pro lexikální chybu.
