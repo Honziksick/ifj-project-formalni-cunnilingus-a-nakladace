@@ -33,6 +33,7 @@ int main() {
     LLparser_parseProgram();
     if(ASTroot != NULL) {
         semantic_analyseProgram();
+        TAC_createInstructionList();
         TAC_generateProgramCodeBegin(ASTroot);
 
         // Projdeme všechny funkce a vygenerujeme kód pro každou z nich
