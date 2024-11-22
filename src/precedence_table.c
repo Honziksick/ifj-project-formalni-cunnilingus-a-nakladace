@@ -121,7 +121,7 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
 
     // Vrací interní chybový kód, pokud terminál není nalezen v tabulce
     // (aka něco je velmi špatně, protože toto by nikdy nemělo nastat)
-    error_handle(ERROR_INTERNAL);
+    *precedence = P_SYNTAX_ERROR;
 } // PrecTable_findPrecedence()
 
 

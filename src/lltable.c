@@ -131,7 +131,7 @@ bool LLtable_findRule(LLTerminals tokenType, LLNonTerminals nonTerminal, LLRuleS
 
     // Vrací interní chybový kód, pokud terminál není nalezen v tabulce
     // (aka něco je velmi špatně, protože toto by nikdy nemělo nastat)
-    error_handle(ERROR_INTERNAL);
+    *rule = SYNTAX_ERROR;
     return false;
 } // LLtable_findRule()
 

@@ -71,12 +71,13 @@ using namespace internal;
 
 string exam_path = "../ifj24_examples/ifj24_programs/";
 string synt_path = "../test/test_examples/syntactic_examples/";
+string error_path = synt_path + "syntax_error/";
 
 TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     // Načtení souboru s programem na STDIN
     string path = synt_path + "correct_prologue_and_empty_main.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -93,8 +94,7 @@ TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     PRINT_TREE_AND_FRAMESTACK(CorrectPrologueAndEmptyMain);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -104,7 +104,7 @@ TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
 TEST(LLParserBasicsCorrect, OneParam){
     string path = synt_path + "correct_one_param.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -156,8 +156,7 @@ TEST(LLParserBasicsCorrect, OneParam){
     PRINT_TREE_AND_FRAMESTACK(CorrectOneParam);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -167,7 +166,7 @@ TEST(LLParserBasicsCorrect, OneParam){
 TEST(LLParserBasicsCorrect, TwoParams){
     string path = synt_path + "correct_two_params.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -230,8 +229,7 @@ TEST(LLParserBasicsCorrect, TwoParams){
     PRINT_TREE_AND_FRAMESTACK(CorrectTwoParams);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -241,7 +239,7 @@ TEST(LLParserBasicsCorrect, TwoParams){
 TEST(LLParserBasicsCorrect, TwoFunctions){
     string path = synt_path + "correct_two_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -287,8 +285,7 @@ TEST(LLParserBasicsCorrect, TwoFunctions){
     PRINT_TREE_AND_FRAMESTACK(CorrectTwoFunctions);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -298,7 +295,7 @@ TEST(LLParserBasicsCorrect, TwoFunctions){
 TEST(LLParserBasicsCorrect, VarDef){
     string path = synt_path + "correct_var_def.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -347,8 +344,7 @@ TEST(LLParserBasicsCorrect, VarDef){
     PRINT_TREE_AND_FRAMESTACK(CorrectVarDef);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -358,7 +354,7 @@ TEST(LLParserBasicsCorrect, VarDef){
 TEST(LLParserBasicsCorrect, FunCallNoArgs){
     string path = synt_path + "correct_fun_call_no_args.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -397,8 +393,7 @@ TEST(LLParserBasicsCorrect, FunCallNoArgs){
     PRINT_TREE_AND_FRAMESTACK(CorrectFunCallNoParam);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -408,7 +403,7 @@ TEST(LLParserBasicsCorrect, FunCallNoArgs){
 TEST(LLParserBasicsCorrect, NonVoidFun){
     string path = synt_path + "correct_nonvoid_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -431,8 +426,7 @@ TEST(LLParserBasicsCorrect, NonVoidFun){
     PRINT_TREE_AND_FRAMESTACK(CorrectNonVoidFun);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -442,7 +436,7 @@ TEST(LLParserBasicsCorrect, NonVoidFun){
 TEST(LLParserBasicsCorrect, FunCallIntLit){
     string path = synt_path + "correct_fun_call_int_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -459,8 +453,7 @@ TEST(LLParserBasicsCorrect, FunCallIntLit){
     PRINT_TREE_AND_FRAMESTACK(CorrectFunCallIntLit);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -471,7 +464,7 @@ TEST(LLParserBasicsCorrect, FunCallIntLit){
 TEST(LLParserBasicsCorrect, FunCallFloatLit){
     string path = synt_path + "correct_fun_call_float_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -488,8 +481,7 @@ TEST(LLParserBasicsCorrect, FunCallFloatLit){
     PRINT_TREE_AND_FRAMESTACK(CorrectFunCallFloatLit);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -499,7 +491,7 @@ TEST(LLParserBasicsCorrect, FunCallFloatLit){
 TEST(LLParserBasicsCorrect, FunCallStringLit){
     string path = synt_path + "correct_fun_call_string_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -516,8 +508,7 @@ TEST(LLParserBasicsCorrect, FunCallStringLit){
     PRINT_TREE_AND_FRAMESTACK(CorrectFunCallStringLit);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -527,7 +518,7 @@ TEST(LLParserBasicsCorrect, FunCallStringLit){
 TEST(LLParserBasicsCorrect, FunCallVar){
     string path = synt_path + "correct_fun_call_var.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -544,8 +535,7 @@ TEST(LLParserBasicsCorrect, FunCallVar){
     PRINT_TREE_AND_FRAMESTACK(CorrectFunCallVar);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -555,7 +545,7 @@ TEST(LLParserBasicsCorrect, FunCallVar){
 TEST(LLParserBasicsCorrect, FunCallTwoArgs){
     string path = synt_path + "correct_fun_call_two_args.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -613,8 +603,7 @@ TEST(LLParserBasicsCorrect, FunCallTwoArgs){
     PRINT_TREE_AND_FRAMESTACK(CorrectFunCallTwoArgs);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -624,7 +613,7 @@ TEST(LLParserBasicsCorrect, FunCallTwoArgs){
 TEST(LLParserBasicsCorrect, FunCallManyArgs){
     string path = synt_path + "correct_fun_call_many_args.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -641,8 +630,7 @@ TEST(LLParserBasicsCorrect, FunCallManyArgs){
     PRINT_TREE_AND_FRAMESTACK(CorrectFunCallManyArgs);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -652,7 +640,7 @@ TEST(LLParserBasicsCorrect, FunCallManyArgs){
 TEST(LLParserBasicsCorrect, FunCallCommaLast){
     string path = synt_path + "correct_fun_call_comma_last.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -669,8 +657,7 @@ TEST(LLParserBasicsCorrect, FunCallCommaLast){
     PRINT_TREE_AND_FRAMESTACK(CorrectFunCallCommaLast);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -680,7 +667,7 @@ TEST(LLParserBasicsCorrect, FunCallCommaLast){
 TEST(LLParserBasicsCorrect, IFJFunCallNoArgs){
     string path = synt_path + "correct_ifj_fun_call_no_args.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -697,8 +684,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallNoArgs){
     PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallIntLit);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -709,7 +695,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallNoArgs){
 TEST(LLParserBasicsCorrect, IFJFunCallIntLit){
     string path = synt_path + "correct_ifj_fun_call_int_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -726,8 +712,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallIntLit){
     PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallIntLit);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -738,7 +723,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallIntLit){
 TEST(LLParserBasicsCorrect, IFJFunCallFloatLit){
     string path = synt_path + "correct_ifj_fun_call_float_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -755,8 +740,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallFloatLit){
     PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallFloatLit);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -766,7 +750,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallFloatLit){
 TEST(LLParserBasicsCorrect, IFJFunCallStringLit){
     string path = synt_path + "correct_ifj_fun_call_string_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -783,8 +767,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallStringLit){
     PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallStringLit);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -794,7 +777,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallStringLit){
 TEST(LLParserBasicsCorrect, IFJFunCallVar){
     string path = synt_path + "correct_ifj_fun_call_var.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -811,8 +794,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallVar){
     PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallVar);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -822,7 +804,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallVar){
 TEST(LLParserBasicsCorrect, IFJFunCallTwoArgs){
     string path = synt_path + "correct_ifj_fun_call_two_args.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -839,8 +821,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallTwoArgs){
     PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallTwoArgs);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -850,7 +831,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallTwoArgs){
 TEST(LLParserBasicsCorrect, IFJFunCallManyArgs){
     string path = synt_path + "correct_ifj_fun_call_many_args.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -867,8 +848,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallManyArgs){
     PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallManyArgs);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -878,7 +858,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallManyArgs){
 TEST(LLParserBasicsCorrect, IFJFunCallCommaLast){
     string path = synt_path + "correct_ifj_fun_call_comma_last.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -895,19 +875,44 @@ TEST(LLParserBasicsCorrect, IFJFunCallCommaLast){
     PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallCommaLast);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
     fclose(f);
 }
 
+TEST(LLParserBasicsCorrect, ExcesiveCurlyBrackets){
+    string path = synt_path + "correct_excesive_curly_brackets.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TREE_AND_FRAMESTACK(CorrectExcesiveCurlyBrackets);
+
+    // Uvolnění alokovaných zdrojů
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
 
 TEST(LLParserBasicsCorrect, IfjDotEtc){
     string path = synt_path + "X_correct_ifj_dot_etc.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -924,8 +929,7 @@ TEST(LLParserBasicsCorrect, IfjDotEtc){
     PRINT_TREE_AND_FRAMESTACK(CorrectIfjDotEtc);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -935,7 +939,7 @@ TEST(LLParserBasicsCorrect, IfjDotEtc){
 TEST(LLParserBasicsCorrect, AddOperatorsMinus){
     string path = synt_path + "X_correct_add_operators_minus.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -952,8 +956,7 @@ TEST(LLParserBasicsCorrect, AddOperatorsMinus){
     PRINT_TREE_AND_FRAMESTACK(CorrectAddOperatorsMinus);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -963,7 +966,7 @@ TEST(LLParserBasicsCorrect, AddOperatorsMinus){
 TEST(LLParserBasicsCorrect, AddOperatorsPlus){
     string path = synt_path + "X_correct_add_operators_plus.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -980,8 +983,7 @@ TEST(LLParserBasicsCorrect, AddOperatorsPlus){
     PRINT_TREE_AND_FRAMESTACK(CorrectAddOperatorsPlus);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -991,7 +993,7 @@ TEST(LLParserBasicsCorrect, AddOperatorsPlus){
 TEST(LLParserBasicsCorrect, MultiOperatorsAsterisk){
     string path = synt_path + "X_correct_multi_operators_asterisk.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1008,8 +1010,7 @@ TEST(LLParserBasicsCorrect, MultiOperatorsAsterisk){
     PRINT_TREE_AND_FRAMESTACK(CorrectMultiOperatorsAsterisk);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1019,7 +1020,7 @@ TEST(LLParserBasicsCorrect, MultiOperatorsAsterisk){
 TEST(LLParserBasicsCorrect, MultiOperatorsSlash){
     string path = synt_path + "X_correct_multi_operators_slash.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1036,8 +1037,7 @@ TEST(LLParserBasicsCorrect, MultiOperatorsSlash){
     PRINT_TREE_AND_FRAMESTACK(CorrectMultiOperatorsSlash);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1047,7 +1047,7 @@ TEST(LLParserBasicsCorrect, MultiOperatorsSlash){
 TEST(LLParserBasicsCorrect, RelOperatorsEE){
     string path = synt_path + "X_correct_rel_operators_EE.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1064,8 +1064,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsEE){
     PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsEE);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1075,7 +1074,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsEE){
 TEST(LLParserBasicsCorrect, RelOperatorsG){
     string path = synt_path + "X_correct_rel_operators_G.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1092,8 +1091,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsG){
     PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsG);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1103,7 +1101,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsG){
 TEST(LLParserBasicsCorrect, RelOperatorsGE){
     string path = synt_path + "X_correct_rel_operators_GE.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1120,8 +1118,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsGE){
     PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsGE);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1131,7 +1128,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsGE){
 TEST(LLParserBasicsCorrect, RelOperatorsL){
     string path = synt_path + "X_correct_rel_operators_L.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1148,8 +1145,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsL){
     PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsL);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1159,7 +1155,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsL){
 TEST(LLParserBasicsCorrect, RelOperatorsLE){
     string path = synt_path + "X_correct_rel_operators_LE.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1176,8 +1172,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsLE){
     PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsLE);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1187,7 +1182,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsLE){
 TEST(LLParserBasicsCorrect, RelOperatorsNE){
     string path = synt_path + "X_correct_rel_operators_NE.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1204,8 +1199,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsNE){
     PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsNE);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1215,7 +1209,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsNE){
 TEST(LLParserBasicsCorrect, DataTypes){
     string path = synt_path + "X_correct_data_types.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1232,19 +1226,17 @@ TEST(LLParserBasicsCorrect, DataTypes){
     PRINT_TREE_AND_FRAMESTACK(CorrectDataTypes);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
     fclose(f);
 }
 
-
 TEST(LLParserBasicsCorrect, IfNullCondition){
     string path = synt_path + "correct_if_null_condition.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1261,8 +1253,7 @@ TEST(LLParserBasicsCorrect, IfNullCondition){
     PRINT_TREE_AND_FRAMESTACK(CorrectIfNullCondition);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1272,7 +1263,7 @@ TEST(LLParserBasicsCorrect, IfNullCondition){
 TEST(LLParserBasicsCorrect, ThrowAway){
     string path = synt_path + "X_correct_throw_away.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1289,8 +1280,7 @@ TEST(LLParserBasicsCorrect, ThrowAway){
     PRINT_TREE_AND_FRAMESTACK(CorrectThrowAway);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1300,7 +1290,7 @@ TEST(LLParserBasicsCorrect, ThrowAway){
 TEST(LLParserBasicsCorrect, FunReturn){
     string path = synt_path + "X_correct_fun_return.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1317,8 +1307,7 @@ TEST(LLParserBasicsCorrect, FunReturn){
     PRINT_TREE_AND_FRAMESTACK(CorrectFunReturn);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1328,7 +1317,7 @@ TEST(LLParserBasicsCorrect, FunReturn){
 TEST(LLParserBasicsCorrect, IfElse){
     string path = synt_path + "X_correct_if_else.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1345,8 +1334,7 @@ TEST(LLParserBasicsCorrect, IfElse){
     PRINT_TREE_AND_FRAMESTACK(CorrectIfElse);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1356,7 +1344,7 @@ TEST(LLParserBasicsCorrect, IfElse){
 TEST(LLParserBasicsCorrect, While){
     string path = synt_path + "X_correct_while.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1373,8 +1361,7 @@ TEST(LLParserBasicsCorrect, While){
     PRINT_TREE_AND_FRAMESTACK(CorrectWhile);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1384,7 +1371,7 @@ TEST(LLParserBasicsCorrect, While){
 TEST(LLParserComplexCorrect, ExprNoBrackets){
     string path = synt_path + "correct_complex_expr_no_brackets.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1401,8 +1388,7 @@ TEST(LLParserComplexCorrect, ExprNoBrackets){
     PRINT_TREE_AND_FRAMESTACK(CorrectExprNoBrackets);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1412,7 +1398,7 @@ TEST(LLParserComplexCorrect, ExprNoBrackets){
 TEST(LLParserComplexCorrect, ExprWithBrackets){
     string path = synt_path + "correct_complex_expr_with_brackets.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1429,8 +1415,7 @@ TEST(LLParserComplexCorrect, ExprWithBrackets){
     PRINT_TREE_AND_FRAMESTACK(CorrectExprWithBrackets);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1440,7 +1425,7 @@ TEST(LLParserComplexCorrect, ExprWithBrackets){
 TEST(LLParserComplexCorrect, ExprWithFunCallNoBrackets){
     string path = synt_path + "correct_complex_expr_with_fun_no_brackets.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1457,8 +1442,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallNoBrackets){
     PRINT_TREE_AND_FRAMESTACK(CorrectExprWithFunCallNoBrackets);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1469,7 +1453,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallNoBrackets){
 TEST(LLParserComplexCorrect, ExprFunInBrackets){
     string path = synt_path + "correct_complex_expr_fun_in_brackets.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1486,8 +1470,7 @@ TEST(LLParserComplexCorrect, ExprFunInBrackets){
     PRINT_TREE_AND_FRAMESTACK(CorrectExprFunInBrackets);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1497,7 +1480,7 @@ TEST(LLParserComplexCorrect, ExprFunInBrackets){
 TEST(LLParserComplexCorrect, ExprWithFunCallAndBrackets){
     string path = synt_path + "correct_complex_expr_with_fun_and_brackets.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1514,8 +1497,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBrackets){
     PRINT_TREE_AND_FRAMESTACK(CorrectExprWithFunCallAndBrackets);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1525,7 +1507,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBrackets){
 TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish1){
     string path = synt_path + "correct_complex_expr_with_fun_and_brackets_hellish_1.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1542,8 +1524,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish1){
     PRINT_TREE_AND_FRAMESTACK(CorrectExprWithFunCallAndBracketsHellish1);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1553,7 +1534,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish1){
 TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish2){
     string path = synt_path + "correct_complex_expr_with_fun_and_brackets_hellish_2.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1570,8 +1551,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish2){
     PRINT_TREE_AND_FRAMESTACK(CorrectExprWithFunCallAndBracketsHellish2);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1581,7 +1561,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish2){
 TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish3){
     string path = synt_path + "correct_complex_expr_with_fun_and_brackets_hellish_3.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1598,8 +1578,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish3){
     PRINT_TREE_AND_FRAMESTACK(CorrectExprWithFunCallAndBracketsHellish3);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1609,7 +1588,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish3){
 TEST(LLParserBasicsCorrect, WhileNullCondition){
     string path = synt_path + "X_correct_while_null_condition.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1626,8 +1605,7 @@ TEST(LLParserBasicsCorrect, WhileNullCondition){
     PRINT_TREE_AND_FRAMESTACK(CorrectWhileNullCondition);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1637,7 +1615,7 @@ TEST(LLParserBasicsCorrect, WhileNullCondition){
 TEST(LLParserBasicsCorrect, Return){
     string path = synt_path + "correct_return.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
@@ -1654,8 +1632,7 @@ TEST(LLParserBasicsCorrect, Return){
     PRINT_TREE_AND_FRAMESTACK(CorrectReturn);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1665,7 +1642,7 @@ TEST(LLParserBasicsCorrect, Return){
 TEST(LLParserExamples, Example1){
     string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -1682,8 +1659,7 @@ TEST(LLParserExamples, Example1){
     PRINT_TREE_AND_FRAMESTACK(Example1);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1693,7 +1669,7 @@ TEST(LLParserExamples, Example1){
 TEST(LLParserExamples, Example2){
     string path = exam_path + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -1710,8 +1686,7 @@ TEST(LLParserExamples, Example2){
     PRINT_TREE_AND_FRAMESTACK(Example2);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1721,7 +1696,7 @@ TEST(LLParserExamples, Example2){
 TEST(LLParserExamples, Example3){
     string path = exam_path + "example3.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -1738,8 +1713,7 @@ TEST(LLParserExamples, Example3){
     PRINT_TREE_AND_FRAMESTACK(Example3);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1749,7 +1723,7 @@ TEST(LLParserExamples, Example3){
 TEST(LLParserExamples, Fun){
     string path = exam_path + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -1766,8 +1740,7 @@ TEST(LLParserExamples, Fun){
     PRINT_TREE_AND_FRAMESTACK(Fun);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1777,7 +1750,7 @@ TEST(LLParserExamples, Fun){
 TEST(LLParserExamples, Hello){
     string path = exam_path + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -1794,8 +1767,7 @@ TEST(LLParserExamples, Hello){
     PRINT_TREE_AND_FRAMESTACK(Hello);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -1805,7 +1777,7 @@ TEST(LLParserExamples, Hello){
 TEST(LLParserExamples, Multiline){
     string path = exam_path + "multiline.zig";
     FILE* f = fopen(path.c_str(), "r");
-    EXPECT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
@@ -1822,12 +1794,103 @@ TEST(LLParserExamples, Multiline){
     PRINT_TREE_AND_FRAMESTACK(Multiline);
 
     // Uvolnění alokovaných zdrojů
-    frameStack_destroyAll();
-    AST_destroyTree();
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
     fclose(f);
 }
+/*
+TEST(ParserSyntaxError, Prologue) {
+    for (int i = 1; i <= 2; i++) {
+        string filename = "error_prologue_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = error_path + filename;
+        
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << "Can't open file: " << path;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+        
+        // Inicializace zásobníku rámců
+        frameStack_init();
+        
+        // Syntaktická analýza programu
+        LLparser_parseProgram();
+        
+        // Očekáváme, že ASTroot bude nullptr, protože kód obsahuje syntaktickou chybu
+        ASSERT_EQ(ASTroot, nullptr) << "Syntax error undetected in file: " << filename << endl;
+        cerr << COLOR_PINK << "OK: " << COLOR_RESET << filename << endl << endl;
+        
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+TEST(ParserSyntaxError, FunctionDefinition) {
+    for (int i = 1; i <= 21; i++) {
+        string filename = "error_fun_def_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = error_path + filename;
+        
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << "Can't open file: " << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+        
+        // Inicializace zásobníku rámců
+        frameStack_init();
+        
+        // Syntaktická analýza programu
+        LLparser_parseProgram();
+        
+        // Očekáváme, že ASTroot bude nullptr, protože kód obsahuje syntaktickou chybu
+        ASSERT_EQ(ASTroot, nullptr) << COLOR_PINK << "Syntax error undetected in file: " << COLOR_RESET << filename;
+        
+        // Uvolnění alokovaných zdrojů
+        frameStack_destroyAll();
+        AST_destroyTree();
+        
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+TEST(ParserSyntaxError, Statements) {
+    for (int i = 1; i <= 72; ++i) {
+        string filename = "error_statement_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = error_path + filename;
+        
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << "Can't open file: " << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+        
+        // Inicializace zásobníku rámců
+        frameStack_init();
+        
+        // Syntaktická analýza programu
+        LLparser_parseProgram();
+        
+        // Očekáváme, že ASTroot bude nullptr, protože kód obsahuje syntaktickou chybu
+        ASSERT_EQ(ASTroot, nullptr) << COLOR_PINK << "Syntax error undetected in file: " << COLOR_RESET << filename;
+        
+        // Uvolnění alokovaných zdrojů
+        frameStack_destroyAll();
+        AST_destroyTree();
+        
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+*/
 
 /*** Konec souboru parser_test.cpp ***/

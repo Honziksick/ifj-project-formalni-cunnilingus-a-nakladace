@@ -56,6 +56,9 @@ FrameArray frameArray = {0, NULL};
  * @brief Inicializuje zásobník rámců.
  */
 void frameStack_init() {
+    if(frameStack.top != NULL || frameStack.bottom != NULL) {
+        return;
+    }
     // Alokujeme místo pro globální rámec
     FramePtr frame = malloc(sizeof(Frame));
     if(frame == NULL) {

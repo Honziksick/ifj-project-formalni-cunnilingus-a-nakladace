@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            06.11.2024                                                *
- * Poslední změna:   06.11.2024                                                *
+ * Poslední změna:   22.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -28,8 +28,14 @@
 
 #include "ifj24_compiler.h"
 
-int main(int argc, char *argv[]) {
+int main() {
 
+    LLparser_parseProgram();
+    if(ASTroot != NULL) {
+        semantic_analyseProgram();
+    }
+
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     return SUCCESS;
 }

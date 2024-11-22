@@ -25,6 +25,8 @@
  *          generátor kódu tac_generator.
  */
 
+#include "built_in_functions.h"
+
 //Ještě chybí dodělat 4 funkce
 void built_in_functions() {
     char functions[] = "\n\
