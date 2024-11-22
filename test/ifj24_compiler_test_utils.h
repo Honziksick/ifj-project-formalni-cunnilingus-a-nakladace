@@ -37,12 +37,37 @@
 #include <string>
 #include <vector>
 #include <functional>
+
 extern "C" {
+#include "error.h"
+#include "scanner.h"
 #include "ast_nodes.h"
 #include "ast_interface.h"
+#include "parser.h"
+#include "llparser.h"
+#include "lltable.h"
+#include "precedence_parser.h"
+#include "precedence_table.h"
+#include "precedence_stack.h"
+#include "symtable.h"
+#include "frame_stack.h"
+#include "semantic_analyser.h"
+#include "tac_generator.h"
+#include "built_in_functions.h"
 }
 
-using namespace std;  /**< Jmenný prostor standardní knihovny C++ */
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
+
+using namespace std;
+using namespace testing;
+using namespace internal;
+
+extern string exam_path;
+extern string lex_path;
+extern string synt_path;
+extern string synt_error_path;
+extern string sem_path;
 
 
 /*******************************************************************************
@@ -64,23 +89,60 @@ using namespace std;  /**< Jmenný prostor standardní knihovny C++ */
  *                                                                             *
  ******************************************************************************/
 
+#define MAKE_STRING(id, str) \
+    DString* id = string_init(); \
+    do { \
+        ASSERT_NE(id, nullptr); \
+        const char *tmp_str = str; \
+        for(size_t i = 0; i < strlen(tmp_str); i++) { \
+            ASSERT_EQ(string_append_char(id, tmp_str[i]), STRING_SUCCESS); \
+        } \
+    } while(false);
+
 /**
  * @brief Definice makra pro zapnutí/vypnutí výpisu stromu.
 */
-#define PRINT_TREE_OUTPUT 1
-
-#if PRINT_TREE_OUTPUT
-#define PRINT_TREE(type, node) \
-    do { \
-        if(node != nullptr) { \
-            const ::testing::TestInfo* test_info = ::testing::UnitTest::GetInstance()->current_test_info(); \
-            string output = ASTutils_printCapturedOutput(type, (void *)node, true); \
-            cerr << endl << COLOR_PINK << "Output Tree for " << test_info->test_case_name() << "." << test_info->name() << ":" << COLOR_RESET << endl; \
-            cerr << output << endl; \
-        } \
-    } while (0)
+#if PRINT_AST_OUT
+    #define PRINT_AST(type, node) \
+        do { \
+            if(node != nullptr) { \
+                const TestInfo *test_info = UnitTest::GetInstance()->current_test_info(); \
+                string output = ASTutils_printCapturedOutput(type, (void *)node, true); \
+                cerr << endl << COLOR_PINK << "Output Tree for " << test_info->test_case_name() << "." << test_info->name() << ":" << COLOR_RESET << endl; \
+                cerr << output << endl; \
+            } \
+        } while(false)
 #else
-#define PRINT_TREE(type, node) do {} while (0)
+    #define PRINT_AST(type, node) do {} while(false)
+#endif
+
+#if PRINT_FRAME_STACK_OUT
+    #define PRINT_FRAME_STACK() \
+        do { \
+            frameStack_printArray(stderr, true, false); \
+        } while(false)
+#else
+    #define PRINT_FRAME_STACK() do {} while (0)
+#endif
+
+#ifndef DISABLE_PRINT
+    #ifdef SPECIFIC_TEST_NAME
+        #define PRINT_TEST_LOG(test_name) \
+            do { \
+                if(strcmp(#test_name, SPECIFIC_TEST_NAME) == 0) { \
+                    PRINT_AST(AST_PROGRAM_NODE, ASTroot); \
+                    PRINT_FRAME_STACK(); \
+                } \
+            } while(false)
+        #else
+            #define PRINT_TEST_LOG(test_name) \
+                do { \
+                    PRINT_AST(AST_PROGRAM_NODE, ASTroot); \
+                    PRINT_FRAME_STACK(); \
+                }while(false)
+            #endif
+    #else
+        #define PRINT_TEST_LOG(test_name) do {} while(false)
 #endif
 
 /*******************************************************************************

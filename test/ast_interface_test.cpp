@@ -25,19 +25,13 @@
  *          frameworku Google Test.
  */
 
+// Definice výpisu bastraktního syntaktickhé stromu (pro vypnutí zakomentujte)
+#define PRINT_AST_OUT 1
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-extern "C" {
-#include "ast_nodes.h"
-#include "ast_interface.h"
-}
-#include "ast_test_utils.h"
-
-using namespace std;
-using namespace testing;
-using namespace internal;
-
+#include "ifj24_compiler_test_utils.h"
 
 /**
  * @brief Test kořene, kde je pouze neinicializovaný kořenový uzel.
@@ -50,7 +44,7 @@ TEST(ASTtest_Root, UnInitRoot) {
     ASSERT_EQ(root->importedFile, nullptr);
     ASSERT_EQ(root->functionList, nullptr);
 
-    PRINT_TREE(root->type, root);
+    PRINT_AST(root->type, root);
 
     AST_destroyNode(AST_PROGRAM_NODE, root);
 }
@@ -72,7 +66,7 @@ TEST(ASTtest_Root, InitRoot) {
     ASSERT_EQ(ASTroot->type, AST_PROGRAM_NODE);
     ASSERT_EQ(ASTroot->functionList, nullptr);
 
-    PRINT_TREE(ASTroot->type, ASTroot);
+    PRINT_AST(ASTroot->type, ASTroot);
 
     AST_destroyTree();
 }
@@ -110,7 +104,7 @@ TEST(ASTtest_Root, ManyFuncLinkedRoot) {
     ASSERT_EQ(root->functionList, func1);
     ASSERT_EQ(root->functionList->next, func2);
 
-    PRINT_TREE(root->type, root);
+    PRINT_AST(root->type, root);
 
     AST_destroyNode(AST_PROGRAM_NODE, root);
 }
@@ -128,7 +122,7 @@ TEST(ASTtest_FunDefNode, UnInitFunDefNode) {
     ASSERT_EQ(node->body, nullptr);
     ASSERT_EQ(node->next, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
     
     AST_destroyNode(AST_FUN_DEF_NODE, node);
 }
@@ -148,7 +142,7 @@ TEST(ASTtest_FunDefNode, InitFunDefNode) {
     ASSERT_EQ(node->body, nullptr);
     ASSERT_EQ(node->next, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_FUN_DEF_NODE, node);
 }
@@ -175,8 +169,8 @@ TEST(ASTtest_FunDefNode, LinkedFunDefNode) {
 
     ASSERT_EQ(node1->next, node2);
 
-    PRINT_TREE(node1->type, node1);
-    PRINT_TREE(node2->type, node2);
+    PRINT_AST(node1->type, node1);
+    PRINT_AST(node2->type, node2);
 
     AST_destroyNode(AST_FUN_DEF_NODE, node1);
     AST_destroyNode(AST_FUN_DEF_NODE, node2);
@@ -200,7 +194,7 @@ TEST(ASTtest_FunDefNode, ComplexStatFunDefNode) {
 
     ASSERT_EQ(node->body, stmt);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_FUN_DEF_NODE, node);
 }
@@ -215,7 +209,7 @@ TEST(ASTtest_ArgOrParamNode, UnInitArgOrParamNode) {
     ASSERT_EQ(node->expression, nullptr);
     ASSERT_EQ(node->next, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
 }
@@ -270,8 +264,8 @@ TEST(ASTtest_ArgOrParamNode, LinkedArgOrParamNode) {
     node1->next = node2;
     ASSERT_EQ(node1->next, node2);
 
-    PRINT_TREE(node1->type, node1);
-    PRINT_TREE(node2->type, node2);
+    PRINT_AST(node1->type, node1);
+    PRINT_AST(node2->type, node2);
 
     AST_destroyNode(AST_ARG_OR_PARAM_NODE, node1);
     AST_destroyNode(AST_ARG_OR_PARAM_NODE, node2);
@@ -301,7 +295,7 @@ TEST(ASTtest_ArgOrParamNode, IntegerVarArgOrParamNode) {
     node->expression = exprVar;
     ASSERT_EQ((AST_VarNode *)(node->expression->expression), var);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
 }
@@ -330,7 +324,7 @@ TEST(ASTtest_ArgOrParamNode, FloatVarArgOrParamNode) {
     node->expression = exprVar;
     ASSERT_EQ((AST_VarNode *)(node->expression->expression), var);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
 }
@@ -363,7 +357,7 @@ TEST(ASTtest_ArgOrParamNode, StringVarArgOrParamNode) {
     node->expression = exprVar;
     ASSERT_EQ((AST_VarNode *)(node->expression->expression), var);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
 }
@@ -389,7 +383,7 @@ TEST(ASTtest_ArgOrParamNode, IntegerLitArgOrParamNode) {
     node->expression = exprLit;
     ASSERT_EQ((AST_VarNode *)(node->expression->expression), lit);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
 }
@@ -415,7 +409,7 @@ TEST(ASTtest_ArgOrParamNode, FloatLitArgOrParamNode) {
     node->expression = exprLit;
     ASSERT_EQ((AST_VarNode *)(node->expression->expression), lit);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
 }
@@ -445,7 +439,7 @@ TEST(ASTtest_ArgOrParamNode, StringLitArgOrParamNode) {
     node->expression = exprLit;
     ASSERT_EQ((AST_VarNode *)(node->expression->expression), lit);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
 }
@@ -469,7 +463,7 @@ TEST(ASTtest_ArgOrParamNode, NullLitArgOrParamNode) {
     node->expression = exprLit;
     ASSERT_EQ((AST_VarNode *)(node->expression->expression), lit);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_ARG_OR_PARAM_NODE, node);
 }
@@ -485,7 +479,7 @@ TEST(ASTtest_StatementNode, UnInitStatementNode) {
     ASSERT_EQ(node->statement, nullptr);
     ASSERT_EQ(node->next, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_STATEMENT_NODE, node);
 }
@@ -501,7 +495,7 @@ TEST(ASTtest_StatementNode, InitStatementNode) {
     ASSERT_EQ(node->statement, nullptr);
     ASSERT_EQ(node->next, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_STATEMENT_NODE, node);
 }
@@ -521,7 +515,7 @@ TEST(ASTtest_StatementNode, ExprStatementNode) {
 
     ASSERT_EQ(node->statement, expr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_STATEMENT_NODE, node);
 }
@@ -543,7 +537,7 @@ TEST(ASTtest_StatementNode, FunCallStatementNode) {
 
     ASSERT_EQ(node->statement, funCall);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_STATEMENT_NODE, node);
 }
@@ -562,7 +556,7 @@ TEST(ASTtest_StatementNode, IfStatementNode) {
 
     ASSERT_EQ(node->statement, ifNode);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_STATEMENT_NODE, node);
 }
@@ -581,7 +575,7 @@ TEST(ASTtest_StatementNode, WhileStatementNode) {
 
     ASSERT_EQ(node->statement, whileNode);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_STATEMENT_NODE, node);
 }
@@ -598,7 +592,7 @@ TEST(ASTtest_IfNode, UnInitIfNode) {
     ASSERT_EQ(node->thenBranch, nullptr);
     ASSERT_EQ(node->elseBranch, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_IF_NODE, node);
 }
@@ -617,7 +611,7 @@ TEST(ASTtest_IfNode, InitIfNode) {
     ASSERT_EQ(node->thenBranch, nullptr);
     ASSERT_EQ(node->elseBranch, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_IF_NODE, node);
 }
@@ -639,7 +633,7 @@ TEST(ASTtest_IfNode, NullCondIfNode) {
 
     ASSERT_EQ(node->nullCondition, nullCond);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_IF_NODE, node);
 }
@@ -672,7 +666,7 @@ TEST(ASTtest_IfNode, ComplexIfNode) {
     node->elseBranch->statement = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     ASSERT_NE(node->elseBranch->statement, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_IF_NODE, node);
 }
@@ -688,7 +682,7 @@ TEST(ASTtest_WhileNode, UnInitWhileNode) {
     ASSERT_EQ(node->nullCondition, nullptr);
     ASSERT_EQ(node->body, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_WHILE_NODE, node);
 }
@@ -706,7 +700,7 @@ TEST(ASTtest_WhileNode, InitWhileNode) {
     ASSERT_EQ(node->nullCondition, nullptr);
     ASSERT_EQ(node->body, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_WHILE_NODE, node);
 }
@@ -728,7 +722,7 @@ TEST(ASTtest_WhileNode, NullCondWhileNode) {
 
     ASSERT_EQ(node->nullCondition, nullCond);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_WHILE_NODE, node);
 }
@@ -755,7 +749,7 @@ TEST(ASTtest_WhileNode, ComplexWhileNode) {
     node->body->statement = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     ASSERT_NE(node->body->statement, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_WHILE_NODE, node);
 }
@@ -770,7 +764,7 @@ TEST(ASTtest_ExprNode, UnInitExprNode) {
     ASSERT_EQ(node->exprType, AST_EXPR_NOT_DEFINED);
     ASSERT_EQ(node->expression, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_EXPR_NODE, node);
 }
@@ -785,7 +779,7 @@ TEST(ASTtest_ExprNode, InitExprNode) {
     ASSERT_EQ(node->type, AST_EXPR_NODE);
     ASSERT_EQ(node->expression, nullptr);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_EXPR_NODE, node);
 }
@@ -802,7 +796,7 @@ TEST(ASTtest_ExprNode, BinOpExprNode) {
     ((AST_BinOpNode *)node->expression)->op = AST_OP_ADD;
     ASSERT_EQ(node->type, AST_EXPR_NODE);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_EXPR_NODE, node);
 }
@@ -818,7 +812,7 @@ TEST(ASTtest_ExprNode, FunCallExprNode) {
     ASSERT_NE(node->expression, nullptr);
     ASSERT_EQ(node->type, AST_EXPR_NODE);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_EXPR_NODE, node);
 }
@@ -834,7 +828,7 @@ TEST(ASTtest_ExprNode, VarNodeExprNode) {
     ASSERT_NE(node->expression, nullptr);
     ASSERT_EQ(node->type, AST_EXPR_NODE);
 
-    PRINT_TREE(node->type, node);
+    PRINT_AST(node->type, node);
 
     AST_destroyNode(AST_EXPR_NODE, node);
 }
@@ -875,7 +869,7 @@ TEST(ASTtest_Tree, SimpleTree) {
     ASSERT_EQ(root->functionList->body, stmt);
 
     // Vypíš strom do terminálu
-    PRINT_TREE(root->type, root);
+    PRINT_AST(root->type, root);
 
     // Uvolnění stromu
     AST_destroyNode(AST_PROGRAM_NODE, root);
@@ -944,7 +938,7 @@ TEST(ASTtest_Tree, MoreComplexTree) {
     ASSERT_EQ(((AST_StatementNode *)root->functionList->next->body)->statement, expr);
 
     // Vypíš strom do terminálu
-    PRINT_TREE(root->type, root);
+    PRINT_AST(root->type, root);
 
     // Uvolnění stromu
     AST_destroyNode(AST_PROGRAM_NODE, root);
@@ -1187,7 +1181,7 @@ TEST(ASTtest_Tree, ComplexTree) {
     ASSERT_EQ(((AST_StatementNode *)ASTroot->functionList->body)->next->next, returnStmt);
 
     // Vypíš strom do terminálu
-    PRINT_TREE(ASTroot->type, ASTroot);
+    PRINT_AST(ASTroot->type, ASTroot);
 
     // Uvolnění stromu
     AST_destroyTree();

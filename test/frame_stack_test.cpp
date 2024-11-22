@@ -26,28 +26,13 @@
  *          Google Test.
  */
 
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
 #include <unistd.h>
 #include <fcntl.h>
 
-extern "C" {
-#include "frame_stack.h"
-}
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
 
-using namespace testing;
-
-#define MAKE_STRING(id, str)                                        \
-        DString* id = string_init();                                \
-        do{                                                         \
-            ASSERT_NE(id, nullptr);                                     \
-            const char *tmp_str = str;                                  \
-            for (size_t i = 0; i < strlen(tmp_str); i++) {              \
-                ASSERT_EQ(string_append_char(id, tmp_str[i]), STRING_SUCCESS); \
-            }                                                           \
-        }while(0);
-
-
+#include "ifj24_compiler_test_utils.h"
 
 /**
  * @brief Testuje funkci `frameStack_init` pro inicializaci zásobníku rámců

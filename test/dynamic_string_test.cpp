@@ -28,13 +28,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-extern "C" {
-#include "dynamic_string.h"
-}
-
-using namespace std;
-using namespace testing;
-using namespace internal;
+#include "ifj24_compiler_test_utils.h"
 
 /**
  * @brief Testuje funkci `string_init` pro inicializaci řetězce

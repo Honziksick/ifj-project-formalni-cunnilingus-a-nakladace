@@ -30,36 +30,15 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-extern "C" {
-#include "semantic_analyser.h"
-#include "scanner.h"
-#include "parser.h"
-#include "llparser.h"
-#include "lltable.h"
-#include "precedence_parser.h"
-#include "precedence_table.h"
-#include "precedence_stack.h"
-}
-#include "ast_test_utils.h"
-
-using namespace std;
-using namespace testing;
-using namespace internal;
+#include "ifj24_compiler_test_utils.h"
 
 void TestSemantic(){
     semantic_analyseProgram();
     exit(0);
 }
 
-
-
-std::string exam_path = "../ifj24_examples/ifj24_programs/";
-std::string sem_path = "../test/test_examples/semantic_examples/";
-
-extern AST_ProgramNode* ASTroot;
-
 TEST(Correct, Simplest){
-    std::string path = sem_path + "simplest.zig";
+    string path = sem_path + "simplest.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -101,7 +80,7 @@ TEST(Correct, Simplest){
 
 
 TEST(Correct, Hello){
-    std::string path = exam_path + "hello.zig";
+    string path = exam_path + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -124,7 +103,7 @@ TEST(Correct, Hello){
 }
 
 TEST(Correct, Example1){
-    std::string path = exam_path + "example1.zig";
+    string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -145,7 +124,7 @@ TEST(Correct, Example1){
 }
 
 TEST(Correct, Example2){
-    std::string path = exam_path + "example2.zig";
+    string path = exam_path + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -164,7 +143,7 @@ TEST(Correct, Example2){
 }
 
 TEST(Correct, Example3){
-    std::string path = exam_path + "example3.zig";
+    string path = exam_path + "example3.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -183,7 +162,7 @@ TEST(Correct, Example3){
 }
 
 TEST(Correct, Fun){
-    std::string path = exam_path + "fun.zig";
+    string path = exam_path + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -202,7 +181,7 @@ TEST(Correct, Fun){
 }
 
 TEST(Correct, Implicit_to_float){
-    std::string path = sem_path + "implicit_to_float.zig";
+    string path = sem_path + "implicit_to_float.zig";
     FILE* f = fopen(path.c_str(), "r");
     if(f == NULL){
         FAIL();
@@ -227,7 +206,7 @@ TEST(Correct, Implicit_to_float){
 }
 
 TEST(Correct, Implicit_to_int){
-    std::string path = sem_path + "implicit_to_int.zig";
+    string path = sem_path + "implicit_to_int.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -249,7 +228,7 @@ TEST(Correct, Implicit_to_int){
 }
 
 TEST(Correct, Pseudo){
-    std::string path = sem_path + "pseudo.zig";
+    string path = sem_path + "pseudo.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -271,7 +250,7 @@ TEST(Correct, Pseudo){
 }
 
 TEST(Correct, Pseudo2){
-    std::string path = sem_path + "pseudo2.zig";
+    string path = sem_path + "pseudo2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -293,7 +272,7 @@ TEST(Correct, Pseudo2){
 }
 
 TEST(Correct, Inference){
-    std::string path = sem_path + "type_inference_good.zig";
+    string path = sem_path + "type_inference_good.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -316,7 +295,7 @@ TEST(Correct, Inference){
 
 
 TEST(Correct, Void_fun){
-    std::string path = sem_path + "void_fun_good.zig";
+    string path = sem_path + "void_fun_good.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -336,7 +315,7 @@ TEST(Correct, Void_fun){
 }
 
 TEST(Correct, Void_fun2){
-    std::string path = sem_path + "void_fun_good2.zig";
+    string path = sem_path + "void_fun_good2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -357,7 +336,7 @@ TEST(Correct, Void_fun2){
 
 
 TEST(Incorrect, Undefined_Var){
-    std::string path = sem_path + "semen_test_1_undefined_var.zig";
+    string path = sem_path + "semen_test_1_undefined_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -374,7 +353,7 @@ TEST(Incorrect, Undefined_Var){
 }
 
 TEST(Incorrect, Undefined_Fun){
-    std::string path = sem_path + "semen_test_2_undefined_fun.zig";
+    string path = sem_path + "semen_test_2_undefined_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -395,7 +374,7 @@ TEST(Incorrect, Undefined_Fun){
 
 
 TEST(Incorrect, ParamCount){
-    std::string path = sem_path + "semen_test_3_wrong_number_of_parameters_in_fun.zig";
+    string path = sem_path + "semen_test_3_wrong_number_of_parameters_in_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -414,7 +393,7 @@ TEST(Incorrect, ParamCount){
 }
 
 TEST(Incorrect, ParamType){
-    std::string path = sem_path + "semen_test_4_wrong_type_of_parameters_in_fun.zig";
+    string path = sem_path + "semen_test_4_wrong_type_of_parameters_in_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -433,7 +412,7 @@ TEST(Incorrect, ParamType){
 }
 
 TEST(Incorrect, Return){
-    std::string path = sem_path + "semen_test_5_incompatible_return_value.zig";
+    string path = sem_path + "semen_test_5_incompatible_return_value.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -452,7 +431,7 @@ TEST(Incorrect, Return){
 }
 
 TEST(Incorrect, Return2){
-    std::string path = sem_path + "semen_test_6_missing_return.zig";
+    string path = sem_path + "semen_test_6_missing_return.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -471,7 +450,7 @@ TEST(Incorrect, Return2){
 }
 
 TEST(Incorrect, Return3){
-    std::string path = sem_path + "semen_test_7_missing_return_completely.zig";
+    string path = sem_path + "semen_test_7_missing_return_completely.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -490,7 +469,7 @@ TEST(Incorrect, Return3){
 }
 
 TEST(Incorrect, Redefined_Var){
-    std::string path = sem_path + "semen_test_8_redefining_var.zig";
+    string path = sem_path + "semen_test_8_redefining_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -507,7 +486,7 @@ TEST(Incorrect, Redefined_Var){
 }
 
 TEST(Incorrect, Redefined_Fun){
-    std::string path = sem_path + "semen_test_9_redefining_fun.zig";
+    string path = sem_path + "semen_test_9_redefining_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -524,7 +503,7 @@ TEST(Incorrect, Redefined_Fun){
 }
 
 TEST(Incorrect, ConstAssign){
-    std::string path = sem_path + "semen_test_10_assigning_value_to_const.zig";
+    string path = sem_path + "semen_test_10_assigning_value_to_const.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -543,7 +522,7 @@ TEST(Incorrect, ConstAssign){
 }
 
 TEST(Incorrect, AssignType){
-    std::string path = sem_path + "semen_test_11_uncompatible_assignment_1.zig";
+    string path = sem_path + "semen_test_11_uncompatible_assignment_1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -562,7 +541,7 @@ TEST(Incorrect, AssignType){
 }
 
 TEST(Incorrect, AssignType2){
-    std::string path = sem_path + "semen_test_12_uncompatible_assignment_2.zig";
+    string path = sem_path + "semen_test_12_uncompatible_assignment_2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -581,7 +560,7 @@ TEST(Incorrect, AssignType2){
 }
 
 TEST(Incorrect, Unused_Var){
-    std::string path = sem_path + "semen_test_13_unused_variable.zig";
+    string path = sem_path + "semen_test_13_unused_variable.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -602,7 +581,7 @@ TEST(Incorrect, Unused_Var){
 
 
 TEST(Incorrect, MainInt){
-    std::string path = sem_path + "main_type_int.zig";
+    string path = sem_path + "main_type_int.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -624,7 +603,7 @@ TEST(Incorrect, MainInt){
 }
 
 TEST(Incorrect, NoMain){
-    std::string path = sem_path + "missing_main.zig";
+    string path = sem_path + "missing_main.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -646,7 +625,7 @@ TEST(Incorrect, NoMain){
 }
 
 TEST(Incorrect, Prolog){
-    std::string path = sem_path + "prolog_issue.zig";
+    string path = sem_path + "prolog_issue.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -668,7 +647,7 @@ TEST(Incorrect, Prolog){
 }
 
 TEST(Incorrect, Prolog2){
-    std::string path = sem_path + "prolog_issue2.zig";
+    string path = sem_path + "prolog_issue2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -691,7 +670,7 @@ TEST(Incorrect, Prolog2){
 }
 
 TEST(Incorrect, Inference){
-    std::string path = sem_path + "type_inference.zig";
+    string path = sem_path + "type_inference.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -712,7 +691,7 @@ TEST(Incorrect, Inference){
 }
 
 TEST(Incorrect, Inference2){
-    std::string path = sem_path + "type_inference2.zig";
+    string path = sem_path + "type_inference2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -733,7 +712,7 @@ TEST(Incorrect, Inference2){
 }
 
 TEST(Incorrect, Unchanged_var){
-    std::string path = sem_path + "unchanged_var.zig";
+    string path = sem_path + "unchanged_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -754,7 +733,7 @@ TEST(Incorrect, Unchanged_var){
 }
 
 TEST(Incorrect, Unused_value){
-    std::string path = sem_path + "unused_value.zig";
+    string path = sem_path + "unused_value.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -773,7 +752,7 @@ TEST(Incorrect, Unused_value){
 }
 
 TEST(Incorrect, Unused_value2){
-    std::string path = sem_path + "unused_value2.zig";
+    string path = sem_path + "unused_value2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -794,7 +773,7 @@ TEST(Incorrect, Unused_value2){
 }
 
 TEST(Incorrect, Void_fun){
-    std::string path = sem_path + "void_fun_bad.zig";
+    string path = sem_path + "void_fun_bad.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;

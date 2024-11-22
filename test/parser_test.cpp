@@ -27,51 +27,21 @@
  * @note Přístup k testování inspirován členem týmu Davidem Krejčím.
  */
 
+// Budeme tisknout strom i obsah zásobníku rámců
+#define PRINT_AST_OUT 1
+#define PRINT_FRAME_STACK_OUT 1
+
+// Definice názvu specifického testu, pro který se má provádět tisk
+/* Pozn. Pokud není definováno, tisk se provádí pro všechny testy */
+#define SPECIFIC_TEST_NAME "CorrectReturn"
+
+// Kompletně vypneme výpis
+//#define DISABLE_PRINT
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-extern "C" {
-#include "parser.h"
-#include "llparser.h"
-#include "lltable.h"
-#include "precedence_parser.h"
-#include "precedence_table.h"
-#include "precedence_stack.h"
-}
-#include "ast_test_utils.h"
-
-using namespace std;
-using namespace testing;
-using namespace internal;
-
-// Definice názvu specifického testu, pro který se má provádět tisk
-// Pokud není definováno, tisk se provádí pro všechny testy
-#define SPECIFIC_TEST_NAME "CorrectReturn"
-#define DISABLE_PRINT
-
-#ifndef DISABLE_PRINT
-#ifdef SPECIFIC_TEST_NAME
-#define PRINT_TREE_AND_FRAMESTACK(test_name) \
-    do { \
-        if (strcmp(#test_name, SPECIFIC_TEST_NAME) == 0) { \
-            PRINT_TREE(AST_PROGRAM_NODE, ASTroot); \
-            frameStack_printArray(stderr, true, false); \
-        } \
-    } while (0)
-#else
-#define PRINT_TREE_AND_FRAMESTACK(test_name) \
-    do { \
-        PRINT_TREE(AST_PROGRAM_NODE, ASTroot); \
-        frameStack_printArray(stderr, true, false); \
-    } while (0)
-#endif
-#else
-#define PRINT_TREE_AND_FRAMESTACK(test_name) do {} while (0)
-#endif
-
-string exam_path = "../ifj24_examples/ifj24_programs/";
-string synt_path = "../test/test_examples/syntactic_examples/";
-string error_path = synt_path + "syntax_error/";
+#include "ifj24_compiler_test_utils.h"
 
 TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     // Načtení souboru s programem na STDIN
@@ -91,7 +61,7 @@ TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectPrologueAndEmptyMain);
+    PRINT_TEST_LOG(CorrectPrologueAndEmptyMain);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -153,7 +123,7 @@ TEST(LLParserBasicsCorrect, OneParam){
     EXPECT_EQ(fun->next, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectOneParam);
+    PRINT_TEST_LOG(CorrectOneParam);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -226,7 +196,7 @@ TEST(LLParserBasicsCorrect, TwoParams){
     EXPECT_EQ(param->next, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectTwoParams);
+    PRINT_TEST_LOG(CorrectTwoParams);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -282,7 +252,7 @@ TEST(LLParserBasicsCorrect, TwoFunctions){
     EXPECT_EQ(fun->next, nullptr);
     
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectTwoFunctions);
+    PRINT_TEST_LOG(CorrectTwoFunctions);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -341,7 +311,7 @@ TEST(LLParserBasicsCorrect, VarDef){
     EXPECT_EQ(lit->literalType, AST_LITERAL_INT);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectVarDef);
+    PRINT_TEST_LOG(CorrectVarDef);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -390,7 +360,7 @@ TEST(LLParserBasicsCorrect, FunCallNoArgs){
     EXPECT_FALSE(fcall->isBuiltIn);
     
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectFunCallNoParam);
+    PRINT_TEST_LOG(CorrectFunCallNoParam);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -423,7 +393,7 @@ TEST(LLParserBasicsCorrect, NonVoidFun){
     EXPECT_EQ(fun->returnType, AST_DATA_TYPE_INT);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectNonVoidFun);
+    PRINT_TEST_LOG(CorrectNonVoidFun);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -450,7 +420,7 @@ TEST(LLParserBasicsCorrect, FunCallIntLit){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectFunCallIntLit);
+    PRINT_TEST_LOG(CorrectFunCallIntLit);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -478,7 +448,7 @@ TEST(LLParserBasicsCorrect, FunCallFloatLit){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectFunCallFloatLit);
+    PRINT_TEST_LOG(CorrectFunCallFloatLit);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -505,7 +475,7 @@ TEST(LLParserBasicsCorrect, FunCallStringLit){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectFunCallStringLit);
+    PRINT_TEST_LOG(CorrectFunCallStringLit);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -532,7 +502,7 @@ TEST(LLParserBasicsCorrect, FunCallVar){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectFunCallVar);
+    PRINT_TEST_LOG(CorrectFunCallVar);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -600,7 +570,7 @@ TEST(LLParserBasicsCorrect, FunCallTwoArgs){
     EXPECT_EQ(arg2->next, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectFunCallTwoArgs);
+    PRINT_TEST_LOG(CorrectFunCallTwoArgs);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -627,7 +597,7 @@ TEST(LLParserBasicsCorrect, FunCallManyArgs){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectFunCallManyArgs);
+    PRINT_TEST_LOG(CorrectFunCallManyArgs);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -654,7 +624,7 @@ TEST(LLParserBasicsCorrect, FunCallCommaLast){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectFunCallCommaLast);
+    PRINT_TEST_LOG(CorrectFunCallCommaLast);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -681,7 +651,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallNoArgs){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallIntLit);
+    PRINT_TEST_LOG(CorrectIFJFunCallIntLit);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -709,7 +679,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallIntLit){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallIntLit);
+    PRINT_TEST_LOG(CorrectIFJFunCallIntLit);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -737,7 +707,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallFloatLit){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallFloatLit);
+    PRINT_TEST_LOG(CorrectIFJFunCallFloatLit);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -764,7 +734,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallStringLit){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallStringLit);
+    PRINT_TEST_LOG(CorrectIFJFunCallStringLit);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -791,7 +761,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallVar){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallVar);
+    PRINT_TEST_LOG(CorrectIFJFunCallVar);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -818,7 +788,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallTwoArgs){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallTwoArgs);
+    PRINT_TEST_LOG(CorrectIFJFunCallTwoArgs);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -845,7 +815,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallManyArgs){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallManyArgs);
+    PRINT_TEST_LOG(CorrectIFJFunCallManyArgs);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -872,7 +842,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallCommaLast){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectIFJFunCallCommaLast);
+    PRINT_TEST_LOG(CorrectIFJFunCallCommaLast);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -899,7 +869,7 @@ TEST(LLParserBasicsCorrect, ExcesiveCurlyBrackets){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectExcesiveCurlyBrackets);
+    PRINT_TEST_LOG(CorrectExcesiveCurlyBrackets);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -926,7 +896,7 @@ TEST(LLParserBasicsCorrect, IfjDotEtc){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectIfjDotEtc);
+    PRINT_TEST_LOG(CorrectIfjDotEtc);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -953,7 +923,7 @@ TEST(LLParserBasicsCorrect, AddOperatorsMinus){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectAddOperatorsMinus);
+    PRINT_TEST_LOG(CorrectAddOperatorsMinus);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -980,7 +950,7 @@ TEST(LLParserBasicsCorrect, AddOperatorsPlus){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectAddOperatorsPlus);
+    PRINT_TEST_LOG(CorrectAddOperatorsPlus);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1007,7 +977,7 @@ TEST(LLParserBasicsCorrect, MultiOperatorsAsterisk){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectMultiOperatorsAsterisk);
+    PRINT_TEST_LOG(CorrectMultiOperatorsAsterisk);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1034,7 +1004,7 @@ TEST(LLParserBasicsCorrect, MultiOperatorsSlash){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectMultiOperatorsSlash);
+    PRINT_TEST_LOG(CorrectMultiOperatorsSlash);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1061,7 +1031,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsEE){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsEE);
+    PRINT_TEST_LOG(CorrectRelOperatorsEE);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1088,7 +1058,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsG){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsG);
+    PRINT_TEST_LOG(CorrectRelOperatorsG);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1115,7 +1085,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsGE){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsGE);
+    PRINT_TEST_LOG(CorrectRelOperatorsGE);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1142,7 +1112,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsL){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsL);
+    PRINT_TEST_LOG(CorrectRelOperatorsL);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1169,7 +1139,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsLE){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsLE);
+    PRINT_TEST_LOG(CorrectRelOperatorsLE);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1196,7 +1166,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsNE){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectRelOperatorsNE);
+    PRINT_TEST_LOG(CorrectRelOperatorsNE);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1223,7 +1193,7 @@ TEST(LLParserBasicsCorrect, DataTypes){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectDataTypes);
+    PRINT_TEST_LOG(CorrectDataTypes);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1250,7 +1220,7 @@ TEST(LLParserBasicsCorrect, IfNullCondition){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectIfNullCondition);
+    PRINT_TEST_LOG(CorrectIfNullCondition);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1277,7 +1247,7 @@ TEST(LLParserBasicsCorrect, ThrowAway){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectThrowAway);
+    PRINT_TEST_LOG(CorrectThrowAway);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1304,7 +1274,7 @@ TEST(LLParserBasicsCorrect, FunReturn){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectFunReturn);
+    PRINT_TEST_LOG(CorrectFunReturn);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1331,7 +1301,7 @@ TEST(LLParserBasicsCorrect, IfElse){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectIfElse);
+    PRINT_TEST_LOG(CorrectIfElse);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1358,7 +1328,7 @@ TEST(LLParserBasicsCorrect, While){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectWhile);
+    PRINT_TEST_LOG(CorrectWhile);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1385,7 +1355,7 @@ TEST(LLParserComplexCorrect, ExprNoBrackets){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectExprNoBrackets);
+    PRINT_TEST_LOG(CorrectExprNoBrackets);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1412,7 +1382,7 @@ TEST(LLParserComplexCorrect, ExprWithBrackets){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectExprWithBrackets);
+    PRINT_TEST_LOG(CorrectExprWithBrackets);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1439,7 +1409,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallNoBrackets){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectExprWithFunCallNoBrackets);
+    PRINT_TEST_LOG(CorrectExprWithFunCallNoBrackets);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1467,7 +1437,7 @@ TEST(LLParserComplexCorrect, ExprFunInBrackets){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectExprFunInBrackets);
+    PRINT_TEST_LOG(CorrectExprFunInBrackets);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1494,7 +1464,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBrackets){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectExprWithFunCallAndBrackets);
+    PRINT_TEST_LOG(CorrectExprWithFunCallAndBrackets);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1521,7 +1491,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish1){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectExprWithFunCallAndBracketsHellish1);
+    PRINT_TEST_LOG(CorrectExprWithFunCallAndBracketsHellish1);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1548,7 +1518,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish2){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectExprWithFunCallAndBracketsHellish2);
+    PRINT_TEST_LOG(CorrectExprWithFunCallAndBracketsHellish2);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1575,7 +1545,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish3){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectExprWithFunCallAndBracketsHellish3);
+    PRINT_TEST_LOG(CorrectExprWithFunCallAndBracketsHellish3);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1602,7 +1572,7 @@ TEST(LLParserBasicsCorrect, WhileNullCondition){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectWhileNullCondition);
+    PRINT_TEST_LOG(CorrectWhileNullCondition);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1629,7 +1599,7 @@ TEST(LLParserBasicsCorrect, Return){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(CorrectReturn);
+    PRINT_TEST_LOG(CorrectReturn);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1656,7 +1626,7 @@ TEST(LLParserExamples, Example1){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(Example1);
+    PRINT_TEST_LOG(Example1);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1683,7 +1653,7 @@ TEST(LLParserExamples, Example2){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(Example2);
+    PRINT_TEST_LOG(Example2);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1710,7 +1680,7 @@ TEST(LLParserExamples, Example3){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(Example3);
+    PRINT_TEST_LOG(Example3);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1737,7 +1707,7 @@ TEST(LLParserExamples, Fun){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(Fun);
+    PRINT_TEST_LOG(Fun);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1764,7 +1734,7 @@ TEST(LLParserExamples, Hello){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(Hello);
+    PRINT_TEST_LOG(Hello);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1791,7 +1761,7 @@ TEST(LLParserExamples, Multiline){
     EXPECT_NE(ASTroot, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
-    PRINT_TREE_AND_FRAMESTACK(Multiline);
+    PRINT_TEST_LOG(Multiline);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -1804,7 +1774,7 @@ TEST(LLParserExamples, Multiline){
 TEST(ParserSyntaxError, Prologue) {
     for (int i = 1; i <= 12; i++) {
         string filename = "error_prologue_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = error_path + filename;
+        string path = synt_error_path + filename;
         
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << "Can't open file: " << path;
@@ -1831,7 +1801,7 @@ TEST(ParserSyntaxError, Prologue) {
 TEST(ParserSyntaxError, FunctionDefinition) {
     for (int i = 1; i <= 21; i++) {
         string filename = "error_fun_def_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = error_path + filename;
+        string path = synt_error_path + filename;
         
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << "Can't open file: " << filename;
@@ -1858,7 +1828,7 @@ TEST(ParserSyntaxError, FunctionDefinition) {
 TEST(ParserSyntaxError, Statements) {
     for (int i = 1; i <= 72; ++i) {
         string filename = "error_statement_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = error_path + filename;
+        string path = synt_error_path + filename;
         
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << "Can't open file: " << filename;
@@ -1881,6 +1851,5 @@ TEST(ParserSyntaxError, Statements) {
         fclose(f);
     }
 }
-
 
 /*** Konec souboru parser_test.cpp ***/

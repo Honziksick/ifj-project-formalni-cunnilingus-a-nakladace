@@ -118,9 +118,8 @@ TEST_FILES = $(wildcard $(TEST_DIR)/*.cpp)
 EXCLUDED_TEST_SRC_FILES = $(SRC_DIR)/ifj24_compiler.c
 TEST_INCLUDES = $(filter-out $(EXCLUDED_TEST_SRC_FILES), $(SRC_FILES))
 TEST_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(TEST_BUILD_DIR)/%.o,$(TEST_INCLUDES)) \
-$(TEST_BUILD_DIR)/ast_test_utils.o $(TEST_BUILD_DIR)/gtest_main.a $(TEST_BUILD_DIR)/gtest.a
-TEST_TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.cpp,$(TEST_BUILD_DIR)/%.o,$(TEST_FILES))
-TEST_C_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(TEST_BUILD_DIR)/%.o, $(SRC_FILES))
+$(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o $(TEST_BUILD_DIR)/gtest_main.a $(TEST_BUILD_DIR)/gtest.a
+TEST_TEST_OBJ_FILES = $(filter-out $(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o, $(patsubst $(TEST_DIR)/%.cpp,$(TEST_BUILD_DIR)/%.o,$(TEST_FILES)))
 
 # Seznam všech objektových souborů přeložených pro code coverage
 COV_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(COVERAGE_BUILD_DIR)/%.o,$(SRC_FILES))
@@ -218,7 +217,15 @@ pack:
 	mkdir -p $(PACK_DIR)
 	$(MAKE) $(SILENTOPT) pack-prepare
 	@echo ""
-	cd $(PACK_DIR)/$(ARCHIVE_DIR) && zip -r ../$(PACK_NAME) ./
+	cd $(PACK_DIR)/$(ARCHIVE_DIR) && zip -qr ../$(PACK_NAME) ./
+	@{ \
+		cd "$(PACK_DIR)" && \
+			mkdir is_it_ok && \
+			cp $(PACK_NAME).zip is_it_ok/ && \
+			cp $(TEST_DIR)/is_it_ok.sh is_it_ok/ && \
+			./is_it_ok/is_it_ok.sh $(PACK_NAME).zip testdir && \
+			rm -rf is_it_ok; \
+	}
 
 
 ################################################################################
@@ -233,6 +240,7 @@ clean-all: clean-build clean-test clean-coverage clean-doc clean-pack
 ### C # clean-build: # Odstraní adresář 'src/build' s verzí překladače k nasazení
 clean-build:
 	rm -rf $(BUILD_DIR)
+	rm -rf $(EXECUTABLE)
 
 ### C # clean-test: # Odstraní adresář '../test/build-test' s unit testy překladače
 clean-test:
@@ -456,10 +464,9 @@ $(BUILD_DIR)/$(BUILT_IN).o: $(SRC_DIR)/$(BUILT_IN).c
 ###                                                                          ###
 
 ### T # build-test: # Sestaví testovací program sdružující veškeré testy překladače
-build-test: $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES) $(TEST_BUILD_DIR)/gtest_main.a $(TEST_BUILD_DIR)/gtest.a
+build-test: $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES)
 	@mkdir -p $(TEST_BUILD_DIR)
-	$(CXX) $(CFLAGS_TEST) $(CXXFLAGS_TEST) $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES) \
-		$(TEST_BUILD_DIR)/gtest_main.a -o $(TEST_BUILD_DIR)/$(EXECUTABLE)_test
+	$(CXX) $(CFLAGS_TEST) $(CXXFLAGS_TEST) $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES)  -o $(TEST_BUILD_DIR)/$(EXECUTABLE)_test
 
 # Stavba objektových souborů modulů a submodulů s přepínači pro pokrytí kódu
 $(TEST_BUILD_DIR)/%.o: $(SRC_DIR)/%.c
@@ -667,7 +674,7 @@ $(TEST_BUILD_DIR)/$(AST_LIB).o: $(SRC_DIR)/$(AST_LIB).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
-$(TEST_BUILD_DIR)/ast_test_utils.o: $(TEST_DIR)/ast_test_utils.cpp
+$(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o: $(TEST_DIR)/ifj24_compiler_test_utils.cpp
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
 
@@ -837,7 +844,7 @@ pack-prepare:
 		else \
 			missing_files=1; \
 		fi; \
-		if [ -d "$(TEST_DIR)" ]; then \
+        if [ -d "$(TEST_DIR)" ]; then \
 			rsync -a --include '*/' --include '*.cpp' --exclude '*' --exclude '*/' \
 			--prune-empty-dirs $(TEST_DIR)/ $(PACK_DIR)/$(ARCHIVE_DIR)/; \
 		else \
