@@ -438,6 +438,7 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
 
             // Uvolníme úvodním obsah tokenu
             string_free(value);
+            value = NULL;
             break;
         } // case AST_LITERAL_INT
 
@@ -468,6 +469,7 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
 
             // Uvolníme úvodním obsah tokenu
             string_free(value);
+            value = NULL;
             break;
         } // case AST_LITERAL_FLOAT
 
