@@ -660,7 +660,7 @@ bool TAC_generateTestCode(){
     return true;
 }
 
-bool TAC_generateFunCall(AST_FunCallNode *funCallNode, TAC_InstructionList *tacList){
+bool TAC_generateFunCall(AST_FunCallNode *funCallNode){
     TAC_Instruction *instr;
     // Vytvoříme temporary frame pro parametry funkce
     instr = TAC_createInstruction(TAC_OP_CREATEFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
@@ -669,7 +669,7 @@ bool TAC_generateFunCall(AST_FunCallNode *funCallNode, TAC_InstructionList *tacL
     // Najdeme definici funkce
     SymtableItemPtr function;
     if(symtable_findItem(frameStack.bottom->frame, funCallNode->identifier, &function) != SYMTABLE_SUCCESS){
-        error_handler(ERROR_INTERNAL);
+        return false;
     }
     SymtableFunctionData *functionData = function->data;    /**< Definovaná data funkce */
     
@@ -696,12 +696,11 @@ bool TAC_generateFunCall(AST_FunCallNode *funCallNode, TAC_InstructionList *tacL
                 src = (TAC_Operand){.type = TAC_OPERAND_STRING, .value.varName = var_node->value};
                 break;
             case AST_LITERAL_NULL:
-                src = (TAC_Operand){.type = TAC_OPERAND_NIL, .value.intValue = NULL};
+                src = (TAC_Operand){.type = TAC_OPERAND_NIL, .value.varName = NULL};
                 break;
             
             default:
-                error_handle(ERROR_INTERNAL);
-                break;
+                return false;
             }
             instr = TAC_createInstruction(TAC_OP_ASSIGN, (TAC_Operand){.value.varName = functionData->params[i].id, .type = TAC_OPERAND_VAR}, src, (TAC_Operand){.type = TAC_OPERAND_NONE});
         }
@@ -713,9 +712,9 @@ bool TAC_generateFunCall(AST_FunCallNode *funCallNode, TAC_InstructionList *tacL
         TAC_appendInstruction(instr);
     }
     // Přidáme skok na návěští funkce
-    instr = TAC_createInstruction(TAC_OP_JUMP, (TAC_Operand){.value.labelName = funCallNode->identifier, .type = TAC_OP_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    instr = TAC_createInstruction(TAC_OP_JUMP, (TAC_Operand){.value.labelName = funCallNode->identifier, .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
     TAC_appendInstruction(instr);
-
+    return true;    //Vracíme true při úspěchu
 }
 
 /*** Konec souboru tac_generator.c ***/
