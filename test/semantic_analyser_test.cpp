@@ -143,7 +143,7 @@ TEST(Correct, Example1){
     fclose(f);
     ASTroot = NULL;
 }
-/*
+
 TEST(Correct, Example2){
     std::string path = exam_path + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -199,7 +199,7 @@ TEST(Correct, Fun){
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
-}*/
+}
 
 TEST(Correct, Implicit_to_float){
     std::string path = sem_path + "implicit_to_float.zig";
@@ -505,7 +505,7 @@ TEST(Incorrect, Redefined_Var){
     fclose(f);
     ASTroot = NULL;
 }
-/*
+
 TEST(Incorrect, Redefined_Fun){
     std::string path = sem_path + "semen_test_9_redefining_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -521,7 +521,7 @@ TEST(Incorrect, Redefined_Fun){
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
-}*/
+}
 
 TEST(Incorrect, ConstAssign){
     std::string path = sem_path + "semen_test_10_assigning_value_to_const.zig";
@@ -752,7 +752,7 @@ TEST(Incorrect, Unchanged_var){
     fclose(f);
     ASTroot = NULL;
 }
-/*
+
 TEST(Incorrect, Unused_value){
     std::string path = sem_path + "unused_value.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -763,16 +763,14 @@ TEST(Incorrect, Unused_value){
     frameStack_init();
 
 
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
     
 
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
-}*/
+}
 
 TEST(Incorrect, Unused_value2){
     std::string path = sem_path + "unused_value2.zig";
