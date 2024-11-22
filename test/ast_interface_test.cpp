@@ -38,10 +38,6 @@ using namespace std;
 using namespace testing;
 using namespace internal;
 
-/**
- * @brief Globální kořen abstraktního syntaktického stromu.
- */
-AST_ProgramNode *ASTroot;
 
 /**
  * @brief Test kořene, kde je pouze neinicializovaný kořenový uzel.

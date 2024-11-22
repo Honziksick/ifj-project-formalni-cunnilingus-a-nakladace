@@ -32,7 +32,7 @@
 
 
 #include "error.h"
-#include "parser.h"
+#include "llparser.h"
 #include "semantic_analyser.h"
 #include "tac_generator.h"
 
@@ -58,6 +58,6 @@
  *
  * @return @c SUCCESS při úspěchu, jinak @c ErrorType hodnota při chybě.
  */
-int main(int argc, char *argv[]);
+int main();
 
 #endif  // MAIN_H_

@@ -133,10 +133,8 @@ void error_printMessage(ErrorType error);
  * @details Tato funkce uvolní všechna do dané chvíle alokovaná data na základě zadaného chybového kódu.
  *          Uvolnění paměti je důležité pro zabránění únikům paměti a zajištění správného fungování
  *          programu. Funkce může uvolňovat různé typy dat v závislosti na tom, kde došlo k chybě.
- *
- * @param [in] error Chybový kód typu `ErrorType`, který specifikuje typ chyby.
  */
-void error_freeAllocatedData(ErrorType error);
+void IFJ24Compiler_freeAllAllocatedMemory();
 
 /**
  * @brief Funkce pro ukončení programu s příslušným chybovým kódem.
@@ -166,6 +164,10 @@ void error_killMePlease(ErrorType error);
  */
 const char *error_getFileName(const char *path);
 
+void PrecStackList_destroy();
+void frameStack_destroyAll();
+void AST_destroyTree();
+void TAC_destroyInstructionList();
 #endif  // ERROR_H_
 
 /*** Konec souboru error.h ***/

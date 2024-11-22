@@ -63,7 +63,7 @@
  * @return Ukazatel na uzel programu (AST_ProgramNode) při úspěšném parsování,
  *         jinak `NULL`.
  */
-AST_ProgramNode *LLparser_parseProgram();
+void LLparser_parseProgram();
 
 /**
  * @brief Parsuje neterminál `<PROLOG>`.

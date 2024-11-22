@@ -40,12 +40,6 @@ using namespace std;
 using namespace testing;
 using namespace internal;
 
-
-/**
- * @brief Globální kořen abstraktního syntaktického stromu.
- */
-AST_ProgramNode *ASTroot;
-
 /**
  * @brief Testuje funkci `TAC_generateTestCode` pro vytvoření testovacího kódu.
  *

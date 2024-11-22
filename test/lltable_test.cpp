@@ -50,6 +50,7 @@ TEST(LLTable, FindRule_PROGRAM) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_ID, NT_PROGRAM, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -65,6 +66,7 @@ TEST(LLTable, FindRule_PROLOGUE) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_ID, NT_PROLOGUE, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -82,6 +84,7 @@ TEST(LLTable, FindRule_FUN_DEF_LIST) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_ID, NT_FUN_DEF_LIST, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -97,6 +100,7 @@ TEST(LLTable, FindRule_FUN_DEF) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_FN, NT_FUN_DEF, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -115,6 +119,7 @@ TEST(LLTable, FindRule_PARAMETERS) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_LEFT_BRACKET, NT_PARAMETERS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 
@@ -131,6 +136,7 @@ TEST(LLTable, FindRule_PARAM_LIST) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_CONST, NT_PARAM_LIST, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 /**
  * @brief Testovací případ pro funkci `LLtable_findRule` a neterminál `<PARAM_LIST_REST>`.
@@ -147,6 +153,7 @@ TEST(LLTable, FindRule_PARAM_LIST_REST) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_LEFT_BRACKET, NT_PARAM_LIST_REST, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -162,6 +169,7 @@ TEST(LLTable, FindRule_PARAM) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_LEFT_BRACKET, NT_PARAM, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -189,6 +197,7 @@ TEST(LLTable, FindRule_RETURN_TYPE) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_ID, NT_RETURN_TYPE, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -214,6 +223,7 @@ TEST(LLTable, FindRule_DATA_TYPE) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_ID, NT_DATA_TYPE, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -243,8 +253,11 @@ TEST(LLTable, FindRule_STATEMENT_LIST) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_LEFT_BRACKET, NT_STATEMENT_LIST, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_RIGHT_BRACKET, NT_STATEMENT_LIST, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_LEFT_CURLY_BRACKET, NT_STATEMENT_LIST, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -274,7 +287,9 @@ TEST(LLTable, FindRule_STATEMENT) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_DOT, NT_STATEMENT, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_COMMA, NT_STATEMENT, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -292,6 +307,7 @@ TEST(LLTable, FindRule_VAR_DEF) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_ID, NT_VAR_DEF, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -309,6 +325,7 @@ TEST(LLTable, FindRule_MODIFIABLE) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_PUB, NT_MODIFIABLE, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -326,6 +343,7 @@ TEST(LLTable, FindRule_POSSIBLE_TYPE) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_COMMA, NT_POSSIBLE_TYPE, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -343,8 +361,11 @@ TEST(LLTable, FindRule_STATEMENT_REST) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_IFJ, NT_STATEMENT_REST, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_RIGHT_BRACKET, NT_STATEMENT_REST, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_IMPORT, NT_STATEMENT_REST, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -360,7 +381,9 @@ TEST(LLTable, FindRule_THROW_AWAY) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_RIGHT_BRACKET, NT_THROW_AWAY, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_IMPORT, NT_THROW_AWAY, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -376,6 +399,7 @@ TEST(LLTable, FindRule_IF) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_ELSE, NT_IF, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -393,8 +417,11 @@ TEST(LLTable, FindRule_NULL_COND) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_LEFT_BRACKET, NT_NULL_COND, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_RIGHT_BRACKET, NT_NULL_COND, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_RIGHT_CURLY_BRACKET, NT_NULL_COND, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -410,6 +437,7 @@ TEST(LLTable, FindRule_SEQUENCE) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_RIGHT_CURLY_BRACKET, NT_SEQUENCE, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -425,43 +453,7 @@ TEST(LLTable, FindRule_WHILE) {
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_LEFT_CURLY_BRACKET, NT_WHILE, &rule));
-}
-
-/**
- * @brief Testovací případ pro funkci `LLtable_findRule` a neterminál `<RETURN>`.
- */
-TEST(LLTable, FindRule_RETURN) {
-    // Deklarace proměnné pro uložení získaného pravidla
-    LLRuleSet rule = RULE_UNDEFINED;
-
-    // Test pro existující pravidlo
-    EXPECT_TRUE(LLtable_findRule(T_RETURN, NT_RETURN, &rule));
-    EXPECT_EQ(rule, RETURN);
-
-    // Test pro neexistující pravidlo
-    EXPECT_FALSE(LLtable_findRule(T_SEMICOLON, NT_RETURN, &rule));
-}
-
-/**
- * @brief Testovací případ pro funkci `LLtable_findRule` a neterminál `<RETURN_REST>`.
- */
-TEST(LLTable, FindRule_RETURN_REST) {
-    // Deklarace proměnné pro uložení získaného pravidla
-    LLRuleSet rule = RULE_UNDEFINED;
-
-    // Test pro existující pravidlo
-    EXPECT_TRUE(LLtable_findRule(T_CALL_PRECEDENCE, NT_RETURN_REST, &rule));
-    EXPECT_EQ(rule, RETURN_REST_1);
-    EXPECT_TRUE(LLtable_findRule(T_SEMICOLON, NT_RETURN_REST, &rule));
-    EXPECT_EQ(rule, RETURN_REST_2);
-
-    // Test pro neexistující pravidlo
-    EXPECT_FALSE(LLtable_findRule(T_LEFT_CURLY_BRACKET, NT_RETURN_REST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_RIGHT_BRACKET, NT_RETURN_REST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_RIGHT_CURLY_BRACKET, NT_RETURN_REST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_COMMA, NT_RETURN_REST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_IFJ, NT_RETURN_REST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_ID, NT_RETURN_REST, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
 /**
@@ -473,68 +465,35 @@ TEST(LLTable, FindRule_ARGUMENTS) {
 
     // Test pro existující pravidlo
     EXPECT_TRUE(LLtable_findRule(T_CALL_PRECEDENCE, NT_ARGUMENTS, &rule));
-    EXPECT_EQ(rule, ARGUMENTS_1);
-    EXPECT_TRUE(LLtable_findRule(T_RIGHT_BRACKET, NT_ARGUMENTS, &rule));
-    EXPECT_EQ(rule, ARGUMENTS_2);
+    EXPECT_EQ(rule, ARGUMENTS);
 
     // Test pro neexistující pravidlo
     EXPECT_FALSE(LLtable_findRule(T_ID, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_IFJ, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_INT, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_FLOAT, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_STRING, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_INT_OR_NULL, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
+    EXPECT_FALSE(LLtable_findRule(T_RIGHT_BRACKET, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_LEFT_BRACKET, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_LEFT_CURLY_BRACKET, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_RIGHT_CURLY_BRACKET, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_COMMA, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
     EXPECT_FALSE(LLtable_findRule(T_SEMICOLON, NT_ARGUMENTS, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
-/**
- * @brief Testovací případ pro funkci `LLtable_findRule` a neterminál `<ARG_LIST>`.
- */
-TEST(LLTable, FindRule_ARG_LIST) {
-    // Deklarace proměnné pro uložení získaného pravidla
-    LLRuleSet rule = RULE_UNDEFINED;
-
-    // Test pro existující pravidlo
-    EXPECT_TRUE(LLtable_findRule(T_CALL_PRECEDENCE, NT_ARG_LIST, &rule));
-    EXPECT_EQ(rule, ARG_LIST);
-
-    // Test pro neexistující pravidlo
-    EXPECT_FALSE(LLtable_findRule(T_ID, NT_ARG_LIST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_IFJ, NT_ARG_LIST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_LEFT_BRACKET, NT_ARG_LIST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_INT, NT_ARG_LIST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_FLOAT, NT_ARG_LIST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_STRING, NT_ARG_LIST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_INT_OR_NULL, NT_ARG_LIST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_LEFT_CURLY_BRACKET, NT_ARG_LIST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_RIGHT_CURLY_BRACKET, NT_ARG_LIST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_COMMA, NT_ARG_LIST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_SEMICOLON, NT_ARG_LIST, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_RIGHT_BRACKET, NT_ARG_LIST, &rule));
-}
-
-/**
- * @brief Testovací případ pro funkci `LLtable_findRule` a neterminál `<ARG>`.
- */
-TEST(LLTable, FindRule_ARG) {
-    // Deklarace proměnné pro uložení získaného pravidla
-    LLRuleSet rule = RULE_UNDEFINED;
-
-    // Test pro existující pravidlo
-    EXPECT_TRUE(LLtable_findRule(T_COMMA, NT_ARG, &rule));
-    EXPECT_EQ(rule, ARG_1);
-    EXPECT_TRUE(LLtable_findRule(T_RIGHT_BRACKET, NT_ARG, &rule));
-    EXPECT_EQ(rule, ARG_2);
-
-    // Test pro neexistující pravidlo
-    EXPECT_FALSE(LLtable_findRule(T_LEFT_BRACKET, NT_ARG, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_LEFT_CURLY_BRACKET, NT_ARG, &rule));
-    EXPECT_FALSE(LLtable_findRule(T_RIGHT_CURLY_BRACKET, NT_ARG, &rule));
-}
 
 /**
  * @brief Testovací případ pro funkci `LLtable_findRule` pro přijetí neplatného kódu terminálu.
@@ -544,7 +503,9 @@ TEST(LLTable, FindRule_Index_Failure) {
     LLRuleSet rule = RULE_UNDEFINED;
 
     // Test pro neexistující pravidlo
-    EXPECT_EXIT(LLtable_findRule((LLTerminals)-8, NT_ARG, &rule), ExitedWithCode(99), "");
-    EXPECT_EXIT(LLtable_findRule((LLTerminals)-1, NT_ARG, &rule), ExitedWithCode(99), "");
+    EXPECT_FALSE(LLtable_findRule((LLTerminals)-8, NT_PROGRAM, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
+    EXPECT_FALSE(LLtable_findRule((LLTerminals)-1, NT_SEQUENCE, &rule));
+    EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 /*** Konec souboru lltable_test.cpp ***/

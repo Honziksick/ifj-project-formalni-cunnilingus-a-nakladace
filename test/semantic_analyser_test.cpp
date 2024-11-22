@@ -51,18 +51,11 @@ void TestSemantic(bool print){
     if(print){
         
     }
-    exit(0);
-}
-
-void TestParser(){
-    LLparser_parseProgram();
-    exit(0);
 }
 
 std::string exam_path = "../ifj24_examples/ifj24_programs/";
 std::string sem_path = "../test/test_examples/semantic_examples/";
 
-extern AST_ProgramNode* ASTroot;
 
 TEST(Correct, Simplest){
     std::string path = sem_path + "simplest.zig";
@@ -71,8 +64,6 @@ TEST(Correct, Simplest){
     FILE* stdin_backup = stdin;
     stdin = f;
     
-    frameStack_init();
-
     // Syntaktická analýza programu
     LLparser_parseProgram();
 
@@ -99,11 +90,9 @@ TEST(Correct, Simplest){
 
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 
@@ -114,8 +103,6 @@ TEST(Correct, Hello){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
     // Syntaktická analýza programu
     LLparser_parseProgram();
 
@@ -124,11 +111,9 @@ TEST(Correct, Hello){
 
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Correct, Example1){
@@ -138,7 +123,6 @@ TEST(Correct, Example1){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
 
@@ -146,11 +130,9 @@ TEST(Correct, Example1){
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Correct, Example2){
@@ -160,17 +142,14 @@ TEST(Correct, Example2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Correct, Example3){
@@ -180,7 +159,6 @@ TEST(Correct, Example3){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
@@ -189,11 +167,9 @@ TEST(Correct, Example3){
     EXPECT_EXIT(TestSemantic(true), ExitedWithCode(0), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Correct, Fun){
@@ -203,17 +179,14 @@ TEST(Correct, Fun){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Correct, Implicit_to_float){
@@ -225,7 +198,6 @@ TEST(Correct, Implicit_to_float){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -235,11 +207,9 @@ TEST(Correct, Implicit_to_float){
 
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Correct, Implicit_to_int){
@@ -249,7 +219,6 @@ TEST(Correct, Implicit_to_int){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -258,11 +227,9 @@ TEST(Correct, Implicit_to_int){
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Correct, Pseudo){
@@ -272,7 +239,6 @@ TEST(Correct, Pseudo){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -281,11 +247,9 @@ TEST(Correct, Pseudo){
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Correct, Pseudo2){
@@ -295,7 +259,6 @@ TEST(Correct, Pseudo2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -304,11 +267,9 @@ TEST(Correct, Pseudo2){
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Correct, Inference){
@@ -318,7 +279,6 @@ TEST(Correct, Inference){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -327,11 +287,9 @@ TEST(Correct, Inference){
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 
@@ -342,18 +300,15 @@ TEST(Correct, Void_fun){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Correct, Void_fun2){
@@ -363,18 +318,15 @@ TEST(Correct, Void_fun2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 
@@ -385,15 +337,12 @@ TEST(Incorrect, Undefined_Var){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(3), "");
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(3), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Undefined_Fun){
@@ -403,18 +352,15 @@ TEST(Incorrect, Undefined_Fun){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(3), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 
@@ -425,17 +371,14 @@ TEST(Incorrect, ParamCount){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, ParamType){
@@ -445,17 +388,14 @@ TEST(Incorrect, ParamType){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Return){
@@ -465,17 +405,14 @@ TEST(Incorrect, Return){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Return2){
@@ -485,17 +422,14 @@ TEST(Incorrect, Return2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(6), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Return3){
@@ -505,17 +439,14 @@ TEST(Incorrect, Return3){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(6), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Redefined_Var){
@@ -525,15 +456,12 @@ TEST(Incorrect, Redefined_Var){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
     
-    EXPECT_EXIT(TestParser(), ExitedWithCode(5), "");
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(5), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Redefined_Fun){
@@ -543,15 +471,12 @@ TEST(Incorrect, Redefined_Fun){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(5), "");
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(5), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, ConstAssign){
@@ -561,17 +486,14 @@ TEST(Incorrect, ConstAssign){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(5), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, AssignType){
@@ -581,17 +503,14 @@ TEST(Incorrect, AssignType){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(7), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, AssignType2){
@@ -601,17 +520,13 @@ TEST(Incorrect, AssignType2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(7), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Unused_Var){
@@ -621,18 +536,15 @@ TEST(Incorrect, Unused_Var){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     LLparser_parseProgram();
 
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(9), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 
@@ -643,7 +555,6 @@ TEST(Incorrect, MainInt){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -652,11 +563,9 @@ TEST(Incorrect, MainInt){
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, NoMain){
@@ -666,7 +575,6 @@ TEST(Incorrect, NoMain){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -675,11 +583,9 @@ TEST(Incorrect, NoMain){
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(3), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Prolog){
@@ -688,10 +594,6 @@ TEST(Incorrect, Prolog){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-
     // Syntaktická analýza programu
     LLparser_parseProgram();
 
@@ -699,11 +601,9 @@ TEST(Incorrect, Prolog){
     EXPECT_EQ(ASTroot, nullptr);
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Prolog2){
@@ -712,10 +612,6 @@ TEST(Incorrect, Prolog2){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-
     // Syntaktická analýza programu
     LLparser_parseProgram();
 
@@ -723,11 +619,9 @@ TEST(Incorrect, Prolog2){
     EXPECT_EQ(ASTroot, nullptr);
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Inference){
@@ -736,20 +630,14 @@ TEST(Incorrect, Inference){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(8), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Inference2){
@@ -758,20 +646,14 @@ TEST(Incorrect, Inference2){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(8), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Unchanged_var){
@@ -780,20 +662,14 @@ TEST(Incorrect, Unchanged_var){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(9), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Unused_value){
@@ -802,20 +678,14 @@ TEST(Incorrect, Unused_value){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Unused_value2){
@@ -824,20 +694,14 @@ TEST(Incorrect, Unused_value2){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Void_fun){
@@ -846,20 +710,14 @@ TEST(Incorrect, Void_fun){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-
     LLparser_parseProgram();
     EXPECT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(false), ExitedWithCode(8), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
 TEST(Incorrect, Var_in_own_def){
@@ -869,13 +727,10 @@ TEST(Incorrect, Var_in_own_def){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(3), "");
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(3), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }

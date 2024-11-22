@@ -388,6 +388,9 @@ TEST(FrameStack, print){
     EXPECT_GT(n, 0);
 
     
+    // Uvolňuje AST
+    free(item->data);
+
     // Vše uvolníme
     frameStack_destroyAll();
     string_free(key1);

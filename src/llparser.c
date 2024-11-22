@@ -34,13 +34,22 @@
  *                                                                             *
  ******************************************************************************/
 
-AST_ProgramNode *LLparser_parseProgram() {
-    // Alokujeme kořen AST a zkontrolujeme úspěšnost alokace
+void LLparser_parseProgram() {
+    // Alokujeme kořen AST
     AST_initTree();
-
-    PrecStackList_create();
-
     if(ASTroot == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Alokujeme zásobník rámců
+    frameStack_init();
+    if(frameStack.bottom == NULL || frameStack.top == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Vytváříme zásobník precedenčním zásobníků
+    PrecStackList_create();
+    if(precStackList == NULL) {
         error_handle(ERROR_INTERNAL);
     }
 
@@ -56,10 +65,11 @@ AST_ProgramNode *LLparser_parseProgram() {
 
     // Pokud nebylo pravidlo nalazene, nastala syntaktická chyba
     if(!LLtable_findRule(currentToken.LLterminal, NT_PROGRAM, &rule)) {
-        AST_destroyTree();
-        PrecStackList_destroy();
+        if(currentToken.value !=  NULL) {
+            string_free(currentToken.value);
+        }
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-        return PARSING_SYNTAX_ERROR;
+        error_handle(ERROR_SYNTAX);
     }
 
     // Volba dalšího postupu parsování na základě LL pravidla
@@ -68,10 +78,11 @@ AST_ProgramNode *LLparser_parseProgram() {
         // Parsujeme <PROLOGUE>
         ASTroot->importedFile = LLparser_parsePrologue();
         if(ASTroot->importedFile == NULL) {
-            AST_destroyTree();
-            PrecStackList_destroy();
+            if(currentToken.value !=  NULL) {
+                string_free(currentToken.value);
+            }
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-            return PARSING_SYNTAX_ERROR;
+            error_handle(ERROR_SYNTAX);
         }
 
         // Žádáme o další token
@@ -82,33 +93,30 @@ AST_ProgramNode *LLparser_parseProgram() {
 
         // Jelikož <FUN_DEF_LIST> může být rozvinutou na ε, musíme kromě NULL zkontrolovat error flag
         if(funDefNode == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
-            AST_destroyTree();
-            PrecStackList_destroy();
+            if(currentToken.value !=  NULL) {
+                string_free(currentToken.value);
+            }
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-            return PARSING_SYNTAX_ERROR;
+            error_handle(ERROR_SYNTAX);
         }
         ASTroot->functionList = funDefNode;
 
         // Parsujeme `EOF`
         if(currentToken.LLterminal != T_EOF) {
-            AST_destroyTree();
-            PrecStackList_destroy();
+            if(currentToken.value !=  NULL) {
+                string_free(currentToken.value);
+            }
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-            return PARSING_SYNTAX_ERROR;
+            error_handle(ERROR_SYNTAX);
         }
     }
     // Pokud již dříve nebyla hlášena ERROR_SYNTAX, tak je tato větev ERROR_INTERNAL
     else {
-        AST_destroyTree();
-        PrecStackList_destroy();
-        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
-        return PARSING_SYNTAX_ERROR;
+        if(currentToken.value !=  NULL) {
+                string_free(currentToken.value);
+        }
+        error_handle(ERROR_INTERNAL);
     }
-
-    PrecStackList_destroy();
-
-    // Vracíme ukazatel na AST_ProgramNode
-    return ASTroot;
 }
 
 // <PROLOGUE> -> const ifj = @import ( "ifj24.zig" ) ;
