@@ -358,6 +358,7 @@ bool TAC_generateBinOp(AST_BinOpNode *binOp){
     TAC_Operand operandUsedLeft;
     TAC_Operand operandUsedRight;
 
+    // Pokude je levý operand literál
     if(leftOperand->exprType == AST_EXPR_LITERAL){
         // Switch na určení typu literálu
         switch (((AST_VarNode*)leftOperand->expression)->literalType){
@@ -384,6 +385,7 @@ bool TAC_generateBinOp(AST_BinOpNode *binOp){
         }
     }
 
+    // Pokud je pravý operand literál
     if(rightOperand->exprType == AST_EXPR_LITERAL){
         // Switch na určení typu literálu
         switch (((AST_VarNode*)rightOperand->expression)->literalType){
@@ -410,11 +412,13 @@ bool TAC_generateBinOp(AST_BinOpNode *binOp){
         }
     }
 
+    // Pokud je levý operand proměnná
     if(leftOperand->exprType == AST_EXPR_VARIABLE){
         operandUsedLeft.type = TAC_OPERAND_VAR;
         operandUsedLeft.value.varName = ((AST_VarNode *)leftOperand->expression)->identifier;
     }
 
+    // Pokud je pravý operand proměnná
     if(rightOperand->exprType == AST_EXPR_VARIABLE){
         operandUsedRight.type = TAC_OPERAND_VAR;
         operandUsedRight.value.varName = ((AST_VarNode *)rightOperand->expression)->identifier;
@@ -492,7 +496,7 @@ bool TAC_generateBinOp(AST_BinOpNode *binOp){
     }
 
     return true;
-}
+} // TAC_generateBinOp
 
 /**
  * @brief Generuje tříadresný kód pro výrazy.
@@ -532,7 +536,7 @@ bool TAC_generateStatement(AST_StatementNode *statement){
         default: break;
     }
     return true;
-}
+} // TAC_generateStatement
 
 /**
  * @brief Uvolní operand.
