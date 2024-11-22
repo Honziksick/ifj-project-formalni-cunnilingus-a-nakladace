@@ -1800,9 +1800,9 @@ TEST(LLParserExamples, Multiline){
     stdin = stdin_backup;
     fclose(f);
 }
-/*
+
 TEST(ParserSyntaxError, Prologue) {
-    for (int i = 1; i <= 2; i++) {
+    for (int i = 1; i <= 12; i++) {
         string filename = "error_prologue_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
         string path = error_path + filename;
         
@@ -1812,11 +1812,8 @@ TEST(ParserSyntaxError, Prologue) {
         FILE* stdin_backup = stdin;
         stdin = f;
         
-        // Inicializace zásobníku rámců
-        frameStack_init();
-        
         // Syntaktická analýza programu
-        LLparser_parseProgram();
+        EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
         
         // Očekáváme, že ASTroot bude nullptr, protože kód obsahuje syntaktickou chybu
         ASSERT_EQ(ASTroot, nullptr) << "Syntax error undetected in file: " << filename << endl;
@@ -1831,7 +1828,7 @@ TEST(ParserSyntaxError, Prologue) {
         fclose(f);
     }
 }
-
+/*
 TEST(ParserSyntaxError, FunctionDefinition) {
     for (int i = 1; i <= 21; i++) {
         string filename = "error_fun_def_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
@@ -1842,12 +1839,9 @@ TEST(ParserSyntaxError, FunctionDefinition) {
         
         FILE* stdin_backup = stdin;
         stdin = f;
-        
-        // Inicializace zásobníku rámců
-        frameStack_init();
-        
+
         // Syntaktická analýza programu
-        LLparser_parseProgram();
+        EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
         
         // Očekáváme, že ASTroot bude nullptr, protože kód obsahuje syntaktickou chybu
         ASSERT_EQ(ASTroot, nullptr) << COLOR_PINK << "Syntax error undetected in file: " << COLOR_RESET << filename;
