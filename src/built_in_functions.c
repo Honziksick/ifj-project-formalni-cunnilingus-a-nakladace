@@ -28,7 +28,7 @@
 //Ještě chybí dodělat 4 funkce
 void built_in_functions() {
     char functions[] = "\n\
-        #DONE_COUNT_9/13\n\
+        #DONE_COUNT_10/13\n\
         #readstr-DONE\n\
         #readint-DONE\n\
         #readfloat-DONE\n\
@@ -41,7 +41,7 @@ void built_in_functions() {
         #substring\n\
         #strcmp\n\
         #ord\n\
-        #chr\n\
+        #chr-DONE\n\
         \n\
         \n\
         \n\
@@ -166,6 +166,16 @@ void built_in_functions() {
         #pub fn ifj.ord(𝑠: []u8, i: i32) i32\n\
         #---------------------------\n\
         #pub fn ifj.chr(i: i32) []u8\n\
+        LABEL chr\n\
+        PUSHFRAME\n\
+        \n\
+        DEFVAR LF@$x\n\
+        INT2CHAR LF@$x LF@$i\n\
+        PUSHS LF@$x\n\
+        \n\
+        POPFRAME\n\
+        RETURN\n\
+        \n\
     ";
     printf("%s", functions);
 }
