@@ -678,7 +678,7 @@ TEST(Incorrect, Prolog2){
 
 
     // Syntaktická analýza programu
-    LLparser_parseProgram();
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(3), "");
 
     // Kořen je inicializován
     EXPECT_EQ(ASTroot, nullptr);
