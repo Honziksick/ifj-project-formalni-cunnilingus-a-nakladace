@@ -366,7 +366,12 @@ void PrecStack_freeNode(PrecStackNode *node) {
 
     // Uvolnění uzlu AST spojeného s terminálem nebo neterminálem
     if(node->node != NULL) {
-        AST_destroyNode(node->nodeType, node->node);
+        if(node->symbol == PREC_STACK_SYM_ARG_LIST) {
+            AST_destroyArgOrParamList(node->node);
+        }
+        else {
+            AST_destroyNode(node->nodeType, node->node);
+        }
     }
 
     // Uvolnění samotného uzlu "PrecStackNode"

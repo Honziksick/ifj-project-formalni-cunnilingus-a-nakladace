@@ -181,7 +181,7 @@ AST_DataType LLparser_parsePossibleType();
  * @return Ukazatel na uzel příkazu (AST_StatementNode) při úspěšném parsování,
  *         jinak `NULL`.
  */
-AST_StatementNode *LLparser_parseStatementRest(DString *identifier);
+AST_StatementNode *LLparser_parseStatementRest(DString **identifier);
 
 /**
  * @brief Parsuje neterminál `<THROW_AWAY>`.

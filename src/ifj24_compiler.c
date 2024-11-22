@@ -37,7 +37,7 @@ int main() {
         TAC_generateProgramCodeBegin(ASTroot);
 
         // Projdeme všechny funkce a vygenerujeme kód pro každou z nich
-        AST_FunDefNode *current = ASTroot->functionList; // Use a separate pointer for iteration
+        AST_FunDefNode *current = ASTroot->functionList;
         while(current != NULL){
 
             TAC_generateFunctionDefinitionBegin(current);
@@ -50,7 +50,6 @@ int main() {
 
         TAC_printInstructionList();
     }
-
 
     IFJ24Compiler_freeAllAllocatedMemory();
 
