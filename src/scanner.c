@@ -6,7 +6,7 @@
  * Autor:            Hýža Pavel         <xhyzapa00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   15.11.2024                                                *
+ * Poslední změna:   22.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -52,7 +52,7 @@ CharType scanner_charIdentity(int c) {
     }
     else if(c == '#' || c == '$' || c == '%' || 
             c == '&' || c == 39  || c == '^' ||
-            c == '`' || c == '~' || c == 127) { //Znak, co není v jazyce povolen (39 = ' , 127 = DEL)
+            c == '`' || c == '~' || c >= 127) { //Znak, co není v jazyce povolen (39 = ' , 127 = DEL)
         return NOT_IN_LANGUAGE;     //c je znak, kerý nepatří do jazyka (NIL)
     }
     else if(c == '(' || c == ')' || c == '*' ||
@@ -638,6 +638,7 @@ Token scanner_FSM() {
                     case CHAR_EOF:
                         scanner_ungetChar(c);
                         state = STATE0_START;
+                        break;
                     default:    //LETTER + NUMBER + NOT_IN_LANGUAGE + SIMPLE + COMPLEX
                         break;
                 }
