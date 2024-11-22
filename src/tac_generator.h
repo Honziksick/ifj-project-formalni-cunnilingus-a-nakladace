@@ -32,6 +32,7 @@
 #include <stdbool.h>
 #include "ast_nodes.h"
 #include "ast_interface.h"
+#include "frame_stack.h"
 #include "error.h"
 
 /*******************************************************************************
