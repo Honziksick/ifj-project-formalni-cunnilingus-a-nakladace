@@ -72,6 +72,7 @@ zig-out/
 
 # Build system
 **/build/*
+**/ifj24_compiler
 **/build_test/*
 **/build_coverage/*
 

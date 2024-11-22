@@ -86,6 +86,12 @@ DollarTerminals currentDollar = CURRENT_DOLLAR_UNDEFINED;
  * @brief Najde pravidlo v precedenční tabulce na základě terminálů.
  */
 void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, Precedence *precedence) {
+    if(inputTerminal == T_PREC_UNDEFINED) {
+        *precedence = P_SYNTAX_ERROR;
+        return;
+    }
+
+
     // Nastavení indexů pro binární vyhledávání
     int left = 0;
     int right = PREC_TERMINAL_COUNT - 1;

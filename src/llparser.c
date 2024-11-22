@@ -262,7 +262,7 @@ AST_FunDefNode *LLparser_parseFunDefList() {
             AST_FunDefNode *funDef = LLparser_parseFunDef();
 
             // Kontrola úspěchu parsování <FUN_DEF>
-            if(funDef == NULL) {
+            if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
                 Parser_watchSyntaxError(SET_SYNTAX_ERROR);
                 return PARSING_SYNTAX_ERROR;
             }
@@ -389,6 +389,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
         if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
             error_handle(ERROR_INTERNAL);
         }
+        Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
     }
 
@@ -396,7 +397,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
     AST_StatementNode *sequence = LLparser_parseSequence(false);
 
     // Kontrola úspěchu parsování <SEQUENCE>
-    if(sequence == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
+    if(Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
         string_free(functionName);
         AST_destroyArgOrParamList(parameters);
         AST_destroyStatementList(sequence);

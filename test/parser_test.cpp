@@ -47,7 +47,7 @@ using namespace internal;
 // Definice názvu specifického testu, pro který se má provádět tisk
 // Pokud není definováno, tisk se provádí pro všechny testy
 #define SPECIFIC_TEST_NAME "CorrectReturn"
-//#define DISABLE_PRINT
+#define DISABLE_PRINT
 
 #ifndef DISABLE_PRINT
 #ifdef SPECIFIC_TEST_NAME
@@ -1822,13 +1822,12 @@ TEST(ParserSyntaxError, Prologue) {
         // Uvolnění alokovaných zdrojů
         IFJ24Compiler_freeAllAllocatedMemory();
 
-        
         // Navrácení STDIN do původního stavu a uzavření souboru
         stdin = stdin_backup;
         fclose(f);
     }
 }
-/*
+
 TEST(ParserSyntaxError, FunctionDefinition) {
     for (int i = 1; i <= 21; i++) {
         string filename = "error_fun_def_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
@@ -1844,11 +1843,11 @@ TEST(ParserSyntaxError, FunctionDefinition) {
         EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
         
         // Očekáváme, že ASTroot bude nullptr, protože kód obsahuje syntaktickou chybu
-        ASSERT_EQ(ASTroot, nullptr) << COLOR_PINK << "Syntax error undetected in file: " << COLOR_RESET << filename;
+        ASSERT_EQ(ASTroot, nullptr) << "Syntax error undetected in file: " << filename << endl;
+        cerr << COLOR_PINK << "OK: " << COLOR_RESET << filename << endl << endl;
         
         // Uvolnění alokovaných zdrojů
-        frameStack_destroyAll();
-        AST_destroyTree();
+        IFJ24Compiler_freeAllAllocatedMemory();
         
         // Navrácení STDIN do původního stavu a uzavření souboru
         stdin = stdin_backup;
@@ -1867,24 +1866,21 @@ TEST(ParserSyntaxError, Statements) {
         FILE* stdin_backup = stdin;
         stdin = f;
         
-        // Inicializace zásobníku rámců
-        frameStack_init();
-        
         // Syntaktická analýza programu
-        LLparser_parseProgram();
+        EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
         
         // Očekáváme, že ASTroot bude nullptr, protože kód obsahuje syntaktickou chybu
-        ASSERT_EQ(ASTroot, nullptr) << COLOR_PINK << "Syntax error undetected in file: " << COLOR_RESET << filename;
+        ASSERT_EQ(ASTroot, nullptr) << "Syntax error undetected in file: " << filename << endl;
+        cerr << COLOR_PINK << "OK: " << COLOR_RESET << filename << endl << endl;
         
         // Uvolnění alokovaných zdrojů
-        frameStack_destroyAll();
-        AST_destroyTree();
-        
+        IFJ24Compiler_freeAllAllocatedMemory();
+
         // Navrácení STDIN do původního stavu a uzavření souboru
         stdin = stdin_backup;
         fclose(f);
     }
 }
-*/
+
 
 /*** Konec souboru parser_test.cpp ***/

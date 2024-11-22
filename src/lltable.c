@@ -96,6 +96,11 @@ bool LLtable_findRule(LLTerminals tokenType, LLNonTerminals nonTerminal, LLRuleS
         error_handle(ERROR_INTERNAL);
     }
 
+    if(nonTerminal == NT_UNDEFINED) {
+        *rule = SYNTAX_ERROR;
+        return false;
+    }
+
     // Nastavení indexů pro binární vyhledávání
     int left = 0;
     int right = LL_TERMINAL_COUNT - 1;
