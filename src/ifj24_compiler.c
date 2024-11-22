@@ -33,7 +33,23 @@ int main() {
     LLparser_parseProgram();
     if(ASTroot != NULL) {
         semantic_analyseProgram();
+        TAC_generateProgramCodeBegin(ASTroot);
+
+        // Projdeme všechny funkce a vygenerujeme kód pro každou z nich
+        AST_FunDefNode *current = ASTroot->functionList; // Use a separate pointer for iteration
+        while(current != NULL){
+
+            TAC_generateFunctionDefinitionBegin(current);
+
+            current = current->next;
+        }
+
+        TAC_generateFunctionDefinitionEnd();
+        TAC_generateProgramCodeEnd();
+
+        TAC_printInstructionList();
     }
+
 
     IFJ24Compiler_freeAllAllocatedMemory();
 
