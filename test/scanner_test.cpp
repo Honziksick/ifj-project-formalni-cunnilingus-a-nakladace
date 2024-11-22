@@ -7,7 +7,7 @@
  *                   Krejčí David       <xhyzapa00>                            *
  *                                                                             *
  * Datum:            9.10.2024                                                 *
- * Poslední změna:   11.11.2024                                                *
+ * Poslední změna:   22.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -196,7 +196,7 @@ TEST(Identity, Not_In_Language) {
     // Znak ~ není v IFJ24 definován
     EXPECT_EQ(scanner_charIdentity('~'), NOT_IN_LANGUAGE);
     EXPECT_EQ(scanner_charIdentity('#'), NOT_IN_LANGUAGE);
-    EXPECT_EQ(scanner_charIdentity('%'), NOT_IN_LANGUAGE);
+    EXPECT_EQ(scanner_charIdentity(200), NOT_IN_LANGUAGE);
 }
 
 TEST(Identity, eof) {
@@ -207,7 +207,7 @@ TEST(Identity, error) {
     // Unprintable znaky v ASCII nebo znaky mimo základní tabulku
     EXPECT_EXIT(scanner_charIdentity(0), ExitedWithCode(1), "");
     EXPECT_EXIT(scanner_charIdentity(16), ExitedWithCode(1), "");
-    EXPECT_EXIT(scanner_charIdentity(200), ExitedWithCode(1), "");
+    EXPECT_EXIT(scanner_charIdentity(17), ExitedWithCode(1), "");
 }
 
 
@@ -1720,6 +1720,67 @@ TEST(Lex, lex_test_string_escapes){
     stdin = stdin_backup;
     fclose(f);
 
+}
+
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_comment.zig
+ */
+TEST(Lex, Comment) {
+    std::string path = lex_path + "lex_test_comment.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // Your corrected expected tokens
+        TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,
+        TOKEN_INT, TOKEN_SEMICOLON,
+        TOKEN_EOF
+    };
+
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
+        long int current_pos = ftell(stdin);
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
+            exit(0);
+        } else {
+            // Parent process waits for the child
+            int status;
+            waitpid(pid, &status, 0);
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Print the remaining input
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+
+                FAIL();
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
 }
 
 /**

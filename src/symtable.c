@@ -253,17 +253,18 @@ void symtable_deleteAll(Symtable *table, bool keep_data) {
         if(item.symbol_state != SYMTABLE_SYMBOL_EMPTY &&
            item.symbol_state != SYMTABLE_SYMBOL_DEAD) {
 
-            // Uvolníme klíč a data pokud existují
-            if(item.key != NULL){
-                string_free(item.key);
-                item.key = NULL;
-            }
+            // Uvolníme data
             if(keep_data == false && item.data != NULL){
                 // Pokud je položka funkce, uvolníme i její parametry
                 if(item.symbol_state == SYMTABLE_SYMBOL_FUNCTION){
                     SymtableFunctionData *data = (SymtableFunctionData *)item.data;
-                    for(size_t j = 0; j < data->param_count; j++){
-                        //string_free(data->params[j].id); change by Honziksick
+                    // Pokud je funkce vestavěná, tak uvolníme stringy
+                    if(item.key->length > 4){
+                        if(memcmp(item.key->str, "ifj.", 4) == 0){
+                            for(size_t j = 0; j < data->param_count; j++){
+                                string_free(data->params[j].id);
+                            }
+                        }
                     }
                     free(data->params);
                     free(item.data);
@@ -272,7 +273,7 @@ void symtable_deleteAll(Symtable *table, bool keep_data) {
                 // Pokud je položka string, uvolníme jako string
                 if(item.symbol_state == SYMTABLE_SYMBOL_VARIABLE_STRING ||
                    item.symbol_state == SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL){
-                    //string_free(item.data); change by Honziksick
+                    
                     item.data = NULL;
                 }
                 // Jinak jen uvolníme data
@@ -281,6 +282,13 @@ void symtable_deleteAll(Symtable *table, bool keep_data) {
                     item.data = NULL;
                 }
             }
+
+            // Uvolníme klíč
+            if(item.key != NULL){
+                string_free(item.key);
+                item.key = NULL;
+            }
+
             item.symbol_state = SYMTABLE_SYMBOL_DEAD;
         }
     }

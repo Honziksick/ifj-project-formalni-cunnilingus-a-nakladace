@@ -421,11 +421,12 @@ void frameStack_addEmbeddedFunctions(){
 
     // Funkce pro výpis hodnoty
     // Neuložíme skutečná data, protože bere jakýkoliv typ = speciální případ
-    data = symtable_init_function_data(0);
+    data = symtable_init_function_data(1);
     if(data == NULL){
         return;
     }
     data->return_type = SYMTABLE_TYPE_VOID;
+    data->params[0].id = string_charToDString("term");
     if(frameStack_addFunction("ifj.write", data) != FRAME_STACK_SUCCESS){
         error_handle(ERROR_INTERNAL);
     }
@@ -437,6 +438,7 @@ void frameStack_addEmbeddedFunctions(){
     }
     data->return_type = SYMTABLE_TYPE_DOUBLE;
     data->params[0].type = SYMTABLE_TYPE_INT;
+    data->params[0].id = string_charToDString("term");
     if(frameStack_addFunction("ifj.i2f", data) != FRAME_STACK_SUCCESS){
         error_handle(ERROR_INTERNAL);
     }
@@ -447,17 +449,19 @@ void frameStack_addEmbeddedFunctions(){
     }
     data->return_type = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_DOUBLE;
+    data->params[0].id = string_charToDString("term");
     if(frameStack_addFunction("ifj.f2i", data) != FRAME_STACK_SUCCESS){
         error_handle(ERROR_INTERNAL);
     }
 
     // Funkce pro práci s řezy
     // Neuložíme skutečná data, protože bere 2 typy = speciální případ
-    data = symtable_init_function_data(0);
+    data = symtable_init_function_data(1);
     if(data == NULL){
         return;
     }
     data->return_type = SYMTABLE_TYPE_STRING;
+    data->params[0].id = string_charToDString("term");
     if(frameStack_addFunction("ifj.string", data) != FRAME_STACK_SUCCESS){
         error_handle(ERROR_INTERNAL);
     }
@@ -468,6 +472,7 @@ void frameStack_addEmbeddedFunctions(){
     }
     data->return_type = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_STRING;
+    data->params[0].id = string_charToDString("s");
     if(frameStack_addFunction("ifj.length", data) != FRAME_STACK_SUCCESS){
         error_handle(ERROR_INTERNAL);
     }
@@ -478,7 +483,9 @@ void frameStack_addEmbeddedFunctions(){
     }
     data->return_type = SYMTABLE_TYPE_STRING;
     data->params[0].type = SYMTABLE_TYPE_STRING;
+    data->params[0].id = string_charToDString("s1");
     data->params[1].type = SYMTABLE_TYPE_STRING;
+    data->params[1].id = string_charToDString("s2");
     if(frameStack_addFunction("ifj.concat", data) != FRAME_STACK_SUCCESS){
         error_handle(ERROR_INTERNAL);
     }
@@ -489,8 +496,11 @@ void frameStack_addEmbeddedFunctions(){
     }
     data->return_type = SYMTABLE_TYPE_STRING_OR_NULL;
     data->params[0].type = SYMTABLE_TYPE_STRING;
+    data->params[0].id = string_charToDString("s");
     data->params[1].type = SYMTABLE_TYPE_INT;
+    data->params[1].id = string_charToDString("i");
     data->params[2].type = SYMTABLE_TYPE_INT;
+    data->params[2].id = string_charToDString("j");
     if(frameStack_addFunction("ifj.substring", data) != FRAME_STACK_SUCCESS){
         error_handle(ERROR_INTERNAL);
     }
@@ -501,7 +511,9 @@ void frameStack_addEmbeddedFunctions(){
     }
     data->return_type = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_STRING;
+    data->params[0].id = string_charToDString("s1");
     data->params[1].type = SYMTABLE_TYPE_STRING;
+    data->params[1].id = string_charToDString("s2");
     if(frameStack_addFunction("ifj.strcmp", data) != FRAME_STACK_SUCCESS){
         error_handle(ERROR_INTERNAL);
     }
@@ -512,7 +524,9 @@ void frameStack_addEmbeddedFunctions(){
     }
     data->return_type = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_STRING;
+    data->params[0].id = string_charToDString("s");
     data->params[1].type = SYMTABLE_TYPE_INT;
+    data->params[1].id = string_charToDString("i");
     if(frameStack_addFunction("ifj.ord", data) != FRAME_STACK_SUCCESS){
         error_handle(ERROR_INTERNAL);
     }
@@ -523,6 +537,7 @@ void frameStack_addEmbeddedFunctions(){
     }
     data->return_type = SYMTABLE_TYPE_STRING;
     data->params[0].type = SYMTABLE_TYPE_INT;
+    data->params[0].id = string_charToDString("i");
     if(frameStack_addFunction("ifj.chr", data) != FRAME_STACK_SUCCESS){
         error_handle(ERROR_INTERNAL);
     }
