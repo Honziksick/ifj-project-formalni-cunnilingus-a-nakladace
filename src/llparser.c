@@ -67,6 +67,7 @@ void LLparser_parseProgram() {
     if(!LLtable_findRule(currentToken.LLterminal, NT_PROGRAM, &rule)) {
         if(currentToken.value !=  NULL) {
             string_free(currentToken.value);
+            currentToken.value = NULL;
         }
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         error_handle(ERROR_SYNTAX);
@@ -80,6 +81,7 @@ void LLparser_parseProgram() {
         if(ASTroot->importedFile == NULL) {
             if(currentToken.value !=  NULL) {
                 string_free(currentToken.value);
+                currentToken.value = NULL;
             }
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
             error_handle(ERROR_SYNTAX);
@@ -95,6 +97,7 @@ void LLparser_parseProgram() {
         if(funDefNode == NULL && Parser_watchSyntaxError(IS_SYNTAX_ERROR)) {
             if(currentToken.value !=  NULL) {
                 string_free(currentToken.value);
+                currentToken.value = NULL;
             }
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
             error_handle(ERROR_SYNTAX);
@@ -105,6 +108,7 @@ void LLparser_parseProgram() {
         if(currentToken.LLterminal != T_EOF) {
             if(currentToken.value !=  NULL) {
                 string_free(currentToken.value);
+                currentToken.value = NULL;
             }
             Parser_watchSyntaxError(SET_SYNTAX_ERROR);
             error_handle(ERROR_SYNTAX);
@@ -114,6 +118,7 @@ void LLparser_parseProgram() {
     else {
         if(currentToken.value !=  NULL) {
                 string_free(currentToken.value);
+                currentToken.value = NULL;
         }
         error_handle(ERROR_INTERNAL);
     }
@@ -186,6 +191,7 @@ AST_VarNode *LLparser_parsePrologue() {
     if(string_compare_const_str(currentToken.value, "ifj24.zig") != STRING_EQUAL) {
         string_free(importVar);
         string_free(currentToken.value);
+        currentToken.value = NULL;
         Parser_watchSyntaxError(SET_SYNTAX_ERROR);
         return PARSING_SYNTAX_ERROR;
     }
