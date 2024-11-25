@@ -6,7 +6,7 @@
  * Autor:            Lukáš Farkašovský   <xfarkal00>                           *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   15.11.2024                                                *
+ * Poslední změna:   25.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -24,24 +24,6 @@
  */
 
 #include "tac_generator.h"
-#include "error.h"
-
-TAC_InstructionList *tacList = NULL; // Globální proměnná pro seznam instrukcí
-
-/**
- * @brief Inicializuje nový prázdný seznam tříadresných instrukcí.
- */
-inline void TAC_createInstructionList(){
-    // Alokace paměti pro seznam instrukcí
-    tacList = (TAC_InstructionList *)malloc(sizeof(struct TAC_InstructionList));
-    if (tacList == NULL){
-        error_handle(ERROR_INTERNAL);
-    }
-
-    // Inicializace seznamu
-    tacList->head = NULL;
-    tacList->tail = NULL;
-}
 
 /**
  * @brief Vytvoří a inicializuje novou tříadresnou instrukci na základní hodnoty.
@@ -65,11 +47,11 @@ TAC_Instruction *TAC_initInstruction(){
 /**
  * @brief Vytvoří novou tříadresnou instrukci.
  */
-TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_Operand src1, TAC_Operand src2){
+void TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_Operand src1, TAC_Operand src2){
     // Alokace paměti a inicializace pro novou instrukci
     TAC_Instruction *instr = TAC_initInstruction();
     if(instr == NULL){
-        return NULL;
+        error_handle(ERROR_INTERNAL);
     }
 
     instr->op = op;
@@ -90,7 +72,9 @@ TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_O
             instr->src1 = src1;
             instr->src2 = src2;
             instr->dest = dest;
-            return instr;
+            TAC_printInstruction(instr);
+            TAC_destroyInstruction(instr);
+            break;
 
         case TAC_OP_ASSIGN:
         case TAC_OP_READ:
@@ -98,7 +82,9 @@ TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_O
         case TAC_OP_NOT:
             instr->src1 = src1;
             instr->dest = dest;
-            return instr;
+            TAC_printInstruction(instr);
+            TAC_destroyInstruction(instr);
+            break;
 
         case TAC_OP_PARAM:
         case TAC_OP_CALL:
@@ -108,30 +94,15 @@ TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_O
         case TAC_OP_WRITE:
         case TAC_OP_DEFVAR:
             instr->dest = dest;
-            return instr;
+            TAC_printInstruction(instr);
+            TAC_destroyInstruction(instr);
+            break;
 
         default:
-            return instr;
+            break;
     }
+    free(instr);
 } // TAC_createInstruction
-
-/**
- * @brief Přidá instrukci na konec seznamu instrukcí.
- */
-void TAC_appendInstruction(TAC_Instruction *instr){
-    // Přidání první instrukce do seznamu
-    if(tacList->head == NULL){
-        tacList->head = instr;
-        tacList->tail = instr;
-    }
-    // Přidání dalších instrukcí na konec seznamu
-    else{
-        tacList->tail->next = instr;
-        tacList->tail = instr;
-        // Konec ukazuje na NULL
-        tacList->tail->next = NULL;
-    }
-} // TAC_appendInstruction
 
 /**
  * @brief Vytiskne operand tříadresného kódu.
@@ -162,7 +133,7 @@ void TAC_printOperand(TAC_Operand *operand){
 
         switch (operand->type){
             case TAC_OPERAND_INT: printf("int@%d", operand->value.intValue); break;
-            case TAC_OPERAND_FLOAT: printf("float@%a", operand->value.floatValue); break;
+            case TAC_OPERAND_FLOAT: printf("float@%lf", operand->value.floatValue); break;
             case TAC_OPERAND_NIL: printf("nil@nil"); break;
             default: break;
         }
@@ -224,6 +195,7 @@ void TAC_printInstruction(TAC_Instruction *instr){
             TAC_printOperand(&(instr->src1));
             printf(" ");
             TAC_printOperand(&(instr->src2));
+            printf("\n");
             return;
 
         // dest
@@ -234,6 +206,7 @@ void TAC_printInstruction(TAC_Instruction *instr){
         case TAC_OP_CALL:
         case TAC_OP_LABEL:
             TAC_printOperand(&(instr->dest));
+            printf("\n");
             return;
 
         // dest, src1
@@ -243,6 +216,7 @@ void TAC_printInstruction(TAC_Instruction *instr){
             TAC_printOperand(&(instr->dest));
             printf(" ");
             TAC_printOperand(&(instr->src1));
+            printf("\n");
             return;
 
         // Pokud instrukce nepotřebuje žádný operand
@@ -252,59 +226,27 @@ void TAC_printInstruction(TAC_Instruction *instr){
 }// TAC_printInstruction
 
 /**
- * @brief Vytiskne všechny instrukce v seznamu tříadresného kódu.
- */
-void TAC_printInstructionList(){
-    // Pokud je seznam prázdný, nemáme co tisknout
-    if(tacList->head == NULL){
-        return;
-    }
-
-    // Postupné tisknutí instrukcí od hlavičky
-    TAC_Instruction *current = tacList->head;
-
-    // Dokud máme, co tisknout
-    while(current != NULL){
-        TAC_printInstruction(current);
-        printf("\n");
-        current = current->next;
-    }
-} // TAC_printInstructionList
-
-/**
  * @brief Vytvoří označení pro začátek programu.
  */
 bool TAC_generateProgramCodeBegin(AST_ProgramNode *programNode){
-    // Vytvoření instrukce pro hlavní funkci
-    TAC_Instruction *instr;
-
     // Globální proměnné pro práci s operacemi, které ukládají výsledek do proměnné
     // ?tempDEST, ?tempSRC1, ?tempSRC2 --> používá se ? pro zamezení kolize s názvy proměnných
-    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_GLOBAL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_GLOBAL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("?tempSRC2"), .type = TAC_OPERAND_GLOBAL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
+    TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_GLOBAL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_GLOBAL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("?tempSRC2"), .type = TAC_OPERAND_GLOBAL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
 
     // Vytvoření rámce pro tělo programu
-    instr = TAC_createInstruction(TAC_OP_LABEL, (TAC_Operand){.value.labelName = string_charToDString(programNode->importedFile->identifier->str), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_CREATEFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_PUSHFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
+    TAC_createInstruction(TAC_OP_LABEL, (TAC_Operand){.value.labelName = string_charToDString(programNode->importedFile->identifier->str), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_createInstruction(TAC_OP_CREATEFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_createInstruction(TAC_OP_PUSHFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
     return true;
 } // TAC_generateProgramCode
 
 bool TAC_generateProgramCodeEnd(){
-    TAC_Instruction *instr;
     // Přesun rámce ze zásobníku do globálního rámce
-    instr = TAC_createInstruction(TAC_OP_POPFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
+    TAC_createInstruction(TAC_OP_POPFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
     // Vyčistíme zásobník rámců
-    instr = TAC_createInstruction(TAC_OP_CLEARS, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
+    TAC_createInstruction(TAC_OP_CLEARS, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
     return true;
 } // TAC_generateProgramCode
 
@@ -312,12 +254,8 @@ bool TAC_generateProgramCodeEnd(){
  * @brief Generuje kód pro začátek definice funkce.
  */
 bool TAC_generateFunctionDefinitionBegin(AST_FunDefNode *funDefNode){
-    TAC_Instruction *instr;
-    // Label funkce
-    instr = TAC_createInstruction(TAC_OP_LABEL, (TAC_Operand){.value.labelName = string_charToDString(funDefNode->identifier->str), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_CREATEFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
+    TAC_createInstruction(TAC_OP_LABEL, (TAC_Operand){.value.labelName = string_charToDString(funDefNode->identifier->str), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_createInstruction(TAC_OP_CREATEFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
     return true;
 } // TAC_generateFunctionDefinitionBegin
 
@@ -325,13 +263,9 @@ bool TAC_generateFunctionDefinitionBegin(AST_FunDefNode *funDefNode){
  * @brief Generuje kód pro konec definice funkce.
  */
 bool TAC_generateFunctionDefinitionEnd(){
-    TAC_Instruction *instr;
-
-    instr = TAC_createInstruction(TAC_OP_POPFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
+    TAC_createInstruction(TAC_OP_POPFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
     // Návrat do místa, kde bylo zavoláno call
-    instr = TAC_createInstruction(TAC_OP_RETURN, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
+    TAC_createInstruction(TAC_OP_RETURN, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
     return true;
 } // TAC_generateFunctionDefinitionEnd
 
@@ -339,7 +273,6 @@ bool TAC_generateFunctionDefinitionEnd(){
  * @brief Generuje tříadresný kód pro binární operace.
  */
 bool TAC_generateBinOp(AST_BinOpNode *binOp){
-    TAC_Instruction *instr;
     AST_ExprNode *leftOperand = binOp->left;
     AST_ExprNode *rightOperand = binOp->right;
 
@@ -428,68 +361,52 @@ bool TAC_generateBinOp(AST_BinOpNode *binOp){
     // ?tempDEST ==> globální proměnnám, do které ukládáme výsledek operací
     switch (binOp->op){
         case AST_OP_ADD:
-            instr = TAC_createInstruction(TAC_OP_ADD, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_ADD, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
             break;
 
         case AST_OP_SUBTRACT:
-            instr = TAC_createInstruction(TAC_OP_SUB, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_SUB, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
             break;
 
         case AST_OP_MULTIPLY:
-            instr = TAC_createInstruction(TAC_OP_MUL, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_MUL, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
             break;
 
         case AST_OP_DIVIDE:
-            instr = TAC_createInstruction(TAC_OP_DIV, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_DIV, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
             break;
 
         case AST_OP_ASSIGNMENT:
-            instr = TAC_createInstruction(TAC_OP_ASSIGN, operandUsedLeft, operandUsedRight, (TAC_Operand){.type = TAC_OPERAND_NONE});
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_ASSIGN, operandUsedLeft, operandUsedRight, (TAC_Operand){.type = TAC_OPERAND_NONE});
             break;
 
         case AST_OP_EQUAL:
-            instr = TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
             break;
 
         case AST_OP_NOT_EQUAL:
-            instr = TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            instr = TAC_createInstruction(TAC_OP_NOT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
+            TAC_createInstruction(TAC_OP_NOT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.type = TAC_OPERAND_NONE});
             break;
 
         case AST_OP_GREATER_THAN:
-            instr = TAC_createInstruction(TAC_OP_IF_GT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_IF_GT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
             break;
 
         case AST_OP_LESS_THAN:
-            instr = TAC_createInstruction(TAC_OP_IF_LT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_IF_LT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
             break;
 
         case AST_OP_GREATER_EQUAL:
-            instr = TAC_createInstruction(TAC_OP_IF_GT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            instr = TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            instr = TAC_createInstruction(TAC_OP_OR, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_TEMP});
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_IF_GT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
+            TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
+            TAC_createInstruction(TAC_OP_OR, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_TEMP});
             break;
 
         case AST_OP_LESS_EQUAL:
-            instr = TAC_createInstruction(TAC_OP_IF_LT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            instr = TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            instr = TAC_createInstruction(TAC_OP_OR, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_TEMP});
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_IF_LT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
+            TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
+            TAC_createInstruction(TAC_OP_OR, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_TEMP});
             break;
 
         default: break;
@@ -502,7 +419,6 @@ bool TAC_generateBinOp(AST_BinOpNode *binOp){
  * @brief Generuje tříadresný kód pro výrazy.
  */
 bool TAC_generateExpression(AST_ExprNode *exprNode){
-    TAC_Instruction *instr;
     // Přidělení binárního operátoru z výrazu
     AST_BinOpNode *binOp = (AST_BinOpNode *)exprNode->expression;
 
@@ -512,8 +428,7 @@ bool TAC_generateExpression(AST_ExprNode *exprNode){
             break;
 
         case AST_EXPR_FUN_CALL:
-            instr = TAC_createInstruction(TAC_OP_CALL, (TAC_Operand){.value.labelName = string_charToDString(((AST_VarNode *)exprNode->expression)->identifier->str), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_CALL, (TAC_Operand){.value.labelName = string_charToDString(((AST_VarNode *)exprNode->expression)->identifier->str), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
             break;
 
         default: break;
@@ -525,12 +440,10 @@ bool TAC_generateExpression(AST_ExprNode *exprNode){
  * @brief Generuje tříadresný kód pro příkazy.
  */
 bool TAC_generateStatement(AST_StatementNode *statement){
-    TAC_Instruction *instr;
 
     switch (statement->statementType){
         case AST_STATEMENT_VAR_DEF:
-            instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString(((AST_VarNode *)statement->statement)->identifier->str), .type = TAC_OPERAND_VAR}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-            TAC_appendInstruction(instr);
+            TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString(((AST_VarNode *)statement->statement)->identifier->str), .type = TAC_OPERAND_VAR}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
             break;
 
         default: break;
@@ -612,77 +525,34 @@ void TAC_destroyInstruction(TAC_Instruction *instr){
     }
 } // TAC_destroyInstruction
 
-
-/**
- * @brief Uvolní všechny instrukce v seznamu tříadresného kódu.
- */
-void TAC_freeInstructionList(){
-    // Pokud je seznam prázdný, nemáme, co mazat
-    if(tacList->head == NULL){
-        return;
-    }
-
-    // Dokud máme, co mazat
-    while(tacList->head != NULL){
-        // Postupné mazání instrukcí od hlavičky
-        TAC_Instruction *current = tacList->head;
-
-        tacList->head = tacList->head->next;
-
-        //TAC_destroyInstruction(current);
-        free(current);
-    }
-} // TAC_freeInstructionList
-
-/**
- * @brief Uvolní všechny instrukce v seznamu tříadresného kódu a potom samotný seznam.
- */
-void TAC_destroyInstructionList(){
-    if (tacList == NULL){
-        return;
-    }
-    TAC_freeInstructionList(tacList);
-    free(tacList);
-    //tacList = NULL;
-} // TAC_destroyInstructionList
-
 /**
  * @brief Testovací funkce pro generování tříadresného kódu.
  */
 bool TAC_generateTestCode(){
-    TAC_Instruction *instr;
-    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("konik"), .type = TAC_OPERAND_VAR}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_LABEL, (TAC_Operand){.value.labelName = string_charToDString("pejsek"), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_EXIT, (TAC_Operand){.value.intValue = 42, .type = TAC_OPERAND_INT}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_EXIT, (TAC_Operand){.value.floatValue = 42.55556, .type = TAC_OPERAND_FLOAT}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("temp_konik"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
+    TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("konik"), .type = TAC_OPERAND_VAR}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_createInstruction(TAC_OP_LABEL, (TAC_Operand){.value.labelName = string_charToDString("pejsek"), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_createInstruction(TAC_OP_EXIT, (TAC_Operand){.value.intValue = 42, .type = TAC_OPERAND_INT}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_createInstruction(TAC_OP_EXIT, (TAC_Operand){.value.floatValue = 42.55556, .type = TAC_OPERAND_FLOAT}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("temp_konik"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
     return true;
 }
 
-bool TAC_generateFunCall(AST_FunCallNode *funCallNode, TAC_InstructionList *tacList){
-    TAC_Instruction *instr;
+bool TAC_generateFunCall(AST_FunCallNode *funCallNode){
     // Vytvoříme temporary frame pro parametry funkce
-    instr = TAC_createInstruction(TAC_OP_CREATEFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
+    TAC_createInstruction(TAC_OP_CREATEFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
 
     // Najdeme definici funkce
     SymtableItemPtr function;
     if(symtable_findItem(frameStack.bottom->frame, funCallNode->identifier, &function) != SYMTABLE_SUCCESS){
-        error_handler(ERROR_INTERNAL);
+        error_handle(ERROR_INTERNAL);
     }
     SymtableFunctionData *functionData = function->data;    /**< Definovaná data funkce */
-    
+
     AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
     // Pro všechny parametry
     for(size_t i = 0; i < functionData->param_count; i++){
         // Vytvoříme instrukci DEFVAR pro parametr
-        instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = functionData->params[i].id}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-        TAC_appendInstruction(instr);
+        TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = functionData->params[i].id}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
         AST_VarNode *var_node = (AST_VarNode*)arg->expression->expression;
         // Do nově definováné proměnné vložíme hodnotu
         // Vložíme hodnotu literálu
@@ -700,26 +570,23 @@ bool TAC_generateFunCall(AST_FunCallNode *funCallNode, TAC_InstructionList *tacL
                 src = (TAC_Operand){.type = TAC_OPERAND_STRING, .value.varName = var_node->value};
                 break;
             case AST_LITERAL_NULL:
-                src = (TAC_Operand){.type = TAC_OPERAND_NIL, .value.intValue = NULL};
+                src = (TAC_Operand){.type = TAC_OPERAND_NIL, .value.intValue = *(int*)NULL};
                 break;
-            
+
             default:
                 error_handle(ERROR_INTERNAL);
                 break;
             }
-            instr = TAC_createInstruction(TAC_OP_ASSIGN, (TAC_Operand){.value.varName = functionData->params[i].id, .type = TAC_OPERAND_VAR}, src, (TAC_Operand){.type = TAC_OPERAND_NONE});
+            TAC_createInstruction(TAC_OP_ASSIGN, (TAC_Operand){.value.varName = functionData->params[i].id, .type = TAC_OPERAND_VAR}, src, (TAC_Operand){.type = TAC_OPERAND_NONE});
         }
         // Vložíme hodnotu proměnné ve volání funkce
         else {
-            instr = TAC_createInstruction(TAC_OP_ASSIGN, (TAC_Operand){.value.varName = functionData->params[i].id, .type = TAC_OPERAND_VAR}, (TAC_Operand){.value.varName = var_node->identifier, .type = TAC_OPERAND_VAR}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-
+            TAC_createInstruction(TAC_OP_ASSIGN, (TAC_Operand){.value.varName = functionData->params[i].id, .type = TAC_OPERAND_VAR}, (TAC_Operand){.value.varName = var_node->identifier, .type = TAC_OPERAND_VAR}, (TAC_Operand){.type = TAC_OPERAND_NONE});
         }
-        TAC_appendInstruction(instr);
     }
     // Přidáme skok na návěští funkce
-    instr = TAC_createInstruction(TAC_OP_JUMP, (TAC_Operand){.value.labelName = funCallNode->identifier, .type = TAC_OP_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-
+    TAC_createInstruction(TAC_OP_JUMP, (TAC_Operand){.value.labelName = funCallNode->identifier, .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    return true;
 }
 
 /*** Konec souboru tac_generator.c ***/

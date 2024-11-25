@@ -6,7 +6,7 @@
  * Autor:            Lukáš Farkašovský   <xfarkal00>                           *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   15.11.2024                                                *
+ * Poslední změna:   25.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -148,15 +148,6 @@ typedef struct TAC_InstructionList {
  ******************************************************************************/
 
 /**
- * @brief Inicializuje nový prázdný seznam tříadresných instrukcí.
- *
- * @details Alokuje paměť pro nový seznam instrukcí a inicializuje ho.
- *
- * @return @c list Ukazatel na prázdný seznam instrukcí, jinak NULL při chybě alokace.
- */
-void TAC_createInstructionList();
-
-/**
  * @brief Vytvoří a inicializuje novou tříadresnou instrukci na základní hodnoty.
  *
  * @details Funkce slouží k vygenerování prázdné instrukce s inicializovanými hodnotami.
@@ -166,7 +157,7 @@ void TAC_createInstructionList();
 TAC_Instruction *TAC_initInstruction();
 
 /**
- * @brief Vytvoří novou tříadresnou instrukci.
+ * @brief Vytvoří novou tříadresnou instrukci a vytiskne ji.
  *
  * @details Vytvoří novou instrukci s danou operací a s danými operandy.
  *
@@ -174,11 +165,17 @@ TAC_Instruction *TAC_initInstruction();
  * @param dest Cílový operand.
  * @param src1 První zdrojový operand.
  * @param src2 Druhý zdrojový operand.
- *
- * @return Ukazatel na nově vytvořenou instrukci.
- *         NULL, pokud selže alokace paměti.
  */
-TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_Operand src1, TAC_Operand src2);
+void TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_Operand src1, TAC_Operand src2);
+
+/**
+ * @brief Vytiskne operand tříadresného kódu.
+ *
+ * @details Vytiskne operand tříadresné instrukce na standardní výstup.
+ *
+ * @param operand Ukazatel na operand, který má být vytisknut.
+ */
+void TAC_printInstruction(TAC_Instruction *instr);
 
 /**
  * @brief Zničí instrukci.
@@ -199,17 +196,6 @@ void TAC_destroyInstruction(TAC_Instruction *instr);
  * @param instr Ukazatel na instrukci, která má být uvolněna.
  */
 void TAC_destroyOperand(TAC_Operand *operand);
-
-/**
- * @brief Přidá instrukci na konec seznamu instrukcí.
- *
- * @details Přidá novou instrukci na konec seznamu instrukcí, jedná se o jednosměrně vázaný seznam,
- *          s ukazatelem na poslední prvek.
- *
- * @param tacList Ukazatel na seznam tříadresných instrukcí.
- * @param instr Ukazatel na instrukci, která má být přidána.
- */
-void TAC_appendInstruction(TAC_Instruction *instr);
 
 /**
  * @brief Generuje tříadresný kód pro začátek programu.
@@ -331,16 +317,6 @@ bool TAC_generateExpression(AST_ExprNode *exprNode);
 bool TAC_generateBinOp(AST_BinOpNode *binOp);
 
 /**
- * @brief Generuje tříadresný kód pro návratový příkaz.
- *
- * @param returnNode Ukazatel na uzel návratového příkazu.
- * @param tacList Ukazatel na seznam instrukcí, do kterého bude kód přidán.
- *
- * @return `true`, pokud generování proběhlo úspěšně, jinak `false`.
-
-bool TAC_generateReturnStatement(AST_DataReturn *returnNode, TAC_InstructionList *tacList);*/
-
-/**
  * @brief Generuje tříadresný kód pro proměnnou.
  *
  * @param varNode Ukazatel na uzel proměnné.
@@ -351,36 +327,6 @@ bool TAC_generateReturnStatement(AST_DataReturn *returnNode, TAC_InstructionList
 bool TAC_generateVariable(AST_VarNode *varNode);
 
 /**
- * @brief Uvolní všechny instrukce v seznamu tříadresného kódu.
- *
- * @details Uvolní všechny instrukce v seznamu tříadresných instrukcí.
- *          Pokud je seznam prázdný, nic se nestane.
- *
- * @param tacList Ukazatel na seznam tříadresných instrukcí.
- */
-void TAC_freeInstructionList();
-
-/**
- * @brief Uvolní všechny instrukce v seznamu tříadresného kódu a potom samotný seznam.
- *
- * @details Uvolní všechny instrukce v seznamu tříadresných instrukcí a poté uvolní samotný seznam.
- *          Pokud není seznam definovaný, nic se nestane.
- *
- * @param tacList Ukazatel na seznam tříadresných instrukcí.
- */
-void TAC_destroyInstructionList();
-
-/**
- * @brief Vytiskne všechny instrukce v seznamu tříadresného kódu.
- *
- * @details Tiskne všechny instrukce v seznamu tříadresných instrukcí, dokud nenarazí na konec.
- *          Pokud je seznam prázdný, nic se nestane.
- *
- * @param tacList Ukazatel na seznam tříadresných instrukcí.
- */
-void TAC_printInstructionList();
-
-/**
  * @brief Vytvoří nějaké instrukce na otestování.
  *
  * @details Tato funkce slouží k testování generování tříadresného kódu.
@@ -389,20 +335,6 @@ void TAC_printInstructionList();
  * @param tacList Ukazatel na seznam tříadresných instrukcí.
  */
 bool TAC_generateTestCode();
-
-/*******************************************************************************
- *                                                                             *
- *                       DEKLARACE GLOBÁLNÍCH PROMĚNNÝCH                       *
- *                                                                             *
- ******************************************************************************/
-
-/**
- * @brief Globální proměnná pro seznam tříadresných instrukcí.
- *
- * @details Tato proměnná obsahuje seznam tříadresných instrukcí, který je vytvářen během generování kódu.
- *          Slouží k ukládání všech instrukcí, které jsou generovány během průchodu AST.
- */
-extern TAC_InstructionList *tacList;
 
 #endif // TAC_H_
 
