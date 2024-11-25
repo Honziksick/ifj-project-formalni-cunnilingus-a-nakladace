@@ -49,7 +49,6 @@ AST_ProgramNode *ASTroot;
 /**
  * @brief Testuje funkci `TAC_generateTestCode` pro vytvoření testovacího kódu.
  *
- */
 TEST(TAC, Generate_Program){
     TAC_createInstructionList();
     // Vytvoření kořene stromu
@@ -301,12 +300,9 @@ TEST(TAC, Generate_Program){
     TAC_generateFunctionDefinitionEnd();
     TAC_generateProgramCodeEnd();
 
-    TAC_printInstructionList();
-    TAC_destroyInstructionList();
-
     // Uvolnění stromu - netřeba, protože se uvolní v TAC_destroyInstructionList
     AST_destroyTree();
-} 
+} */
 
 /**
  * @brief Test AST_ExprNode s plně komplexně inicializovaným AST_BinOpNode.
@@ -330,3 +326,7 @@ TEST(TAC, BinOpExprNode) {
     TAC_destroyInstructionList(list);
     AST_destroyNode(AST_EXPR_NODE, node);
 }*/
+
+TEST(TAC, Print_Test){
+    TAC_generateTestCode();
+}
