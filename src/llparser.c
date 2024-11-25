@@ -2167,5 +2167,4 @@ inline bool LLparser_isNotExpectedTerminal(LLTerminals expectedTerminal) {
     }
 }
 
-
 /*** Konec souboru llparser.c ***/
