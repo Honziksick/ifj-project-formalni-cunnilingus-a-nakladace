@@ -40,7 +40,6 @@
 #include "dynamic_string.h"
 #include "error.h"
 
-
 /*******************************************************************************
  *                                                                             *
  *                              DEFINICE KONSTANT                              *
@@ -50,6 +49,8 @@
 #define FRAME_ARRAY_INIT_SIZE 10        /**< Počáteční velikost pole rámců. */
 #define FRAME_ARRAY_EXPAND_FACTOR 2     /**< Při rozšíření pole rámců se velikost pole násobí tímto faktorem. */
 
+#define IS_CONST true       /**< Přidáváme do tabulky symbolů konstantní proměnnou. */
+#define IS_VAR   false      /**< Přidáváme do tabulky symbolů modifikovatelnou proměnnou. */
 
 /*******************************************************************************
  *                                                                             *
@@ -221,11 +222,11 @@ frame_stack_result frameStack_addItemExpress(DString *key,
 
 /**
  * @brief Vrátí ID rámce, ve kterém je položka s daným klíčem.
- * 
+ *
  * @details Volá symtable_findItem na rámce od vrcholu dolů dokud nenajde položku.
- * 
+ *
  * @param [in] key Klíč položky
- * 
+ *
  * @return ID rámce, ve kterém je položka s daným klíčem
  *         nebo 0 pokud se položku nepodařilo najít.
  */
