@@ -2,11 +2,11 @@
  *                                                                             *
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
- * Soubor:           parser.c                                                  *
+ * Soubor:           parser_common.c                                           *
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            10.11.2024                                                *
- * Poslední změna:   12.11.2024                                                *
+ * Poslední změna:   24.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -16,17 +16,21 @@
  *                                                                             *
  ******************************************************************************/
 /**
- * @file parser.c
+ * @file parser_common.c
  * @author Jan Kalina \<xkalinj00>
  *
- * @brief Implementace sdílených funkcí a proměnných pro parser.
- * @details Tento soubor implementuje sdílené funkce a globální proměnné, které
- *          ostatní moduly parseru využívají k syntaktické analýze. Umožňuje
- *          správu aktuálního tokenu a vytváření abstraktního syntaktického
- *          stromu (AST), což jsou základní komponenty potřebné pro práci parseru.
+ * @brief Implementační soubor pro sdílené funkce a proměnné parseru.
+ * @details Tento soubor obsahuje implementace funkcí a definice proměnných
+ *          deklarovaných v `parser_common.h`. Tyto funkce a proměnné jsou
+ *          využívány různými moduly parseru při syntaktické analýze jazyka
+ *          IFJ24. Soubor zahrnuje správu tokenů, chybového stavu a mapování
+ *          typů pro parser.
  */
 
-#include "parser.h"
+// Při definici bude parser logovat záznam chyb při návratu rekurzivním sestupem
+#define LOG_PARSER 1
+
+#include "parser_common.h"
 
 /*******************************************************************************
  *                                                                             *
@@ -37,136 +41,218 @@
 /**
  * @brief Globální proměnná pro aktuální token, který je zpracováván.
  */
-Terminal currentToken = { T_UNDEFINED, T_PREC_UNDEFINED, NULL};   // počáteční inicializace
+Terminal currentTerminal = { T_UNDEFINED, T_PREC_UNDEFINED, NULL};  // Počátečním stavem je nedefinovaný Terminál
 
 /**
  * @brief Globální kořen abstraktního syntaktického stromu.
  */
-AST_ProgramNode *ASTroot = NULL;                // počáteční inicializace
+AST_ProgramNode *ASTroot = NULL;  // Počátečním stavem je nealokovaný kořen
+
 
 /*******************************************************************************
  *                                                                             *
- *                        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ                        *
+ *           IMPLEMENTACE VEŘEJNÝCH FUNKCÍ OBECNÉHO ROZHRANÍ PARSERU           *
  *                                                                             *
  ******************************************************************************/
 
 /**
  * @brief Získá další token ze scanneru a aktualizuje globální současný token.
  */
-Terminal Parser_getNextToken(GetNextTokenState state) {
-    // Static proměnná pro uchování lookahead tokenu
-    static Terminal lookaheadToken = { T_UNDEFINED, T_PREC_UNDEFINED, NULL };
+void Parser_getNextToken(bool state) {
+    // Statická proměnná pro uchování lookahead terminálu
+    static Terminal lookaheadTerminal = { T_UNDEFINED, T_PREC_UNDEFINED, NULL };
 
-    // Reset signál pro statickou proměnnou
+    // Resetování statické proměnné, kdyby po předchozím běhu zůstala stále v paměti
     if(state == RESET_LOOKAHEAD) {
-        lookaheadToken.LLterminal = T_UNDEFINED;
-        lookaheadToken.PrecTerminal = T_PREC_UNDEFINED;
-        lookaheadToken.value = NULL;
-        return lookaheadToken;
+        lookaheadTerminal.LLterminal = T_UNDEFINED;
+        lookaheadTerminal.PrecTerminal = T_PREC_UNDEFINED;
+        lookaheadTerminal.value = NULL;
+        return;
     }
 
-    // Pokud lookahead token není inicializován, načti ho
-    if(lookaheadToken.LLterminal == T_UNDEFINED && lookaheadToken.PrecTerminal == T_PREC_UNDEFINED) {
-        lookaheadToken = Parser_pokeScanner(state);
+    // Pokud lookahead terminál není inicializován, načti ho
+    if(lookaheadTerminal.LLterminal == T_UNDEFINED && \
+       lookaheadTerminal.PrecTerminal == T_PREC_UNDEFINED)
+    {
+        lookaheadTerminal = Parser_pokeScanner(state);
     }
 
-    // Aktualizuj currentToken na aktuální lookaheadToken
-    currentToken = lookaheadToken;
+    // Aktualizuj currentTerminal na aktuální lookaheadTerminal
+    currentTerminal = lookaheadTerminal;
 
-    // Načti další lookahead token voláním scanneru
-    lookaheadToken = Parser_pokeScanner(state);
-
-    return lookaheadToken;
+    // Načti nový lookahead token voláním scanneru
+    lookaheadTerminal = Parser_pokeScanner(state);
 } // Parser_getNextToken()
 
 /**
  * @brief Nastaví nebo zkontroluje stav syntax error.
  */
-bool Parser_watchSyntaxErrorInternal(PropagateError state, const char *file, int line, const char *func) {
-    // Počáteční inicializace flagu pro sledování SYNTAX_ERROR
-    static bool syntaxError = false;
+bool Parser_errorWatcherInternal(ParserErrorState state, const char *file, \
+                                 int line, const char *func)
+{
+    // Statické flagy pro uchování chybových stavů
+    static bool lexicalError  = false;
+    static bool syntaxError   = false;
+    static bool semUndefError = false;
+    static bool semRedefError = false;
+    static bool internalError = false;
 
-    // Reset signál pro statickou proměnnou
-    if(state == RESET_ERROR_FLAG) {
-        syntaxError = false;
-    }
+    // Statická proměnná pro zaznamení první chyby
+    static ErrorType firstError = SUCCESS;
 
-    // Pokud byl předán true, signalizuj flagem SYNTAX_ERROR
-    if(state == SET_SYNTAX_ERROR) {
-        const char* fileName = error_getFileName(file);
-        fprintf(stderr, YELLOW_COLOR "In file: %s:%d (%s)\n" RESET_COLOR, fileName, line, func);
-        syntaxError = true;
-    }
+    // Většinou jdeo nastavení chybového flagu a první chyby, pokud se o ní jedná
+    switch(state) {
+        // Resetování statické proměnné, kdyby po předchozím běhu zůstala stále v paměti
+        case RESET_ERROR_FLAGS:
+            lexicalError  = false;
+            syntaxError   = false;
+            semUndefError = false;
+            semRedefError = false;
+            internalError = false;
+            break;
 
-    // Vracíme aktuální stav flagu
-    return syntaxError;
+        // Nic speciálního neprovádíme, zajímá nás čistě návratová hodnota funkce
+        case IS_PARSING_ERROR:
+            break;
+
+        // Nastavení stavu lexikální chyby
+        case SET_ERROR_LEXICAL:
+            lexicalError = true;
+            Parser_updateFirstError(state, &firstError);
+            LOG_ERROR(file, line, func);
+            break;
+
+        // Nastavení stavu syntaktické chyby
+        case SET_ERROR_SYNTAX:
+            syntaxError = true;
+            Parser_updateFirstError(state, &firstError);
+            LOG_ERROR(file, line, func);
+            break;
+
+        // Nastavení stavu sémantické chyby - nedefinovaná funkce či proměnná.
+        case SET_ERROR_SEM_UNDEF:
+            semUndefError = true;
+            Parser_updateFirstError(state, &firstError);
+            LOG_ERROR(file, line, func);
+            break;
+
+        // Nastavení stavu sémantické chyby - redefinice nebo přiřazení do nemodifikovatelné proměnné
+        case SET_ERROR_SEM_REDEF_OR_CONSTDEF:
+            semRedefError = true;
+            Parser_updateFirstError(state, &firstError);
+            LOG_ERROR(file, line, func);
+            break;
+
+        // Nastavení stavu interní chyby překladače
+        case SET_ERROR_INTERNAL:
+            internalError = true;
+            Parser_updateFirstError(state, &firstError);
+            LOG_ERROR(file, line, func);
+            break;
+
+        // Zavolá funkci pro řízení chybových stavů
+        case CALL_ERROR_HANDLE:
+            error_handle(firstError);
+            break;
+
+        // Pro jistotu uvedeme výchozí stav, který nic neprovádí
+        default:
+            break;
+    } // switch()
+
+    // Vracíme `true`, pokud došlo alespoň k jakékoliv jedné chybě
+    return (lexicalError || syntaxError || semUndefError || semRedefError || internalError);
 } // Parser_watchSyntaxError()
 
 /**
- * @brief Přidá suffix k jménu proměnné ve formátu `$frameID$`.
+ * @brief Uvolní hodnotu aktuálního terminálu.
  */
-void Parser_addIdSuffix(size_t frameID, DString *id) {
-    if(id == NULL || id->str == NULL) {
-        error_handle(ERROR_INTERNAL);
-        return;
+inline void Parser_freeCurrentTerminalValue() {
+    // Pokud hodnota aktuálního terminálu není NULL, uvolníme ji
+    if (currentTerminal.value != NULL) {
+        string_free(currentTerminal.value);
+        currentTerminal.value = NULL;        // inicializujeme ji na NULL
     }
-
-    // Dočasný C řetězec o velikost maximálního počtu číslic 'size_t'
-    char suffix[MAX_SIZE_T_DIGITS] = "\0";
-
-    // Převod hodnoty "frameID" na znaky
-    snprintf(suffix, MAX_SIZE_T_DIGITS*sizeof(char), "%zu", frameID);
-
-    // Přidání uvozovacího oddělovače frameID od indetifikátoru
-    int error = string_append_char(id, FRAME_ID_SEPARATOR);
-
-    // Přípojení hodnoty "frameID" jako suffix identifikátoru
-    for(int i = 0; i < (int)strlen(suffix); i++) {
-        error = string_append_char(id, suffix[i]);
-        Parser_checkAppendSuccess(error);
-    }
-
-    // Přidání ukončovacího oddělovače frameID od indetifikátoru
-    error = string_append_char(id, FRAME_ID_SEPARATOR);
-    Parser_checkAppendSuccess(error);
-} // Parser_addIdSuffix()
+} // LLparser_freeCurrentTerminalValue
 
 
 /*******************************************************************************
  *                                                                             *
- *                        IMPLEMENTACE INTERNÍCH FUNKCÍ                        *
+ *           IMPLEMENTACE INTERNÍCH FUNKCÍ OBECNÉHO ROZHRANÍ PARSERU           *
  *                                                                             *
  ******************************************************************************/
 
 /**
- * @brief Kontroluje úspěšnost připojení znaku do DString a případně hlásí chybu.
+ * @brief Nastaví první zaznamenanou chybu.
  */
-inline void Parser_checkAppendSuccess(int error) {
-    // Pokud připojení znaku selhalo, hlásíme interní chybu
-    if(error == STRING_RESIZE_FAIL) {
-        error_handle(ERROR_INTERNAL);
-    }
-} // parser_checkAppendSuccess()
+inline void Parser_updateFirstError(ParserErrorState state, ErrorType *error) {
+    // Pokud je proměnná error stále ve výchozím stavu
+    if(*error == SUCCESS) {
+        // Nastavíme do ní první vyskytnutý error
+        switch(state) {
+            // Mapujeme: SET_ERROR_LEXICAL -> ERROR_LEXICAL
+            case SET_ERROR_LEXICAL:
+                *error = ERROR_LEXICAL;
+                break;
+
+            // Mapujeme: SET_ERROR_SYNTAX -> ERROR_SYNTAX
+            case SET_ERROR_SYNTAX:
+                *error = ERROR_SYNTAX;
+                break;
+
+            // Mapujeme: SET_ERROR_SEM_UNDEF -> ERROR_SEM_UNDEF
+            case SET_ERROR_SEM_UNDEF:
+                *error = ERROR_SEM_UNDEF;
+                break;
+
+            // Mapujeme: SET_ERROR_SEM_REDEF_OR_CONSTDEF -> ERROR_SEM_REDEF_OR_CONSTDEF
+            case SET_ERROR_SEM_REDEF_OR_CONSTDEF:
+                *error = ERROR_SEM_REDEF_OR_CONSTDEF;
+                break;
+
+            // Mapujeme: SET_ERROR_INTERNAL -> ERROR_INTERNAL
+            case SET_ERROR_INTERNAL:
+                *error = ERROR_INTERNAL;
+                break;
+
+            // Jinak se nic nestane
+            default:
+                break;
+        } // switch()
+    } // if()
+} // Parser_updateFirstError()
 
 /**
- * @brief Získá další token ze scanneru a namapuje ho na typ LL terminálu.
+ * @brief Získá další token ze scanneru a namapuje ho na typ LL a precedenčního
+ *        terminálu.
  */
-Terminal Parser_pokeScanner(GetNextTokenState state) {
-    Token receivedToken = scanner_getNextToken();
+Terminal Parser_pokeScanner() {
+    // Počáteční inicializace mapovaných hodnot a návratové struktury funkce
     LLTerminals llType = T_UNDEFINED;
     PrecTerminals precType = T_PREC_UNDEFINED;
-    Terminal terminal;
+    Terminal terminal = { T_UNDEFINED, T_PREC_UNDEFINED, NULL };
 
-    (void)state;
+    // Požádáme scanner o další token
+    Token receivedToken = scanner_getNextToken();
+
+    // Namapujeme typ tokenu na příslušný tym LL a precedenčního terminálu
     Parser_mapTokenToLLTerminal(receivedToken.type, &llType);
     Parser_mapTokenToPrecTerminal(receivedToken.type, &precType);
 
+    // Inicializujeme návratovou hodnotu obdrženými hodnotami
     terminal.LLterminal = llType;
     terminal.PrecTerminal = precType;
-    terminal.value = receivedToken.value;
+    terminal.value = receivedToken.value;  // jako value se využije přímo value Tokenu
 
     return terminal;
 } // Parser_pokeScanner()
+
+
+/*******************************************************************************
+ *                                                                             *
+ *           DEKLARACE POMOCNÝCH INTERNÍCH MAPOVACÍCH FUNKCÍ PARSERU           *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Namapuje typ tokenu na typ LL terminálu.
@@ -174,7 +260,7 @@ Terminal Parser_pokeScanner(GetNextTokenState state) {
 void Parser_mapTokenToLLTerminal(TokenType tokenType, LLTerminals *terminalType) {
     // Ověření platnosti předaného ukazatele
     if(terminalType == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
     }
 
     // Mapujeme typ Tokenu na typ LL Terminálu
@@ -329,9 +415,9 @@ void Parser_mapTokenToLLTerminal(TokenType tokenType, LLTerminals *terminalType)
             *terminalType = T_EOF;
             break;
 
-        // Cokoliv jiného značí lexikální chybu
+        // Pro jakýkoliv jiný typ tokenu není LL terminál definován
         default:
-            *terminalType = T_UNDEFINED;
+            *terminalType = T_UNDEFINED;  // Korektní, neznačí syntaktickou chybu
             break;
     } // switch()
 } // Parser_mapTokenToLLTerminal()
@@ -342,7 +428,7 @@ void Parser_mapTokenToLLTerminal(TokenType tokenType, LLTerminals *terminalType)
 void Parser_mapTokenToPrecTerminal(TokenType tokenType, PrecTerminals *terminal) {
     // Ověření platnosti předaného ukazatele
     if (terminal == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
     }
 
     switch(tokenType) {
@@ -451,109 +537,121 @@ void Parser_mapTokenToPrecTerminal(TokenType tokenType, PrecTerminals *terminal)
             *terminal = T_PREC_DOLLAR;
             break;
 
-        // Defaultní případ: syntaktická chyba
+        // Pro jakýkoliv jiný typ tokenu není LL terminál definován
         default:
-            *terminal = T_PREC_UNDEFINED;
+            *terminal = T_PREC_UNDEFINED;  // Korektní, neznačí syntaktickou chybu
             break;
     } // switch()
 } // Parser_mapTokenToPrecTerminal()
 
-
 /**
  * @brief Namapuje typ datového typu AST na typ návratového typu tabulky symbolů.
- *
- * @param astDataType Typ datového typu AST.
- * @param symtableType Ukazatel na typ návratového typu tabulky symbolů.
  */
-void Parser_mapASTDataTypeToFunReturnType(AST_DataType astDataType, symtable_functionReturnType *symtableType) {
+void Parser_mapASTDataTypeToFunReturnType(AST_DataType astDataType, \
+                                          symtable_functionReturnType *symtableType)
+{
     // Ověření platnosti předaného ukazatele
     if (symtableType == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
     }
 
     // Mapujeme typ datového typu AST na typ návratového typu tabulky symbolů
     switch (astDataType) {
+        // Mapování: AST_DATA_TYPE_INT -> SYMTABLE_TYPE_INT
         case AST_DATA_TYPE_INT:
             *symtableType = SYMTABLE_TYPE_INT;
             break;
 
+        // Mapování: AST_DATA_TYPE_INT_OR_NULL -> SYMTABLE_TYPE_INT_OR_NULL
         case AST_DATA_TYPE_INT_OR_NULL:
             *symtableType = SYMTABLE_TYPE_INT_OR_NULL;
             break;
 
+        // Mapování: AST_DATA_TYPE_FLOAT -> SYMTABLE_TYPE_DOUBLE
         case AST_DATA_TYPE_FLOAT:
             *symtableType = SYMTABLE_TYPE_DOUBLE;
             break;
 
+        // Mapování: AST_DATA_TYPE_FLOAT_OR_NULL -> SYMTABLE_TYPE_DOUBLE_OR_NULL
         case AST_DATA_TYPE_FLOAT_OR_NULL:
             *symtableType = SYMTABLE_TYPE_DOUBLE_OR_NULL;
             break;
 
+        // Mapování: AST_DATA_TYPE_STRING -> SYMTABLE_TYPE_STRING
         case AST_DATA_TYPE_STRING:
             *symtableType = SYMTABLE_TYPE_STRING;
             break;
 
+        // Mapování: AST_DATA_TYPE_STRING_OR_NULL -> SYMTABLE_TYPE_STRING_OR_NULL
         case AST_DATA_TYPE_STRING_OR_NULL:
             *symtableType = SYMTABLE_TYPE_STRING_OR_NULL;
             break;
 
+        // Mapování: AST_DATA_TYPE_VOID -> SYMTABLE_TYPE_VOID
         case AST_DATA_TYPE_VOID:
             *symtableType = SYMTABLE_TYPE_VOID;
             break;
 
+        // Pro jakýkoliv jiný typ datového typu AST není návratový typ definován
         default:
-            *symtableType = SYMTABLE_TYPE_UNKNOWN;
+            *symtableType = SYMTABLE_TYPE_UNKNOWN;  // Značí interní chybu (nemělo by nikdy nastat)
             break;
     } // switch()
-} // Parser_mapASTDataTypeToSymtableType()
+} // Parser_mapASTDataTypeToFunReturnType()
 
 /**
  * @brief Namapuje typ datového typu AST na stav symbolu v tabulce symbolů.
- *
- * @param astDataType Typ datového typu AST.
- * @param symtableState Ukazatel na stav symbolu v tabulce symbolů.
  */
-void Parser_mapASTDataTypeToSymtableState(AST_DataType astDataType, symtable_symbolState *symtableState) {
+void Parser_mapASTDataTypeToSymtableState(AST_DataType astDataType, \
+                                          symtable_symbolState *symtableState)
+{
     // Ověření platnosti předaného ukazatele
     if (symtableState == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
     }
 
     // Mapujeme typ datového typu AST na stav symbolu v tabulce symbolů
     switch (astDataType) {
+        // Mapování: AST_DATA_TYPE_INT -> SYMTABLE_SYMBOL_VARIABLE_INT
         case AST_DATA_TYPE_INT:
             *symtableState = SYMTABLE_SYMBOL_VARIABLE_INT;
             break;
 
+        // Mapování: AST_DATA_TYPE_INT_OR_NULL -> SYMTABLE_SYMBOL_VARIABLE_INT_OR_NULL
         case AST_DATA_TYPE_INT_OR_NULL:
             *symtableState = SYMTABLE_SYMBOL_VARIABLE_INT_OR_NULL;
             break;
 
+        // Mapování: AST_DATA_TYPE_FLOAT -> SYMTABLE_SYMBOL_VARIABLE_DOUBLE
         case AST_DATA_TYPE_FLOAT:
             *symtableState = SYMTABLE_SYMBOL_VARIABLE_DOUBLE;
             break;
 
+        // Mapování: AST_DATA_TYPE_FLOAT_OR_NULL -> SYMTABLE_SYMBOL_VARIABLE_DOUBLE_OR_NULL
         case AST_DATA_TYPE_FLOAT_OR_NULL:
             *symtableState = SYMTABLE_SYMBOL_VARIABLE_DOUBLE_OR_NULL;
             break;
 
+        // Mapování: AST_DATA_TYPE_STRING -> SYMTABLE_SYMBOL_VARIABLE_STRING
         case AST_DATA_TYPE_STRING:
             *symtableState = SYMTABLE_SYMBOL_VARIABLE_STRING;
             break;
 
+        // Mapování: AST_DATA_TYPE_STRING_OR_NULL -> SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL
         case AST_DATA_TYPE_STRING_OR_NULL:
             *symtableState = SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL;
             break;
 
+        // Mapování: AST_DATA_TYPE_VOID -> SYMTABLE_SYMBOL_FUNCTION
         case AST_DATA_TYPE_VOID:
-            *symtableState = SYMTABLE_SYMBOL_FUNCTION; // Funkce vracející void
+            *symtableState = SYMTABLE_SYMBOL_FUNCTION;
             break;
 
+        // Pro jakýkoliv jiný typ datového typu AST není stav symbolu definován
         default:
-            *symtableState = SYMTABLE_SYMBOL_UNKNOWN;
+            *symtableState = SYMTABLE_SYMBOL_UNKNOWN;  // Značí interní chybu (nemělo by nikdy nastat)
             break;
     } // switch()
 } // Parser_mapASTDataTypeToSymtableState()
 
-
-/*** Konec souboru parser.c ***/
+/*** Konec souboru parser_common.c ***/
