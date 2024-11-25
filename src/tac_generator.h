@@ -226,6 +226,12 @@ bool TAC_generateProgramCodeEnd();
  */
 bool TAC_generateFunctionDefinitionBegin(AST_FunDefNode *funDefNode);
 
+/**
+ * @brief Generuje cílový kód programu ze stromu AST.
+ * 
+ */
+void TAC_generateProgram();
+
 /*******************************************************************************
  *                                                                             *
  *                                  TODO                                       *
@@ -271,7 +277,7 @@ bool TAC_generateStatement(AST_StatementNode *statementNode);
  *
  * @return Výstupní operand reprezentující výsledek volání funkce.
  */
-bool TAC_generateFunctionCall(AST_FunCallNode *funCallNode);
+//bool TAC_generateFunctionCall(AST_FunCallNode *funCallNode);
 
 /**
  * @brief Generuje tříadresný kód pro podmíněný příkaz "if".
@@ -303,7 +309,7 @@ bool TAC_generateWhileLoop(AST_WhileNode *whileNode);
  *
  * @return TAC_Operand Výstupní operand reprezentující výsledek výrazu.
  */
-bool TAC_generateExpression(AST_ExprNode *exprNode);
+//bool TAC_generateExpression(AST_ExprNode *exprNode);
 
 /**
  * @brief Generuje tříadresný kód pro binární operaci.
@@ -335,6 +341,26 @@ bool TAC_generateVariable(AST_VarNode *varNode);
  * @param tacList Ukazatel na seznam tříadresných instrukcí.
  */
 bool TAC_generateTestCode();
+
+void TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode);
+
+void TAC_generateStatementBlock(AST_StatementNode* statement);
+
+void TAC_generateBinaryOperator(AST_BinOpNode *bin_node);
+
+void TAC_generateVarDef(AST_BinOpNode *bin_node);
+
+void TAC_generateExpression(AST_ExprNode *expr);
+
+void TAC_generateLiteral(AST_VarNode *literal);
+
+void TAC_generateIf(AST_IfNode *if_node);
+
+void TAC_generateWhile(AST_WhileNode *while_node);
+
+void TAC_generateReturn(AST_ExprNode *expr);
+
+void TAC_generateFunctionCall(AST_FunCallNode *funCallNode);
 
 #endif // TAC_H_
 
