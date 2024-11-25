@@ -141,10 +141,10 @@ all: build
 ### MC # build: # Sestaví překladač týmu "Tým xkalinj00"
 build: $(BUILD_DIR)/$(EXECUTABLE)
 	mv $(BUILD_DIR)/$(EXECUTABLE) $(SRC_DIR)/$(EXECUTABLE)
-	$(MAKE) clean-build
+	$(MAKE) clean
 
 # Definice zkratek pro kategorie příkazů
-CATEGORIES := MC C B T CC DEV O
+CATEGORIES := MC C B G T CC DEV O
 
 ### MC # help: # Vypíše nápovědu k použití Makefile
 help:
@@ -155,6 +155,7 @@ help:
 		"MC") FULL_CAT="Main Commands";; \
 		"C") FULL_CAT="Clean";; \
 		"B") FULL_CAT="Build Modules and Submodules";; \
+		"G") FULL_CAT="Generate and interpret IFJ24code";; \
 		"T") FULL_CAT="Test";; \
 		"CC") FULL_CAT="Code Coverage";; \
 		"DEV") FULL_CAT="Install Dependencies";; \
@@ -176,8 +177,9 @@ help:
 	done; \
 	} | less -R
 
-### MC # clean: # Příkaz 'clean' je namapován na příkaz 'clean-build' pro účely odevzdaní
-clean: clean-build
+### MC # clean: # Příkaz 'clean' odstraní adresář './build' s objektovými soubory
+clean:
+	rm -rf $(BUILD_DIR)
 
 ### MC # test: # Sestaví knihovny GoogleTest a GoogleMock a spustí test překladače
 test: build-test
@@ -757,12 +759,33 @@ $(TEST_BUILD_DIR)/$(BUILT_IN).o: $(SRC_DIR)/$(BUILT_IN).c
 ################################################################################
 
 # Základní cesta k souborům
-BASE_PATH = ../test/test_examples/ifj24code_examples/pregenerated_ifj24code/
+BASE_PATH = ../test/test_examples/ifj24code_examples
 
-### T # run-code: # Spustí interpret jazyk IFJ24 s IFJ24code assembler souborem: \nUSAGE: "make run-code F=<FILE>" (očekává soubor ve složce: \n'../test/test_examples/ifj24code_examples/pregenerated_ifj24code/<FILE>')
+### G # run-code: # Spustí interpret jazyk IFJ24 s IFJ24code assembler souborem: \nUSAGE: "make run-code F=<FILE>" \n(očekává soubor bez přípony '.zig' a ve složce: \n'../test/test_examples/ifj24code_examples/pregenerated_ifj24code/<FILE>.zig')
 run-code:
-	@echo "\033[35mLaunching 'ic24int' interpreter with:\033[0m \033[33m$(F)\033[0m"
-	@$(TEST_DIR)/ic24int $(BASE_PATH)$(F)
+	@echo "\033[35mLaunching 'ic24int' interpreter with:\033[0m \033[33m$(F).ifj24code\033[0m"
+	@echo "\033[35mRUNNING:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m"
+	@$(TEST_DIR)/ic24int $(BASE_PATH)/ifj24code_output/$(F).ifj24code
+	@echo "\n\033[35mINTERPRETATION DONE\033[0m"
+
+### G # gen-code: # Spustí týmový překladač jazyka IFJ24 a vygeneruje pomocí něj IFJ24code \npro zvolený program: \nUSAGE: "make gen-code F=<FILE>" \n(očekává soubor bez přípony '.zig' a ve složce: \n'../test/test_examples/ifj24code_examples/programs/<FILE>.zig')
+gen-code: $(BUILD_DIR)/$(EXECUTABLE)
+	@mkdir -p $(BASE_PATH)/ifj24code_output
+	@echo "\033[35mLaunching 'ifj24compiler' with:\033[0m \033[33m$(F).zig\033[0m"
+	@$(BUILD_DIR)/$(EXECUTABLE) < $(BASE_PATH)/programs/$(F).zig > $(BASE_PATH)/ifj24code_output/$(F).ifj24code
+	@echo "\033[35mCOMPILATION DONE:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m"
+
+### G # gen-run-code: # Spustí týmový překladač jazyka IFJ24 a vygeneruje pomocí něj IFJ24code \npro zvolený program. Následně spustí vygenerovaný IFJ24code soubor: \nUSAGE: "make gen-run-code F=<FILE>" \n(očekává soubor bez přípony '.zig' a ve složce: \n'../test/test_examples/ifj24code_examples/programs/<FILE>.zig')
+gen-run-code: $(BUILD_DIR)/$(EXECUTABLE)
+	@mkdir -p $(BASE_PATH)/ifj24code_output
+	@echo "\033[35mLaunching 'ifj24compiler' with:\033[0m \033[33m$(F).zig\033[0m"
+	@$(BUILD_DIR)/$(EXECUTABLE) < $(BASE_PATH)/programs/$(F).zig > $(BASE_PATH)/ifj24code_output/$(F).ifj24code
+	@echo "\033[35mCOMPILATION DONE:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m\n"
+	@echo "\033[35mLaunching 'ic24int' interpreter with:\033[0m \033[33m$(F).ifj24code\033[0m"
+	@echo "\033[35mRUNNING:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m"
+	@$(TEST_DIR)/ic24int $(BASE_PATH)/ifj24code_output/$(F).ifj24code
+	@echo "\n\033[35mINTERPRETATION DONE\033[0m"
+
 
 
 ################################################################################
