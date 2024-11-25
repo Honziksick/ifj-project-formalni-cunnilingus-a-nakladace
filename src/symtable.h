@@ -138,6 +138,7 @@ typedef struct {
  */
 typedef struct {
     symtable_functionReturnType return_type;    /**< Návratový typ funkce */
+    size_t body_frameID;                        /**< ID rámce pro tělo funkce */
     size_t param_count;                         /**< Počet parametrů funkce */
     SymtableParamPair *params;                  /**< Pole parametrů funkce */
 } SymtableFunctionData;

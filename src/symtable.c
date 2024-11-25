@@ -564,6 +564,7 @@ SymtableFunctionData *symtable_init_function_data(size_t param_count){
         params[i].type = SYMTABLE_TYPE_UNKNOWN;
     }
     // Inicializujeme strukturu
+    data->body_frameID = 0;
     data->param_count = param_count;
     data->params = params;
     return data;

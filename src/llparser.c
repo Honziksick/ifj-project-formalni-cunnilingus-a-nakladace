@@ -371,6 +371,9 @@ AST_FunDefNode *LLparser_parseFunDef() {
     // Pushneme nový rámce příslušící parsované funkci
     frameStack_push(true);
 
+    // Uložíme ID rámce těla funkce pro tabulku symbolů
+    size_t function_frameID = frameStack.top->frameID;
+
     // Počítadlo parametrů funkce
     size_t paramCount = 0;
 
@@ -440,6 +443,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
     }
 
     Parser_mapASTDataTypeToFunReturnType(returnType, &funType);
+    functionData->body_frameID = function_frameID;
     functionData->return_type = funType;
 
     // Přidáme data funkce do položky v tabulce symbolů
