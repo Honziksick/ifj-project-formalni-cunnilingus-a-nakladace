@@ -38,7 +38,7 @@
         },
         {
             "name": "Three-Adress Code Generator Tests",
-            "pattern": "${workspaceFolder}/test/build_test/tac_test"
+            "pattern": "${workspaceFolder}/test/build_test/tac_generator_test"
         },
         {
             "name": "LL-Table Tests",

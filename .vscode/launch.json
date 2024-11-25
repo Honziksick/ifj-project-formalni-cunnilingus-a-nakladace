@@ -408,7 +408,7 @@
             "name": "(gdb) run-tac-test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/test/build_test/tac_test",
+            "program": "${workspaceFolder}/test/build_test/tac_generator_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/src",
