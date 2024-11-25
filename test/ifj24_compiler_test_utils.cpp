@@ -122,7 +122,7 @@ void ASTutils_printProgramNode(AST_ProgramNode *node, ostream &out, int indent, 
         out << "Program Node" << endl;
 
     // Aktualizace vektoru úrovní
-    levels.push_back(!isLastChild);
+    levels.push_back(true);
 
     // Ověření existence importovaného souboru
     if (node->importedFile != nullptr) {
@@ -139,6 +139,9 @@ void ASTutils_printProgramNode(AST_ProgramNode *node, ostream &out, int indent, 
         else
             out << "Imported File: " << "(null)" << endl;
     }
+
+    // Aktualizace vektoru úrovní
+    levels.pop_back();
 
     // Iterace přes seznam funkcí a tisk každé funkce
     AST_FunDefNode *func = node->functionList;
@@ -184,7 +187,8 @@ void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bo
 
     // Aktualizace vektoru úrovní
     levels.push_back(!isLastChild);
-
+    levels.push_back(!isLastChild);
+    
     // Výpis parametrů funkce, pokud existují
     if(node->parameters != nullptr) {
         ASTutils_printIndent(indent + 1, out, levels, false);
@@ -198,6 +202,8 @@ void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bo
         ASTutils_printIndent(indent + 1, out, levels, false);
         out << COLOR_BLUE << "Parameters: " << COLOR_RESET << "(null)" << endl;
     }
+    // Aktualizace vektoru úrovní
+    levels.pop_back();
 
     // Výpis návratového typu funkce
     ASTutils_printIndent(indent + 1, out, levels, false);
@@ -287,6 +293,7 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
 
         // Aktualizace vektoru úrovní
         levels.push_back(!isLast);
+        levels.push_back(!isLast);
 
         if (useColors)
             out << COLOR_BLUE << "Statement: " << COLOR_RESET;
@@ -371,6 +378,7 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                 out << "(null)" << endl;
                 break;
         }
+        levels.pop_back();
         levels.pop_back();
         node = node->next;
     }

@@ -125,7 +125,8 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
              */
             case P_GREATER:
                 // Provedeme algoritmus pro precedenci větší než ">"
-                greaterStopFlag = PrecParser_applyGreaterPrecedence(&bracketDepth, currentDollar, &inTerminal, &topTerminal);
+                greaterStopFlag = PrecParser_applyGreaterPrecedence(&bracketDepth, \
+                                  fromNonTerminal, currentDollar, &inTerminal, &topTerminal);
                 break;
 
             // Jinak se nic nestane
@@ -133,7 +134,9 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
                 break;
         } // switch()
 
-        if (PrecParser_shouldStopParsingLoop(inTerminal, topTerminal, greaterStopFlag)) {
+        // Pokud je splněná (částečně kontextově daná) podmínka, ukončujeme cyklus
+        if (PrecParser_shouldStopParsingLoop(inTerminal, topTerminal, greaterStopFlag))
+        {
             break;
         }
     } // while()
@@ -260,15 +263,10 @@ void PrecParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarCont
 
 /**
  * @brief Zpracuje terminál s precedencí P_GREATER.
- *
- * @details Tato funkce vybere redukční pravidlo a provede redukci na základě zvoleného pravidla.
- *
- * @param bracketDepth Hloubka zanoření závorek.
- * @param inTerminal Ukazatel na proměnnou, do které bude uložen aktuální terminál.
- * @param topTerminal Ukazatel na proměnnou, do které bude uložen terminál na vrcholu zásobníku.
  */
-bool PrecParser_applyGreaterPrecedence(int *bracketDepth, DollarTerminals dollarContext, \
-                                       PrecTerminals *inTerminal, PrecTerminals *topTerminal)
+bool PrecParser_applyGreaterPrecedence(int *bracketDepth, LLNonTerminals fromNonTerminal, \
+                                       DollarTerminals dollarContext, PrecTerminals *inTerminal, \
+                                       PrecTerminals *topTerminal)
 {
     // Vybereme redukční pravidlo
     ReductionRule rule = REDUCE_RULE_UNDEFINED;
@@ -290,7 +288,9 @@ bool PrecParser_applyGreaterPrecedence(int *bracketDepth, DollarTerminals dollar
          * "dollar" terminálem, ukončujeme cyklus precednčeního parsování
          */
         if (*bracketDepth == 0 && dollarContext ==  DOLLAR_T_RIGHT_BRACKET) {
-            return true;
+            if(fromNonTerminal != NT_IF && fromNonTerminal != NT_WHILE) {
+                return true;
+            }
         }
     }
 
@@ -315,14 +315,6 @@ bool PrecParser_applyGreaterPrecedence(int *bracketDepth, DollarTerminals dollar
 
 /**
  * @brief Vybere redukční pravidlo na základě aktuálního stavu zásobníku.
- *
- * @details Tato funkce prochází zásobník, dokud nenarazí na symbol `HANDLE`,
- *          a na základě aktuálního stavu a symbolů na zásobníku určí, které
- *          redukční pravidlo použít. Pokud pro danou sekvenci symbolů pravidlo
- *          neexistuje, dojde k chybě.
- *
- * @param [out] rule Ukazatel na proměnnou, do které bude uloženo nalezené
- *              redukční pravidlo.
  */
 void PrecParser_chooseReductionRule(ReductionRule *rule) {
     // Pokud byl funkci předán neplatný ukazatel, zaznamenáme vnitřní chybu
