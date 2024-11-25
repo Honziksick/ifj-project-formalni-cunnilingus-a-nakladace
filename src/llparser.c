@@ -1570,7 +1570,7 @@ AST_StatementNode *LLparser_parseRuleStatement1() {
     }
 
     // Parsujeme ";"
-    if (currentTerminal.LLterminal != T_SEMICOLON) {
+    if (LLparser_isNotExpectedTerminal(T_SEMICOLON)) {
         AST_destroyNode(AST_STATEMENT_NODE, varDef);
         goto parseRuleStatement1_handleError;
     }
@@ -2069,20 +2069,21 @@ AST_StatementNode *LLparser_parseRuleStatementRest2(DString **identifier) {
     // Žádáme o další token
     Parser_getNextToken(POKE_SCANNER);
 
-    // Vytvoříme uzel pro volání funkce
-    AST_FunCallNode *funCallNode = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
-        goto parseRuleStatementRest2_errorLevel_1;
-    }
 
     // Parsujeme <ARGUMENTS>
     AST_ArgOrParamNode *arguments = LLparser_parseArguments();
     if (Parser_errorWatcher(IS_PARSING_ERROR)) {
-        goto parseRuleStatementRest2_errorLevel_2;
+        goto parseRuleStatementRest2_errorLevel_1;
     }
 
     // Žádáme o další token
     Parser_getNextToken(POKE_SCANNER);
+
+   // Vytvoříme uzel pro volání funkce
+    AST_FunCallNode *funCallNode = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
+    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+        goto parseRuleStatementRest2_errorLevel_1;
+    }
 
     // Inicializujeme uzel pro volání funkce
     AST_initNewFunCallNode(funCallNode, *identifier, false, arguments);

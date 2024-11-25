@@ -395,11 +395,11 @@ void PrecStack_freeNode(PrecStackNode *stackNode) {
 /**
  * @brief Získá terminál na vrcholu zásobníku, který je nejblíže vrcholu.
  */
-void PrecStack_getTopPrecTerminal(PrecTerminals *terminal) {
+void PrecStack_getTopPrecTerminal(PrecTerminals *topTerminal) {
     // Kontrolujem platnost přijatého ukazatele a struktur zásobníku
-    if(terminal == NULL || precStackList == NULL || precStackList->stack == NULL) {
+    if(topTerminal == NULL || precStackList == NULL || precStackList->stack == NULL) {
         Parser_errorWatcher(SET_ERROR_SYNTAX);
-        *terminal = T_PREC_UNDEFINED;
+        *topTerminal = T_PREC_UNDEFINED;
         return;
     }
 
@@ -409,7 +409,7 @@ void PrecStack_getTopPrecTerminal(PrecTerminals *terminal) {
     // Pokud je zásobník prázdný nastala syntaktická chyba
     if(stackTopNode == NULL) {
         Parser_errorWatcher(SET_ERROR_SYNTAX);
-        *terminal = T_PREC_UNDEFINED;
+        *topTerminal = T_PREC_UNDEFINED;
         return;
     }
 
@@ -421,11 +421,11 @@ void PrecStack_getTopPrecTerminal(PrecTerminals *terminal) {
     // Pokud nebyl na zásobníku teminál nalezen, nastala interní chyba překladače
     if(stackTopNode == NULL) {
         Parser_errorWatcher(SET_ERROR_INTERNAL);
-        *terminal = T_PREC_UNDEFINED;
+        *topTerminal = T_PREC_UNDEFINED;
     }
 
     // Namapujeme zásobníkový symbol na typ precedenčního terminálu
-    PrecStack_mapStackSymbolToPrecTerminal(stackTopNode->symbol, terminal);
+    PrecStack_mapStackSymbolToPrecTerminal(stackTopNode->symbol, topTerminal);
 } // PrecStack_getTopPrecTerminal()
 
 

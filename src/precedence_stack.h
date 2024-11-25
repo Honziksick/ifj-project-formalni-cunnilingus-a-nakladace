@@ -323,7 +323,7 @@ void PrecStack_freeNode(PrecStackNode *stackNode);
  * @param [out] terminal Ukazatel na proměnnou, do které bude uložen nalezený
  *              terminál.
  */
-void PrecStack_getTopPrecTerminal(PrecTerminals *terminal);
+void PrecStack_getTopPrecTerminal(PrecTerminals *topTerminal);
 
 /**
  * @brief Zkontroluje, zda je na vrcholu zásobníku symbol ID.

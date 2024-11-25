@@ -44,9 +44,8 @@
 #include "ifj24_compiler_test_utils.h"
 
 /*
-TEST(ParserSyntaxError, Statements) {
-
-    string filename = "error_statement_55.zig";
+TEST(XXX, XXX) {
+    string filename = "error_statement_76.zig";
     string path = synt_error_path + filename;
     
     FILE* f = fopen(path.c_str(), "r");
@@ -1636,6 +1635,34 @@ TEST(LLParserBasicsCorrect, Return){
     fclose(f);
 }
 
+TEST(LLParserBasicsCorrect, IfCondition) {
+    for (int i = 1; i <= 7; i++) {
+        string filename = "correct_if_condition_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = synt_path + filename;
+        
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << "Can't open file: " << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        // Syntaktická analýza programu
+        LLparser_parseProgram();
+        EXPECT_NE(ASTroot, nullptr);
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+        
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
 TEST(LLParserExamples, Example1){
     string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -1853,7 +1880,7 @@ TEST(ParserSyntaxError, FunctionDefinition) {
 }
 
 TEST(ParserSyntaxError, Statements) {
-    for (int i = 1; i <= 72; ++i) {
+    for (int i = 1; i <= 118; i++) {
         string filename = "error_statement_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
         string path = synt_error_path + filename;
         

@@ -200,6 +200,8 @@ void PrecParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarCont
  *       @c topTerminal pro další použití v hlavním cyklu parseru.
  *
  * @param [in] bracketDepth Hloubka zanoření závorek.
+ * @param [in] fromNonTerminal Neterminál předávající řízení precedenčnímu
+ *                             syntaktickému analyzátoru.
  * @param [in] dollarContext Kontextový terminál typu DollarTerminals.
  * @param [in,out] inTerminal Ukazatel na aktuální vstupní terminál.
  *                            Hodnota může být aktualizována.
@@ -210,8 +212,9 @@ void PrecParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarCont
  *         aktuálním "dollar terminálem" je pravá závorka, což značení ukončení
  *         hlavní smyčky parsování. Jinak vrací @c false.
  */
-bool PrecParser_applyGreaterPrecedence(int *bracketDepth, DollarTerminals dollarContext, \
-                                       PrecTerminals *inTerminal, PrecTerminals *topTerminal);
+bool PrecParser_applyGreaterPrecedence(int *bracketDepth, LLNonTerminals fromNonTerminal, \
+                                       DollarTerminals dollarContext, PrecTerminals *inTerminal, \
+                                       PrecTerminals *topTerminal);
 
 
 /*******************************************************************************
@@ -363,12 +366,13 @@ bool PrecParser_shouldEndRuleSelecetion(unsigned char distanceFromTop, PrecStack
  *          podmínek, funkce vrátí @c true, což znamená, že smyčka by měla být
  *          ukončena.
  *
- * @param inTerminal Aktuální terminál.
- * @param topTerminal Terminál na vrcholu zásobníku.
- * @param greaterStopFlag Flag pro speciální ukončení po aplikaci @c P_GREATER.
+ * @param [in] inTerminal Aktuální terminál.
+ * @param [in] topTerminal Terminál na vrcholu zásobníku.
+ * @param [in] greaterStopFlag Flag pro speciální ukončení po aplikaci @c P_GREATER.
  * @return Vrací @c true, pokud má být smyčka ukončena, jinak @c false.
  */
-bool PrecParser_shouldStopParsingLoop(PrecTerminals inTerminal, PrecTerminals topTerminal, bool greaterStopFlag);
+bool PrecParser_shouldStopParsingLoop(PrecTerminals inTerminal, PrecTerminals topTerminal, \
+                                      bool greaterStopFlag);
 
 /**
  * @brief Mapuje neterminální symbol na odpovídající redukční pravidlo.
