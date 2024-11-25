@@ -271,7 +271,7 @@ typedef struct AST_WhileNode {
 typedef struct AST_ExprNode {
     enum AST_NodeType type;                     /**< Typ uzlu (AST_EXPR_NODE) */
     enum AST_ExprType exprType;                 /**< Typ výrazu */
-         void         *expression;
+         void         *expression;              /**< Ukazatel na uzel konkrétního výrazu */
 } AST_ExprNode;
 
 /**

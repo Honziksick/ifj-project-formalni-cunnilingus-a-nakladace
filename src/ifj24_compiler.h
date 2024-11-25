@@ -32,14 +32,19 @@
 
 
 #include "error.h"
-#include "parser.h"
+#include "llparser.h"
 #include "semantic_analyser.h"
 #include "tac_generator.h"
 
-/**
- * @brief Konstanta označující úspěšné dokončení překladu
- */
-#define SUCCESS 0
+
+/*******************************************************************************
+ *                                                                             *
+ *                              DEFINICE KONSTANT                              *
+ *                                                                             *
+ ******************************************************************************/
+
+#define SUCCESS 0       /**< Konstanta označující úspěšné dokončení překladu. */
+
 
 /*******************************************************************************
  *                                                                             *
@@ -58,6 +63,6 @@
  *
  * @return @c SUCCESS při úspěchu, jinak @c ErrorType hodnota při chybě.
  */
-int main(int argc, char *argv[]);
+int main();
 
 #endif  // MAIN_H_

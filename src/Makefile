@@ -115,9 +115,11 @@ OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC_FILES))
 TEST_FILES = $(wildcard $(TEST_DIR)/*.cpp)
 
 # Seznam všech objektových souborů přeložených pro testování
-TEST_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(TEST_BUILD_DIR)/%.o,$(SRC_FILES))
-TEST_TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.cpp,$(TEST_BUILD_DIR)/%.o,$(TEST_FILES))
-TEST_C_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(TEST_BUILD_DIR)/%.o, $(SRC_FILES))
+EXCLUDED_TEST_SRC_FILES = $(SRC_DIR)/ifj24_compiler.c
+TEST_INCLUDES = $(filter-out $(EXCLUDED_TEST_SRC_FILES), $(SRC_FILES))
+TEST_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(TEST_BUILD_DIR)/%.o,$(TEST_INCLUDES)) \
+$(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o $(TEST_BUILD_DIR)/gtest_main.a $(TEST_BUILD_DIR)/gtest.a
+TEST_TEST_OBJ_FILES = $(filter-out $(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o, $(patsubst $(TEST_DIR)/%.cpp,$(TEST_BUILD_DIR)/%.o,$(TEST_FILES)))
 
 # Seznam všech objektových souborů přeložených pro code coverage
 COV_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(COVERAGE_BUILD_DIR)/%.o,$(SRC_FILES))
@@ -215,7 +217,15 @@ pack:
 	mkdir -p $(PACK_DIR)
 	$(MAKE) $(SILENTOPT) pack-prepare
 	@echo ""
-	cd $(PACK_DIR)/$(ARCHIVE_DIR) && zip -r ../$(PACK_NAME) ./
+	cd $(PACK_DIR)/$(ARCHIVE_DIR) && zip -qr ../$(PACK_NAME) ./
+	@{ \
+		cd "$(PACK_DIR)" && \
+			mkdir is_it_ok && \
+			cp $(PACK_NAME).zip is_it_ok/ && \
+			cp $(TEST_DIR)/is_it_ok.sh is_it_ok/ && \
+			./is_it_ok/is_it_ok.sh $(PACK_NAME).zip testdir && \
+			rm -rf is_it_ok; \
+	}
 
 
 ################################################################################
@@ -230,6 +240,7 @@ clean-all: clean-build clean-test clean-coverage clean-doc clean-pack
 ### C # clean-build: # Odstraní adresář 'src/build' s verzí překladače k nasazení
 clean-build:
 	rm -rf $(BUILD_DIR)
+	rm -rf $(EXECUTABLE)
 
 ### C # clean-test: # Odstraní adresář '../test/build-test' s unit testy překladače
 clean-test:
@@ -415,15 +426,31 @@ SEMANTIC = semantic_analyser
 ### B # build-semantic: # Sestaví sémantický analyzátor
 build-semantic: $(BUILD_DIR)/$(SEMANTIC).o
 
+$(BUILD_DIR)/$(SEMANTIC).o: $(SRC_DIR)/$(SEMANTIC).c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
 
 ###                                                                          ###
 #                 SUBMODULY generátoru tříadresného kódu (3AK)                 #
 ###                                                                          ###
 
 TAC = tac_generator
+BUILT_IN = built_in_functions
 
 ### B # build-tac: # Sestaví generátor tříadresného kódu (3AK)
 build-tac: $(BUILD_DIR)/$(TAC).o
+
+### B # build-built-in: # Sestaví podpůrné funkce pro generování built-in ("ifj") funkcí
+build-built-in: $(BUILD_DIR)/$(BUILT_IN).o
+
+$(BUILD_DIR)/$(TAC).o: $(SRC_DIR)/$(TAC).c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
+
+$(BUILD_DIR)/$(BUILT_IN).o: $(SRC_DIR)/$(BUILT_IN).c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_STD) -c $< -o $@
 
 
 ################################################################################
@@ -437,10 +464,9 @@ build-tac: $(BUILD_DIR)/$(TAC).o
 ###                                                                          ###
 
 ### T # build-test: # Sestaví testovací program sdružující veškeré testy překladače
-build-test: $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES) $(TEST_BUILD_DIR)/gtest_main.a $(TEST_BUILD_DIR)/gtest.a
+build-test: $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES)
 	@mkdir -p $(TEST_BUILD_DIR)
-	$(CXX) $(CFLAGS_TEST) $(CXXFLAGS_TEST) $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES) \
-		$(TEST_BUILD_DIR)/gtest_main.a -o $(TEST_BUILD_DIR)/$(EXECUTABLE)_test
+	$(CXX) $(CFLAGS_TEST) $(CXXFLAGS_TEST) $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES)  -o $(TEST_BUILD_DIR)/$(EXECUTABLE)_test
 
 # Stavba objektových souborů modulů a submodulů s přepínači pro pokrytí kódu
 $(TEST_BUILD_DIR)/%.o: $(SRC_DIR)/%.c
@@ -503,9 +529,7 @@ run-string-test: $(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test
 
 # Stavba testů podpůrných knihoven a submodulů
 $(TEST_BUILD_DIR)/$(ERROR_LIB)_test: $(TEST_BUILD_DIR)/$(ERROR_LIB)_test.o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
+									 $(TEST_SRC_OBJ_FILES)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
 $(TEST_BUILD_DIR)/$(ERROR_LIB)_test.o: $(TEST_DIR)/$(ERROR_LIB)_test.cpp
@@ -517,9 +541,7 @@ $(TEST_BUILD_DIR)/$(ERROR_LIB).o: $(SRC_DIR)/$(ERROR_LIB).c
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
 $(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test: $(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test.o \
-											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
+											  $(TEST_SRC_OBJ_FILES)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
 $(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB)_test.o: $(TEST_DIR)/$(DYNAMIC_STRING_LIB)_test.cpp
@@ -544,12 +566,7 @@ run-scanner-test: $(TEST_BUILD_DIR)/$(SCANNER)_test
 
 # Stavba testů pro lexikální analyzátor
 $(TEST_BUILD_DIR)/$(SCANNER)_test: $(TEST_BUILD_DIR)/$(SCANNER)_test.o \
-											$(TEST_BUILD_DIR)/$(SCANNER).o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
-											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
-											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
+								   $(TEST_SRC_OBJ_FILES)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
 $(TEST_BUILD_DIR)/$(SCANNER)_test.o: $(TEST_DIR)/$(SCANNER)_test.cpp
@@ -579,20 +596,6 @@ build-lltable-test: $(TEST_BUILD_DIR)/$(LLTABLE)_test
 run-lltable-test: $(TEST_BUILD_DIR)/$(LLTABLE)_test
 	$(TEST_BUILD_DIR)/$(LLTABLE)_test
 
-### T # build-prectable-test: # Sestaví testy aplikace pravidel precedenční tabulky pro precedenční parser
-build-prectable-test: $(TEST_BUILD_DIR)/$(PRECTABLE)_test
-
-### T # run-prectable-test: # Spustí testy aplikace pravidel precedenční tabulky pro precedenční parser
-run-prectable-test: $(TEST_BUILD_DIR)/$(PRECTABLE)_test
-	$(TEST_BUILD_DIR)/$(PRECTABLE)_test
-
-### T # build-precstack-test: # Sestaví testy precedenční zásobníku pro precedenční parser
-build-precstack-test: $(TEST_BUILD_DIR)/$(PRECSTACK)_test
-
-### T # run-precstack-test: # Spustí testy precedenční zásobníku pro precedenční parser
-run-precstack-test: $(TEST_BUILD_DIR)/$(PRECSTACK)_test
-	$(TEST_BUILD_DIR)/$(PRECSTACK)_test
-
 ### T # build-frame-stack-test: # Sestaví testy zásobíku rámců
 build-frame-stack-test: $(TEST_BUILD_DIR)/$(FRAME_STACK)_test
 
@@ -616,21 +619,7 @@ run-symtable-test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test
 
 # Stavba testů pro syntaktický analyzátor
 $(TEST_BUILD_DIR)/$(PARSER)_test: $(TEST_BUILD_DIR)/$(PARSER)_test.o \
-											$(TEST_BUILD_DIR)/$(PARSER).o \
-											$(TEST_BUILD_DIR)/ll$(PARSER).o \
-											$(TEST_BUILD_DIR)/precedence_$(PARSER).o \
-											$(TEST_BUILD_DIR)/$(LLTABLE).o \
-											$(TEST_BUILD_DIR)/$(PRECTABLE).o \
-											$(TEST_BUILD_DIR)/$(PRECSTACK).o \
-											$(TEST_BUILD_DIR)/$(FRAME_STACK).o \
-											$(TEST_BUILD_DIR)/$(AST_LIB).o \
-											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
-											$(TEST_BUILD_DIR)/$(SCANNER).o \
-											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
-											$(TEST_BUILD_DIR)/ast_test_utils.o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
+								  $(TEST_SRC_OBJ_FILES)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
 $(TEST_BUILD_DIR)/$(PARSER)_test.o: $(TEST_DIR)/$(PARSER)_test.cpp
@@ -650,10 +639,7 @@ $(TEST_BUILD_DIR)/precedence_$(PARSER).o: $(SRC_DIR)/precedence_$(PARSER).c
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
 $(TEST_BUILD_DIR)/$(LLTABLE)_test: $(TEST_BUILD_DIR)/$(LLTABLE)_test.o \
-											$(TEST_BUILD_DIR)/$(LLTABLE).o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
+								   $(TEST_SRC_OBJ_FILES)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
 $(TEST_BUILD_DIR)/$(LLTABLE)_test.o: $(TEST_DIR)/$(LLTABLE)_test.cpp
@@ -664,46 +650,8 @@ $(TEST_BUILD_DIR)/$(LLTABLE).o: $(SRC_DIR)/$(LLTABLE).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
-$(TEST_BUILD_DIR)/$(PRECTABLE)_test: $(TEST_BUILD_DIR)/$(PRECTABLE)_test.o \
-											$(TEST_BUILD_DIR)/$(PRECTABLE).o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
-
-$(TEST_BUILD_DIR)/$(PRECTABLE)_test.o: $(TEST_DIR)/$(PRECTABLE)_test.cpp
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
-
-$(TEST_BUILD_DIR)/$(PRECTABLE).o: $(SRC_DIR)/$(PRECTABLE).c
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
-
-$(TEST_BUILD_DIR)/$(PRECSTACK)_test: $(TEST_BUILD_DIR)/$(PRECSTACK)_test.o \
-											$(TEST_BUILD_DIR)/$(PRECSTACK).o \
-											$(TEST_BUILD_DIR)/$(AST_LIB).o \
-											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
-											$(TEST_BUILD_DIR)/ast_test_utils.o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
-
-$(TEST_BUILD_DIR)/$(PRECSTACK)_test.o: $(TEST_DIR)/$(PRECSTACK)_test.cpp
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
-
-$(TEST_BUILD_DIR)/$(PRECSTACK).o: $(SRC_DIR)/$(PRECSTACK).c
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
-
 $(TEST_BUILD_DIR)/$(FRAME_STACK)_test: $(TEST_BUILD_DIR)/$(FRAME_STACK)_test.o \
-											$(TEST_BUILD_DIR)/$(FRAME_STACK).o \
-											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
-											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
+								       $(TEST_SRC_OBJ_FILES)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
 $(TEST_BUILD_DIR)/$(FRAME_STACK)_test.o: $(TEST_DIR)/$(FRAME_STACK)_test.cpp
@@ -715,12 +663,7 @@ $(TEST_BUILD_DIR)/$(FRAME_STACK).o: $(SRC_DIR)/$(FRAME_STACK).c
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
 $(TEST_BUILD_DIR)/$(AST_LIB)_test: $(TEST_BUILD_DIR)/$(AST_LIB)_test.o \
-											$(TEST_BUILD_DIR)/$(AST_LIB).o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
-											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
-											$(TEST_BUILD_DIR)/ast_test_utils.o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
+								   $(TEST_SRC_OBJ_FILES)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
 $(TEST_BUILD_DIR)/$(AST_LIB)_test.o: $(TEST_DIR)/$(AST_LIB)_test.cpp
@@ -731,15 +674,12 @@ $(TEST_BUILD_DIR)/$(AST_LIB).o: $(SRC_DIR)/$(AST_LIB).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
-$(TEST_BUILD_DIR)/ast_test_utils.o: $(TEST_DIR)/ast_test_utils.cpp
+$(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o: $(TEST_DIR)/ifj24_compiler_test_utils.cpp
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
 
 $(TEST_BUILD_DIR)/$(SYMTABLE)_test: $(TEST_BUILD_DIR)/$(SYMTABLE)_test.o \
-											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
-											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
+									$(TEST_SRC_OBJ_FILES)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
 $(TEST_BUILD_DIR)/$(SYMTABLE)_test.o: $(TEST_DIR)/$(SYMTABLE)_test.cpp
@@ -764,22 +704,7 @@ run-semantic-test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test
 
 # Stavba testů pro sémantický analyzátor
 $(TEST_BUILD_DIR)/$(SEMANTIC)_test: $(TEST_BUILD_DIR)/$(SEMANTIC)_test.o \
-											$(TEST_BUILD_DIR)/$(SEMANTIC).o \
-											$(TEST_BUILD_DIR)/$(PARSER).o \
-											$(TEST_BUILD_DIR)/ll$(PARSER).o \
-											$(TEST_BUILD_DIR)/precedence_$(PARSER).o \
-											$(TEST_BUILD_DIR)/$(LLTABLE).o \
-											$(TEST_BUILD_DIR)/$(PRECTABLE).o \
-											$(TEST_BUILD_DIR)/$(PRECSTACK).o \
-											$(TEST_BUILD_DIR)/$(FRAME_STACK).o \
-											$(TEST_BUILD_DIR)/$(AST_LIB).o \
-											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
-											$(TEST_BUILD_DIR)/$(SCANNER).o \
-											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
-											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
-											$(TEST_BUILD_DIR)/ast_test_utils.o \
-											$(TEST_BUILD_DIR)/gtest_main.a \
-											$(TEST_BUILD_DIR)/gtest.a
+									$(TEST_SRC_OBJ_FILES)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
 $(TEST_BUILD_DIR)/$(SEMANTIC)_test.o: $(TEST_DIR)/$(SEMANTIC)_test.cpp
@@ -804,6 +729,7 @@ run-tac-test: $(TEST_BUILD_DIR)/$(TAC)_test
 
 # Stavba testů pro generátor tříadresného kódu
 $(TEST_BUILD_DIR)/$(TAC)_test: $(TEST_BUILD_DIR)/$(TAC)_test.o \
+<<<<<<< HEAD
 											$(TEST_BUILD_DIR)/$(TAC).o \
 											$(TEST_BUILD_DIR)/$(ERROR_LIB).o \
 											$(TEST_BUILD_DIR)/$(DYNAMIC_STRING_LIB).o \
@@ -812,6 +738,9 @@ $(TEST_BUILD_DIR)/$(TAC)_test: $(TEST_BUILD_DIR)/$(TAC)_test.o \
 											$(TEST_BUILD_DIR)/$(SYMTABLE).o \
 											$(TEST_BUILD_DIR)/gtest_main.a \
 											$(TEST_BUILD_DIR)/gtest.a
+=======
+							   $(TEST_SRC_OBJ_FILES)
+>>>>>>> 8a47a09080dfe09d25115991fa5790380fc2016e
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
 $(TEST_BUILD_DIR)/$(TAC)_test.o: $(TEST_DIR)/$(TAC)_test.cpp
@@ -819,6 +748,10 @@ $(TEST_BUILD_DIR)/$(TAC)_test.o: $(TEST_DIR)/$(TAC)_test.cpp
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
 
 $(TEST_BUILD_DIR)/$(TAC).o: $(SRC_DIR)/$(TAC).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(BUILT_IN).o: $(SRC_DIR)/$(BUILT_IN).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
@@ -922,7 +855,7 @@ pack-prepare:
 		else \
 			missing_files=1; \
 		fi; \
-		if [ -d "$(TEST_DIR)" ]; then \
+        if [ -d "$(TEST_DIR)" ]; then \
 			rsync -a --include '*/' --include '*.cpp' --exclude '*' --exclude '*/' \
 			--prune-empty-dirs $(TEST_DIR)/ $(PACK_DIR)/$(ARCHIVE_DIR)/; \
 		else \

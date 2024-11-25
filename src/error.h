@@ -44,9 +44,9 @@
  *                                                                             *
  ******************************************************************************/
 
-#define RED_COLOR "\033[91m"        /**< ANSI escape sekvence pro červenou barvu */
+#define RED_COLOR    "\033[91m"     /**< ANSI escape sekvence pro červenou barvu */
 #define YELLOW_COLOR "\033[33m"     /**< ANSI escape sekvence pro žlutou barvu */
-#define RESET_COLOR "\033[0m"       /**< ANSI escape sekvence pro resetování barvy */
+#define RESET_COLOR  "\033[0m"      /**< ANSI escape sekvence pro resetování barvy */
 
 
 /*******************************************************************************
@@ -64,6 +64,7 @@
  *          je podrobně popsán v komentářích u jednotlivých hodnot výčtu.
  */
 typedef enum ErrorType {
+    SUCCESS                      = 0,   /**< Návratový kód značící úspěch (nikoliv chybu) */
     ERROR_LEXICAL                = 1,   /**< Chyba v programu v rámci lexikální analýzy (chybná struktura aktuálního lexému). */
     ERROR_SYNTAX                 = 2,   /**< Chyba v programu v rámci syntaktické analýzy (chybná syntaxe programu, chybějící hlavička, atp.). */
     ERROR_SEM_UNDEF              = 3,   /**< Sémantická chyba v programu – nedefinovaná funkce či proměnná. */
@@ -94,6 +95,15 @@ typedef enum ErrorType {
  * @param [in] error Chybový kód typu ErrorType.
  */
 #define error_handle(error) error_internalHandle(error, __FILE__, __LINE__, __func__)
+
+/**
+ * @brief Funkce pro uvolnění alokovaných dat z haldy před ukončením programu
+ *
+ * @details Tato funkce uvolní všechna do dané chvíle alokovaná data na základě zadaného chybového kódu.
+ *          Uvolnění paměti je důležité pro zabránění únikům paměti a zajištění správného fungování
+ *          programu. Funkce může uvolňovat různé typy dat v závislosti na tom, kde došlo k chybě.
+ */
+void IFJ24Compiler_freeAllAllocatedMemory();
 
 
 /*******************************************************************************
@@ -128,17 +138,6 @@ void error_internalHandle(ErrorType error, const char *file, int line, const cha
 void error_printMessage(ErrorType error);
 
 /**
- * @brief Funkce pro uvolnění alokovaných dat z haldy před ukončením programu
- *
- * @details Tato funkce uvolní všechna do dané chvíle alokovaná data na základě zadaného chybového kódu.
- *          Uvolnění paměti je důležité pro zabránění únikům paměti a zajištění správného fungování
- *          programu. Funkce může uvolňovat různé typy dat v závislosti na tom, kde došlo k chybě.
- *
- * @param [in] error Chybový kód typu `ErrorType`, který specifikuje typ chyby.
- */
-void error_freeAllocatedData(ErrorType error);
-
-/**
  * @brief Funkce pro ukončení programu s příslušným chybovým kódem.
  *
  * @details Tato funkce ukončí program s daným chybovým kódem. Funkce provádí
@@ -165,6 +164,13 @@ void error_killMePlease(ErrorType error);
  *       řetězce.
  */
 const char *error_getFileName(const char *path);
+
+
+void PrecStackList_destroy();
+void frameStack_destroyAll();
+void AST_destroyTree();
+void TAC_destroyInstructionList();
+
 
 #endif  // ERROR_H_
 

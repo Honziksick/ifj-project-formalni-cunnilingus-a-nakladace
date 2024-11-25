@@ -28,23 +28,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-extern "C" {
-#include "tac_generator.h"
-#include "ast_nodes.h"
-#include "ast_interface.h"
-}
-#include "ast_test_utils.h"
-
-using namespace testing;
-using namespace std;
-using namespace testing;
-using namespace internal;
-
-
-/**
- * @brief Globální kořen abstraktního syntaktického stromu.
- */
-AST_ProgramNode *ASTroot;
+#include "ifj24_compiler_test_utils.h"
 
 /**
  * @brief Testuje funkci `TAC_generateTestCode` pro vytvoření testovacího kódu.

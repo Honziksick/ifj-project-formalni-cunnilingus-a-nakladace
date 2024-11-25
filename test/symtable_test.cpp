@@ -29,11 +29,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-extern "C" {
-#include "symtable.h"
-}
-
-using namespace testing;
+#include "ifj24_compiler_test_utils.h"
 
 /**
  * @brief Testuje funkci `symtable_destroyTable` pro zničení tabulky
@@ -523,6 +519,7 @@ TEST(Table, ItemData){
     ASSERT_EQ(item1->symbol_state, item2->symbol_state);
     ASSERT_EQ(*((int*)item2->data), 5);
 
+    free(item1->data);
     symtable_destroyTable(map);
     string_free(horse_val);
 }
@@ -625,6 +622,11 @@ TEST(Table, FunctionData){
     ASSERT_EQ(string_compare_const_str(found_data->params[1].id, "l"), STRING_EQUAL);
     ASSERT_EQ(found_data->params[1].type, SYMTABLE_TYPE_STRING_OR_NULL);
 
+    // Uvolňuje se v rámci destrukce AST
+    string_free(data->params[0].id);
+    string_free(data->params[1].id);
+
+    // Uvolňuje se v rámci destrukce Symtable
     symtable_destroyTable(map);
     string_free(horse_val);
     string_free(a);

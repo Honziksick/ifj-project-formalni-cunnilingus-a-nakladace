@@ -417,40 +417,6 @@ void AST_destroyVarNode(AST_VarNode *node);
  ******************************************************************************/
 
 /**
- * @brief Vloží uzel na začátek seznamu definic funkcí.
- *
- * @details Tato funkce přidá nový uzel na začátek seznamu definic funkcí. Pokud
- *          je seznam prázdný, nový uzel se stane prvním uzlem v seznamu.
- *
- * @param firstDef Ukazatel na ukazatel na první uzel seznamu definic funkcí.
- * @param newDef Ukazatel na nový uzel, který má být přidán na začátek seznamu.
- */
-void AST_insertFirstFunDefNode(AST_FunDefNode **firstDef, AST_FunDefNode *newDef);
-
-/**
- * @brief Vloží uzel na začátek seznamu argumentů nebo parametrů funkce.
- *
- * @details Tato funkce přidá nový uzel na začátek seznamu argumentů nebo
- *          parametrů funkce. Pokud je seznam prázdný, nový uzel se stane
- *          prvním uzlem v seznamu.
- *
- * @param firstArg Ukazatel na ukazatel na první uzel seznamu argumentů nebo parametrů.
- * @param newArg Ukazatel na nový uzel, který má být přidán na začátek seznamu.
- */
-void AST_insertFirstArgOrParamNode(AST_ArgOrParamNode **firstArg, AST_ArgOrParamNode *newArg);
-
-/**
- * @brief Vloží uzel na začátek seznamu příkazů.
- *
- * @details Tato funkce přidá nový uzel na začátek seznamu příkazů. Pokud je
- *          seznam prázdný, nový uzel se stane prvním uzlem v seznamu.
- *
- * @param firstStat Ukazatel na ukazatel na první uzel seznamu příkazů.
- * @param newStat Ukazatel na nový uzel, který má být přidán na začátek seznamu.
- */
-void AST_insertFirstStatementNode(AST_StatementNode **firstStat, AST_StatementNode *newStat);
-
-/**
  * @brief Uvolní paměť pro všechny uzly v seznamu parametrů/argumentů v uzlu pro funkci.
  *
  * @param [in] list Ukazatel na seznam `AST_ArgOrParamNode` uzlů, které mají být uvolněny.

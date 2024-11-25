@@ -6,7 +6,7 @@
  * Autor:            Hýža Pavel         <xhyzapa00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   22.11.2024                                                *
+ * Poslední změna:   25.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -24,13 +24,9 @@
  *          scannner, které jsou implementovány v souboru scanner.c.
  */
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <ctype.h>
 
 #include "scanner.h"
-//pro1 #include "symtable.h"
-
+#include "parser_common.h"
 
 inline int scanner_getNextChar() {      // Čte jeden znak ze souboru
     return getchar();
@@ -47,10 +43,10 @@ CharType scanner_charIdentity(int c) {
     else if(isdigit(c)) {
         return NUMBER;  //c je číslo (NUMBER)
     }
-    else if(isspace(c)) { 
+    else if(isspace(c)) {
         return WHITESPACE;   //c je prázdný znak (WHITESPACE)
     }
-    else if(c == '#' || c == '$' || c == '%' || 
+    else if(c == '#' || c == '$' || c == '%' ||
             c == '&' || c == 39  || c == '^' ||
             c == '`' || c == '~' || c >= 127) { //Znak, co není v jazyce povolen (39 = ' , 127 = DEL)
         return NOT_IN_LANGUAGE;     //c je znak, kerý nepatří do jazyka (NIL)
@@ -71,7 +67,7 @@ CharType scanner_charIdentity(int c) {
         return CHAR_EOF;
     }
     else {  //c nespadá do žádné ze skupin znaků, jedná se o chybu, je nutné sem vložit návratovou hodnotu pro překlad kódu
-        error_handle(ERROR_LEXICAL);
+        Parser_errorWatcher(SET_ERROR_LEXICAL);
         return CHAR_EOF;    //V případě erroru dává smysl sem vložit návratovou hodnotu EOF
     }
 }
@@ -130,7 +126,7 @@ Token scanner_FSM() {
     bool stopFSM = false;
     StateFSM state = STATE0_START;
     DString *str = string_init();
-    Token lexToken;
+    Token lexToken = {TOKEN_UNINITIALIZED, NULL};
     int keytest = 0;
 
     //Běh FSM po jednom volání od Syntaktického analyzátoru
@@ -164,7 +160,7 @@ Token scanner_FSM() {
                         break;
                     case NOT_IN_LANGUAGE:
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
                         break;
                     case SIMPLE:
                         //printf("S0 Sim\n");
@@ -181,9 +177,9 @@ Token scanner_FSM() {
                         stopFSM = true;
                         break;
                     default:
-                        //printf("S0 DEF\n");    
+                        //printf("S0 DEF\n");
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);        //ERROR - charIdentity vrátil něco, co nedává smysl
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - charIdentity vrátil něco, co nedává smysl
                         break;
                 }
                 break;
@@ -218,7 +214,7 @@ Token scanner_FSM() {
                     case NOT_IN_LANGUAGE:
                         //printf("S1 NIL\n");
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
                         break;
                     default:    //SIMPLE + COMPLEX + CHAR_EOF
                         //printf("S1 DEF\n");
@@ -249,7 +245,7 @@ Token scanner_FSM() {
                         } else {
                             stopFSM = true;
                             //printf("S2 Let\n");
-                            error_handle(ERROR_LEXICAL);        //ERROR - načítá se písmeno do Tokenu Int
+                            Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - načítá se písmeno do Tokenu Int
                         }
                         break;
                     case NUMBER:
@@ -264,7 +260,7 @@ Token scanner_FSM() {
                     case NOT_IN_LANGUAGE:
                         stopFSM = true;
                         //printf("S2 NIL\n");
-                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
                         break;
                     case COMPLEX:
                         //printf("S2 COM\n");
@@ -302,7 +298,7 @@ Token scanner_FSM() {
                     default:    //LETTER + NOT_IN_LANGUAGE + SIMPLE + COMPLEX + CHAR_EOF
                         //printf("S3 DEF\n");
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);        //ERROR - nebylo načteno číslo do Tokenu nehotového floatu
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - nebylo načteno číslo do Tokenu nehotového floatu
                         break;
                 }
                 break;
@@ -324,7 +320,7 @@ Token scanner_FSM() {
                             state = STATE4_FLOAT_READY;
                         } else {
                             stopFSM = true;
-                            error_handle(ERROR_LEXICAL);        //ERROR - nebylo načteno +/- do Tokenu nehotového floatu varianty exponent
+                            Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - nebylo načteno +/- do Tokenu nehotového floatu varianty exponent
                         }
                         break;
                     case NUMBER:
@@ -335,7 +331,7 @@ Token scanner_FSM() {
                     default:    //LETTER + NOT_IN_LANGUAGE + COMPLEX + CHAR_EOF
                         //printf("S33 DEF\n");
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);        //ERROR - nebylo načteno číslo do Tokenu nehotového floatu
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - nebylo načteno číslo do Tokenu nehotového floatu
                         break;
                 }
                 break;
@@ -351,7 +347,7 @@ Token scanner_FSM() {
                     case LETTER:
                         //printf("S4 Let\n");
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);        //ERROR - načítá se písmeno do Tokenu Float
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - načítá se písmeno do Tokenu Float
                         break;
                     case NUMBER:
                         //printf("S4 Num\n");
@@ -365,7 +361,7 @@ Token scanner_FSM() {
                     case NOT_IN_LANGUAGE:
                         //printf("S4 Nil\n");
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - načtený znak nepatří mezi znaky jazyka
                         break;
                     default:    //SIMPLE + COMPLEX + CHAR_EOF
                         //printf("S4 DEF\n");
@@ -452,7 +448,7 @@ Token scanner_FSM() {
                         break;
                     case ']':
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);    //ERROR - načtený znak ] bez [ před ním
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtený znak ] bez [ před ním
                         break;
                     case '?':
                         state = STATE17_QUESTION_MARK;
@@ -465,7 +461,7 @@ Token scanner_FSM() {
                         break;
                     default:
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);    //ERROR - načtený COMPLEX není validní
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtený COMPLEX není validní
                 }
                 break;
             /*
@@ -482,12 +478,12 @@ Token scanner_FSM() {
                             stopFSM = true;
                         } else {
                             stopFSM = true;
-                            error_handle(ERROR_LEXICAL);
+                            Parser_errorWatcher(SET_ERROR_LEXICAL);
                         }
                         break;
                     default:    //LETTER + NUMBER + WHITESPACE + NOT_IN_LANGUAGE + SIMPLE + CHAR_EOF
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);
                         break;
                 }
                 break;
@@ -501,7 +497,7 @@ Token scanner_FSM() {
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case NOT_IN_LANGUAGE:
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);
                         break;
                     case WHITESPACE:
                         lexToken = scanner_stringlessTokenCreate(TOKEN_LESS_THAN);
@@ -534,7 +530,7 @@ Token scanner_FSM() {
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case NOT_IN_LANGUAGE:
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);
                         break;
                     case WHITESPACE:
                         lexToken = scanner_stringlessTokenCreate(TOKEN_GREATER_THAN);
@@ -567,7 +563,7 @@ Token scanner_FSM() {
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case NOT_IN_LANGUAGE:
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);
                         break;
                     case WHITESPACE:
                         lexToken = scanner_stringlessTokenCreate(TOKEN_EQUALITY_SIGN);
@@ -600,7 +596,7 @@ Token scanner_FSM() {
                 switch (scanner_charIdentity(c)) {  //Identifikace znaku mezi 29 typů
                     case NOT_IN_LANGUAGE:
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);
                         break;
                     case WHITESPACE:
                         lexToken = scanner_stringlessTokenCreate(TOKEN_SLASH);
@@ -656,7 +652,7 @@ Token scanner_FSM() {
                         break;
                     case NOT_IN_LANGUAGE:
                         stopFSM = true;
-                        error_handle(ERROR_LEXICAL);
+                        Parser_errorWatcher(SET_ERROR_LEXICAL);
                         break;
                     case WHITESPACE:
                         if(strcmp(str->str, "import") == 0) {
@@ -665,7 +661,7 @@ Token scanner_FSM() {
                         }
                         else {
                             stopFSM = true;
-                            error_handle(ERROR_LEXICAL);
+                            Parser_errorWatcher(SET_ERROR_LEXICAL);
                         }
                         break;
                     default:    //NUMBER + SIMPLE + COMPLEX + CHAR_EOF
@@ -676,7 +672,7 @@ Token scanner_FSM() {
                         }
                         else {
                             stopFSM = true;
-                            error_handle(ERROR_LEXICAL);
+                            Parser_errorWatcher(SET_ERROR_LEXICAL);
                         }
                         break;
                 }
@@ -694,7 +690,7 @@ Token scanner_FSM() {
                     //Nic
                 } else {
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu []u8
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu []u8
                     break;
                 }
                 break;
@@ -711,7 +707,7 @@ Token scanner_FSM() {
                     //Nic
                 } else {
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu []u8
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu []u8
                     break;
                 }
                 break;
@@ -727,7 +723,7 @@ Token scanner_FSM() {
                     stopFSM = true;
                 } else {
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu []u8
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu []u8
                     break;
                 }
                 break;
@@ -750,7 +746,7 @@ Token scanner_FSM() {
                     state = STATE20_QUESTION_MARK_C1;
                 } else {
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
                 }
                 break;
             /*
@@ -767,7 +763,7 @@ Token scanner_FSM() {
                 } else {
                     //printf("else\n");
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
                 }
                 break;
             /*
@@ -784,7 +780,7 @@ Token scanner_FSM() {
                 } else {
                     //printf("else\n");
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
                 }
                 break;
             /*
@@ -804,7 +800,7 @@ Token scanner_FSM() {
                 } else {
                     //printf("else\n");
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
                 }
                 break;
             /*
@@ -822,7 +818,7 @@ Token scanner_FSM() {
                 } else {
                     //printf("else\n");
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
                 }
                 break;
             /*
@@ -840,7 +836,7 @@ Token scanner_FSM() {
                 } else {
                     //printf("else\n");
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
                 }
                 break;
             /*
@@ -860,7 +856,7 @@ Token scanner_FSM() {
                 } else {
                     //printf("elseC2\n");
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
                 }
                 break;
             /*
@@ -878,7 +874,7 @@ Token scanner_FSM() {
                 } else {
                     //printf("else\n");
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
                     break;
                 }
                 break;
@@ -924,7 +920,7 @@ Token scanner_FSM() {
                     state = STATE27_ESCAPE_BACKSLASH_X;
                 } else {
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načten nekompatibilní znak pro escape sekvenci ve stringu
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načten nekompatibilní znak pro escape sekvenci ve stringu
                     break;
                 }
                 break;
@@ -959,7 +955,7 @@ Token scanner_FSM() {
                     }
                 } else {
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načten nekompatibilní znak pro X escape sekvenci ve stringu
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načten nekompatibilní znak pro X escape sekvenci ve stringu
                     break;
                 }
 
@@ -988,7 +984,7 @@ Token scanner_FSM() {
                     }
                 } else {
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);    //ERROR - načten nekompatibilní znak pro X escape sekvenci ve stringu
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načten nekompatibilní znak pro X escape sekvenci ve stringu
                     break;
                 }
 
@@ -1010,7 +1006,7 @@ Token scanner_FSM() {
                 } else {
                     //printf("S28 else\n");
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);        //ERROR - načten nekompatibilní znak do tokenu stringu s variantou backslash
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - načten nekompatibilní znak do tokenu stringu s variantou backslash
                     break;
                 }
             /*
@@ -1054,7 +1050,7 @@ Token scanner_FSM() {
                 if(c != 92) {
                     //printf("S30 if2\n");
                     stopFSM = true;
-                    error_handle(ERROR_LEXICAL);        //ERROR - načten nekompatibilní znak do tokenu stringu s variantou backslash
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);        //ERROR - načten nekompatibilní znak do tokenu stringu s variantou backslash
                     break;
                 }
                 //printf("S30 End\n");
@@ -1068,7 +1064,7 @@ Token scanner_FSM() {
             */
             default: //stateFSM ERROR
                 stopFSM = true;
-                error_handle(ERROR_LEXICAL);
+                Parser_errorWatcher(SET_ERROR_LEXICAL);
                 break;
         }
     }

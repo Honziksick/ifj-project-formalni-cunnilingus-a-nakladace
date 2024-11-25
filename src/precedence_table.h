@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            10.11.2024                                                *
- * Poslední změna:   13.11.2024                                                *
+ * Poslední změna:   23.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -33,10 +33,12 @@
 #define PREC_TABLE_H_
 /** @endcond  */
 
-#include <stdlib.h>
+// Import standardních knihoven jazyka C
 #include <stdbool.h>
-#include "lltable.h"
+
+// Import sdílených knihoven překladače
 #include "error.h"
+
 
 /*******************************************************************************
  *                                                                             *
@@ -44,9 +46,9 @@
  *                                                                             *
  ******************************************************************************/
 
-#define PREC_TERMINAL_COUNT 21              /**< Celkový počet terminálů v precedenční SA. */
+#define PREC_TERMINAL_COUNT 21              /**<  Celkový počet terminálů v precedenční syntaktické analýze.  */
+#define FOLLOW_NON_TERMINALS_COUNT 7        /**<  Počet NEterminálů, ze kterých jde přejít do precedenční SA. */
 
-#define FOLLOW_NON_TERMINALS_COUNT 7        /**< Počet NEterminálů, ze kterých jde přejít do precedenční SA. */
 
 /*******************************************************************************
  *                                                                             *
@@ -58,31 +60,33 @@
  * @brief Výčet terminálů používaných v precedenční syntaktické analýze.
  *
  * @details Tento výčet obsahuje všechny terminály, které mohou být použity
- *          v precedenční syntaktické analýze.
+ *          v precedenční syntaktické analýze. Každý terminál určuje nejen jeden
+ *          řádek v precedenční tabulce (terminál na vrcholu zásobníku), ale
+ *          také sloupec (vstupní terminál).
  */
 typedef enum PrecTerminals {
     T_PREC_UNDEFINED             = -1,       /**<  Aktuální precedenční terminál je zatím neznámý */
-    T_PREC_ID                    = 0,        /**<  Identifikátor  */
-    T_PREC_INT_LITERAL           = 1,        /**<  Literál typu i32  */
-    T_PREC_FLOAT_LITERAL         = 2,        /**<  Literál typu i64  */
-    T_PREC_STRING_LITERAL        = 3,        /**<  Literál typu []u8  */
-    T_PREC_NULL_LITERAL          = 4,        /**<  Literál typu NULL  */
-    T_PREC_IFJ                   = 5,        /**<  Klíčové slovo "ifj"  */
-    T_PREC_DOT                   = 6,        /**<  Symbol tečky "."  */
-    T_PREC_LEFT_BRACKET          = 7,        /**<  Symbol levé závorky "("  */
-    T_PREC_RIGHT_BRACKET         = 8,        /**<  Symbol pravé závorky ")"  */
-    T_PREC_PLUS                  = 9,        /**<  Operátor součtu "+"  */
-    T_PREC_MINUS                 = 10,       /**<  Operátor rozdílu "-"  */
-    T_PREC_MULTIPLICATION        = 11,       /**<  Operátor součinu "*"  */
-    T_PREC_DIVISION              = 12,       /**<  Operátor podílu "/"  */
-    T_PREC_IDENTITY              = 13,       /**<  Operátor rovnosti "=="  */
-    T_PREC_NOT_EQUAL             = 14,       /**<  Operátor nerovnosti "!="  */
-    T_PREC_LESS_THAN             = 15,       /**<  Operátor menší než "<"  */
-    T_PREC_GREATER_THAN          = 16,       /**<  Operátor větší než ">"  */
+    T_PREC_ID                    = 0,        /**<  Identifikátor              */
+    T_PREC_INT_LITERAL           = 1,        /**<  Literál typu i32           */
+    T_PREC_FLOAT_LITERAL         = 2,        /**<  Literál typu i64           */
+    T_PREC_STRING_LITERAL        = 3,        /**<  Literál typu []u8          */
+    T_PREC_NULL_LITERAL          = 4,        /**<  Literál typu NULL          */
+    T_PREC_IFJ                   = 5,        /**<  Klíčové slovo "ifj"        */
+    T_PREC_DOT                   = 6,        /**<  Symbol tečky "."           */
+    T_PREC_LEFT_BRACKET          = 7,        /**<  Symbol levé závorky "("    */
+    T_PREC_RIGHT_BRACKET         = 8,        /**<  Symbol pravé závorky ")"   */
+    T_PREC_PLUS                  = 9,        /**<  Operátor součtu "+"        */
+    T_PREC_MINUS                 = 10,       /**<  Operátor rozdílu "-"       */
+    T_PREC_MULTIPLICATION        = 11,       /**<  Operátor součinu "*"       */
+    T_PREC_DIVISION              = 12,       /**<  Operátor podílu "/"        */
+    T_PREC_IDENTITY              = 13,       /**<  Operátor rovnosti "=="     */
+    T_PREC_NOT_EQUAL             = 14,       /**<  Operátor nerovnosti "!="   */
+    T_PREC_LESS_THAN             = 15,       /**<  Operátor menší než "<"     */
+    T_PREC_GREATER_THAN          = 16,       /**<  Operátor větší než ">"     */
     T_PREC_LESS_THAN_OR_EQUAL    = 17,       /**<  Operátor menší rovno "<="  */
     T_PREC_GREATER_THAN_OR_EQUAL = 18,       /**<  Operátor větší rovno ">="  */
-    T_PREC_COMMA                 = 19,       /**<  Symbol čárky "," uvnitř argumentů volání funkce  */
-    T_PREC_DOLLAR                = 20,       /**<  Řízení parsování předáno LL parseru */
+    T_PREC_COMMA                 = 19,       /**<  Symbol čárky "," uvnitř argumentů volání funkce */
+    T_PREC_DOLLAR                = 20,       /**<  Řízení parsování předáno LL parseru             */
 } PrecTerminals;
 
 /**
@@ -92,10 +96,11 @@ typedef enum PrecTerminals {
  *          při precedenční syntaktické analýze pro určení vztahů mezi terminály.
  */
 typedef enum Precedence {
-    P_SYNTAX_ERROR  = -1,          /**<  Chyba syntaxe (takovéto pravidlo se v tabulce nevyskytuje)  */
-    P_EQUAL         = 0,           /**<  Operátory mají stejnou prioritu  */
-    P_LESS          = 1,           /**<  Operátor vlevo má nižší prioritu než operátor vpravo  */
-    P_GREATER       = 2,           /**<  Operátor vlevo má vyšší prioritu než operátor vpravo  */
+    P_PRECEDENCE_UNDEFINED  = -2,       /**<  Aktuální precedence není zatím definována                   */
+    P_SYNTAX_ERROR          = -1,       /**<  Chyba syntaxe (takovéto pravidlo se v tabulce nevyskytuje)  */
+    P_EQUAL                 = 0,        /**<  Operátory mají stejnou prioritu                             */
+    P_LESS                  = 1,        /**<  Operátor vlevo má nižší prioritu než operátor vpravo        */
+    P_GREATER               = 2,        /**<  Operátor vlevo má vyšší prioritu než operátor vpravo        */
 } Precedence;
 
 /**
@@ -106,21 +111,33 @@ typedef enum Precedence {
  *          precedenčnímu syntaktickému analyzátoru během LL syntaktické analýzy.
  */
 typedef enum CallPrecNonTerminals {
-    CALL_PREC_NT_UNDEFINED      = -1,       /**< Aktuální "follow" neterminál je zatím neznámý. */
-    CALL_PREC_NT_VAR_DEF        = 0,        /**< Neterminál pro definici proměnné */
-    CALL_PREC_NT_STATEMENT      = 1,        /**< Neterminál pro příkaz (resp. return) */
-    CALL_PREC_NT_STATEMENT_REST = 2,        /**< Neterminál pro zbytek příkazu */
-    CALL_PREC_NT_THROW_AWAY     = 3,        /**< Neterminál pro zahození návratové hodnoty */
-    CALL_PREC_NT_IF             = 4,        /**< Neterminál pro podmínku if */
-    CALL_PREC_NT_WHILE          = 5,        /**< Neterminál pro cyklus while */
-    CALL_PREC_NT_ARGUMENTS      = 6,        /**< Neterminál pro argumenty funkce */
+    CALL_PREC_NT_UNDEFINED      = -1,       /**<  Aktuální "follow" neterminál je zatím neznámý  */
+    CALL_PREC_NT_VAR_DEF        = 0,        /**<  Neterminál pro definici proměnné               */
+    CALL_PREC_NT_STATEMENT      = 1,        /**<  Neterminál pro příkaz (resp. return)           */
+    CALL_PREC_NT_STATEMENT_REST = 2,        /**<  Neterminál pro zbytek příkazu                  */
+    CALL_PREC_NT_THROW_AWAY     = 3,        /**<  Neterminál pro zahození návratové hodnoty      */
+    CALL_PREC_NT_IF             = 4,        /**<  Neterminál pro podmínku if                     */
+    CALL_PREC_NT_WHILE          = 5,        /**<  Neterminál pro cyklus while                    */
+    CALL_PREC_NT_ARGUMENTS      = 6,        /**<  Neterminál pro argumenty funkce                */
 } CallPrecNonTerminals;
 
+/**
+ * @brief  Výčet možných "dollar" terminálů, na základě kterých je za splnění
+ *         podmínek předáno řízení zpět LL parseru.
+ *
+ * @details Tento výčet obsahuje možné hodnoty "dollar" terminálů, které se
+ *          používají v precedenční analýze. "Dollar" terminály jsou speciální
+ *          terminály, které označují konec určité části syntaktické analýzy a
+ *          předávají řízení zpět LL parseru. Každý "dollar" terminál má
+ *          specifický význam a je použit v různých kontextech syntaktické
+ *          analýzy, kdy například základním kontextem je typ NEterminálu, ze
+ *          kterého bylo precedenčnímu parseru předáno řízení.
+ */
 typedef enum DollarTerminals {
-    CURRENT_DOLLAR_UNDEFINED    = -1,       /**< Aktuální ukončovací terminál je zatím neznámý. */
-    DOLLAR_T_SEMICOLON          = 0,        /**< Neterminál pro zahození návratové hodnoty */
-    DOLLAR_T_RIGHT_BRACKET      = 1,        /**< Neterminál pro zbytek příkazu */
-    DOLLAR_T_COMMA              = 2,        /**< Neterminál pro podmínku if */
+    CURRENT_DOLLAR_UNDEFINED    = -1,       /**< Aktuuální "dollar" terminál je zatím neznámý  */
+    DOLLAR_T_SEMICOLON          = 0,        /**< "Dollar" terminálem je středník ";"           */
+    DOLLAR_T_RIGHT_BRACKET      = 1,        /**< "Dollar" terminálem je pravá závorka ")"      */
+    DOLLAR_T_COMMA              = 2,        /**< "Dollar" terminálem je čárka ","              */
 } DollarTerminals;
 
 
@@ -131,118 +148,80 @@ typedef enum DollarTerminals {
  ******************************************************************************/
 
 /**
- * @brief Struktura pro reprezentaci precedence v precedenční tabulce.
+ * @brief Struktura pro reprezentaci precedenční tabulky.
  *
- * @details Tato struktura obsahuje klíč a pole hodnot, které reprezentují
- *          precedence operátorů a operandů používané při precedenční syntaktické analýze.
+ * @details Tato struktura obsahuje klíč a hodnotu, které reprezentují
+ *          pravidla pro přechody mezi stavy na základě aktuálních terminálů.
  *
- * @note V tabulce je řádek značen terminálem na vrcholu zásobníku. Kódem tohoto
- *       terminálu je tabulka indexována. Sloupce tabulky odpovídají aktuálnímu
- *       terminálu na vstupu. Souřadnice [Terminál na vrcholu zásobníku, Terminál na vstupu]
- *       určují vztah precedence mezi dvěma terminály.
+ * @note Tabulka je tvořena lokálně v rámci funkce @c PrecTable_findRule().
+ *       Řádky i sloupce tabulky odpovídá jednotlivým terminálům, jejichž kódem
+ *       je tabulka indexována. Souřadnice [Terminál_na_vrcholu_zásobníku, Vstupní_terminál]
+ *       určují volbu precedence.
  */
-struct PrecedenceTable{
-    PrecTerminals key;                        /**<  Klíč pro identifikaci terminálu v tabulce  */
-    Precedence value[PREC_TERMINAL_COUNT];    /**<  Pole hodnot reprezentující precedence mezi terminály  */
-};
+typedef struct PrecedenceTable {
+    PrecTerminals key;                          /**< Klíč pro identifikaci terminálu v tabulce */
+    Precedence value[PREC_TERMINAL_COUNT];      /**< Pole hodnot reprezentující pravidla pro přechody mezi stavy */
+} PrecedenceTable;
 
 
 /*******************************************************************************
  *                                                                             *
- *                       DEKLARACE GLOBÁLNÍCH PROMĚNNÝCH                       *
+ *                    DEKLARÁCE FUNKCÍ PRO VEŘEJNÉ VYUŽITÍ                     *
  *                                                                             *
  ******************************************************************************/
 
 /**
- * @brief Externí deklarace precedenční tabulky.
+ * @brief Najde pravidlo v precedenční tabulce na základě terminálu na vrcholu
+ *        precedenčního zásobníku a vstupního terminálu.
  *
- * @details V tabulce je příslušný řádek pro každý terminál, jejichž kódem je
- *          tabulka indexována. Sloupce tabulky odpovídají jednotlivým
- *          terminálům. Souřadnice [Terminál na vrcholu zásobníku, Terminál na vstupu]
- *          určují vztah precedence mezi dvěma terminály.
+ * @details Tato funkce vytváří instanci precedenční tabulky lokálně. Používá
+ *          kódy dvou terminálů k vyhledání odpovídajícího pravidla.
+ *          Tabulka je definována přímo v rámci funkce a indexována terminály.
+ *          Pokud pravidlo neexistuje nebo kombinace terminálů není nalezena
+ *          v tabulce, funkce vrací přes parametr nedefinované pravidlo
+ *          @c RULE_UNDEFINED typu @c Precedence. V případě nalezení pravidla
+ *          @c P_SYNTAX_ERROR zaznamenává syntaktickou chybu do funkce
+ *          @c Parser_errorWatcher() nebo v případě interní chyby zaznamenává
+ *          výskyt interní chyby.
+ *
+ * @param [in] stackTopTerminal Terminál na vrcholu precedenčního zásobníku.
+ * @param [in] inputTerminal Aktuální vstupní terminál.
+ * @param [out] rule Ukazatel na proměnnou typu @c Precedence, kam bude uložena
+ *                   nalezená precedence.
  */
-extern const struct PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT];
+void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, \
+                              Precedence *rule);
 
 /**
- * @brief Globální proměnná pro aktuální množinu dollar neterinálů.
+ * @brief Namapuje NEterminál, ze kterého bylo předáno řízení precedenčnímu
+ *        parseru,  na odpovídající "dollar" terminál.
  *
- * @details Tato proměnná uchovává aktuální množinu dollar terminálů, které
- *          jsou používán precedenčním parserem. Je inicializována na
- *          @c CURRENT_DOLLAR_UNDEFINED a aktualizována během zahájení
- *          precedenční syntaktické analýzy.
+ * @details Funkce @c PrecTable_mapDollarTerminal() převede NEterminál na
+ *          odpovídající "dollar" terminál, který se používá v precedenční
+ *          analýze. To je důležité pro správné předání řízení zpět LL parseru.
+ *
+ * @param [in] fromNonTerminal NEterminál (`LLNonTerminals`), ze kterého bylo
+ *                             předáno řízení.
+ * @param [out] currentDollar Ukazatel na proměnnou typu @c DollarTerminals,
+ *                            kam bude uložen výsledek.
  */
-extern DollarTerminals currentDollar;
-
-
-/*******************************************************************************
- *                                                                             *
- *                      FUNKCE URČENÉ PRO VEŘEJNÉ VYUŽITÍ                      *
- *                                                                             *
- ******************************************************************************/
+void PrecTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, DollarTerminals *currentDollar);
 
 /**
- * @brief Najde pravidlo v precedenční tabulce na základě terminálů.
+ * @brief Mapuje typ vstupní precedenční terminál na "dollar" terminál
  *
- * @details Tato funkce používá kód terminálu na vrcholu zásobníku a terminálu
- *          na vstupu k vyhledání odpovídajícího pravidla v precedenční tabulce.
- *          Pokud funkce najde naprosto neočekávaný řádek tabulky, zahlásí
- *          @c ERROR_INTERNAL.
+ * @details Funkce na základě kontextového "dollar" terminálu a hloubky
+ *          zanoření závorek namapuje vstupní terminál na "dollar" terminál.
+ *          Tato funkce je v podstatě takovým filtrem, která při správném kontextu
+ *          změní typ vstupního precedenčního terminálů na @c T_PREC_DOLLAR, nebo
+ *          ho nechá nezměněný.
  *
- * @param[in] stackTopTerminal Terminál na vrcholu zásobníku sloužící jako index
- *                             do precedenční tabulky.
- * @param [in] inputTerminal Terminál na vstupu.
- * @param [out] precedence Ukazatel na proměnnou, do které bude uložena nalezená precedence.
+ * @param [in] bracketDepth Hloubka zanoření závorek, která ovlivňuje mapování.
+ * @param [in] dollarContext "Dollar" terminál pro aktuální kontext precedenčního parseru.
+ * @param [out] inTerminal Ukazatel na proměnnou, do které bude uloženo namapované terminál.
  */
-void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, Precedence *precedence);
-
-/**
- * @brief Získá FOLOW množinu pro daný NEterminál pomocí binárního vyhledávání
- *        a aktualizuje globální proměnnou.
- *
- * @details Pokud nebyla množina nalezena, zavolá funkci @c error_handle()
- *          s chybovým kódem @c ERROR_INTERNAL.
- *
- * @param [in] fromNonTerminal NEterminál, pro který se získává množina FOLOW.
- *
- * @note Funkce aktualizuje globální proměnnou @c currentFollowSet.
- */
-void PrecTable_getFollowSet(LLNonTerminals fromNonTerminal);
-
-/**
- * @brief Kontroluje, zda je daný terminál v aktuální FOLLOW množině.
- *
- * @param [in] terminal Terminál, který se má zkontrolovat.
- * @return @c true, pokud je terminál v aktuální FOLLOW množině, jinak @c false.
- */
-bool PrecTable_isInFollowSet(DollarTerminals terminal);
-
-
-/*******************************************************************************
- *                                                                             *
- *                      FUNKCE URČENÉ PRO INTERNÍ VYUŽITÍ                      *
- *                                                                             *
- ******************************************************************************/
-
-/**
- * @brief Mapuje neterminál z LL syntaktické analýzy na neterminál pro předání
- *        řízení precedenčnímu syntaktickému analyzátoru.
- *
- * @details Tato funkce převede neterminál z LL syntaktické analýzy
- *          (`LLNonTerminals`) na odpovídající neterminál pro předání řízení
- *          precedenčního syntaktického analyzátoru (`CallPrecNonTerminals`)
- *          zpět LL parseru.
- *
- * @note V případě úspěchu vrací výsledek parametrem. V případě obdržení
- *       nenamapovatelného neterminálu volá funkci @c error_handle() s chybovým
- *       kódem @c ERROR_INTERNAL.
- *
- * @param [in] fromNonTerminal Neterminál z LL syntaktické analýzy, který se
- *                             má mapovat.
- * @param [out] followNonTerminal Ukazatel na proměnnou, do které bude uložen
- *                                odpovídající neterminál pro předání řízení
- *                                precedenčnímu syntaktickému analyzátoru.
- */
-void PrecTable_mapFollowNonTerminal(LLNonTerminals fromNonTerminal, CallPrecNonTerminals *followNonTerminal);
+void PrecParser_mapInTerminalToDollar(int bracketDepth, DollarTerminals dollarContext, \
+                                      PrecTerminals *inTerminal);
 
 #endif  // PREC_TABLE_H_
 

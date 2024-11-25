@@ -24,43 +24,19 @@
  * @details Tento soubor obsahuje testy k ověření funkčnosti dané knihovny.
 */
 
-// Potřebné knihovny k testování
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
 #include <stdio.h>
 #include <cstdio>
 #include <cstring>
 
-extern "C" {
-#include "scanner.h"
-#include "symtable.h"
-}
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
 
-using namespace testing;
-using namespace std;
-using namespace internal;
-
-
-/**
- * @brief Makro pro vytvoření stringu
- */
-#define MAKE_STRING(id, str)                                        \
-        DString* id = string_init();                                \
-        do{                                                         \
-            ASSERT_NE(id, nullptr);                                     \
-            const char *tmp_str = str;                                  \
-            for (size_t i = 0; i < strlen(tmp_str); i++) {              \
-                ASSERT_EQ(string_append_char(id, tmp_str[i]), STRING_SUCCESS); \
-            }                                                           \
-        }while(0);
-
-
+#include "ifj24_compiler_test_utils.h"
 
 #define TEST_HASH_FUNCTION(keyword, expected_hash) \
     MAKE_STRING(str_##keyword, #keyword); \
     EXPECT_EQ(symtable_hashFunction(str_##keyword), expected_hash); \
     string_free(str_##keyword);
-
 
 /**
  * @brief Funkce na testování typu tokenů
@@ -112,9 +88,6 @@ void testTokenString(const char* expected_string){
         exit(2);
     }
 }
-
-std::string exam_path = "../ifj24_examples/ifj24_programs/";
-std::string lex_path = "../test/test_examples/lexical_examples/";
 
 /**
  * @brief Test hasovací funkce pro klíčová slova
@@ -632,7 +605,7 @@ TEST(FSM, FSM_OPERATOR_ERROR_2){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program hello.zig
  */
 TEST(Lex, Hello) {
-    std::string path = exam_path + "hello.zig";
+    string path = exam_path + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -713,7 +686,7 @@ TEST(Lex, Hello) {
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program fun.zig
  */
 TEST(Lex, Fun) {
-    std::string path = exam_path + "fun.zig";
+    string path = exam_path + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -866,7 +839,7 @@ TEST(Lex, Fun) {
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example1.zig
  */
 TEST(Lex, Example1){
-    std::string path = exam_path + "example1.zig";
+    string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1010,7 +983,7 @@ TEST(Lex, Example1){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example2.zig
  */
 TEST(Lex, Example2) {
-    std::string path = exam_path + "example2.zig";
+    string path = exam_path + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1159,7 +1132,7 @@ TEST(Lex, Example2) {
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example3.zig
  */
 TEST(Lex, Example3) {
-    std::string path = exam_path + "example3.zig";
+    string path = exam_path + "example3.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1409,7 +1382,7 @@ TEST(Lex, Multiline){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi.zig
  */
 TEST(Lex, lex_test_multi){
-    std::string path = lex_path + "lex_test_multi.zig";
+    string path = lex_path + "lex_test_multi.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1520,7 +1493,7 @@ TEST(Lex, lex_test_multi){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi2.zig
  */
 TEST(Lex, lex_test_multi2){
-    std::string path = lex_path + "lex_test_multi2.zig";
+    string path = lex_path + "lex_test_multi2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1624,7 +1597,7 @@ TEST(Lex, lex_test_multi2){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_string_escapes.zig
  */
 TEST(Lex, lex_test_string_escapes){
-    std::string path = lex_path + "lex_test_string_escapes.zig";
+    string path = lex_path + "lex_test_string_escapes.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1728,7 +1701,7 @@ TEST(Lex, lex_test_string_escapes){
  * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_comment.zig
  */
 TEST(Lex, Comment) {
-    std::string path = lex_path + "lex_test_comment.zig";
+    string path = lex_path + "lex_test_comment.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1789,7 +1762,7 @@ TEST(Lex, Comment) {
  * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_satanic.zig
  */
 TEST(Lex, Satanic) {
-    std::string path = lex_path + "lex_test_satanic.zig";
+    string path = lex_path + "lex_test_satanic.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;

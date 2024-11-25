@@ -30,42 +30,15 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-extern "C" {
-#include "semantic_analyser.h"
-#include "scanner.h"
-#include "parser.h"
-#include "llparser.h"
-#include "lltable.h"
-#include "precedence_parser.h"
-#include "precedence_table.h"
-#include "precedence_stack.h"
-}
-#include "ast_test_utils.h"
+#include "ifj24_compiler_test_utils.h"
 
-using namespace std;
-using namespace testing;
-using namespace internal;
-
-void TestSemantic(bool print){
+void TestSemantic(){
     semantic_analyseProgram();
-    if(print){
-        
-    }
     exit(0);
 }
-
-void TestParser(){
-    LLparser_parseProgram();
-    exit(0);
-}
-
-std::string exam_path = "../ifj24_examples/ifj24_programs/";
-std::string sem_path = "../test/test_examples/semantic_examples/";
-
-extern AST_ProgramNode* ASTroot;
 
 TEST(Correct, Simplest){
-    std::string path = sem_path + "simplest.zig";
+    string path = sem_path + "simplest.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -77,7 +50,7 @@ TEST(Correct, Simplest){
     LLparser_parseProgram();
 
     // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
+    ASSERT_NE(ASTroot, nullptr);
     
     //Test pro AST
     EXPECT_EQ(ASTroot->type, AST_PROGRAM_NODE);
@@ -97,10 +70,9 @@ TEST(Correct, Simplest){
     EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
     EXPECT_EQ(fun->parameters, nullptr);
 
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
@@ -108,7 +80,7 @@ TEST(Correct, Simplest){
 
 
 TEST(Correct, Hello){
-    std::string path = exam_path + "hello.zig";
+    string path = exam_path + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -120,19 +92,18 @@ TEST(Correct, Hello){
     LLparser_parseProgram();
 
     // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
+    ASSERT_NE(ASTroot, nullptr);
 
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Example1){
-    std::string path = exam_path + "example1.zig";
+    string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -142,19 +113,18 @@ TEST(Correct, Example1){
 
     LLparser_parseProgram();
 
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Example2){
-    std::string path = exam_path + "example2.zig";
+    string path = exam_path + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -163,18 +133,17 @@ TEST(Correct, Example2){
     frameStack_init();
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Example3){
-    std::string path = exam_path + "example3.zig";
+    string path = exam_path + "example3.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -183,21 +152,17 @@ TEST(Correct, Example3){
     frameStack_init();
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_printArray(stderr, true, true);
-    EXPECT_EXIT(TestSemantic(true), ExitedWithCode(0), "");
-    
-
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Fun){
-    std::string path = exam_path + "fun.zig";
+    string path = exam_path + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -206,18 +171,17 @@ TEST(Correct, Fun){
     frameStack_init();
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Implicit_to_float){
-    std::string path = sem_path + "implicit_to_float.zig";
+    string path = sem_path + "implicit_to_float.zig";
     FILE* f = fopen(path.c_str(), "r");
     if(f == NULL){
         FAIL();
@@ -231,19 +195,18 @@ TEST(Correct, Implicit_to_float){
     LLparser_parseProgram();
 
     // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
+    ASSERT_NE(ASTroot, nullptr);
 
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Implicit_to_int){
-    std::string path = sem_path + "implicit_to_int.zig";
+    string path = sem_path + "implicit_to_int.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -255,18 +218,17 @@ TEST(Correct, Implicit_to_int){
     LLparser_parseProgram();
 
     // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Pseudo){
-    std::string path = sem_path + "pseudo.zig";
+    string path = sem_path + "pseudo.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -278,18 +240,17 @@ TEST(Correct, Pseudo){
     LLparser_parseProgram();
 
     // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Pseudo2){
-    std::string path = sem_path + "pseudo2.zig";
+    string path = sem_path + "pseudo2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -301,18 +262,17 @@ TEST(Correct, Pseudo2){
     LLparser_parseProgram();
 
     // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Inference){
-    std::string path = sem_path + "type_inference_good.zig";
+    string path = sem_path + "type_inference_good.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -324,11 +284,10 @@ TEST(Correct, Inference){
     LLparser_parseProgram();
 
     // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
@@ -336,7 +295,7 @@ TEST(Correct, Inference){
 
 
 TEST(Correct, Void_fun){
-    std::string path = sem_path + "void_fun_good.zig";
+    string path = sem_path + "void_fun_good.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -346,18 +305,17 @@ TEST(Correct, Void_fun){
 
     LLparser_parseProgram();
     
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Void_fun2){
-    std::string path = sem_path + "void_fun_good2.zig";
+    string path = sem_path + "void_fun_good2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -367,11 +325,10 @@ TEST(Correct, Void_fun2){
 
     LLparser_parseProgram();
     
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(0), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
@@ -379,7 +336,7 @@ TEST(Correct, Void_fun2){
 
 
 TEST(Incorrect, Undefined_Var){
-    std::string path = sem_path + "semen_test_1_undefined_var.zig";
+    string path = sem_path + "semen_test_1_undefined_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -387,17 +344,16 @@ TEST(Incorrect, Undefined_Var){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(3), "");
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(3), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Undefined_Fun){
-    std::string path = sem_path + "semen_test_2_undefined_fun.zig";
+    string path = sem_path + "semen_test_2_undefined_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -407,11 +363,10 @@ TEST(Incorrect, Undefined_Fun){
 
     LLparser_parseProgram();
     
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(3), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
@@ -419,7 +374,7 @@ TEST(Incorrect, Undefined_Fun){
 
 
 TEST(Incorrect, ParamCount){
-    std::string path = sem_path + "semen_test_3_wrong_number_of_parameters_in_fun.zig";
+    string path = sem_path + "semen_test_3_wrong_number_of_parameters_in_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -428,18 +383,17 @@ TEST(Incorrect, ParamCount){
     frameStack_init();
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, ParamType){
-    std::string path = sem_path + "semen_test_4_wrong_type_of_parameters_in_fun.zig";
+    string path = sem_path + "semen_test_4_wrong_type_of_parameters_in_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -448,18 +402,17 @@ TEST(Incorrect, ParamType){
     frameStack_init();
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Return){
-    std::string path = sem_path + "semen_test_5_incompatible_return_value.zig";
+    string path = sem_path + "semen_test_5_incompatible_return_value.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -468,18 +421,17 @@ TEST(Incorrect, Return){
     frameStack_init();
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Return2){
-    std::string path = sem_path + "semen_test_6_missing_return.zig";
+    string path = sem_path + "semen_test_6_missing_return.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -488,18 +440,17 @@ TEST(Incorrect, Return2){
     frameStack_init();
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(6), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(6), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Return3){
-    std::string path = sem_path + "semen_test_7_missing_return_completely.zig";
+    string path = sem_path + "semen_test_7_missing_return_completely.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -508,18 +459,17 @@ TEST(Incorrect, Return3){
     frameStack_init();
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(6), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(6), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Redefined_Var){
-    std::string path = sem_path + "semen_test_8_redefining_var.zig";
+    string path = sem_path + "semen_test_8_redefining_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -527,17 +477,16 @@ TEST(Incorrect, Redefined_Var){
 
     frameStack_init();
     
-    EXPECT_EXIT(TestParser(), ExitedWithCode(5), "");
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(5), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Redefined_Fun){
-    std::string path = sem_path + "semen_test_9_redefining_fun.zig";
+    string path = sem_path + "semen_test_9_redefining_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -545,17 +494,16 @@ TEST(Incorrect, Redefined_Fun){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(5), "");
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(5), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, ConstAssign){
-    std::string path = sem_path + "semen_test_10_assigning_value_to_const.zig";
+    string path = sem_path + "semen_test_10_assigning_value_to_const.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -564,18 +512,17 @@ TEST(Incorrect, ConstAssign){
     frameStack_init();
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(5), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(5), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, AssignType){
-    std::string path = sem_path + "semen_test_11_uncompatible_assignment_1.zig";
+    string path = sem_path + "semen_test_11_uncompatible_assignment_1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -584,18 +531,17 @@ TEST(Incorrect, AssignType){
     frameStack_init();
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(7), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(7), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, AssignType2){
-    std::string path = sem_path + "semen_test_12_uncompatible_assignment_2.zig";
+    string path = sem_path + "semen_test_12_uncompatible_assignment_2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -604,18 +550,17 @@ TEST(Incorrect, AssignType2){
     frameStack_init();
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(7), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(7), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Unused_Var){
-    std::string path = sem_path + "semen_test_13_unused_variable.zig";
+    string path = sem_path + "semen_test_13_unused_variable.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -625,11 +570,10 @@ TEST(Incorrect, Unused_Var){
 
     LLparser_parseProgram();
 
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(9), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(9), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
@@ -637,7 +581,7 @@ TEST(Incorrect, Unused_Var){
 
 
 TEST(Incorrect, MainInt){
-    std::string path = sem_path + "main_type_int.zig";
+    string path = sem_path + "main_type_int.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -649,18 +593,17 @@ TEST(Incorrect, MainInt){
     LLparser_parseProgram();
 
     // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, NoMain){
-    std::string path = sem_path + "missing_main.zig";
+    string path = sem_path + "missing_main.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -672,18 +615,17 @@ TEST(Incorrect, NoMain){
     LLparser_parseProgram();
 
     // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(3), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Prolog){
-    std::string path = sem_path + "prolog_issue.zig";
+    string path = sem_path + "prolog_issue.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -691,23 +633,21 @@ TEST(Incorrect, Prolog){
 
     frameStack_init();
 
-
     // Syntaktická analýza programu
-    LLparser_parseProgram();
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
 
     // Kořen je inicializován
     EXPECT_EQ(ASTroot, nullptr);
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Prolog2){
-    std::string path = sem_path + "prolog_issue2.zig";
+    string path = sem_path + "prolog_issue2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -717,21 +657,20 @@ TEST(Incorrect, Prolog2){
 
 
     // Syntaktická analýza programu
-    LLparser_parseProgram();
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
 
     // Kořen je inicializován
     EXPECT_EQ(ASTroot, nullptr);
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Inference){
-    std::string path = sem_path + "type_inference.zig";
+    string path = sem_path + "type_inference.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -741,19 +680,18 @@ TEST(Incorrect, Inference){
 
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(8), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Inference2){
-    std::string path = sem_path + "type_inference2.zig";
+    string path = sem_path + "type_inference2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -763,19 +701,18 @@ TEST(Incorrect, Inference2){
 
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(8), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Unchanged_var){
-    std::string path = sem_path + "unchanged_var.zig";
+    string path = sem_path + "unchanged_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -785,19 +722,18 @@ TEST(Incorrect, Unchanged_var){
 
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(9), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(9), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Unused_value){
-    std::string path = sem_path + "unused_value.zig";
+    string path = sem_path + "unused_value.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -806,20 +742,17 @@ TEST(Incorrect, Unused_value){
     frameStack_init();
 
 
-    LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
+    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Unused_value2){
-    std::string path = sem_path + "unused_value2.zig";
+    string path = sem_path + "unused_value2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -829,19 +762,18 @@ TEST(Incorrect, Unused_value2){
 
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(4), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Void_fun){
-    std::string path = sem_path + "void_fun_bad.zig";
+    string path = sem_path + "void_fun_bad.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -851,19 +783,18 @@ TEST(Incorrect, Void_fun){
 
 
     LLparser_parseProgram();
-    EXPECT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(false), ExitedWithCode(8), "");
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
     
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
 
-TEST(Incorrect, Var_in_own_def){
-    std::string path = sem_path + "var_in_own_definition.zig";
+TEST(Incorrect, CantDetermineNullCondType){
+    string path = sem_path + "cant_determine_nullcond_type.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -871,11 +802,15 @@ TEST(Incorrect, Var_in_own_def){
 
     frameStack_init();
 
-    EXPECT_EXIT(TestParser(), ExitedWithCode(3), "");
 
-    frameStack_destroyAll();
-    AST_destroyNode(AST_PROGRAM_NODE, ASTroot);
+    LLparser_parseProgram();
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
+    
+
+    IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
     ASTroot = NULL;
 }
+

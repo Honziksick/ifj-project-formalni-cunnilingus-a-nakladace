@@ -30,6 +30,7 @@
 
 #include "ast_nodes.h"
 #include "ast_interface.h"
+#include "parser_common.h"
 
 
 /*******************************************************************************
@@ -166,7 +167,8 @@ void AST_destroyNode(AST_NodeType type, void *node) {
 inline void AST_initTree() {
     ASTroot = (AST_ProgramNode *)AST_createNode(AST_PROGRAM_NODE);
     if(ASTroot == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        ASTroot = NULL;
     }
 } // AST_createTree()
 
@@ -195,12 +197,14 @@ void AST_initNewProgramNode(AST_ProgramNode *node, AST_VarNode *importedFile, \
                             AST_FunDefNode *functionList) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Pokud se nejdná o nový uzel beze zdrojů, dojde k interní chybě
     if(node->importedFile != NULL || node->functionList != NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Přiřadíme uzlu předané zdroje
@@ -216,7 +220,8 @@ void AST_initNewFunDefNode(AST_FunDefNode *node, DString *identifier, \
                            AST_StatementNode *body) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Pokud se nejedná o nový uzel beze zdrojů, dojde k interní chybě
@@ -224,7 +229,8 @@ void AST_initNewFunDefNode(AST_FunDefNode *node, DString *identifier, \
         node->returnType != AST_DATA_TYPE_NOT_DEFINED ||
         node->body != NULL || node->next != NULL)
     {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Přiřadíme uzlu předané zdroje
@@ -242,12 +248,14 @@ void AST_initNewArgOrParamNode(AST_ArgOrParamNode *node, AST_DataType dataType, 
                                AST_ExprNode *expression) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Pokud se nejedná o nový uzel beze zdrojů, dojde k interní chybě
     if(node->expression != NULL || node->next != NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Přiřadíme uzlu předané zdroje
@@ -264,12 +272,14 @@ void AST_initNewStatementNode(AST_StatementNode *node, size_t frameID, \
                               AST_StatementType statementType, void *statement) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Pokud se nejedná o nový uzel beze zdrojů, dojde k interní chybě
     if(node->statement != NULL || node->next != NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Přiřadíme uzlu předané zdroje
@@ -287,12 +297,14 @@ void AST_initNewFunCallNode(AST_FunCallNode *node, DString *identifier, \
                             bool isBuiltIn, AST_ArgOrParamNode *arguments) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Pokud se nejedná o nový uzel beze zdrojů, dojde k interní chybě
     if(node->identifier != NULL || node->arguments != NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Přiřadíme uzlu předané zdroje
@@ -308,13 +320,15 @@ void AST_initNewIfNode(AST_IfNode *node, AST_ExprNode *condition, AST_VarNode *n
                     AST_StatementNode *thenBranch, AST_StatementNode *elseBranch) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Pokud se nejedná o nový uzel beze zdrojů, dojde k interní chybě
     if(node->condition != NULL || node->nullCondition ||
        node->thenBranch != NULL || node->elseBranch != NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Přiřadíme uzlu předané zdroje
@@ -331,12 +345,14 @@ void AST_initNewWhileNode(AST_WhileNode *node, AST_ExprNode *condition, \
                           AST_VarNode *nullCondition, AST_StatementNode *body) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Pokud se nejedná o nový uzel beze zdrojů, dojde k interní chybě
     if(node->condition != NULL || node->body != NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Přiřadíme uzlu předané zdroje
@@ -351,12 +367,14 @@ void AST_initNewWhileNode(AST_WhileNode *node, AST_ExprNode *condition, \
 void AST_initNewExprNode(AST_ExprNode *node, AST_ExprType exprType, void *expression) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Pokud se nejedná o nový uzel beze zdrojů, dojde k interní chybě
     if(node->expression != NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Přiřadíme uzlu předané zdroje
@@ -371,12 +389,14 @@ void AST_initNewBinOpNode(AST_BinOpNode *node, AST_BinOpType op, \
                           AST_ExprNode *left, AST_ExprNode *right) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Pokud se nejedná o nový uzel beze zdrojů, dojde k interní chybě
     if(node->left != NULL || node->right != NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Přiřadíme uzlu předané zdroje
@@ -392,12 +412,14 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
                         size_t frameID, AST_LiteralType literalType, DString *value) {
     // Ověření platnosti předaného uzlu
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Pokud se nejedná o nový uzel beze zdrojů, dojde k interní chybě
     if(node->identifier != NULL || node->value != NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
     }
 
     // Přiřadíme uzlu předané zdroje
@@ -418,18 +440,21 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
 
             // Kontrola přetečení nebo podtečení - ostatní sémantická chyba (10)
             if(intValue == INT_MIN || intValue == INT_MAX) {
-                error_handle(ERROR_SEM_OTHER);
+                Parser_errorWatcher(SET_ERROR_SEM_OTHER);
+                break;
             }
 
             // Kontrola neplatného vstupu - způsobeno špatnou tvorbou tokenu
             if(*endptr != '\0') {
-                error_handle(ERROR_INTERNAL);
+                Parser_errorWatcher(SET_ERROR_INTERNAL);
+                break;
             }
 
             // Alokujeme paměť pro hodnotu
             int *intPtr = malloc(sizeof(int));
             if(intPtr == NULL) {
-                error_handle(ERROR_INTERNAL);
+                Parser_errorWatcher(SET_ERROR_INTERNAL);
+                break;
             }
 
             // Převádíme řetězec na integer
@@ -438,6 +463,7 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
 
             // Uvolníme úvodním obsah tokenu
             string_free(value);
+            value = NULL;
             break;
         } // case AST_LITERAL_INT
 
@@ -448,18 +474,21 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
 
             // Kontrola přetečení nebo podtečení - ostatní sémantická chyba (10)
             if(floatValue == HUGE_VAL || floatValue == -HUGE_VAL) {
-                error_handle(ERROR_SEM_OTHER);
+                Parser_errorWatcher(SET_ERROR_SEM_OTHER);
+                break;
             }
 
             // Kontrola neplatného vstupu - způsobeno špatnou tvorbou tokenu
             if(*endptr != '\0') {
-                error_handle(ERROR_INTERNAL);
+                Parser_errorWatcher(SET_ERROR_INTERNAL);
+                break;
             }
 
             // Alokujeme paměť pro hodnotu
             double *floatPtr = malloc(sizeof(double));
             if(floatPtr == NULL) {
-                error_handle(ERROR_INTERNAL);
+                Parser_errorWatcher(SET_ERROR_INTERNAL);
+                break;
             }
 
             // Převádíme řetězec na double
@@ -468,6 +497,7 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
 
             // Uvolníme úvodním obsah tokenu
             string_free(value);
+            value = NULL;
             break;
         } // case AST_LITERAL_FLOAT
 
@@ -486,7 +516,8 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
 
         // Pokud byl předán jiný typ uzlu, nastává interní chyba
         default:
-            error_handle(ERROR_INTERNAL);
+            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            break;
     } // switch()
 } // AST_initNewVarNode()
 
@@ -506,7 +537,8 @@ AST_ProgramNode *AST_createProgramNode() {
 
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -546,7 +578,8 @@ AST_FunDefNode *AST_createFunDefNode() {
 
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -595,7 +628,8 @@ AST_ArgOrParamNode *AST_createArgOrParamNode() {
 
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -633,7 +667,8 @@ AST_StatementNode *AST_createStatementNode() {
 
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -713,7 +748,8 @@ AST_FunCallNode *AST_createFunCallNode() {
 
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -757,7 +793,8 @@ AST_IfNode *AST_createIfNode() {
 
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -803,7 +840,8 @@ AST_WhileNode *AST_createWhileNode() {
 
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -845,7 +883,8 @@ AST_ExprNode *AST_createExprNode() {
 
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -913,7 +952,8 @@ AST_BinOpNode *AST_createBinOpNode() {
 
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -952,7 +992,8 @@ AST_VarNode *AST_createVarNode(AST_NodeType type) {
 
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if(node == NULL) {
-        error_handle(ERROR_INTERNAL);
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return NULL;
     }
 
     // Počáteční inicializace členů uzlu
@@ -1030,67 +1071,6 @@ void AST_destroyVarNode(AST_VarNode *node) {
  *         IMPLEMENTACE INTERNÍCH FUNKCÍ NA INSERT A DESTRUKCI SEZNAMŮ         *
  *                                                                             *
  ******************************************************************************/
-
-/**
- * @brief Vloží uzel na začátek seznamu definic funkcí.
- *
- * @details Tato funkce přidá nový uzel na začátek seznamu definic funkcí. Pokud
- *          je seznam prázdný, nový uzel se stane prvním uzlem v seznamu.
- *
- * @param firstDef Ukazatel na ukazatel na první uzel seznamu definic funkcí.
- * @param newDef Ukazatel na nový uzel, který má být přidán na začátek seznamu.
- */
-void AST_insertFirstFunDefNode(AST_FunDefNode **firstDef, AST_FunDefNode *newDef) {
-    // Ověříme, že byly předány platné ukazatele
-    if (firstDef == NULL || newDef == NULL) {
-        error_handle(ERROR_INTERNAL);
-    }
-
-    // Nastavíme nový uzel jako první uzel v seznamu
-    newDef->next = *firstDef;
-    *firstDef = newDef;
-} // AST_insertFirstFunDefNode()
-
-/**
- * @brief Vloží uzel na začátek seznamu argumentů nebo parametrů funkce.
- *
- * @details Tato funkce přidá nový uzel na začátek seznamu argumentů nebo
- *          parametrů funkce. Pokud je seznam prázdný, nový uzel se stane
- *          prvním uzlem v seznamu.
- *
- * @param firstArg Ukazatel na ukazatel na první uzel seznamu argumentů nebo parametrů.
- * @param newArg Ukazatel na nový uzel, který má být přidán na začátek seznamu.
- */
-void AST_insertFirstArgOrParamNode(AST_ArgOrParamNode **firstArg, AST_ArgOrParamNode *newArg) {
-    // Ověříme, že byly předány platné ukazatele na seznam a nový uzel
-    if (firstArg == NULL || newArg == NULL) {
-        error_handle(ERROR_INTERNAL);
-    }
-
-    // Nastavíme nový uzel jako první uzel v seznamu
-    newArg->next = *firstArg;
-    *firstArg = newArg;
-} // AST_insertFirstArgOrParamNode()
-
-/**
- * @brief Vloží uzel na začátek seznamu příkazů.
- *
- * @details Tato funkce přidá nový uzel na začátek seznamu příkazů. Pokud je
- *          seznam prázdný, nový uzel se stane prvním uzlem v seznamu.
- *
- * @param firstStat Ukazatel na ukazatel na první uzel seznamu příkazů.
- * @param newStat Ukazatel na nový uzel, který má být přidán na začátek seznamu.
- */
-void AST_insertFirstStatementNode(AST_StatementNode **firstStat, AST_StatementNode *newStat) {
-    // Ověříme, že byly předány platné ukazatele na seznam a nový uzel
-    if (firstStat == NULL || newStat == NULL) {
-        error_handle(ERROR_INTERNAL);
-    }
-
-    // Nastavíme nový uzel jako první uzel v seznamu
-    newStat->next = *firstStat;
-    *firstStat = newStat;
-} // AST_insertFirstStatementNode()
 
 /**
  * @brief Uvolní paměť pro všechny uzly v seznamu parametrů/argumentů v uzlu pro funkci.

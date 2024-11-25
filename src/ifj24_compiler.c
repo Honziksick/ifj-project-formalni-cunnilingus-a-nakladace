@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            06.11.2024                                                *
- * Poslední změna:   06.11.2024                                                *
+ * Poslední změna:   22.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -28,8 +28,30 @@
 
 #include "ifj24_compiler.h"
 
-int main(int argc, char *argv[]) {
+int main() {
 
+    LLparser_parseProgram();
+    if(ASTroot != NULL) {
+        semantic_analyseProgram();
+        TAC_createInstructionList();
+        TAC_generateProgramCodeBegin(ASTroot);
+
+        // Projdeme všechny funkce a vygenerujeme kód pro každou z nich
+        AST_FunDefNode *current = ASTroot->functionList;
+        while(current != NULL){
+
+            TAC_generateFunctionDefinitionBegin(current);
+
+            current = current->next;
+        }
+
+        TAC_generateFunctionDefinitionEnd();
+        TAC_generateProgramCodeEnd();
+
+        TAC_printInstructionList();
+    }
+
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     return SUCCESS;
 }

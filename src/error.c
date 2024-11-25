@@ -51,7 +51,7 @@ void error_internalHandle(ErrorType error, const char *file, int line, const cha
     fprintf(stderr, YELLOW_COLOR "In file: %s:%d (%s)\n" RESET_COLOR, fileName, line, func);
 
     // Uvolníme alokovaná data (je-li to potřeba)
-    //error_freeAllocatedData(error);
+    IFJ24Compiler_freeAllAllocatedMemory();
 
     // Ukončíme program s chybovým kódem odpovídajícím kódu zahlášené chyby
     error_killMePlease(error);
@@ -144,9 +144,12 @@ void error_printMessage(ErrorType error) {
 /**
  * @brief Funkce pro uvolnění alokovaných dat z haldy před ukončením programu
  */
-void error_freeAllocatedData(ErrorType error) {
-    (void)error;
-} // error_freeAllocatedData()
+inline void IFJ24Compiler_freeAllAllocatedMemory() {
+    PrecStackList_destroy();
+    frameStack_destroyAll();
+    AST_destroyTree();
+    TAC_destroyInstructionList();
+} // IFJ24Compiler_freeAllAllocatedMemory()
 
 /**
  * @brief Funkce pro ukončení programu s příslušným chybovým kódem.
@@ -160,7 +163,7 @@ inline void error_killMePlease(ErrorType error) {
  */
 const char *error_getFileName(const char *path) {
     // Najdeme poslední výskyt znaku '/'
-    const char* fileName = strrchr(path, '/');
+    const char *fileName = strrchr(path, '/');
 
     // Pokud najdeme '/', vrátíme ukazatel na následující znak (tj. název souboru)
     if(fileName != NULL) {
