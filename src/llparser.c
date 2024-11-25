@@ -232,13 +232,13 @@ AST_VarNode *LLparser_parsePrologue() {
     parsePrologue_handleError:
         if(errorLevel_1) {
             // Uvolnění paměti pro importVar, pokud není NULL
-            if (importVar != NULL) {
+            if (importVar != NULL && importVar != currentTerminal.value) {
                 string_free(importVar);
                 importVar = NULL;
             }
 
             // Uvolnění paměti pro path, pokud není NULL
-            if (path != NULL) {
+            if (path != NULL && path != currentTerminal.value) {
                 string_free(path);
                 path = NULL;
             }
@@ -466,7 +466,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
             Parser_errorWatcher(SET_ERROR_INTERNAL);
         }
     parseFunDef_errorLevel_1:
-        if(functionName != NULL) {
+        if(functionName != NULL && functionName != currentTerminal.value) {
             string_free(functionName);
             functionName = NULL;
         }
@@ -661,7 +661,7 @@ AST_ArgOrParamNode *LLparser_parseParam() {
     /*              ZPRACOVÁNÍ CHYB A UVOLNĚNÍ ZDROJŮ TÉTO FUNKCE             */
     /***                                                                    ***/
     parseParam_errorLevel_1:
-        if(paramId != NULL) {
+        if(paramId != NULL && paramId != currentTerminal.value) {
             string_free(paramId);
             paramId = NULL;
         }
@@ -1036,7 +1036,7 @@ AST_StatementNode *LLparser_parseVarDef() {
         AST_destroyNode(AST_EXPR_NODE, rightOperand);
 
     parseVarDef_errorLevel_1:
-        if(varName != NULL) {
+        if(varName != NULL && varName != currentTerminal.value) {
             string_free(varName);
             varName = NULL;
         }
@@ -1157,7 +1157,7 @@ AST_StatementNode *LLparser_parseStatementRest(DString **identifier) {
 
         // Jinak došlo k syntaktické chybě
         default:
-            if(*identifier != NULL) {
+            if(*identifier != NULL && *identifier != currentTerminal.value) {
                 string_free(*identifier);
                 *identifier = NULL;
             }
@@ -1362,7 +1362,7 @@ AST_VarNode *LLparser_parseNullCond() {
     /***                                                                    ***/
 
     parseNullCond_errorLevel_1:
-        if(identifier != NULL) {
+        if(identifier != NULL && identifier != currentTerminal.value) {
             string_free(identifier);
             identifier = NULL;
         }
@@ -1627,10 +1627,6 @@ AST_StatementNode *LLparser_parseRuleStatement2() {
     /*              ZPRACOVÁNÍ CHYB A UVOLNĚNÍ ZDROJŮ TÉTO FUNKCE             */
     /***                                                                    ***/
     parseRuleStatement2_errorLevel_1:
-        if(identifier != NULL) {
-            string_free(identifier);
-            identifier = NULL;
-        }
         AST_destroyStatementList(statementRest);
     parseRuleStatement2_errorLevel_0:
         Parser_freeCurrentTerminalValue();
@@ -1950,7 +1946,7 @@ AST_StatementNode *LLparser_parseRuleStatement7() {
     parseRuleStatement7_errorLevel_2:
         AST_destroyArgOrParamList(arguments);
     parseRuleStatement7_errorLevel_1:
-        if(identifier != NULL) {
+        if(identifier != NULL && identifier != currentTerminal.value) {
             string_free(identifier);
             identifier = NULL;
         }
@@ -2054,7 +2050,7 @@ AST_StatementNode *LLparser_parseRuleStatementRest1(DString **identifier) {
         AST_destroyNode(AST_EXPR_NODE, expr);
 
     parseRuleStatementRest1_errorLevel_1:
-        if(*identifier != NULL) {
+        if(*identifier != NULL && *identifier != currentTerminal.value) {
             string_free(*identifier);
             *identifier = NULL;
         }
@@ -2113,7 +2109,7 @@ AST_StatementNode *LLparser_parseRuleStatementRest2(DString **identifier) {
         goto parseRuleStatementRest2_errorLevel_0;
 
     parseRuleStatementRest2_errorLevel_1:
-        if(*identifier != NULL) {
+        if(*identifier != NULL && *identifier != currentTerminal.value) {
             string_free(*identifier);
             *identifier = NULL;
         }

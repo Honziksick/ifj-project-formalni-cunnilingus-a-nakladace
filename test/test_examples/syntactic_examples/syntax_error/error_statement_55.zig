@@ -3,5 +3,5 @@
 const ifj = @import("ifj24.zig"); 
 
 pub fn main() void {
-    var z : f64 = 8 / 9.;
+    var z : f64 = 8 /. 9;
 }

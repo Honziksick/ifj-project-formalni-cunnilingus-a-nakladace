@@ -33,7 +33,7 @@
 
 // Definice názvu specifického testu, pro který se má provádět tisk
 /* Pozn. Pokud není definováno, tisk se provádí pro všechny testy */
-#define SPECIFIC_TEST_NAME "CorrectReturn"
+//#define SPECIFIC_TEST_NAME "CorrectReturn"
 
 // Kompletně vypneme výpis
 #define DISABLE_PRINT
@@ -42,6 +42,34 @@
 #include "gmock/gmock.h"
 
 #include "ifj24_compiler_test_utils.h"
+
+/*
+TEST(ParserSyntaxError, Statements) {
+
+    string filename = "error_statement_55.zig";
+    string path = synt_error_path + filename;
+    
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr) << "Can't open file: " << filename;
+    
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+    
+    cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+    
+    // Uvolnění alokovaných zdrojů
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+*/
 
 TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     // Načtení souboru s programem na STDIN
@@ -1781,12 +1809,12 @@ TEST(ParserSyntaxError, Prologue) {
         FILE* stdin_backup = stdin;
         stdin = f;
         
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
         // Syntaktická analýza programu
         EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
         
-        // Očekáváme, že ASTroot bude nullptr, protože kód obsahuje syntaktickou chybu
-        ASSERT_EQ(ASTroot, nullptr) << "Syntax error undetected in file: " << filename << endl;
-        cerr << COLOR_PINK << "OK: " << COLOR_RESET << filename << endl << endl;
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
         
         // Uvolnění alokovaných zdrojů
         IFJ24Compiler_freeAllAllocatedMemory();
@@ -1808,12 +1836,12 @@ TEST(ParserSyntaxError, FunctionDefinition) {
         FILE* stdin_backup = stdin;
         stdin = f;
 
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
         // Syntaktická analýza programu
         EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
         
-        // Očekáváme, že ASTroot bude nullptr, protože kód obsahuje syntaktickou chybu
-        ASSERT_EQ(ASTroot, nullptr) << "Syntax error undetected in file: " << filename << endl;
-        cerr << COLOR_PINK << "OK: " << COLOR_RESET << filename << endl << endl;
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
         
         // Uvolnění alokovaných zdrojů
         IFJ24Compiler_freeAllAllocatedMemory();
@@ -1834,13 +1862,13 @@ TEST(ParserSyntaxError, Statements) {
         
         FILE* stdin_backup = stdin;
         stdin = f;
-        
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
         // Syntaktická analýza programu
         EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
         
-        // Očekáváme, že ASTroot bude nullptr, protože kód obsahuje syntaktickou chybu
-        ASSERT_EQ(ASTroot, nullptr) << "Syntax error undetected in file: " << filename << endl;
-        cerr << COLOR_PINK << "OK: " << COLOR_RESET << filename << endl << endl;
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
         
         // Uvolnění alokovaných zdrojů
         IFJ24Compiler_freeAllAllocatedMemory();
