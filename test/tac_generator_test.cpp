@@ -42,7 +42,7 @@ TEST(TAC, Print_Test_Code) {
     TAC_generateTestCode();
 }
 
-TEST(TAC, Generate_Expression) {
+TEST(TAC, Generate_Program_Code) {
     string path = synt_path + "correct_two_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
@@ -89,6 +89,58 @@ TEST(TAC, Generate_Expression) {
     
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
     PRINT_TEST_LOG(CorrectTwoFunctions);
+
+    TAC_generateProgramCodeBegin(ASTroot);
+
+    // Projdeme všechny funkce a vygenerujeme kód pro každou z nich
+    AST_FunDefNode *current = ASTroot->functionList;
+    while(current != NULL){
+
+        TAC_generateFunctionDefinitionBegin(current);
+
+        current = current->next;
+
+        TAC_generateFunctionDefinitionEnd();
+    }
+
+    TAC_generateProgramCodeEnd();
+
+    // Uvolnění alokovaných zdrojů
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(TAC, Generate_Operator){
+    string path = synt_path + "X_correct_rel_operators_LE.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TEST_LOG(CorrectRelOperatorsLE);
+
+    AST_FunDefNode *func = ASTroot->functionList;
+
+    AST_ExprNode *expr = (AST_ExprNode*)(func->body->statement);
+    TAC_generateExpression(expr);
+
+    AST_StatementNode *nextStmt = (AST_StatementNode *)((AST_StatementNode *)func->body->statement)->next;
+    AST_IfNode *ifNode = (AST_IfNode *)nextStmt->statement;
+    AST_ExprNode *expr2 = ifNode->condition;
+    TAC_generateExpression(expr2);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
