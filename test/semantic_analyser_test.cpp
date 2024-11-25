@@ -793,4 +793,24 @@ TEST(Incorrect, Void_fun){
     ASTroot = NULL;
 }
 
+TEST(Incorrect, CantDetermineNullCondType){
+    string path = sem_path + "cant_determine_nullcond_type.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    frameStack_init();
+
+
+    LLparser_parseProgram();
+    ASSERT_NE(ASTroot, nullptr);
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
+    
+
+    IFJ24Compiler_freeAllAllocatedMemory();
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
 

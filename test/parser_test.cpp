@@ -36,7 +36,7 @@
 #define SPECIFIC_TEST_NAME "CorrectReturn"
 
 // Kompletně vypneme výpis
-//#define DISABLE_PRINT
+#define DISABLE_PRINT
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
@@ -429,7 +429,6 @@ TEST(LLParserBasicsCorrect, FunCallIntLit){
     stdin = stdin_backup;
     fclose(f);
 }
-
 
 TEST(LLParserBasicsCorrect, FunCallFloatLit){
     string path = synt_path + "correct_fun_call_float_lit.zig";

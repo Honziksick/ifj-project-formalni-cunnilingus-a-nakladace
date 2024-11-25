@@ -43,7 +43,7 @@ extern "C" {
 #include "scanner.h"
 #include "ast_nodes.h"
 #include "ast_interface.h"
-#include "parser.h"
+#include "parser_common.h"
 #include "llparser.h"
 #include "lltable.h"
 #include "precedence_parser.h"
