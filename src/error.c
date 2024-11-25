@@ -148,7 +148,6 @@ inline void IFJ24Compiler_freeAllAllocatedMemory() {
     PrecStackList_destroy();
     frameStack_destroyAll();
     AST_destroyTree();
-    TAC_destroyInstructionList();
 } // IFJ24Compiler_freeAllAllocatedMemory()
 
 /**
