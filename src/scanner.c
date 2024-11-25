@@ -126,7 +126,7 @@ Token scanner_FSM() {
     bool stopFSM = false;
     StateFSM state = STATE0_START;
     DString *str = string_init();
-    Token lexToken;
+    Token lexToken = {TOKEN_UNINITIALIZED, NULL};
     int keytest = 0;
 
     //Běh FSM po jednom volání od Syntaktického analyzátoru
