@@ -8,7 +8,7 @@
  *                   David Krejčí <xkrejcd00> (tvorba množin)                  *
  *                                                                             *
  * Datum:            24.10.2024                                                *
- * Poslední změna:   12.11.2024                                                *
+ * Poslední změna:   24.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *

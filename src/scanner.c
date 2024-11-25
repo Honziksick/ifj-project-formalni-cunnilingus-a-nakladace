@@ -6,7 +6,7 @@
  * Autor:            Hýža Pavel         <xhyzapa00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   22.11.2024                                                *
+ * Poslední změna:   25.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
