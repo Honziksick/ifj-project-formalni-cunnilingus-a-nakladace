@@ -164,8 +164,14 @@ help:
 		grep -E "^### $$CATEGORY # [a-zA-Z0-9_\-]+:.*?# .*$$" $(MAKEFILE_LIST) | \
 		sort -f | \
 		awk 'BEGIN {FS = ":.*?# "}; \
-		{gsub(/^### [A-Z]+ # /, "", $$1); \
-		printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'; \
+		{ \
+			gsub(/^### [A-Z]+ # /, "", $$1); \
+			split($$2, lines, "\\\\n"); \
+			printf "\033[36m%-30s\033[0m %s\n", $$1, lines[1]; \
+			for (i = 2; i <= length(lines); i++) { \
+				printf "\033[36m%-30s\033[0m %s\n", "", lines[i]; \
+			} \
+		}'; \
 		echo ""; \
 	done; \
 	} | less -R
@@ -743,6 +749,20 @@ $(TEST_BUILD_DIR)/$(TAC).o: $(SRC_DIR)/$(TAC).c
 $(TEST_BUILD_DIR)/$(BUILT_IN).o: $(SRC_DIR)/$(BUILT_IN).c
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+
+################################################################################
+#                                                                              #
+#                         TESTOVÁNÍ MEZIKÓDU IFJ24CODE                         #
+#                                                                              #
+################################################################################
+
+# Základní cesta k souborům
+BASE_PATH = ../test/test_examples/ifj24code_examples/pregenerated_ifj24code/
+
+### T # run-code: # Spustí interpret jazyk IFJ24 s IFJ24code assembler souborem: \nUSAGE: "make run-code F=<FILE>" (očekává soubor ve složce: \n'../test/test_examples/ifj24code_examples/pregenerated_ifj24code/<FILE>')
+run-code:
+	@echo "\033[35mLaunching 'ic24int' interpreter with:\033[0m \033[33m$(F)\033[0m"
+	@$(TEST_DIR)/ic24int $(BASE_PATH)$(F)
 
 
 ################################################################################
