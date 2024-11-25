@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            10.11.2024                                                *
- * Poslední změna:   13.11.2024                                                *
+ * Poslední změna:   23.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -26,54 +26,7 @@
  *          podle stanovených pravidel precedenční syntaktické analýzy.
  */
 
-#include "precedence_table.h"
-
-/*******************************************************************************
- *                                                                             *
- *                    GLOBÁLNÍ PROMĚNNÉ PRO PRECEDENČNÍ SA                     *
- *                                                                             *
- ******************************************************************************/
-
-/*
- * V tabulce je řádek značen terminálem na vrcholu zásobníku. Kódem tohoto
- * terminálu je tabulka indexována. Sloupce tabulky odpovídají aktuálnímu
- * terminálu na vstupu. Souřadnice [Terminál na vrcholu zásobníku, Terminál na vstupu]
- * určují vztah precedence mezi dvěma terminály.
- *
- * Sloupce zleva doprava odpovídají pořadí řádků shora dolů:
- *                                               ID          INT_LITERAL     FLOAT_LITERAL   STRING_LITERAL    NULL_LITERAL          IFJ              DOT         LEFT_BRACKET     RIGHT_BRACKET        PLUS             MINUS       MULTIPLICATION      DIVISION          IDENTITY        NOT_EQUAL        LESS_THAN      GREATER_THAN      LESS_EQUAL      GREATER_EQUAL         COMMA           DOLLAR
- */
-const struct PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT] = {
-    { T_PREC_ID,                       {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_INT_LITERAL,              {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_FLOAT_LITERAL,            {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_STRING_LITERAL,           {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_NULL_LITERAL,             {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_IFJ,                      {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,         P_EQUAL,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR } },
-    { T_PREC_DOT,                      {         P_EQUAL,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR } },
-    { T_PREC_LEFT_BRACKET,             {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,         P_EQUAL,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR } },
-    { T_PREC_RIGHT_BRACKET,            {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_PLUS,                     {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_MINUS,                    {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_MULTIPLICATION,           {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_DIVISION,                 {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_IDENTITY,                 {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_NOT_EQUAL,                {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_LESS_THAN,                {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_GREATER_THAN,             {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-    { T_PREC_LESS_THAN_OR_EQUAL,       {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER } },
-    { T_PREC_GREATER_THAN_OR_EQUAL,    {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER } },
-    { T_PREC_COMMA,                    {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER } },
-    { T_PREC_DOLLAR,                   {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR } }
-};
-
-
-/*
- * Tato proměnná uchovává ukazatel na aktuální FOLOW množinu, která je používána
- * precedenčním parserem. Je aktualizována při zahájení precedenční syntaktické
- * analýzy a deinicializována při vrácení řízení zpět do LL parseru.
- */
-DollarTerminals currentDollar = CURRENT_DOLLAR_UNDEFINED;
+#include "parser_common.h"
 
 
 /*******************************************************************************
@@ -86,11 +39,59 @@ DollarTerminals currentDollar = CURRENT_DOLLAR_UNDEFINED;
  * @brief Najde pravidlo v precedenční tabulce na základě terminálů.
  */
 void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, Precedence *precedence) {
-    if(inputTerminal == T_PREC_UNDEFINED) {
-        *precedence = P_SYNTAX_ERROR;
+    // Ověření platnosti předaného ukazatele - interní chyba
+    if(precedence == NULL) {
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
+    // Pokud byl předán neplatný (nedefinovaný) precedenční terminál na vrcholu zásobníku
+    if(stackTopTerminal == T_PREC_UNDEFINED) {
+        Parser_errorWatcher(SET_ERROR_INTERNAL);    // interní chyba
+        *precedence = P_PRECEDENCE_UNDEFINED;
+        return;
+    }
+
+    // Pokud byl předán neplatný (nedefinovaný) vstupní precedenční terminál
+    if(inputTerminal == T_PREC_UNDEFINED) {
+        Parser_errorWatcher(SET_ERROR_SYNTAX);      // syntaktická chyba
+        *precedence = P_PRECEDENCE_UNDEFINED;
+        return;
+    }
+
+    /*
+    * Precedenční tabulka:
+    * V tabulce je řádek značen terminálem na vrcholu zásobníku. Kódem tohoto
+    * terminálu je tabulka indexována. Sloupce tabulky odpovídají aktuálnímu
+    * terminálu na vstupu. Souřadnice [Terminál na vrcholu zásobníku, Terminál na vstupu]
+    * určují vztah precedence mezi dvěma terminály.
+    *
+    * Sloupce zleva doprava odpovídají pořadí řádků shora dolů:
+    *                                               ID          INT_LITERAL     FLOAT_LITERAL   STRING_LITERAL    NULL_LITERAL          IFJ              DOT         LEFT_BRACKET     RIGHT_BRACKET        PLUS             MINUS       MULTIPLICATION      DIVISION          IDENTITY        NOT_EQUAL        LESS_THAN      GREATER_THAN      LESS_EQUAL      GREATER_EQUAL         COMMA           DOLLAR
+    */
+    const PrecedenceTable precedenceTable[PREC_TERMINAL_COUNT] = {
+        { T_PREC_ID,                       {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_INT_LITERAL,              {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_FLOAT_LITERAL,            {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_STRING_LITERAL,           {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_NULL_LITERAL,             {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_IFJ,                      {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,         P_EQUAL,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR } },
+        { T_PREC_DOT,                      {         P_EQUAL,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR } },
+        { T_PREC_LEFT_BRACKET,             {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,         P_EQUAL,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR } },
+        { T_PREC_RIGHT_BRACKET,            {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_PLUS,                     {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_MINUS,                    {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_MULTIPLICATION,           {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_DIVISION,                 {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_IDENTITY,                 {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_NOT_EQUAL,                {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_LESS_THAN,                {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_GREATER_THAN,             {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_LESS_THAN_OR_EQUAL,       {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER } },
+        { T_PREC_GREATER_THAN_OR_EQUAL,    {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER } },
+        { T_PREC_COMMA,                    {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER } },
+        { T_PREC_DOLLAR,                   {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR } }
+    }; // PrecedenceTable precedenceTable[]
 
     // Nastavení indexů pro binární vyhledávání
     int left = 0;
@@ -103,12 +104,13 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
 
         // Pokud najdeme odpovídající index, vrátíme hodnotu precedence pro daný terminál
         if(precedenceTable[mid].key == stackTopTerminal) {
-            // Pokud pravidlo neexistuje, došlo k syntaktické chybě
+            // Pokud precedence značí snytaktickou chybu, došlo k syntaktické chybě
             if(precedenceTable[mid].value[inputTerminal] == P_SYNTAX_ERROR) {
+                Parser_errorWatcher(SET_ERROR_SYNTAX);
                 *precedence = P_SYNTAX_ERROR;
                 return;
             }
-            // Jinak pravidlo existuje a vrátíme ho
+            // Jinak je precedence platná a vrátíme ji
             else {
                 *precedence = precedenceTable[mid].value[inputTerminal];
                 return;
@@ -125,38 +127,90 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
         }
     }
 
-    // Vrací interní chybový kód, pokud terminál není nalezen v tabulce
-    // (aka něco je velmi špatně, protože toto by nikdy nemělo nastat)
+    // Pokud precedence nebyla v precedenční tabulce nalezena nastavujeme syntaktickou chybu
+    Parser_errorWatcher(SET_ERROR_SYNTAX);
     *precedence = P_SYNTAX_ERROR;
 } // PrecTable_findPrecedence()
 
-
 /**
- * @brief Získá FOLOW množinu pro daný NEterminál pomocí binárního vyhledávání
- *        a aktualizuje globální proměnnou.
+ * @brief Namapuje NEterminál, ze kterého bylo předáno řízení precedenčnímu
+ *        parseru,  na odpovídající "dollar" terminál.
  */
-void PrecTable_getFollowSet(LLNonTerminals fromNonTerminal) {
+void PrecTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, DollarTerminals *currentDollar) {
+    // Ověření platnosti předaného ukazatele
+    if (currentDollar == NULL) {
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+    }
+
+    // Mapujeme typ LL NEterminálu na "dollar" terminál precedenčního parseru
     switch(fromNonTerminal) {
+        // Mapování: NT_VAR_DEF, NT_STATEMENT, NT_STATEMENT_REST, NT_THROW_AWAY -> DOLLAR_T_SEMICOLON
         case NT_VAR_DEF:
         case NT_STATEMENT:
         case NT_STATEMENT_REST:
         case NT_THROW_AWAY:
-            currentDollar = DOLLAR_T_SEMICOLON;
+            *currentDollar = DOLLAR_T_SEMICOLON;
             break;
 
+        // Mapování: NT_IF, NT_WHILE -> DOLLAR_T_RIGHT_BRACKET
         case NT_IF:
         case NT_WHILE:
-            currentDollar = DOLLAR_T_RIGHT_BRACKET;
+            *currentDollar = DOLLAR_T_RIGHT_BRACKET;
             break;
 
+        // Mapování: NT_ARGUMENTS -> DOLLAR_T_COMMA
         case NT_ARGUMENTS:
-            currentDollar = DOLLAR_T_COMMA;
+            *currentDollar = DOLLAR_T_COMMA;
             break;
 
+        // Pro jakýkoliv jiný NEterminál není "dollar" terminál definován (nemělo by nastat)
         default:
-            currentDollar = CURRENT_DOLLAR_UNDEFINED;
+            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            *currentDollar = CURRENT_DOLLAR_UNDEFINED;  // značí syntaktickou chybu
             break;
     }
-} // PrecTable_getFollowSet()
+} // PrecTable_getDollarTerminalFromContext()
+
+/**
+ * @brief Mapuje typ vstupní precedenční terminál na "dollar" terminál
+ */
+void PrecParser_mapInTerminalToDollar(int bracketDepth, DollarTerminals dollarContext, \
+                                      PrecTerminals *inTerminal)
+{
+    // Ověření platnosti předaného ukazatele
+    if(inTerminal == NULL) {
+        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        return;
+    }
+
+    if(dollarContext == CURRENT_DOLLAR_UNDEFINED) {
+        Parser_errorWatcher(SET_ERROR_SYNTAX);
+        return;
+    }
+
+    switch(currentTerminal.PrecTerminal) {
+        // Mapování: T_PREC_RIGHT_BRACKET -> T_PREC_RIGHT_BRACKET nebo T_PREC_DOLLAR
+        case T_PREC_RIGHT_BRACKET:
+            if (dollarContext ==  DOLLAR_T_RIGHT_BRACKET && bracketDepth == 0) {
+                *inTerminal = T_PREC_DOLLAR;
+            } else if (dollarContext ==  DOLLAR_T_COMMA && bracketDepth == 0) {
+                *inTerminal = T_PREC_DOLLAR;
+            }
+            else {
+                *inTerminal = currentTerminal.PrecTerminal;
+            }
+            break;
+
+        // Mapování: T_PREC_COMMA -> T_PREC_COMMA nebo T_PREC_DOLLAR
+        case T_PREC_COMMA:
+                *inTerminal = T_PREC_DOLLAR;
+            break;
+
+        // Defaultní případ: Nejedná se o dolar
+        default:
+            *inTerminal = currentTerminal.PrecTerminal;
+            break;
+    } // switch()
+} // PrecParser_mapInTerminalToDollar()
 
 /*** Konec souboru precedence_table.c ***/
