@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            30.10.2024                                                *
- * Poslední změna:   16.11.2024                                                *
+ * Poslední změna:   25.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -31,15 +31,11 @@
 #define LLPARSER_H_
 /** @endcond  */
 
-#include <stdbool.h>
+// Import submodulů parseru
+#include "parser_common.h"
 #include "lltable.h"
-#include "parser.h"
-#include "symtable.h"
-#include "frame_stack.h"
-#include "ast_nodes.h"
-#include "ast_interface.h"
 #include "precedence_parser.h"
-#include "error.h"
+
 
 
 /*******************************************************************************
@@ -162,10 +158,8 @@ AST_StatementNode *LLparser_parseVarDef();
 
 /**
  * @brief Parsuje neterminál `<MODIFIABLE>`.
- *
- * @return `true` při úspěšném parsování, jinak `false`.
  */
-void LLparser_parseModifiable(bool *isModifiable);
+void LLparser_parseModifiable(bool *isConstant);
 
 /**
  * @brief Parsuje neterminál `<POSSIBLE_TYPE>`.
@@ -229,6 +223,35 @@ AST_WhileNode *LLparser_parseWhile();
  *         úspěšném parsování, jinak `NULL`.
  */
 AST_ArgOrParamNode *LLparser_parseArguments();
+
+
+
+
+
+void LLparser_initParserStructures();
+
+bool LLparser_isNotExpectedTerminal(LLTerminals expectedTerminal);
+
+void LLparser_freeCurrentTerminalValue();
+
+AST_StatementNode *LLparser_parseRuleStatement1();
+AST_StatementNode *LLparser_parseRuleStatement2();
+AST_StatementNode *LLparser_parseRuleStatement3();
+AST_StatementNode *LLparser_parseRuleStatement4();
+AST_StatementNode *LLparser_parseRuleStatement5();
+AST_StatementNode *LLparser_parseRuleStatement6();
+AST_StatementNode *LLparser_parseRuleStatement7();
+
+AST_StatementNode *LLparser_parseRuleStatementRest1(DString **identifier);
+AST_StatementNode *LLparser_parseRuleStatementRest2(DString **identifier);
+
+
+
+
+
+
+
+
 
 #endif // LLPARSER_H_
 
