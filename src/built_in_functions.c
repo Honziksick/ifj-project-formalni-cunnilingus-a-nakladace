@@ -30,7 +30,7 @@
 //Ještě chybí dodělat 4 funkce
 void built_in_functions() {
     char functions[] = "\n\
-        #DONE_COUNT_10/13\n\
+        #DONE_COUNT_11/13\n\
         #readstr-DONE\n\
         #readint-DONE\n\
         #readfloat-DONE\n\
@@ -42,7 +42,7 @@ void built_in_functions() {
         #concat-DONE\n\
         #substring\n\
         #strcmp\n\
-        #ord\n\
+        #ord-DONE\n\
         #chr-DONE\n\
         \n\
         \n\
@@ -60,6 +60,8 @@ void built_in_functions() {
         POPFRAME\n\
         RETURN\n\
         \n\
+        \n\
+        \n\
         #-------------------------\n\
         #pub fn ifj.readi32() ?i32\n\
         LABEL readi32\n\
@@ -73,6 +75,8 @@ void built_in_functions() {
         POPFRAME\n\
         RETURN\n\
         \n\
+        \n\
+        \n\
         #-------------------------\n\
         #pub fn ifj.readf64() ?f64\n\
         LABEL readf64\n\
@@ -85,6 +89,8 @@ void built_in_functions() {
         \n\
         POPFRAME\n\
         RETURN\n\
+        \n\
+        \n\
         \n\
         #---------------------------\n\
         #pub fn ifj.write(term) void\n\
@@ -108,6 +114,8 @@ void built_in_functions() {
         POPFRAME\n\
         RETURN\n\
         \n\
+        \n\
+        \n\
         #-----------------------------\n\
         #pub fn ifj.i2f(term: i32) f64\n\
         LABEL i2f\n\
@@ -120,6 +128,8 @@ void built_in_functions() {
         \n\
         POPFRAME\n\
         RETURN\n\
+        \n\
+        \n\
         \n\
         #-----------------------------\n\
         #pub fn ifj.f2i(term: f64) i32\n\
@@ -134,6 +144,8 @@ void built_in_functions() {
         POPFRAME\n\
         RETURN\n\
         \n\
+        \n\
+        \n\
         #----------------------------\n\
         #pub fn ifj.string(term) []u8\n\
         LABEL string\n\
@@ -144,6 +156,8 @@ void built_in_functions() {
         \n\
         POPFRAME\n\
         RETURN\n\
+        \n\
+        \n\
         \n\
         #------------------------------\n\
         #pub fn ifj.length(s: []u8) i32\n\
@@ -158,6 +172,8 @@ void built_in_functions() {
         POPFRAME\n\
         RETURN\n\
         \n\
+        \n\
+        \n\
         #------------------------------------------\n\
         #pub fn ifj.concat(𝑠1: []u8, 𝑠2: []u8) []u8\n\
         LABEL concat\n\
@@ -171,12 +187,40 @@ void built_in_functions() {
         POPFRAME\n\
         RETURN\n\
         \n\
+        \n\
+        \n\
         #---------------------------------------------------\n\
         #pub fn ifj.substring(𝑠: []u8, i: i32, j: i32) ?[]u8\n\
         #-----------------------------------------\n\
         #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32\n\
         #-----------------------------------\n\
         #pub fn ifj.ord(𝑠: []u8, i: i32) i32\n\
+        LABEL ord\n\
+        PUSHFRAME\n\
+        \n\
+        DEFVAR LF@$x\n\
+        STRLEN LF@$x LF@$s\n\
+        DEFVAR LF@$z\n\
+        \n\
+        JUMPIFEQ ord1 LF@$x int@0\n\
+        DEFVAR LF@$y\n\
+        GT LF@$y LF@$i LF@$x\n\
+        JUMPIFEQ LF@$y bool@true\n\
+            STRI2INT LF@$z LF@$s LF@$i\n\
+            JUMP ord2\n\
+        \n\
+        LABEL ord1\n\
+            MOVE LF@$z int@0\n\
+        \n\
+        LABEL ord2\n\
+        \n\
+        PUCHS LF@$z\n\
+        \n\
+        POPFRAME\n\
+        RETURN\n\
+        \n\
+        \n\
+        \n\
         #---------------------------\n\
         #pub fn ifj.chr(i: i32) []u8\n\
         LABEL chr\n\
@@ -188,6 +232,8 @@ void built_in_functions() {
         \n\
         POPFRAME\n\
         RETURN\n\
+        \n\
+        \n\
         \n\
     ";
     printf("%s", functions);
