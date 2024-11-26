@@ -653,7 +653,7 @@ ErrorType semantic_analyseExpr(AST_ExprNode *expr_node, Semantic_Data *type, voi
             }
 
             // Pokud je proměnná konstantní, tak se ji pokusíme nahradit literálem
-            if(item->constant == true){
+            /*if(item->constant == true){
                 AST_LiteralType lit_type = semantic_semToLiteral(*type);
                 if(lit_type == AST_LITERAL_NOT_DEFINED){
                     return 0;
@@ -661,7 +661,7 @@ ErrorType semantic_analyseExpr(AST_ExprNode *expr_node, Semantic_Data *type, voi
                 string_free(node->identifier);
                 node->identifier = NULL;
                 node->literalType = lit_type;
-            }
+            }*/
 
             // Není co dále kontrolovat, v pořádku se vracíme
             return 0;
