@@ -235,7 +235,7 @@ void TAC_generateExpression(AST_ExprNode *expr) {
             TAC_generateLiteral(var);
             break;
         case AST_EXPR_VARIABLE:
-            printf("PUSHS LF@%s$%lu$\n", var->identifier->str, var->frameID);
+            printf("PUSHS LF@$%s$%lu$\n", var->identifier->str, var->frameID);
             break;
         case AST_EXPR_BINARY_OP:
             TAC_generateBinaryOperator(expr->expression);
@@ -299,8 +299,8 @@ void TAC_generateIf(AST_IfNode *if_node) {
         printf("JUMPIFEQ if_else$%d GF@?tempSRC1 nil@nil\n", count);
         // Definujeme id_bez_null
         DString *id_bez_null = if_node->nullCondition->identifier;
-        printf("DEFVAR LF@%s$%lu$\n", id_bez_null->str, if_node->nullCondition->frameID);
-        printf("MOVE LF@%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, if_node->nullCondition->frameID);
+        printf("DEFVAR LF@$%s$%lu$\n", id_bez_null->str, if_node->nullCondition->frameID);
+        printf("MOVE LF@$%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, if_node->nullCondition->frameID);
     }
 
     // Generujeme tělo if
@@ -341,8 +341,8 @@ void TAC_generateWhile(AST_WhileNode *while_node) {
         printf("JUMPIFEQ while_end$%d GF@?tempSRC1 nil@nil\n", count);
         // Definujeme id_bez_null
         DString *id_bez_null = while_node->nullCondition->identifier;
-        printf("DEFVAR LF@%s$%lu$\n", id_bez_null->str, while_node->nullCondition->frameID);
-        printf("MOVE LF@%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, while_node->nullCondition->frameID);
+        printf("DEFVAR LF@$%s$%lu$\n", id_bez_null->str, while_node->nullCondition->frameID);
+        printf("MOVE LF$@%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, while_node->nullCondition->frameID);
     }
 
     // Generujeme tělo while
