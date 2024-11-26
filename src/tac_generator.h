@@ -443,7 +443,7 @@ void TAC_generateIf(AST_IfNode *if_node);
 void TAC_generateWhile(AST_WhileNode *while_node);
 
 /**
- * @brief Generuje cílový kód pro návratovou hodnotu
+ * @brief Generuje cílový kód pro návrat z funkce
  * 
  * @details Vyhodnotí výraz a výsledek uloží na vrchol datového zásobníku.
  *          Popne rámec funkce a volá return.
