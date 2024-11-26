@@ -30,7 +30,7 @@
 //Ještě chybí dodělat 4 funkce
 void built_in_functions() {
     char functions[] = "\n\
-        #DONE_COUNT_11/13\n\
+        #DONE_COUNT_13/13\n\
         #readstr-DONE\n\
         #readint-DONE\n\
         #readfloat-DONE\n\
@@ -40,8 +40,8 @@ void built_in_functions() {
         #string-DONE\n\
         #length-DONE\n\
         #concat-DONE\n\
-        #substring\n\
-        #strcmp\n\
+        #substring-DONE\n\
+        #strcmp-DONE\n\
         #ord-DONE\n\
         #chr-DONE\n\
         \n\
@@ -49,192 +49,313 @@ void built_in_functions() {
         \n\
         #--------------------------\n\
         #pub fn ifj.readstr() ?[]u8\n\
-        LABEL readstr\n\
-        \n\
-        PUSHFRAME\n\
-        \n\
-        DEFVAR LF@$x\n\
-        READ LF@$x string\n\
-        PUSHS LF@$x\n\
-        \n\
-        POPFRAME\n\
-        RETURN\n\
-        \n\
-        \n\
-        \n\
+            LABEL readstr\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$x\n\
+            READ LF@$x string\n\
+            PUSHS LF@$x\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #-------------------------\n\
         #pub fn ifj.readi32() ?i32\n\
-        LABEL readi32\n\
-        \n\
-        PUSHFRAME\n\
-        \n\
-        DEFVAR LF@$x\n\
-        READ LF@$x int\n\
-        PUSHS LF@$x\n\
-        \n\
-        POPFRAME\n\
-        RETURN\n\
-        \n\
-        \n\
-        \n\
+            LABEL readi32\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$x\n\
+            READ LF@$x int\n\
+            PUSHS LF@$x\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #-------------------------\n\
         #pub fn ifj.readf64() ?f64\n\
-        LABEL readf64\n\
-        \n\
-        PUSHFRAME\n\
-        \n\
-        DEFVAR LF@$x\n\
-        READ LF@$x float\n\
-        PUSHS LF@$x\n\
-        \n\
-        POPFRAME\n\
-        RETURN\n\
-        \n\
-        \n\
-        \n\
+            LABEL readf64\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$x\n\
+            READ LF@$x float\n\
+            PUSHS LF@$x\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #---------------------------\n\
         #pub fn ifj.write(term) void\n\
-        LABEL write\n\
-        \n\
-        PUSHFRAME\n\
-        \n\
-        DEFVAR LF@$x\n\
-        TYPE LF@$x LF@$term\n\
-        \n\
-        JUMPIFNEQ write1 LF@$x nil\n\
-        \n\
-            WRITE string@null\n\
-            JUMP write2\n\
-        \n\
-        LABEL write1\n\
-            WRITE LF@$x\n\
-        \n\
-        LABEL write2\n\
-        \n\
-        POPFRAME\n\
-        RETURN\n\
-        \n\
-        \n\
-        \n\
+            LABEL write\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$x\n\
+            TYPE LF@$x LF@$term\n\
+            \n\
+            JUMPIFNEQ write1 LF@$x nil\n\
+            \n\
+                WRITE string@null\n\
+                JUMP write2\n\
+            \n\
+            LABEL write1\n\
+                WRITE LF@$x\n\
+            \n\
+            LABEL write2\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #-----------------------------\n\
         #pub fn ifj.i2f(term: i32) f64\n\
-        LABEL i2f\n\
-        \n\
-        PUSHFRAME\n\
-        \n\
-        DEFVAR LF@$x\n\
-        INT2FLOAT LF@$x LF@$term\n\
-        PUCHS LF@$x\n\
-        \n\
-        POPFRAME\n\
-        RETURN\n\
-        \n\
-        \n\
-        \n\
+            LABEL i2f\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$x\n\
+            INT2FLOAT LF@$x LF@$term\n\
+            PUCHS LF@$x\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #-----------------------------\n\
         #pub fn ifj.f2i(term: f64) i32\n\
-        LABEL f2i\n\
-        \n\
-        PUSHFRAME\n\
-        \n\
-        DEFVAR LF@$x\n\
-        FLOAT2INT LF@$x LF@$term\n\
-        PUCHS LF@$x\n\
-        \n\
-        POPFRAME\n\
-        RETURN\n\
-        \n\
-        \n\
-        \n\
+            LABEL f2i\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$x\n\
+            FLOAT2INT LF@$x LF@$term\n\
+            PUCHS LF@$x\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #----------------------------\n\
         #pub fn ifj.string(term) []u8\n\
-        LABEL string\n\
-        \n\
-        PUSHFRAME\n\
-        \n\
-        PUCHS LF@$term\n\
-        \n\
-        POPFRAME\n\
-        RETURN\n\
-        \n\
-        \n\
-        \n\
+            LABEL string\n\
+            PUSHFRAME\n\
+            \n\
+            PUCHS LF@$term\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #------------------------------\n\
         #pub fn ifj.length(s: []u8) i32\n\
-        LABEL length\n\
-        \n\
-        PUSHFRAME\n\
-        \n\
-        DEFVAR LF@$x\n\
-        STRLEN LF@$x LF@$s\n\
-        PUCHS LF@$x\n\
-        \n\
-        POPFRAME\n\
-        RETURN\n\
-        \n\
-        \n\
-        \n\
+            LABEL length\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$x\n\
+            STRLEN LF@$x LF@$s\n\
+            PUCHS LF@$x\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #------------------------------------------\n\
         #pub fn ifj.concat(𝑠1: []u8, 𝑠2: []u8) []u8\n\
-        LABEL concat\n\
-        \n\
-        PUSHFRAME\n\
-        \n\
-        DEFVAR LF@$x\n\
-        CONCAT LF@$x LF@$s1 LF@$s2\n\
-        PUCHS LF@$x\n\
-        \n\
-        POPFRAME\n\
-        RETURN\n\
-        \n\
-        \n\
-        \n\
+            LABEL concat\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$x\n\
+            CONCAT LF@$x LF@$s1 LF@$s2\n\
+            PUCHS LF@$x\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #---------------------------------------------------\n\
         #pub fn ifj.substring(𝑠: []u8, i: i32, j: i32) ?[]u8\n\
+            LABEL strcmp\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$tf\n\
+            DEFVAR LF@$x\n\
+            DEFVAR LF@$y\n\
+            DEFVAR LF@$z\n\
+            DEFVAR LF@$len\n\
+            \n\
+                LT LF@$tf LF@$i int@0\n\
+                JUMPIFEQ sub_err LF@$tf bool@true\n\
+                \n\
+                LT LF@$tf LF@$i int@0\n\
+                JUMPIFEQ sub_err LF@$tf bool@true\n\
+                \n\
+                GT LF@$tf LF@$i LF@$j\n\
+                JUMPIFEQ sub_err LF@$tf bool@true\n\
+                \n\
+                EQ LF@$tf LF@$i LF@$j\n\
+                JUMPIFEQ sub_end LF@$tf bool@true\n\
+                \n\
+                \n\
+                STRLEN LF@$len LF@$s\n\
+                \n\
+                GT LF@$tf LF@$i LF@$len\n\
+                JUMPIFEQ sub_err LF@$tf bool@true\n\
+                EQ LF@$tf LF@$i LF@$len\n\
+                JUMPIFEQ sub_err LF@$tf bool@true\n\
+                \n\
+                GT LF@$tf LF@$j LF@$len\n\
+                JUMPIFEQ sub_err LF@$tf bool@true\n\
+            \n\
+            GETCHAR LF@$x LF@$s LF@$i\n\
+            \n\
+            LABEL sub_while\n\
+            \n\
+                ADD LF@$i LF@$i int@1\n\
+                \n\
+                LT LF@$tf LF@$i LF@$j\n\
+                JUMPIFNEQ sub_end LF@$tf bool@true\n\
+                \n\
+                    GETCHAR LF@$y LF@$s LF@$i\n\
+                    CONCAT LF@$x LF@$x LF@$y\n\
+            \n\
+            JUMP sub_while\n\
+            \n\
+            LABEL sub_err\n\
+                MOVE LF@$x nil@nil\n\
+            \n\
+            LABEL sub_end\n\
+            \n\
+            PUCHS LF@$x\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #-----------------------------------------\n\
         #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32\n\
+            LABEL strcmp\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$x\n\
+            DEFVAR LF@$y\n\
+            DEFVAR LF@$n\n\
+            MOVE LF@$n int@0\n\
+            DEFVAR LF@$z\n\
+            \n\
+            DEFVAR LF@$len1\n\
+            STRLEN LF@$len1 LF@$s1\n\
+            DEFVAR LF@$len2\n\
+            STRLEN LF@$len2 LF@$s2\n\
+            \n\
+            DEFVAR LF@$tf1\n\
+            DEFVAR LF@$tf2\n\
+            \n\
+            JUMPIFEQ cmp_while2 LF@$len1 LF@$len2\n\
+            \n\
+            LABEL cmp_while1\n\
+            \n\
+                GETCHAR LF@$x LF@$s1 LF@$n\n\
+                GETCHAR LF@$y LF@$s2 LF@$n\n\
+                \n\
+                LT LF@$tf1 LF@$x LF@$y\n\
+                JUMPIFEQ strcmp1 LF@$tf1 bool@true\n\
+                \n\
+                GT LF@$tf2 LF@$x LF@$y\n\
+                JUMPIFEQ strcmp2 LF@$tf2 bool@true\n\
+                \n\
+                ADD LF@$n LF@$n int@1\n\
+            \n\
+            JUMP cmp_while1\n\
+            \n\
+            LABEL cmp_while2\n\
+            \n\
+                GETCHAR LF@$x LF@$s1 LF@$n\n\
+                GETCHAR LF@$y LF@$s2 LF@$n\n\
+                \n\
+                LT LF@$tf1 LF@$x LF@$y\n\
+                JUMPIFEQ strcmp1 LF@$tf1 bool@true\n\
+                \n\
+                GT LF@$tf2 LF@$x LF@$y\n\
+                JUMPIFEQ strcmp2 LF@$tf2 bool@true\n\
+                \n\
+                ADD LF@$n LF@$n int@1\n\
+                \n\
+                JUMPIFEQ strcmp3 LF@$n LF@$len1\n\
+            \n\
+            JUMP cmp_while2\n\
+            \n\
+            LABEL strcmp1\n\
+                MOVE LF@$z int@-1\n\
+                JUMP cmp_end\n\
+            \n\
+            LABEL strcmp2\n\
+                MOVE LF@$z int@1\n\
+                JUMP cmp_end\n\
+            \n\
+            LABEL strcmp3\n\
+                MOVE LF@$z int@0\n\
+                JUMP cmp_end\n\
+            \n\
+            LABEL cmp_end\n\
+            \n\
+            PUCHS LF@$z\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #-----------------------------------\n\
         #pub fn ifj.ord(𝑠: []u8, i: i32) i32\n\
-        LABEL ord\n\
-        PUSHFRAME\n\
-        \n\
-        DEFVAR LF@$x\n\
-        STRLEN LF@$x LF@$s\n\
-        DEFVAR LF@$z\n\
-        \n\
-        JUMPIFEQ ord1 LF@$x int@0\n\
-        DEFVAR LF@$y\n\
-        GT LF@$y LF@$i LF@$x\n\
-        JUMPIFEQ LF@$y bool@true\n\
-            STRI2INT LF@$z LF@$s LF@$i\n\
-            JUMP ord2\n\
-        \n\
-        LABEL ord1\n\
-            MOVE LF@$z int@0\n\
-        \n\
-        LABEL ord2\n\
-        \n\
-        PUCHS LF@$z\n\
-        \n\
-        POPFRAME\n\
-        RETURN\n\
-        \n\
-        \n\
-        \n\
+            LABEL ord\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$x\n\
+            STRLEN LF@$x LF@$s\n\
+            DEFVAR LF@$z\n\
+            \n\
+            JUMPIFEQ ord1 LF@$x int@0\n\
+            DEFVAR LF@$y\n\
+            GT LF@$y LF@$i LF@$x\n\
+            JUMPIFEQ LF@$y bool@true\n\
+                STRI2INT LF@$z LF@$s LF@$i\n\
+                JUMP ord2\n\
+            \n\
+            LABEL ord1\n\
+                MOVE LF@$z int@0\n\
+            \n\
+            LABEL ord2\n\
+            \n\
+            PUCHS LF@$z\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
         #---------------------------\n\
         #pub fn ifj.chr(i: i32) []u8\n\
-        LABEL chr\n\
-        PUSHFRAME\n\
-        \n\
-        DEFVAR LF@$x\n\
-        INT2CHAR LF@$x LF@$i\n\
-        PUSHS LF@$x\n\
-        \n\
-        POPFRAME\n\
-        RETURN\n\
-        \n\
-        \n\
-        \n\
+            LABEL chr\n\
+            PUSHFRAME\n\
+            \n\
+            DEFVAR LF@$x\n\
+            INT2CHAR LF@$x LF@$i\n\
+            PUSHS LF@$x\n\
+            \n\
+            POPFRAME\n\
+            RETURN\n\
+            \n\
+            \n\
+            \n\
     ";
     printf("%s", functions);
 }
