@@ -748,7 +748,8 @@ void TAC_generateVarDef(AST_BinOpNode *bin_node) {
  * @brief Generuje cílový kód pro výraz
  */
 void TAC_generateExpression(AST_ExprNode *expr) {
-    AST_VarNode *var = (AST_VarNode*)expr->expression;   /**< Pro literál a proměnnou */
+    AST_VarNode *var = (AST_VarNode*)expr->expression;
+    fprintf(stderr, "AAA %d\n", expr->exprType);   /**< Pro literál a proměnnou */
     switch (expr->exprType) {
         case AST_EXPR_LITERAL:
             TAC_generateLiteral(var);
@@ -763,6 +764,7 @@ void TAC_generateExpression(AST_ExprNode *expr) {
             TAC_generateFunctionCall(expr->expression);
             break;
         default:
+            
             error_handle(ERROR_INTERNAL);
     }
 }  // TAC_generateExpression
@@ -873,12 +875,37 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     printf("CREATEFRAME\n");
 
     // Najdeme definici funkce
+    DString *key;
     SymtableItemPtr function;
-    if(symtable_findItem(frameStack.bottom->frame, funCallNode->identifier, &function) != SYMTABLE_SUCCESS) {
+
+
+    // Pokud je funkce vestavěná, tak přidáme prefix ifj.
+    if(funCallNode->isBuiltIn){
+        key = string_charToDString("ifj.");
+        if(key == NULL){
+            error_handle(ERROR_INTERNAL);
+        }
+        for(size_t i = 0; i < funCallNode->identifier->length; i++){
+            string_append_char(key, funCallNode->identifier->str[i]);
+        }
+    }else {
+        key = string_init();
+        if(key == NULL){
+            error_handle(ERROR_INTERNAL);
+        }
+        if(string_copy(funCallNode->identifier, key) != STRING_SUCCESS){
+            error_handle(ERROR_INTERNAL);
+        }
+    }
+
+    if(symtable_findItem(frameStack.bottom->frame, key, &function) != SYMTABLE_SUCCESS) {
+        string_free(key);
         error_handle(ERROR_INTERNAL);
     }
+
+    string_free(key);
+
     SymtableFunctionData *functionData = function->data;    /**< Definovaná data funkce */
-    
     AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
     // Pro všechny parametry
     for(size_t i = 0; i < functionData->param_count; i++) {
