@@ -399,7 +399,7 @@ DString *TAC_convertSpecialSymbols(DString *origin) {
         }
         else {
             char buffer[MAX_BUFFER_SIZE];     // 5 = lomítko + 3 číslice + '\0'
-            snprintf(buffer, sizeof(buffer), "\\%d", (unsigned char)c);
+            snprintf(buffer, sizeof(buffer), "\\%03d", (unsigned char)c);
             for(int j = 0; j < MAX_BUFFER_SIZE; j++) {
                 string_append_char(transformed, buffer[j]);
             }
