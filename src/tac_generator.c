@@ -48,6 +48,8 @@ void TAC_generateProgram() {
     printf("DEFVAR GF@?tempSRC1\n");
     printf("DEFVAR GF@?tempSRC2\n");
 
+    // Vytvoříme temporary frame pro main
+    printf("CREATEFRAME\n");
     // Voláme funkci main
     printf("CALL $$main\n");
     // Jakmile se vrátíme z funkce main, skočíme na konec programu
