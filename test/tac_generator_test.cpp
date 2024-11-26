@@ -62,9 +62,6 @@ TEST(TAC, generate_example1_statement){
     AST_FunDefNode *nodeFun = ASTroot->functionList;
 
     AST_StatementNode *nodeStat = nodeFun->body;
-    AST_FunCallNode *funCall = (AST_FunCallNode*)nodeStat->statement;
-    AST_ExprNode *thisis = funCall->arguments->expression;
-    cerr << thisis<< endl;
 
     PRINT_AST(AST_PROGRAM_NODE, ASTroot);
 
@@ -78,6 +75,41 @@ TEST(TAC, generate_example1_statement){
     fclose(f);
 }
 
+<<<<<<< Updated upstream
+=======
+/*TEST(TAC, generate_example1_expression){
+    string path = exam_path + "example1.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    AST_FunDefNode *nodeFun = ASTroot->functionList;
+    AST_StatementNode *nodeStat = nodeFun->body;
+    AST_StatementNode *statement = (AST_StatementNode *)(nodeStat->statement);
+    // Padá na to, že toto není AST_ExprNode, ale AST_FunCallNode
+    AST_ExprNode *nodeExpr = (AST_ExprNode *)(statement->statement);
+
+    TAC_generateExpression(nodeExpr);
+
+    // Uvolnění alokovaných zdrojů
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}*/
+
+>>>>>>> Stashed changes
 TEST(TAC, generate_example1_funDef){
     string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
