@@ -32,7 +32,7 @@ void built_in_functions() {
     char built_in_fun_readstr[] = "\n\
         #--------------------------\n\
         #pub fn ifj.readstr() ?[]u8\n\
-            LABEL $$ifj.readstr\n\
+            LABEL $$ifj$readstr\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$x\n\
@@ -49,7 +49,7 @@ void built_in_functions() {
     char built_in_fun_readi32[] = "\n\
         #-------------------------\n\
         #pub fn ifj.readi32() ?i32\n\
-            LABEL $$ifj.readi32\n\
+            LABEL $$ifj$readi32\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$x\n\
@@ -66,7 +66,7 @@ void built_in_functions() {
     char built_in_fun_readf64[] = "\n\
         #-------------------------\n\
         #pub fn ifj.readf64() ?f64\n\
-            LABEL $$ifj.readf64\n\
+            LABEL $$ifj$readf64\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$x\n\
@@ -83,7 +83,7 @@ void built_in_functions() {
     char built_in_fun_write[] = "\n\
         #---------------------------\n\
         #pub fn ifj.write(term) void\n\
-            LABEL $$ifj.write\n\
+            LABEL $$ifj$write\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$x\n\
@@ -109,7 +109,7 @@ void built_in_functions() {
     char built_in_fun_i2f[] = "\n\
             #-----------------------------\n\
             #pub fn ifj.i2f(term: i32) f64\n\
-            LABEL $$ifj.i2f\n\
+            LABEL $$ifj$i2f\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$x\n\
@@ -126,7 +126,7 @@ void built_in_functions() {
     char built_in_fun_f2i[] = "\n\
             #-----------------------------\n\
             #pub fn ifj.f2i(term: f64) i32\n\
-            LABEL $$ifj.f2i\n\
+            LABEL $$ifj$f2i\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$x\n\
@@ -143,7 +143,7 @@ void built_in_functions() {
     char built_in_fun_string[] = "\n\
             #----------------------------\n\
             #pub fn ifj.string(term) []u8\n\
-            LABEL $$ifj.string\n\
+            LABEL $$ifj$string\n\
             PUSHFRAME\n\
             \n\
             PUCHS LF@$term\n\
@@ -158,7 +158,7 @@ void built_in_functions() {
     char built_in_fun_length[] = "\n\
             #------------------------------\n\
             #pub fn ifj.length(s: []u8) i32\n\
-            LABEL $$ifj.length\n\
+            LABEL $$ifj$length\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$x\n\
@@ -175,7 +175,7 @@ void built_in_functions() {
     char built_in_fun_concat[] = "\n\
             #------------------------------------------\n\
             #pub fn ifj.concat(𝑠1: []u8, 𝑠2: []u8) []u8\n\
-            LABEL $$ifj.concat\n\
+            LABEL $$ifj$concat\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$x\n\
@@ -192,7 +192,7 @@ void built_in_functions() {
     char built_in_fun_substring[] = "\n\
             #---------------------------------------------------\n\
             #pub fn ifj.substring(𝑠: []u8, i: i32, j: i32) ?[]u8\n\
-            LABEL $$ifj.strcmp\n\
+            LABEL $$ifj$strcmp\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$tf\n\
@@ -255,7 +255,7 @@ void built_in_functions() {
     char built_in_fun_strcmp[] = "\n\
             #-----------------------------------------\n\
             #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32\n\
-            LABEL $$ifj.strcmp\n\
+            LABEL $$ifj$strcmp\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$x\n\
@@ -332,7 +332,7 @@ void built_in_functions() {
     char built_in_fun_ord[] = "\n\
             #-----------------------------------\n\
             #pub fn ifj.ord(𝑠: []u8, i: i32) i32\n\
-            LABEL $$ifj.ord\n\
+            LABEL $$ifj$ord\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$x\n\
@@ -363,7 +363,7 @@ void built_in_functions() {
     char built_in_fun_chr[] = "\n\
             #---------------------------\n\
             #pub fn ifj.chr(i: i32) []u8\n\
-            LABEL $$ifj.chr\n\
+            LABEL $$ifj$chr\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$x\n\
