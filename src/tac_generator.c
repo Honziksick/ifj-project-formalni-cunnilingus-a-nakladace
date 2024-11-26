@@ -409,7 +409,8 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     }
 
     // Přidáme skok na návěští funkce
-    printf("CALL $$%s\n", key);
+    char *printKey = string_toConstChar(key);
+    printf("CALL $$%s\n", printKey);
     string_free(key);
 }  // TAC_generateFunctionCall
 
@@ -443,5 +444,3 @@ void TAC_resetStatic() {
     TAC_generateIf(&if_node);
     TAC_generateWhile(&while_node);
 }
-
-/*** Konec souboru tac_generator.c ***/
