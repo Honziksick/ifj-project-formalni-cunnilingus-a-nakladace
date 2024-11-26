@@ -413,7 +413,11 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     }
 
     // Přidáme skok na návěští funkce
-    printf("CALL $$%s\n", key->str);
+    if(funCallNode->isBuiltIn) {
+        printf("CALL $$ifj$%s\n", funCallNode->identifier->str);
+    }else {
+        printf("CALL $$%s\n", key->str);
+    }
     string_free(key);
 }  // TAC_generateFunctionCall
 
