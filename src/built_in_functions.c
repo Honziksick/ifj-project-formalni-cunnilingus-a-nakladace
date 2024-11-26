@@ -342,7 +342,7 @@ void built_in_functions() {
             JUMPIFEQ $$$ord1 LF@$x int@0\n\
             DEFVAR LF@$y\n\
             GT LF@$y LF@$i LF@$x\n\
-            JUMPIFEQ LF@$y bool@true\n\
+            JUMPIFEQ $$ord1 LF@$y bool@true\n\
                 STRI2INT LF@$z LF@$s LF@$i\n\
                 JUMP $$$ord2\n\
             \n\
