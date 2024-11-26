@@ -119,11 +119,11 @@ EXCLUDED_TEST_SRC_FILES = $(SRC_DIR)/ifj24_compiler.c
 TEST_INCLUDES = $(filter-out $(EXCLUDED_TEST_SRC_FILES), $(SRC_FILES))
 TEST_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(TEST_BUILD_DIR)/%.o,$(TEST_INCLUDES)) \
 $(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o $(TEST_BUILD_DIR)/gtest_main.a $(TEST_BUILD_DIR)/gtest.a
-TEST_TEST_OBJ_FILES = $(filter-out $(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o, $(patsubst $(TEST_DIR)/%.cpp,$(TEST_BUILD_DIR)/%.o,$(TEST_FILES)))
 
 # Seznam všech objektových souborů přeložených pro code coverage
 COV_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(COVERAGE_BUILD_DIR)/%.o,$(SRC_FILES))
 COV_TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.cpp,$(COVERAGE_BUILD_DIR)/%.o,$(TEST_FILES))
+COV_SRC_OBJ_FILES := $(filter-out $(COVERAGE_BUILD_DIR)/ifj24compiler.o, $(COV_SRC_OBJ_FILES))
 
 
 ################################################################################
@@ -183,7 +183,7 @@ clean:
 
 ### MC # test: # Sestaví knihovny GoogleTest a GoogleMock a spustí test překladače
 test: build-test
-	$(TEST_BUILD_DIR)/$(EXECUTABLE)_test
+	$(TEST_BUILD_DIR)/$(INTEGRATE)
 
 ### MC # doc: # Vygeneruje dokumentaci k projektu do adresáře `../doc/`
 doc:
@@ -471,19 +471,23 @@ $(BUILD_DIR)/$(BUILT_IN).o: $(SRC_DIR)/$(BUILT_IN).c
 #                    Kompilace unit TESTU CELÉHO PŘEKLADAČE                    #
 ###                                                                          ###
 
+INTEGRATE=ifj24_compiler_integration_test
+
 ### T # build-test: # Sestaví testovací program sdružující veškeré testy překladače
-build-test: $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES)
-	@mkdir -p $(TEST_BUILD_DIR)
-	$(CXX) $(CFLAGS_TEST) $(CXXFLAGS_TEST) $(TEST_SRC_OBJ_FILES) $(TEST_TEST_OBJ_FILES)  -o $(TEST_BUILD_DIR)/$(EXECUTABLE)_test
+build-test: $(TEST_BUILD_DIR)/$(INTEGRATE)
 
 # Stavba objektových souborů modulů a submodulů s přepínači pro pokrytí kódu
-$(TEST_BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(TEST_BUILD_DIR)/$(INTEGRATE): $(TEST_BUILD_DIR)/$(INTEGRATE).o $(TEST_SRC_OBJ_FILES)
 	@mkdir -p $(TEST_BUILD_DIR)
-	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
+	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) $^ -o $@
 
-$(TEST_BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp
+$(TEST_BUILD_DIR)/$(INTEGRATE).o: $(TEST_DIR)/$(INTEGRATE).cpp
 	@mkdir -p $(TEST_BUILD_DIR)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_TEST) -c $< -o $@
+
+$(TEST_BUILD_DIR)/$(EXECUTABLE).o: $(SRC_DIR)/$(EXECUTABLE).c
+	@mkdir -p $(TEST_BUILD_DIR)
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) -c $< -o $@
 
 
 ###                                                                          ###

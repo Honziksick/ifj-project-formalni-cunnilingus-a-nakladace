@@ -178,9 +178,20 @@ TEST(Identity, eof) {
 
 TEST(Identity, error) {
     // Unprintable znaky v ASCII nebo znaky mimo základní tabulku
-    EXPECT_EXIT(scanner_charIdentity(0), ExitedWithCode(1), "");
-    EXPECT_EXIT(scanner_charIdentity(16), ExitedWithCode(1), "");
-    EXPECT_EXIT(scanner_charIdentity(17), ExitedWithCode(1), "");
+    scanner_charIdentity(0);
+    bool result = Parser_errorWatcher(IS_PARSING_ERROR);
+    EXPECT_TRUE(result);
+    Parser_errorWatcher(RESET_ERROR_FLAGS);
+
+    scanner_charIdentity(16);
+    result = Parser_errorWatcher(IS_PARSING_ERROR);
+    EXPECT_TRUE(result);
+    Parser_errorWatcher(RESET_ERROR_FLAGS);
+
+    scanner_charIdentity(17);
+    result = Parser_errorWatcher(IS_PARSING_ERROR);
+    EXPECT_TRUE(result);
+    Parser_errorWatcher(RESET_ERROR_FLAGS);
 }
 
 
@@ -269,8 +280,9 @@ TEST(FSM, FSM_Identifier_ERROR_3){
     ASSERT_NE(f, nullptr);
     stdin = f;
 
-
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
 
 /**
@@ -295,7 +307,6 @@ TEST(FSM, FSM_Identifier_ERROR_4){
     // Načteme .
     state = scanner_FSM();
     ASSERT_EQ(state.type, TOKEN_PERIOD);
-
 }
 
 //Muj test
@@ -339,7 +350,9 @@ TEST(FSM, FSM_Number_INT_ERROR_1){
     ASSERT_NE(f, nullptr);
     stdin = f;
 
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
 
 /**
@@ -371,9 +384,7 @@ TEST(FSM, FSM_Number_FLOAT_ERROR_1){
 
     state = scanner_FSM();
     ASSERT_EQ(state.type, TOKEN_PERIOD);
-    state = scanner_FSM();
-    ASSERT_EQ(state.type, TOKEN_INT);
-    string_free(state.value);
+    ASSERT_EQ(state.value, nullptr);
 }
 
 /**
@@ -387,8 +398,11 @@ TEST(FSM, FSM_Number_FLOAT_ERROR_2){
     ASSERT_NE(f, nullptr);
     stdin = f;
 
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
+
 
 /**
  * @brief Testuje funkci `scanner_FSM` pro chybné float číslo.
@@ -401,7 +415,9 @@ TEST(FSM, FSM_Number_FLOAT_ERROR_3){
     ASSERT_NE(f, nullptr);
     stdin = f;
 
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
 
 /**
@@ -580,7 +596,9 @@ TEST(FSM, FSM_OPERATOR_ERROR_1){
     ASSERT_NE(f, nullptr);
     stdin = f;
 
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
 
 /**
@@ -595,8 +613,11 @@ TEST(FSM, FSM_OPERATOR_ERROR_2){
     stdin = f;
 
     state = scanner_FSM();
-    ASSERT_EQ(state.type, TOKEN_EQUAL_TO);
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    EXPECT_EQ(state.type, TOKEN_EQUAL_TO);
+    ASSERT_EQ(state.value, nullptr);
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
 
 /**
@@ -1818,6 +1839,33 @@ TEST(Lex, Satanic) {
 
     stdin = stdin_backup;
     fclose(f);
+}
+
+TEST(Lex, UnterminatedString){
+    for (int i = 1; i <= 4; i++) {
+        string filename = "lex_test_unterminated_string_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = lex_path + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(1), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
 }
 
 
