@@ -75,8 +75,6 @@ TEST(TAC, generate_example1_statement){
     fclose(f);
 }
 
-<<<<<<< Updated upstream
-=======
 /*TEST(TAC, generate_example1_expression){
     string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -109,7 +107,6 @@ TEST(TAC, generate_example1_statement){
     fclose(f);
 }*/
 
->>>>>>> Stashed changes
 TEST(TAC, generate_example1_funDef){
     string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
