@@ -89,15 +89,15 @@ void built_in_functions() {
             DEFVAR LF@$x\n\
             TYPE LF@$x LF@$term\n\
             \n\
-            JUMPIFNEQ write1 LF@$x nil\n\
+            JUMPIFNEQ $$$write1 LF@$x nil\n\
             \n\
                 WRITE string@null\n\
-                JUMP write2\n\
+                JUMP $$$write2\n\
             \n\
-            LABEL write1\n\
+            LABEL $$$write1\n\
                 WRITE LF@$x\n\
             \n\
-            LABEL write2\n\
+            LABEL $$$write2\n\
             \n\
             POPFRAME\n\
             RETURN\n\
@@ -202,46 +202,46 @@ void built_in_functions() {
             DEFVAR LF@$len\n\
             \n\
                 LT LF@$tf LF@$i int@0\n\
-                JUMPIFEQ sub_err LF@$tf bool@true\n\
+                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
                 \n\
                 LT LF@$tf LF@$i int@0\n\
-                JUMPIFEQ sub_err LF@$tf bool@true\n\
+                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
                 \n\
                 GT LF@$tf LF@$i LF@$j\n\
-                JUMPIFEQ sub_err LF@$tf bool@true\n\
+                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
                 \n\
                 EQ LF@$tf LF@$i LF@$j\n\
-                JUMPIFEQ sub_end LF@$tf bool@true\n\
+                JUMPIFEQ $$$sub_end LF@$tf bool@true\n\
                 \n\
                 \n\
                 STRLEN LF@$len LF@$s\n\
                 \n\
                 GT LF@$tf LF@$i LF@$len\n\
-                JUMPIFEQ sub_err LF@$tf bool@true\n\
+                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
                 EQ LF@$tf LF@$i LF@$len\n\
-                JUMPIFEQ sub_err LF@$tf bool@true\n\
+                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
                 \n\
                 GT LF@$tf LF@$j LF@$len\n\
-                JUMPIFEQ sub_err LF@$tf bool@true\n\
+                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
             \n\
             GETCHAR LF@$x LF@$s LF@$i\n\
             \n\
-            LABEL sub_while\n\
+            LABEL $$$sub_while\n\
             \n\
                 ADD LF@$i LF@$i int@1\n\
                 \n\
                 LT LF@$tf LF@$i LF@$j\n\
-                JUMPIFNEQ sub_end LF@$tf bool@true\n\
+                JUMPIFNEQ $$$sub_end LF@$tf bool@true\n\
                 \n\
                     GETCHAR LF@$y LF@$s LF@$i\n\
                     CONCAT LF@$x LF@$x LF@$y\n\
             \n\
-            JUMP sub_while\n\
+            JUMP $$$sub_while\n\
             \n\
-            LABEL sub_err\n\
+            LABEL $$$sub_err\n\
                 MOVE LF@$x nil@nil\n\
             \n\
-            LABEL sub_end\n\
+            LABEL $$$sub_end\n\
             \n\
             PUCHS LF@$x\n\
             \n\
@@ -272,53 +272,53 @@ void built_in_functions() {
             DEFVAR LF@$tf1\n\
             DEFVAR LF@$tf2\n\
             \n\
-            JUMPIFEQ cmp_while2 LF@$len1 LF@$len2\n\
+            JUMPIFEQ $$$cmp_while2 LF@$len1 LF@$len2\n\
             \n\
-            LABEL cmp_while1\n\
-            \n\
-                GETCHAR LF@$x LF@$s1 LF@$n\n\
-                GETCHAR LF@$y LF@$s2 LF@$n\n\
-                \n\
-                LT LF@$tf1 LF@$x LF@$y\n\
-                JUMPIFEQ strcmp1 LF@$tf1 bool@true\n\
-                \n\
-                GT LF@$tf2 LF@$x LF@$y\n\
-                JUMPIFEQ strcmp2 LF@$tf2 bool@true\n\
-                \n\
-                ADD LF@$n LF@$n int@1\n\
-            \n\
-            JUMP cmp_while1\n\
-            \n\
-            LABEL cmp_while2\n\
+            LABEL $$$cmp_while1\n\
             \n\
                 GETCHAR LF@$x LF@$s1 LF@$n\n\
                 GETCHAR LF@$y LF@$s2 LF@$n\n\
                 \n\
                 LT LF@$tf1 LF@$x LF@$y\n\
-                JUMPIFEQ strcmp1 LF@$tf1 bool@true\n\
+                JUMPIFEQ $$$strcmp1 LF@$tf1 bool@true\n\
                 \n\
                 GT LF@$tf2 LF@$x LF@$y\n\
-                JUMPIFEQ strcmp2 LF@$tf2 bool@true\n\
+                JUMPIFEQ $$$strcmp2 LF@$tf2 bool@true\n\
+                \n\
+                ADD LF@$n LF@$n int@1\n\
+            \n\
+            JUMP $$$cmp_while1\n\
+            \n\
+            LABEL $$$cmp_while2\n\
+            \n\
+                GETCHAR LF@$x LF@$s1 LF@$n\n\
+                GETCHAR LF@$y LF@$s2 LF@$n\n\
+                \n\
+                LT LF@$tf1 LF@$x LF@$y\n\
+                JUMPIFEQ $$$strcmp1 LF@$tf1 bool@true\n\
+                \n\
+                GT LF@$tf2 LF@$x LF@$y\n\
+                JUMPIFEQ $$$strcmp2 LF@$tf2 bool@true\n\
                 \n\
                 ADD LF@$n LF@$n int@1\n\
                 \n\
-                JUMPIFEQ strcmp3 LF@$n LF@$len1\n\
+                JUMPIFEQ $$$strcmp3 LF@$n LF@$len1\n\
             \n\
-            JUMP cmp_while2\n\
+            JUMP $$$cmp_while2\n\
             \n\
-            LABEL strcmp1\n\
+            LABEL $$$strcmp1\n\
                 MOVE LF@$z int@-1\n\
-                JUMP cmp_end\n\
+                JUMP $$$cmp_end\n\
             \n\
-            LABEL strcmp2\n\
+            LABEL $$$strcmp2\n\
                 MOVE LF@$z int@1\n\
-                JUMP cmp_end\n\
+                JUMP $$$cmp_end\n\
             \n\
-            LABEL strcmp3\n\
+            LABEL $$$strcmp3\n\
                 MOVE LF@$z int@0\n\
-                JUMP cmp_end\n\
+                JUMP $$$cmp_end\n\
             \n\
-            LABEL cmp_end\n\
+            LABEL $$$cmp_end\n\
             \n\
             PUCHS LF@$z\n\
             \n\
@@ -339,17 +339,17 @@ void built_in_functions() {
             STRLEN LF@$x LF@$s\n\
             DEFVAR LF@$z\n\
             \n\
-            JUMPIFEQ ord1 LF@$x int@0\n\
+            JUMPIFEQ $$$ord1 LF@$x int@0\n\
             DEFVAR LF@$y\n\
             GT LF@$y LF@$i LF@$x\n\
             JUMPIFEQ LF@$y bool@true\n\
                 STRI2INT LF@$z LF@$s LF@$i\n\
-                JUMP ord2\n\
+                JUMP $$$ord2\n\
             \n\
-            LABEL ord1\n\
+            LABEL $$$ord1\n\
                 MOVE LF@$z int@0\n\
             \n\
-            LABEL ord2\n\
+            LABEL $$$ord2\n\
             \n\
             PUCHS LF@$z\n\
             \n\
