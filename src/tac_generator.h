@@ -6,7 +6,7 @@
  * Autor:            Lukáš Farkašovský   <xfarkal00>                           *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   25.11.2024                                                *
+ * Poslední změna:   26.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -17,7 +17,8 @@
  ******************************************************************************/
 /**
  * @file tac_generator.h
- * @author Lukáš Farkašovský \<xfarkal00>
+ * @author Krejčí David \<xkrejcd00> (hlavní)
+ * @author Farkašovský Lukáš \<xfarkal00> (edit)
  *
  * @brief Hlavičkový soubor pro generátor vnitřního kódu (3AK).
  * @details Knihovna pro generování cílového kódu z AST.
@@ -37,6 +38,15 @@
 #include "error.h"
 
 #define MAX_BUFFER_SIZE 5
+
+/**
+ * @brief Generuje cílový kód programu ze stromu AST.
+ *
+ * @details Funkce prochází strom AST a rekurzivně volá funkci
+ *          TAC_generateFunctionDefinition pro každou definici funkce.
+ *          Pracuje s globálním kořenem stromu ASTroot.
+ */
+void TAC_generateProgram();
 
 /**
  * @brief Generuje cílový kód definice funkce

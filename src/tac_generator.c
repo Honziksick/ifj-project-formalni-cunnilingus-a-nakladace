@@ -17,7 +17,8 @@
  ******************************************************************************/
 /**
  * @file tac_generator.c
- * @author Lukáš Farkašovský \<xfarkal00>
+ * @author Krejčí David \<xkrejcd00> (hlavní)
+ * @author Farkašovský Lukáš \<xfarkal00> (edit)
  *
  * @brief Implementace funkcí pro generátor vnitřního kódu (3AK + Cílový jazyk).
  * @details Knihovna pro generování cílového kódu z AST.
