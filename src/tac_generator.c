@@ -26,6 +26,7 @@
 
 #include "tac_generator.h"
 #include "semantic_analyser.h"
+#include "built_in_functions.h"
 
 #define RESET_STATIC (AST_NodeType)123
 
@@ -38,6 +39,9 @@ void TAC_generateProgram() {
 
     // Povinná hlavička (prolog)
     printf(".IFJcode24\n");
+
+    // Definice vestavěných funkcí
+    built_in_functions();
 
     // Definice pomocných proměnných pro výpočty
     printf("DEFVAR GF@?tempDEST\n");
@@ -409,8 +413,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     }
 
     // Přidáme skok na návěští funkce
-    char *printKey = string_toConstChar(key);
-    printf("CALL $$%s\n", printKey);
+    printf("CALL $$%s\n", key->str);
     string_free(key);
 }  // TAC_generateFunctionCall
 

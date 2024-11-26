@@ -132,7 +132,9 @@
         "xstring": "cpp",
         "xtree": "cpp",
         "xutility": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "semantic_analyser.h": "c",
+        "built_in_functions.h": "c"
     },
     "editor.tokenColorCustomizations": {
         "[*Light*]": {
