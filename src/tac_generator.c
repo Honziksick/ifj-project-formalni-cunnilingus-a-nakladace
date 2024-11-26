@@ -241,7 +241,9 @@ void TAC_generateLiteral(AST_VarNode *literal) {
             printf("PUSHS float@%lf\n", *(double*)literal->value);
             break;
         case AST_LITERAL_STRING:
+            value = TAC_convertSpecialSymbols(value);
             printf("PUSHS string@%s\n", value->str);
+            string_free(value);
             break;
         case AST_LITERAL_NULL:
             printf("PUSHS nil@nil\n");
