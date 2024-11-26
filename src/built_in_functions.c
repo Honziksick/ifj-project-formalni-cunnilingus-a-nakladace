@@ -45,7 +45,7 @@ void built_in_functions() {
             \n\
             \n\
             ";
-    
+
     char built_in_fun_readi32[] = "\n\
         #-------------------------\n\
         #pub fn ifj.readi32() ?i32\n\
@@ -122,7 +122,7 @@ void built_in_functions() {
             \n\
             \n\
             ";
-    
+
     char built_in_fun_f2i[] = "\n\
             #-----------------------------\n\
             #pub fn ifj.f2i(term: f64) i32\n\
@@ -154,7 +154,7 @@ void built_in_functions() {
             \n\
             \n\
             ";
-    
+
     char built_in_fun_length[] = "\n\
             #------------------------------\n\
             #pub fn ifj.length(s: []u8) i32\n\
@@ -171,7 +171,7 @@ void built_in_functions() {
             \n\
             \n\
             ";
-    
+
     char built_in_fun_concat[] = "\n\
             #------------------------------------------\n\
             #pub fn ifj.concat(𝑠1: []u8, 𝑠2: []u8) []u8\n\
@@ -251,7 +251,7 @@ void built_in_functions() {
             \n\
             \n\
             ";
-    
+
     char built_in_fun_strcmp[] = "\n\
             #-----------------------------------------\n\
             #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32\n\
@@ -328,7 +328,7 @@ void built_in_functions() {
             \n\
             \n\
             ";
-    
+
     char built_in_fun_ord[] = "\n\
             #-----------------------------------\n\
             #pub fn ifj.ord(𝑠: []u8, i: i32) i32\n\
@@ -376,4 +376,19 @@ void built_in_functions() {
             \n\
             \n\
             ";
+
+    printf("%s", built_in_fun_readstr);
+    printf("%s", built_in_fun_readi32);
+    printf("%s", built_in_fun_readf64);
+    printf("%s", built_in_fun_write);
+    printf("%s", built_in_fun_i2f);
+    printf("%s", built_in_fun_f2i);
+    printf("%s", built_in_fun_string);
+    printf("%s", built_in_fun_length);
+    printf("%s", built_in_fun_concat);
+    printf("%s", built_in_fun_substring);
+    printf("%s", built_in_fun_strcmp);
+    printf("%s", built_in_fun_ord);
+    printf("%s", built_in_fun_chr);
 }
+/*** Konec souboru built_in_functions.c ***/

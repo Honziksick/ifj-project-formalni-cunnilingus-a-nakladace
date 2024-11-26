@@ -412,6 +412,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     char *printKey = string_toConstChar(key);
     printf("CALL $$%s\n", printKey);
     string_free(key);
+    free(printKey);
 }  // TAC_generateFunctionCall
 
 DString *TAC_convertSpecialSymbols(DString *origin) {
