@@ -386,4 +386,27 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     printf("CALL $$%s\n", funCallNode->identifier->str);
 }  // TAC_generateFunctionCall
 
+DString *TAC_convertSpecialSymbols(DString *origin) {
+    DString *transformed = string_init();
+    if(transformed == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    for(size_t i = 0; i < origin->length; i++) {
+        char c = origin->str[i];
+        if(isalpha(c)) {
+            string_append_char(transformed, c);
+        }
+        else {
+            char buffer[MAX_BUFFER_SIZE];     // 5 = lomítko + 3 číslice + '\0'
+            snprintf(buffer, sizeof(buffer), "\\%d", (unsigned char)c);
+            for(int j = 0; j < MAX_BUFFER_SIZE; j++) {
+                string_append_char(transformed, buffer[j]);
+            }
+        }
+    }
+
+    return transformed;
+}
+
 /*** Konec souboru tac_generator.c ***/
