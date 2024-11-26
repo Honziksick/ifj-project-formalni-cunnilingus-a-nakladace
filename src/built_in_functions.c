@@ -89,7 +89,7 @@ void built_in_functions() {
             DEFVAR LF@$x\n\
             TYPE LF@$x LF@$term\n\
             \n\
-            JUMPIFNEQ $$$write1 LF@$x nil\n\
+            JUMPIFNEQ $$$write1 LF@$x nil@nil\n\
             \n\
                 WRITE string@null\n\
                 JUMP $$$write2\n\
@@ -114,7 +114,7 @@ void built_in_functions() {
             \n\
             DEFVAR LF@$x\n\
             INT2FLOAT LF@$x LF@$term\n\
-            PUCHS LF@$x\n\
+            PUSHS LF@$x\n\
             \n\
             POPFRAME\n\
             RETURN\n\
@@ -131,7 +131,7 @@ void built_in_functions() {
             \n\
             DEFVAR LF@$x\n\
             FLOAT2INT LF@$x LF@$term\n\
-            PUCHS LF@$x\n\
+            PUSHS LF@$x\n\
             \n\
             POPFRAME\n\
             RETURN\n\
@@ -146,7 +146,7 @@ void built_in_functions() {
             LABEL $$ifj$string\n\
             PUSHFRAME\n\
             \n\
-            PUCHS LF@$term\n\
+            PUSHS LF@$term\n\
             \n\
             POPFRAME\n\
             RETURN\n\
@@ -163,7 +163,7 @@ void built_in_functions() {
             \n\
             DEFVAR LF@$x\n\
             STRLEN LF@$x LF@$s\n\
-            PUCHS LF@$x\n\
+            PUSHS LF@$x\n\
             \n\
             POPFRAME\n\
             RETURN\n\
@@ -180,7 +180,7 @@ void built_in_functions() {
             \n\
             DEFVAR LF@$x\n\
             CONCAT LF@$x LF@$s1 LF@$s2\n\
-            PUCHS LF@$x\n\
+            PUSHS LF@$x\n\
             \n\
             POPFRAME\n\
             RETURN\n\
@@ -243,7 +243,7 @@ void built_in_functions() {
             \n\
             LABEL $$$sub_end\n\
             \n\
-            PUCHS LF@$x\n\
+            PUSHS LF@$x\n\
             \n\
             POPFRAME\n\
             RETURN\n\
@@ -320,7 +320,7 @@ void built_in_functions() {
             \n\
             LABEL $$$cmp_end\n\
             \n\
-            PUCHS LF@$z\n\
+            PUSHS LF@$z\n\
             \n\
             POPFRAME\n\
             RETURN\n\
@@ -351,7 +351,7 @@ void built_in_functions() {
             \n\
             LABEL $$$ord2\n\
             \n\
-            PUCHS LF@$z\n\
+            PUSHS LF@$z\n\
             \n\
             POPFRAME\n\
             RETURN\n\
