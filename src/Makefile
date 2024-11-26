@@ -765,6 +765,10 @@ $(TEST_BUILD_DIR)/$(BUILT_IN).o: $(SRC_DIR)/$(BUILT_IN).c
 # Základní cesta k souborům
 BASE_PATH = ../test/test_examples/ifj24code_examples
 
+### G # run-script: Spustí All-In-One testovací skript na kompilátor.
+run-script: $(BUILD_DIR)/$(EXECUTABLE)
+	$(TEST_DIR)/ifj24compiler_test_script.sh
+
 ### G # run-code: # Spustí interpret jazyk IFJ24 s IFJ24code assembler souborem: \nUSAGE: "make run-code F=<FILE>" \n(očekává soubor bez přípony '.zig' a ve složce: \n'../test/test_examples/ifj24code_examples/pregenerated_ifj24code/<FILE>.zig')
 run-code:
 	@echo "\033[35mLaunching 'ic24int' interpreter with:\033[0m \033[33m$(F).ifj24code\033[0m"
