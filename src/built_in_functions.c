@@ -29,24 +29,7 @@
 
 //Ještě chybí dodělat 4 funkce
 void built_in_functions() {
-    char functions[] = "\n\
-        #DONE_COUNT_13/13\n\
-        #readstr-DONE\n\
-        #readint-DONE\n\
-        #readfloat-DONE\n\
-        #write-DONE\n\
-        #i2f-DONE\n\
-        #f2i-DONE\n\
-        #string-DONE\n\
-        #length-DONE\n\
-        #concat-DONE\n\
-        #substring-DONE\n\
-        #strcmp-DONE\n\
-        #ord-DONE\n\
-        #chr-DONE\n\
-        \n\
-        \n\
-        \n\
+    char built_in_fun_readstr[] = "\n\
         #--------------------------\n\
         #pub fn ifj.readstr() ?[]u8\n\
             LABEL readstr\n\
@@ -61,6 +44,9 @@ void built_in_functions() {
             \n\
             \n\
             \n\
+            ";
+    
+    char built_in_fun_readi32[] = "\n\
         #-------------------------\n\
         #pub fn ifj.readi32() ?i32\n\
             LABEL readi32\n\
@@ -75,6 +61,9 @@ void built_in_functions() {
             \n\
             \n\
             \n\
+            ";
+
+    char built_in_fun_readf64[] = "\n\
         #-------------------------\n\
         #pub fn ifj.readf64() ?f64\n\
             LABEL readf64\n\
@@ -89,6 +78,9 @@ void built_in_functions() {
             \n\
             \n\
             \n\
+            ";
+
+    char built_in_fun_write[] = "\n\
         #---------------------------\n\
         #pub fn ifj.write(term) void\n\
             LABEL write\n\
@@ -112,8 +104,11 @@ void built_in_functions() {
             \n\
             \n\
             \n\
-        #-----------------------------\n\
-        #pub fn ifj.i2f(term: i32) f64\n\
+            ";
+
+    char built_in_fun_i2f[] = "\n\
+            #-----------------------------\n\
+            #pub fn ifj.i2f(term: i32) f64\n\
             LABEL i2f\n\
             PUSHFRAME\n\
             \n\
@@ -126,8 +121,11 @@ void built_in_functions() {
             \n\
             \n\
             \n\
-        #-----------------------------\n\
-        #pub fn ifj.f2i(term: f64) i32\n\
+            ";
+    
+    char built_in_fun_f2i[] = "\n\
+            #-----------------------------\n\
+            #pub fn ifj.f2i(term: f64) i32\n\
             LABEL f2i\n\
             PUSHFRAME\n\
             \n\
@@ -140,8 +138,11 @@ void built_in_functions() {
             \n\
             \n\
             \n\
-        #----------------------------\n\
-        #pub fn ifj.string(term) []u8\n\
+            ";
+
+    char built_in_fun_string[] = "\n\
+            #----------------------------\n\
+            #pub fn ifj.string(term) []u8\n\
             LABEL string\n\
             PUSHFRAME\n\
             \n\
@@ -152,8 +153,11 @@ void built_in_functions() {
             \n\
             \n\
             \n\
-        #------------------------------\n\
-        #pub fn ifj.length(s: []u8) i32\n\
+            ";
+    
+    char built_in_fun_length[] = "\n\
+            #------------------------------\n\
+            #pub fn ifj.length(s: []u8) i32\n\
             LABEL length\n\
             PUSHFRAME\n\
             \n\
@@ -166,8 +170,11 @@ void built_in_functions() {
             \n\
             \n\
             \n\
-        #------------------------------------------\n\
-        #pub fn ifj.concat(𝑠1: []u8, 𝑠2: []u8) []u8\n\
+            ";
+    
+    char built_in_fun_concat[] = "\n\
+            #------------------------------------------\n\
+            #pub fn ifj.concat(𝑠1: []u8, 𝑠2: []u8) []u8\n\
             LABEL concat\n\
             PUSHFRAME\n\
             \n\
@@ -180,8 +187,11 @@ void built_in_functions() {
             \n\
             \n\
             \n\
-        #---------------------------------------------------\n\
-        #pub fn ifj.substring(𝑠: []u8, i: i32, j: i32) ?[]u8\n\
+            ";
+
+    char built_in_fun_substring[] = "\n\
+            #---------------------------------------------------\n\
+            #pub fn ifj.substring(𝑠: []u8, i: i32, j: i32) ?[]u8\n\
             LABEL strcmp\n\
             PUSHFRAME\n\
             \n\
@@ -240,8 +250,11 @@ void built_in_functions() {
             \n\
             \n\
             \n\
-        #-----------------------------------------\n\
-        #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32\n\
+            ";
+    
+    char built_in_fun_strcmp[] = "\n\
+            #-----------------------------------------\n\
+            #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32\n\
             LABEL strcmp\n\
             PUSHFRAME\n\
             \n\
@@ -314,8 +327,11 @@ void built_in_functions() {
             \n\
             \n\
             \n\
-        #-----------------------------------\n\
-        #pub fn ifj.ord(𝑠: []u8, i: i32) i32\n\
+            ";
+    
+    char built_in_fun_ord[] = "\n\
+            #-----------------------------------\n\
+            #pub fn ifj.ord(𝑠: []u8, i: i32) i32\n\
             LABEL ord\n\
             PUSHFRAME\n\
             \n\
@@ -342,8 +358,11 @@ void built_in_functions() {
             \n\
             \n\
             \n\
-        #---------------------------\n\
-        #pub fn ifj.chr(i: i32) []u8\n\
+            ";
+
+    char built_in_fun_chr[] = "\n\
+            #---------------------------\n\
+            #pub fn ifj.chr(i: i32) []u8\n\
             LABEL chr\n\
             PUSHFRAME\n\
             \n\
@@ -356,6 +375,5 @@ void built_in_functions() {
             \n\
             \n\
             \n\
-    ";
-    printf("%s", functions);
+            ";
 }
