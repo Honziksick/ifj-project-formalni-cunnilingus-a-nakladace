@@ -407,8 +407,8 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         // Vytvoříme instrukci DEFVAR pro parametr
         // Pokud je funkce built-in, tak se nepřidává frameID do názvu
         if(funCallNode->isBuiltIn) {
-            printf("DEFVAR TF@%s\n", functionData->params[i].id->str);
-            printf("POPS TF@%s\n", functionData->params[i].id->str);
+            printf("DEFVAR TF@$%s\n", functionData->params[i].id->str);
+            printf("POPS TF@$%s\n", functionData->params[i].id->str);
         }else {
             printf("DEFVAR TF@%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
             printf("POPS TF@%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
