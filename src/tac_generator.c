@@ -40,8 +40,6 @@ void TAC_generateProgram() {
     // Povinná hlavička (prolog)
     printf(".IFJcode24\n");
 
-    // Definice vestavěných funkcí
-    built_in_functions();
 
     // Definice pomocných proměnných pro výpočty
     printf("DEFVAR GF@?tempDEST\n");
@@ -54,6 +52,9 @@ void TAC_generateProgram() {
     printf("CALL $$main\n");
     // Jakmile se vrátíme z funkce main, skočíme na konec programu
     printf("JUMP $$end$$\n");
+
+    // Definice vestavěných funkcí
+    built_in_functions();
 
     // Procházíme seznam funkcí a generujeme kód pro každou funkci
     AST_FunDefNode *node = ASTroot->functionList;
