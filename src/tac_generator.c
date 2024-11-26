@@ -415,7 +415,6 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     // Přidáme skok na návěští funkce
     printf("CALL $$%s\n", key->str);
     string_free(key);
-    free(printKey);
 }  // TAC_generateFunctionCall
 
 DString *TAC_convertSpecialSymbols(DString *origin) {
