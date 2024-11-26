@@ -43,33 +43,6 @@
 
 #include "ifj24_compiler_test_utils.h"
 
-/*
-TEST(XXX, XXX) {
-    string filename = "error_statement_76.zig";
-    string path = synt_error_path + filename;
-    
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr) << "Can't open file: " << filename;
-    
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-    
-    cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
-    
-    // Uvolnění alokovaných zdrojů
-    IFJ24Compiler_freeAllAllocatedMemory();
-
-    // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
-    fclose(f);
-}
-*/
-
 TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     // Načtení souboru s programem na STDIN
     string path = synt_path + "correct_prologue_and_empty_main.zig";
