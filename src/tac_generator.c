@@ -26,10 +26,15 @@
 #include "tac_generator.h"
 #include "semantic_analyser.h"
 
+#define RESET_STATIC (AST_NodeType)123
+
 /**
  * @brief Generuje cílový kód programu ze stromu AST.
  */
 void TAC_generateProgram() {
+    // Vyresetujeme statické proměnné pro více testů
+    TAC_resetStatic();
+
     // Povinná hlavička (prolog)
     printf(".IFJcode24\n");
 
@@ -260,12 +265,18 @@ void TAC_generateIf(AST_IfNode *if_node) {
     // Unikátní identifikátor pro if
     static unsigned int count = 0;
 
+    // Pro reset mezi testy
+    if(if_node->type == RESET_STATIC){
+        count = 0;
+        return;
+    }
+
     // Vyhodnotíme podmínku
     TAC_generateExpression(if_node->condition);
     // je normální nebo null condition?
     if(if_node->nullCondition == NULL) {
         printf("PUSHS bool@true\n");
-        printf("JUMPIFNES if_else$%d\n", count);
+        printf("JUMPIFNEQS if_else$%d\n", count);
     }else {
         // Výsledek podmínky dáme do proměnné
         printf("POPS GF@?tempSRC1\n");
@@ -294,6 +305,12 @@ void TAC_generateWhile(AST_WhileNode *while_node) {
     // Unikátní identifikátor pro while
     static unsigned int count = 0;
 
+    // Pro reset mezi testy
+    if(while_node->type == RESET_STATIC){
+        count = 0;
+        return;
+    }
+
     // Label začátku while
     printf("LABEL while_start$%d\n", count);
     // Vyhodnotíme podmínku
@@ -301,7 +318,7 @@ void TAC_generateWhile(AST_WhileNode *while_node) {
     // je normální nebo null condition?
     if(while_node->nullCondition == NULL) {
         printf("PUSHS bool@true\n");
-        printf("JUMPIFNES while_end$%d\n", count);
+        printf("JUMPIFNEQS while_end$%d\n", count);
     }else {
         // Výsledek podmínky dáme do proměnné
         printf("POPS GF@?tempSRC1\n");
@@ -402,13 +419,21 @@ DString *TAC_convertSpecialSymbols(DString *origin) {
         else {
             char buffer[MAX_BUFFER_SIZE];     // 5 = lomítko + 3 číslice + '\0'
             snprintf(buffer, sizeof(buffer), "\\%03d", (unsigned char)c);
-            for(int j = 0; j < MAX_BUFFER_SIZE; j++) {
+            for(int j = 0; j < MAX_BUFFER_SIZE-1; j++) {
                 string_append_char(transformed, buffer[j]);
             }
         }
     }
+    string_append_char(transformed, '\0');
 
     return transformed;
+}
+
+void TAC_resetStatic() {
+    AST_IfNode if_node = {.type = RESET_STATIC};
+    AST_WhileNode while_node = {.type = RESET_STATIC};
+    TAC_generateIf(&if_node);
+    TAC_generateWhile(&while_node);
 }
 
 /*** Konec souboru tac_generator.c ***/

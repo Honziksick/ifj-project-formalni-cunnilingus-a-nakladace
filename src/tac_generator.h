@@ -468,6 +468,8 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode);
 
 DString *TAC_convertSpecialSymbols(DString *origin);
 
+void TAC_resetStatic();
+
 #endif // TAC_H_
 
 /*** Konec souboru tac_generator.h ***/
