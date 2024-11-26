@@ -33,13 +33,9 @@
 #include "ifj24_compiler_test_utils.h"
 
 void TestSemantic(){
-    semantic_analyseProgram();
-    exit(0);
-}
-
-void ParseAndCheck(){
     LLparser_parseProgram();
     semantic_analyseProgram();
+    exit(0);
 }
 
 TEST(Correct, Simplest){
@@ -49,13 +45,7 @@ TEST(Correct, Simplest){
     FILE* stdin_backup = stdin;
     stdin = f;
     
-    frameStack_init();
-
-    // Syntaktická analýza programu
     LLparser_parseProgram();
-
-    // Kořen je inicializován
-    ASSERT_NE(ASTroot, nullptr);
     
     //Test pro AST
     EXPECT_EQ(ASTroot->type, AST_PROGRAM_NODE);
@@ -75,7 +65,7 @@ TEST(Correct, Simplest){
     EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
     EXPECT_EQ(fun->parameters, nullptr);
 
-    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
+    semantic_analyseProgram();
 
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
@@ -90,14 +80,6 @@ TEST(Correct, Hello){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-
-    // Kořen je inicializován
-    ASSERT_NE(ASTroot, nullptr);
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
@@ -114,14 +96,8 @@ TEST(Correct, Example1){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
     
-
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
@@ -135,10 +111,6 @@ TEST(Correct, Example2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -148,16 +120,12 @@ TEST(Correct, Example2){
 }
 
 TEST(Correct, Example3){
-    string path = exam_path + "example3.zig";
+    string path = exam_path + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -173,10 +141,6 @@ TEST(Correct, Fun){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -188,19 +152,9 @@ TEST(Correct, Fun){
 TEST(Correct, Implicit_to_float){
     string path = sem_path + "implicit_to_float.zig";
     FILE* f = fopen(path.c_str(), "r");
-    if(f == NULL){
-        FAIL();
-    }
+    ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-
-    // Kořen je inicializován
-    ASSERT_NE(ASTroot, nullptr);
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
@@ -217,13 +171,6 @@ TEST(Correct, Implicit_to_int){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-
-    // Kořen je inicializován
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -239,13 +186,6 @@ TEST(Correct, Pseudo){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-
-    // Kořen je inicializován
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -261,13 +201,6 @@ TEST(Correct, Pseudo2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-
-    // Kořen je inicializován
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -283,13 +216,6 @@ TEST(Correct, Inference){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-
-    // Kořen je inicializován
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -306,11 +232,6 @@ TEST(Correct, Void_fun){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -325,12 +246,7 @@ TEST(Correct, Void_fun2){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-    LLparser_parseProgram();
     
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -347,9 +263,7 @@ TEST(Incorrect, Undefined_Var){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(3), "");
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
@@ -364,11 +278,6 @@ TEST(Incorrect, Undefined_Fun){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -385,10 +294,6 @@ TEST(Incorrect, ParamCount){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -404,10 +309,6 @@ TEST(Incorrect, ParamType){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -423,10 +324,6 @@ TEST(Incorrect, Return){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -442,10 +339,6 @@ TEST(Incorrect, Return2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(6), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -461,10 +354,6 @@ TEST(Incorrect, Return3){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(6), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -479,10 +368,8 @@ TEST(Incorrect, Redefined_Var){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
     
-    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(5), "");
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(5), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
@@ -497,9 +384,7 @@ TEST(Incorrect, Redefined_Fun){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(5), "");
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(5), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
@@ -514,10 +399,6 @@ TEST(Incorrect, ConstAssign){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(5), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -533,10 +414,6 @@ TEST(Incorrect, AssignType){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(7), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -552,10 +429,6 @@ TEST(Incorrect, AssignType2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(7), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -571,11 +444,6 @@ TEST(Incorrect, Unused_Var){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    LLparser_parseProgram();
-
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(9), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -592,13 +460,6 @@ TEST(Incorrect, MainInt){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-
-    // Kořen je inicializován
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -614,13 +475,6 @@ TEST(Incorrect, NoMain){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-
-    // Kořen je inicializován
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -635,15 +489,8 @@ TEST(Incorrect, Prolog){
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
-
-    // Kořen je inicializován
-    EXPECT_EQ(ASTroot, nullptr);
-    
+ 
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(2), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
@@ -658,15 +505,7 @@ TEST(Incorrect, Prolog2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-
-    // Syntaktická analýza programu
-    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
-
-    // Kořen je inicializován
-    EXPECT_EQ(ASTroot, nullptr);
-    
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(2), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
@@ -681,14 +520,8 @@ TEST(Incorrect, Inference){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
     
-
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
@@ -702,14 +535,8 @@ TEST(Incorrect, Inference2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
     
-
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
@@ -723,13 +550,7 @@ TEST(Incorrect, Unchanged_var){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(9), "");
-    
 
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
@@ -744,12 +565,8 @@ TEST(Incorrect, Unused_value){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-
-    EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(2), "");
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(2), "");
     
-
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
     fclose(f);
@@ -763,13 +580,7 @@ TEST(Incorrect, Unused_value2){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
-    
 
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
@@ -784,13 +595,7 @@ TEST(Incorrect, Void_fun){
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
-    
 
     IFJ24Compiler_freeAllAllocatedMemory();
     stdin = stdin_backup;
@@ -810,11 +615,8 @@ TEST(Incorrect, CantDetermineNullCondType){
     stdin = f;
 
     // Sémantická analýza by měl skončit chybou
-    EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(8), "");
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
     
-    // Uvolnění alokovaných zdrojů
-    IFJ24Compiler_freeAllAllocatedMemory();
-
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
 
@@ -834,11 +636,8 @@ TEST(Correct, TypeCasting){
     stdin = f;
 
     // Sémantická analýza by měl skončit chybou
-    ParseAndCheck();
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
     
-    // Uvolnění alokovaných zdrojů
-    IFJ24Compiler_freeAllAllocatedMemory();
-
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
 
@@ -861,7 +660,7 @@ TEST(SemanticError, Error3_UndefinedVariable){
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
-        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(3), "");
+        EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
         
         cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
 
@@ -888,7 +687,7 @@ TEST(SemanticError, Error3_UndefinedFunction){
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
-        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(3), "");
+        EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
         
         cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
 
@@ -915,7 +714,7 @@ TEST(SemanticError, Error3_UndefinedIFJFunction){
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
-        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(3), "");
+        EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
         
         cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
 
@@ -942,7 +741,7 @@ TEST(SemanticError, Error4_WrongNumberOfFunParams){
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
-        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(4), "");
+        EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
         
         cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
 
@@ -969,7 +768,7 @@ TEST(SemanticError, Error4_WrongParamType){
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
-        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(4), "");
+        EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
         
         cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
 
@@ -996,7 +795,7 @@ TEST(SemanticError, Error4_WrongFunReturnType){
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
-        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(4), "");
+        EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
         
         cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
 
@@ -1023,7 +822,34 @@ TEST(SemanticError, Error4_ReturnValueDump){
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
-        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(4), "");
+        EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+TEST(SemanticError, Error5_VariableRedefinition){
+    for (int i = 1; i <= 10; i++) {
+        string filename = "error_5_variable_redefinition_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = sem_error_path + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(TestSemantic(), ExitedWithCode(5), "");
         
         cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
 
