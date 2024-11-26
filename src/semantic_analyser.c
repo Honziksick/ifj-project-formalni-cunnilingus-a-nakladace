@@ -1057,12 +1057,14 @@ ErrorType semantic_compatibleAssign(Semantic_Data to, Semantic_Data from) {
             }
             break;
 
+        // THE HOLY EMPEROR WAS HERE - NEW START !!!
         default:
-            // Typ by neměl být nic jiného
-            return ERROR_INTERNAL;
+            return ERROR_SEM_RETURN_EXP;
     }
 
-    return 0;
+
+    return SUCCESS;
+    // THE HOLY EMPEROR WAS HERE - NEW END !!!
 }
 
 /**
