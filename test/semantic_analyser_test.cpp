@@ -37,6 +37,26 @@ void TestSemantic(){
     semantic_analyseProgram();
     exit(0);
 }
+/*
+TEST(Incorrect, VoidFunctionReturnExpr){
+    string filename = "void_function_return_expression.zig";
+    string path = sem_path + filename;
+
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Sémantická analýza by měl skončit chybou
+    LLparser_parseProgram();
+    semantic_analyseProgram();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+*/
 
 TEST(Correct, Simplest){
     string path = sem_path + "simplest.zig";
@@ -850,6 +870,33 @@ TEST(SemanticError, Error5_VariableRedefinition){
 
         // Sémantická analýza by měl skončit chybou
         EXPECT_EXIT(TestSemantic(), ExitedWithCode(5), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+TEST(SemanticError, Error6_ReturnExp){
+    for (int i = 1; i <= 21; i++) {
+        string filename = "error_6_return_exp_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = sem_error_path + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(TestSemantic(), ExitedWithCode(6), "");
         
         cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
 

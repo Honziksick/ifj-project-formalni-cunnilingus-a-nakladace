@@ -830,6 +830,9 @@ ErrorType semantic_analyseIf(Semantic_Data fun_return,       \
     //bool else_unreachable = false;
     ErrorType result;
     result = semantic_analyseCondition(if_node);
+    if(result != 0){
+        return result;
+    }
 
     // Projdeme bloky if a else
     result = semantic_probeBlock(fun_return, if_node->thenBranch, &then_returned);
@@ -919,9 +922,7 @@ ErrorType semantic_analyseCondition(AST_IfNode *if_while_node){
         // Odvodíme typ hodnoty bez null
         Semantic_Data type_without_null;
         if(type == SEM_DATA_NULL){
-            //then_unreachable = true;
-            // Zatím vrátíme chybu, ale můžeme později přidat odstranění mrtvého kódu
-            return ERROR_SEM_OTHER;
+            return ERROR_SEM_TYPE_INFERENCE;
         }else if(type == SEM_DATA_FLOAT_OR_NULL){
             type_without_null = SEM_DATA_FLOAT;
         }else if(type == SEM_DATA_INT_OR_NULL){
@@ -938,7 +939,7 @@ ErrorType semantic_analyseCondition(AST_IfNode *if_while_node){
         }
         // Hodnota bez null je konstanta
         item->constant = true;
-        item->changed = false;/// COOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO??????????????????????
+        item->changed = false;
         item->symbol_state = semantic_semTypeToState(type_without_null);
         item->used = false;
 
@@ -1057,12 +1058,14 @@ ErrorType semantic_compatibleAssign(Semantic_Data to, Semantic_Data from) {
             }
             break;
 
+        // THE HOLY EMPEROR WAS HERE - NEW START !!!
         default:
-            // Typ by neměl být nic jiného
-            return ERROR_INTERNAL;
+            return ERROR_SEM_RETURN_EXP;
     }
 
-    return 0;
+
+    return SUCCESS;
+    // THE HOLY EMPEROR WAS HERE - NEW END !!!
 }
 
 /**
