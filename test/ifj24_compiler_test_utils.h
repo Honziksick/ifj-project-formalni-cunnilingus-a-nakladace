@@ -68,6 +68,7 @@ extern string lex_path;
 extern string synt_path;
 extern string synt_error_path;
 extern string sem_path;
+extern string sem_error_path;
 
 
 /*******************************************************************************

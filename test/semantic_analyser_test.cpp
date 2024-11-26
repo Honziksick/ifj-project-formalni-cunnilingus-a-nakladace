@@ -37,6 +37,11 @@ void TestSemantic(){
     exit(0);
 }
 
+void ParseAndCheck(){
+    LLparser_parseProgram();
+    semantic_analyseProgram();
+}
+
 TEST(Correct, Simplest){
     string path = sem_path + "simplest.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -793,24 +798,240 @@ TEST(Incorrect, Void_fun){
     ASTroot = NULL;
 }
 
+
 TEST(Incorrect, CantDetermineNullCondType){
-    string path = sem_path + "cant_determine_nullcond_type.zig";
+    string filename = "cant_determine_nullcond_type.zig";
+    string path = sem_path + filename;
+
     FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
+    ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+
     FILE* stdin_backup = stdin;
     stdin = f;
 
-    frameStack_init();
-
-
-    LLparser_parseProgram();
-    ASSERT_NE(ASTroot, nullptr);
-    EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
+    // Sémantická analýza by měl skončit chybou
+    EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(8), "");
     
-
+    // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
+
+    // Uvolnění alokovaných zdrojů
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
     fclose(f);
-    ASTroot = NULL;
 }
 
+TEST(Correct, TypeCasting){
+    string filename = "more_advanced_type_casting.zig";
+    string path = sem_path + filename;
+
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Sémantická analýza by měl skončit chybou
+    ParseAndCheck();
+    
+    // Uvolnění alokovaných zdrojů
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    // Uvolnění alokovaných zdrojů
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(SemanticError, Error3_UndefinedVariable){
+    for (int i = 1; i <= 8; i++) {
+        string filename = "error_3_undef_var_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = sem_error_path + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(3), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+TEST(SemanticError, Error3_UndefinedFunction){
+    for (int i = 1; i <= 8; i++) {
+        string filename = "error_3_undef_fun_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = sem_error_path + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(3), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+TEST(SemanticError, Error3_UndefinedIFJFunction){
+    for (int i = 1; i <= 8; i++) {
+        string filename = "error_3_undef_ifj_fun_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = sem_error_path + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(3), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+TEST(SemanticError, Error4_WrongNumberOfFunParams){
+    for (int i = 1; i <= 10; i++) {
+        string filename = "error_4_wrong_num_of_fun_params_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = sem_error_path + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(4), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+TEST(SemanticError, Error4_WrongParamType){
+    for (int i = 1; i <= 8; i++) {
+        string filename = "error_4_wrong_param_type_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = sem_error_path + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(4), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+TEST(SemanticError, Error4_WrongFunReturnType){
+    for (int i = 1; i <= 3; i++) {
+        string filename = "error_4_wrong_param_type_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = sem_error_path + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(4), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+TEST(SemanticError, Error4_ReturnValueDump){
+    for (int i = 1; i <= 2; i++) {
+        string filename = "error_4_return_value_dump_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = sem_error_path + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(ParseAndCheck(), ExitedWithCode(4), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}

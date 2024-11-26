@@ -37,6 +37,7 @@ string exam_path = "../ifj24_examples/";
 string synt_path = "../test/test_examples/syntactic_examples/";
 string synt_error_path = synt_path + "syntax_error/";
 string sem_path = "../test/test_examples/semantic_examples/";
+string sem_error_path = sem_path + "semantic_error/";
 
 /*******************************************************************************
  *                                                                             *

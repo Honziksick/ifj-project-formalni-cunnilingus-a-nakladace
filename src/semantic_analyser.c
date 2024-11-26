@@ -590,7 +590,7 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
                 return result;
             }
         }
-        
+
     }
 
     if(item->constant == true){
@@ -751,6 +751,24 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
             return ERROR_SEM_PARAMS_OR_RETVAL;
         }
 
+        // THE HOLY EMPEROR WAS HERE - NEW START !!!
+
+        // Analýza výrazu argumentu
+        Semantic_Data actual_type;
+        ErrorType result = semantic_analyseExpr(arg->expression, &actual_type, NULL);
+        if(result != 0){
+            string_free(key);
+            return result;
+        }
+
+        // Zjistíme, jestli sedí typ argumentu
+        Semantic_Data defined_type = semantic_returnToSemType(data->params[i].type);
+        result = semantic_compatibleAssign(defined_type, actual_type);
+
+        // THE HOLY EMPEROR WAS HERE - NEW END !!!
+
+        /* THE HOLY EMPEROR WAS HERE - OLD START !!!
+
         // Najdeme tabulku symbolů pro argument
         AST_VarNode *var_node = arg->expression->expression;
         SymtablePtr table = frameArray.array[var_node->frameID]->frame;
@@ -775,6 +793,8 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
         // Zjistíme, jestli sedí typ argumentu
         Semantic_Data defined_type = semantic_returnToSemType(data->params[i].type);
         ErrorType result = semantic_compatibleAssign(defined_type, actual_type);
+
+        THE HOLY EMPEROR WAS HERE - OLD END !!! */
 
         if(result != 0){
             string_free(key);
@@ -921,7 +941,7 @@ ErrorType semantic_analyseCondition(AST_IfNode *if_while_node){
         item->changed = false;/// COOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO??????????????????????
         item->symbol_state = semantic_semTypeToState(type_without_null);
         item->used = false;
-        
+
         if(condition_value != NULL){
             // Pokud máme hodnotu, tak ji uložíme
             item->known_value = true;
