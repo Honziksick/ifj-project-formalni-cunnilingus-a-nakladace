@@ -6,7 +6,7 @@
  * Autor:            Hýža Pavel         <xhyzapa00>                            *
  *                                                                             *
  * Datum:            6.10.2024                                                 *
- * Poslední změna:   25.11.2024                                                *
+ * Poslední změna:   26.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -875,7 +875,6 @@ Token scanner_FSM() {
                     //printf("else\n");
                     stopFSM = true;
                     Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - načtení nekompatibilního znaku do tokenu NON
-                    break;
                 }
                 break;
             /*
@@ -890,6 +889,9 @@ Token scanner_FSM() {
                     stopFSM = true;
                 } else if(c == 92) {    //92 = backslash
                     state = STATE26_ESCAPE_BACKSLASH;
+                } else if(c == EOF) {
+                    stopFSM = true;
+                    Parser_errorWatcher(SET_ERROR_LEXICAL);    //ERROR - neukončení stringu
                 } else {
                     string_append_char(str, (char)c);
                 }

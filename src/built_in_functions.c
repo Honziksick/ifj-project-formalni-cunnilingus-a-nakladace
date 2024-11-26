@@ -6,7 +6,7 @@
  * Autor:            Hýža Pavel         <xhyzapa00>                            *
  *                                                                             *
  * Datum:            22.11.2024                                                *
- * Poslední změna:   22.11.2024                                                *
+ * Poslední změna:   26.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -92,7 +92,18 @@ void built_in_functions() {
         \n\
         PUSHFRAME\n\
         \n\
-        WRITE LF@$term\n\
+        DEFVAR LF@$x\n\
+        TYPE LF@$x LF@$term\n\
+        \n\
+        JUMPIFNEQ write1 LF@$x nil\n\
+        \n\
+            WRITE string@null\n\
+            JUMP write2\n\
+        \n\
+        LABEL write1\n\
+            WRITE LF@$x\n\
+        \n\
+        LABEL write2\n\
         \n\
         POPFRAME\n\
         RETURN\n\
