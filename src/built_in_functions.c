@@ -192,7 +192,7 @@ void built_in_functions() {
     char built_in_fun_substring[] = "\n\
             #---------------------------------------------------\n\
             #pub fn ifj.substring(𝑠: []u8, i: i32, j: i32) ?[]u8\n\
-            LABEL $$ifj$strcmp\n\
+            LABEL $$ifj$substring\n\
             PUSHFRAME\n\
             \n\
             DEFVAR LF@$tf\n\
