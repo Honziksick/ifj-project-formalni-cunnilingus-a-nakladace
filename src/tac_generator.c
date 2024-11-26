@@ -140,10 +140,8 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node) {
             // Přiřazujeme do pseudoproměnné - zahodíme hodnotu
             printf("POPS GF@?tempDEST\n");
         } else {
-            // Definujeme proměnnou
-            printf("DEFVAR LF@%s$%lu$\n", var->identifier->str, var->frameID);
             // Nahrajeme hodnotu výrazu do proměnné
-            printf("POPS LF@%s$%lu$\n", var->identifier->str, var->frameID);
+            printf("POPS LF@$%s$%lu$\n", var->identifier->str, var->frameID);
         }
         // Zahodíme hodnotu levé strany ze zásobníku
         printf("POPS GF@?tempDEST\n");
@@ -220,9 +218,9 @@ void TAC_generateVarDef(AST_ExprNode *expr_node) {
 
     // Definujeme proměnnou
     AST_VarNode *var = (AST_VarNode *)bin_node->left->expression;
-    printf("DEFVAR LF@%s$%lu$\n", var->identifier->str, var->frameID);
+    printf("DEFVAR LF@$%s$%lu$\n", var->identifier->str, var->frameID);
     // Nahrajeme hodnotu výrazu do proměnné
-    printf("POPS LF@%s$%lu$\n", var->identifier->str, var->frameID);
+    printf("POPS LF@$%s$%lu$\n", var->identifier->str, var->frameID);
 }  // TAC_generateVarDef
 
 /**
@@ -326,7 +324,13 @@ void TAC_generateWhile(AST_WhileNode *while_node) {
         count = 0;
         return;
     }
-
+    
+    // Pokud máme NULL podmínku, tak nejdříve definujeme id_bez_null
+    DString *id_bez_null = NULL;
+    if(while_node->nullCondition != NULL) {
+        id_bez_null = while_node->nullCondition->identifier;
+        printf("DEFVAR LF@$%s$%lu$\n", id_bez_null->str, while_node->nullCondition->frameID);
+    }
     // Label začátku while
     printf("LABEL while_start$%d\n", count);
     // Vyhodnotíme podmínku
@@ -339,10 +343,8 @@ void TAC_generateWhile(AST_WhileNode *while_node) {
         // Výsledek podmínky dáme do proměnné
         printf("POPS GF@?tempSRC1\n");
         printf("JUMPIFEQ while_end$%d GF@?tempSRC1 nil@nil\n", count);
-        // Definujeme id_bez_null
-        DString *id_bez_null = while_node->nullCondition->identifier;
-        printf("DEFVAR LF@$%s$%lu$\n", id_bez_null->str, while_node->nullCondition->frameID);
-        printf("MOVE LF$@%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, while_node->nullCondition->frameID);
+        // Přesuneme hodnotu do id_bez_null
+        printf("MOVE LF@$%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, while_node->nullCondition->frameID);
     }
 
     // Generujeme tělo while
@@ -410,8 +412,8 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             printf("DEFVAR TF@$%s\n", functionData->params[i].id->str);
             printf("POPS TF@$%s\n", functionData->params[i].id->str);
         }else {
-            printf("DEFVAR TF@%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
-            printf("POPS TF@%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
+            printf("DEFVAR TF@$%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
+            printf("POPS TF@$%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
         }
     }
 
