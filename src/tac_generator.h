@@ -389,9 +389,9 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node);
  * 
  * @details Vyhodnotí výraz vpravo a její hodnotu uloží do proměnné
  * 
- * @param [in] bin_node Ukazatel na uzel definice proměnné
+ * @param [in] expr_node Ukazatel na výraz obsahující binarní operaci přiřazení
  */
-void TAC_generateVarDef(AST_BinOpNode *bin_node);
+void TAC_generateVarDef(AST_ExprNode *expr_node);
 
 /**
  * @brief Generuje cílový kód pro výraz

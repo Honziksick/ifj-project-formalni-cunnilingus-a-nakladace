@@ -192,7 +192,8 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node) {
 /**
  * @brief Generuje cílový kód pro definici proměnné
  */
-void TAC_generateVarDef(AST_BinOpNode *bin_node) {
+void TAC_generateVarDef(AST_ExprNode *expr_node) {
+    AST_BinOpNode *bin_node = expr_node->expression;
     // Na vrchol zásobníku vložíme hodnotu výrazu vpravo
     TAC_generateExpression(bin_node->right);
 
@@ -208,7 +209,6 @@ void TAC_generateVarDef(AST_BinOpNode *bin_node) {
  */
 void TAC_generateExpression(AST_ExprNode *expr) {
     AST_VarNode *var = (AST_VarNode*)expr->expression;
-    fprintf(stderr, "AAA %d\n", expr->exprType);   /**< Pro literál a proměnnou */
     switch (expr->exprType) {
         case AST_EXPR_LITERAL:
             TAC_generateLiteral(var);
@@ -369,7 +369,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     // Pro všechny parametry
     for(size_t i = 0; i < functionData->param_count; i++) {
         // Na zásobník vyhodnotíme hodnotu parametru
-        TAC_generateExpression(arg->expression->expression);
+        TAC_generateExpression(arg->expression);
 
         // Vytvoříme instrukci DEFVAR pro parametr
         // Pokud je funkce built-in, tak se nepřidává frameID do názvu
@@ -383,7 +383,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     }
 
     // Přidáme skok na návěští funkce
-    printf("CALL $$%s", funCallNode->identifier->str);
+    printf("CALL $$%s\n", funCallNode->identifier->str);
 }  // TAC_generateFunctionCall
 
 /*** Konec souboru tac_generator.c ***/

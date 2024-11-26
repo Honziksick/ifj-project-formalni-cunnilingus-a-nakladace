@@ -244,9 +244,6 @@ ErrorType semantic_probeBlock(Semantic_Data fun_return,      \
                     bin_op = *(AST_BinOpNode*)expr->expression;
                     if(bin_op.op == AST_OP_ASSIGNMENT){
                         result = semantic_analyseBinOp(expr, &type, NULL);
-                        if(result != 0){
-                            return result;
-                        }
                         break;
                     }
                 }
@@ -860,6 +857,9 @@ ErrorType semantic_analyseWhile(Semantic_Data fun_return,       \
     ErrorType result;
 
     result = semantic_analyseCondition((AST_IfNode*)while_node);
+    if(result != 0){
+        return result;
+    }
 
     // Projdeme tělo while
     result = semantic_probeBlock(fun_return, while_node->body, returned);

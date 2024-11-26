@@ -31,7 +31,10 @@
 extern "C" {
 #include "tac_generator.h"
 }
+#define PRINT_AST_OUT true
 #include "ifj24_compiler_test_utils.h"
+
+
 
 using namespace testing;
 using namespace std;
@@ -51,11 +54,18 @@ TEST(TAC, generate_example1_statement){
     // Syntaktická analýza programu
     LLparser_parseProgram();
 
+    semantic_analyseProgram();
+
     // Kořen je inicializován
     EXPECT_NE(ASTroot, nullptr);
 
     AST_FunDefNode *nodeFun = ASTroot->functionList;
     AST_StatementNode *nodeStat = nodeFun->body;
+    AST_FunCallNode *funCall = (AST_FunCallNode*)nodeStat->statement;
+    AST_ExprNode *thisis = funCall->arguments->expression;
+    cerr << thisis<< endl;
+
+    PRINT_AST(AST_PROGRAM_NODE, ASTroot);
 
     TAC_generateStatementBlock(nodeStat);
 
