@@ -128,7 +128,15 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node) {
     switch (bin_node->op) {
     case AST_OP_ASSIGNMENT:
         var = (AST_VarNode *)bin_node->left->expression;
-        printf("POPS LF@%s$%lu$\n", var->identifier->str, var->frameID);
+        if(string_compare_const_str(var->identifier, "_" ) == STRING_EQUAL){
+            // Přiřazujeme do pseudoproměnné - zahodíme hodnotu
+            printf("POPS GF@?tempDEST\n");
+        } else {
+            // Definujeme proměnnou
+            printf("DEFVAR LF@%s$%lu$\n", var->identifier->str, var->frameID);
+            // Nahrajeme hodnotu výrazu do proměnné
+            printf("POPS LF@%s$%lu$\n", var->identifier->str, var->frameID);
+        }
         // Zahodíme hodnotu levé strany ze zásobníku
         printf("POPS GF@?tempDEST\n");
         break;
@@ -381,8 +389,6 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         error_handle(ERROR_INTERNAL);
     }
 
-    string_free(key);
-
     SymtableFunctionData *functionData = function->data;    /**< Definovaná data funkce */
     AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
     // Pro všechny parametry
@@ -402,7 +408,8 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     }
 
     // Přidáme skok na návěští funkce
-    printf("CALL $$%s\n", funCallNode->identifier->str);
+    printf("CALL $$%s\n", key);
+    string_free(key);
 }  // TAC_generateFunctionCall
 
 DString *TAC_convertSpecialSymbols(DString *origin) {
