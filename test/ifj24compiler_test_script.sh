@@ -31,6 +31,7 @@ NORMAL='\033[0m'
 #
 #  inputFile:   Vstupní soubor
 #  expectedOut: Očekávaný výstup
+#  stdInInput:  Vstupní data rpo STDIN (volitelné)
 ##
 run_test() {
     local inputFile=$1
@@ -83,7 +84,15 @@ run_test() {
 # Seznam jednotlivých testů
 run_test "$EXAMPLES_PATH/example1.zig" $'Zadejte cislo pro vypocet faktorialu\nVysledek: 0x1.ep6 = 120' "5"
 run_test "$EXAMPLES_PATH/example2.zig" $'Zadejte cislo pro vypocet faktorialu: Vysledek: 720' "6" 
-run_test "$EXAMPLES_PATH/example3.zig" $'Toto je nejaky text v programu jazyka IFJ24\nToto je nejaky text v programu jazyka IFJ24, ktery jeste trochu obohatime\nZadejte serazenou posloupnost vsech malych pismen a-h, Spatne zadana posloupnost, zkuste znovu\nSpatne zadana posloupnost, zkuste znovu:\nSpravne zadano!\nxxxabcdefhg' $'xxx\nabcdefhg\nabcdefgh\n'
+run_test "$EXAMPLES_PATH/example3.zig" "$(cat <<'END_EXPECTED'
+Toto je nejaky text v programu jazyka IFJ24
+Toto je nejaky text v programu jazyka IFJ24, ktery jeste trochu obohatime
+Zadejte serazenou posloupnost vsech malych pismen a-h, Spatne zadana posloupnost, zkuste znovu:
+Spatne zadana posloupnost, zkuste znovu:
+Spravne zadano!
+xxxabcdefhg
+END_EXPECTED
+)" $'xxx\nabcdefhg\nabcdefgh'
 run_test "$EXAMPLES_PATH/hello.zig" $'Hello from IFJ24'
 run_test "$EXAMPLES_PATH/fun.zig" $'calling f with 10\ncalling g with 9\ncalling f with 9\nres: 8'
 run_test "$EXAMPLES_PATH/multiline.zig" "$(cat <<'END_EXPECTED'
