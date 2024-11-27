@@ -88,7 +88,7 @@ void built_in_functions() {
             STRLEN GF@?tempSRC2 LF@s2\n\
             LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
             JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true\n\
-            GT GF@?tempDEST GF@?tempSRC1 GF?tempSRC2\n\
+            GT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
             JUMPIFEQ $$$strcmp1 GF@?tempDEST bool@true\n\
             \n\
             DEFVAR LF@len\n\
@@ -131,40 +131,8 @@ void built_in_functions() {
             \n\
             ";
 
-   char built_in_fun_ord[] = "\n\
-            #-----------------------------------\n\
-            #pub fn ifj.ord(𝑠: []u8, i: i32) i32\n\
-            LABEL $$ifj$ord\n\
-            PUSHFRAME\n\
-            \n\
-            DEFVAR LF@x\n\
-            STRLEN LF@$x LF@$s\n\
-            DEFVAR LF@$z\n\
-            \n\
-            JUMPIFEQ $$$ord1 LF@$x int@0\n\
-            DEFVAR LF@$y\n\
-            GT LF@$y LF@$i LF@$x\n\
-            JUMPIFEQ $$ord1 LF@$y bool@true\n\
-                STRI2INT LF@$z LF@$s LF@$i\n\
-                JUMP $$$ord2\n\
-            \n\
-            LABEL $$$ord1\n\
-                MOVE LF@$z int@0\n\
-            \n\
-            LABEL $$$ord2\n\
-            \n\
-            PUSHS LF@$z\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            \n\
-            ";
-
     printf("%s", built_in_fun_substring);
     printf("%s", built_in_fun_strcmp);
-    printf("%s", built_in_fun_ord);
 }
 
 /*** Konec souboru built_in_functions.c ***/
