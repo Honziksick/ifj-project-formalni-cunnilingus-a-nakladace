@@ -29,230 +29,56 @@
 
 //Ještě chybí dodělat 4 funkce
 void built_in_functions() {
-    char built_in_fun_readstr[] = "\n\
-        #--------------------------\n\
-        #pub fn ifj.readstr() ?[]u8\n\
-            LABEL $$ifj$readstr\n\
-            PUSHFRAME\n\
-            \n\
-            DEFVAR LF@$x\n\
-            READ LF@$x string\n\
-            PUSHS LF@$x\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            \n\
-            ";
-
-    char built_in_fun_readi32[] = "\n\
-        #-------------------------\n\
-        #pub fn ifj.readi32() ?i32\n\
-            LABEL $$ifj$readi32\n\
-            PUSHFRAME\n\
-            \n\
-            DEFVAR LF@$x\n\
-            READ LF@$x int\n\
-            PUSHS LF@$x\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            \n\
-            ";
-
-    char built_in_fun_readf64[] = "\n\
-        #-------------------------\n\
-        #pub fn ifj.readf64() ?f64\n\
-            LABEL $$ifj$readf64\n\
-            PUSHFRAME\n\
-            \n\
-            DEFVAR LF@$x\n\
-            READ LF@$x float\n\
-            PUSHS LF@$x\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            \n\
-            ";
-
-    char built_in_fun_write[] = "\n\
-        #---------------------------\n\
-        #pub fn ifj.write(term) void\n\
-            LABEL $$ifj$write\n\
-            PUSHFRAME\n\
-            \n\
-            DEFVAR LF@$x\n\
-            TYPE LF@$x LF@$term\n\
-            \n\
-            JUMPIFNEQ $$$write1 LF@$x nil@nil\n\
-            \n\
-                WRITE string@null\n\
-                JUMP $$$write2\n\
-            \n\
-            LABEL $$$write1\n\
-                WRITE LF@$x\n\
-            \n\
-            LABEL $$$write2\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            \n\
-            ";
-
-    char built_in_fun_i2f[] = "\n\
-            #-----------------------------\n\
-            #pub fn ifj.i2f(term: i32) f64\n\
-            LABEL $$ifj$i2f\n\
-            PUSHFRAME\n\
-            \n\
-            DEFVAR LF@$x\n\
-            INT2FLOAT LF@$x LF@$term\n\
-            PUSHS LF@$x\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            \n\
-            ";
-
-    char built_in_fun_f2i[] = "\n\
-            #-----------------------------\n\
-            #pub fn ifj.f2i(term: f64) i32\n\
-            LABEL $$ifj$f2i\n\
-            PUSHFRAME\n\
-            \n\
-            DEFVAR LF@$x\n\
-            FLOAT2INT LF@$x LF@$term\n\
-            PUSHS LF@$x\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            \n\
-            ";
-
-    char built_in_fun_string[] = "\n\
-            #----------------------------\n\
-            #pub fn ifj.string(term) []u8\n\
-            LABEL $$ifj$string\n\
-            PUSHFRAME\n\
-            \n\
-            PUSHS LF@$term\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            \n\
-            ";
-
-    char built_in_fun_length[] = "\n\
-            #------------------------------\n\
-            #pub fn ifj.length(s: []u8) i32\n\
-            LABEL $$ifj$length\n\
-            PUSHFRAME\n\
-            \n\
-            DEFVAR LF@$x\n\
-            STRLEN LF@$x LF@$s\n\
-            PUSHS LF@$x\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            \n\
-            ";
-
-    char built_in_fun_concat[] = "\n\
-            #------------------------------------------\n\
-            #pub fn ifj.concat(𝑠1: []u8, 𝑠2: []u8) []u8\n\
-            LABEL $$ifj$concat\n\
-            PUSHFRAME\n\
-            \n\
-            DEFVAR LF@$x\n\
-            CONCAT LF@$x LF@$s1 LF@$s2\n\
-            PUSHS LF@$x\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            \n\
-            ";
 
     char built_in_fun_substring[] = "\n\
             #---------------------------------------------------\n\
-            #pub fn ifj.substring(𝑠: []u8, i: i32, j: i32) ?[]u8\n\
+            #pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8\n\
             LABEL $$ifj$substring\n\
             PUSHFRAME\n\
             \n\
-            DEFVAR LF@$tf\n\
-            DEFVAR LF@$x\n\
-            DEFVAR LF@$y\n\
-            DEFVAR LF@$z\n\
-            DEFVAR LF@$len\n\
+                LT GF@$?tempDEST LF@$i int@0\n\
+                JUMPIFEQ $$$null GF@$tempDEST bool@true\n\
+                \n\
+                LT GF@$?tempDEST LF@$j int@0\n\
+                JUMPIFEQ $$$null GF@$tempDEST bool@true\n\
+                \n\
+                GT GF@$?tempDEST LF@$i LF@$j\n\
+                JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
+                \n\
+                STRLEN GF@?tempSRC1 LF@$s\n\
+                \n\
+                GT GF@$?tempDEST LF@$i GF@?tempSRC1\n\
+                JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
+                EQ GF@$?tempDEST LF@$i GF@?tempSRC1\n\
+                JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
+                \n\
+                GT GF@$?tempDEST LF@$j GF@?tempSRC1\n\
+                JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
             \n\
-                LT LF@$tf LF@$i int@0\n\
-                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
-                \n\
-                LT LF@$tf LF@$i int@0\n\
-                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
-                \n\
-                GT LF@$tf LF@$i LF@$j\n\
-                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
-                \n\
-                EQ LF@$tf LF@$i LF@$j\n\
-                JUMPIFEQ $$$sub_end LF@$tf bool@true\n\
-                \n\
-                \n\
-                STRLEN LF@$len LF@$s\n\
-                \n\
-                GT LF@$tf LF@$i LF@$len\n\
-                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
-                EQ LF@$tf LF@$i LF@$len\n\
-                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
-                \n\
-                GT LF@$tf LF@$j LF@$len\n\
-                JUMPIFEQ $$$sub_err LF@$tf bool@true\n\
+            LABEL $$$while\n\
             \n\
-            GETCHAR LF@$x LF@$s LF@$i\n\
-            \n\
-            LABEL $$$sub_while\n\
-            \n\
+                JUMPIFEQ $$$sub_end TF@i TF@j\n\
+                \n\
+                GETCHAR GF@?tempSRC1 LF@$s LF@$i\n\
+                CONCAT GF@?tempDEST GF@?tempDEST GF@?tempSRC1\n\
                 ADD LF@$i LF@$i int@1\n\
+                JUMP $$$while\n\
                 \n\
-                LT LF@$tf LF@$i LF@$j\n\
-                JUMPIFNEQ $$$sub_end LF@$tf bool@true\n\
-                \n\
-                    GETCHAR LF@$y LF@$s LF@$i\n\
-                    CONCAT LF@$x LF@$x LF@$y\n\
+                PUSHS GF@?tempDEST\n\
+                JUMP &&&sub_end\n\
             \n\
-            JUMP $$$sub_while\n\
-            \n\
-            LABEL $$$sub_err\n\
-                MOVE LF@$x nil@nil\n\
+            LABEL $$$null\n\
+                PUSHS nil@nil\n\
             \n\
             LABEL $$$sub_end\n\
-            \n\
-            PUSHS LF@$x\n\
             \n\
             POPFRAME\n\
             RETURN\n\
             \n\
             \n\
-            \n\
             ";
 
-    char built_in_fun_strcmp[] = "\n\
+   /* char built_in_fun_strcmp[] = "\n\
             #-----------------------------------------\n\
             #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32\n\
             LABEL $$ifj$strcmp\n\
@@ -375,20 +201,11 @@ void built_in_functions() {
             \n\
             \n\
             \n\
-            ";
-    printf("%s", built_in_fun_readstr);
-    printf("%s", built_in_fun_readi32);
-    printf("%s", built_in_fun_readf64);
-    printf("%s", built_in_fun_write);
-    printf("%s", built_in_fun_i2f);
-    printf("%s", built_in_fun_f2i);
-    printf("%s", built_in_fun_string);
-    printf("%s", built_in_fun_length);
-    printf("%s", built_in_fun_concat);
+            ";*/
     printf("%s", built_in_fun_substring);
-    printf("%s", built_in_fun_strcmp);
+    /*printf("%s", built_in_fun_strcmp);
     printf("%s", built_in_fun_ord);
-    printf("%s", built_in_fun_chr);
+    printf("%s", built_in_fun_chr);*/
 }
 
 /*** Konec souboru built_in_functions.c ***/
