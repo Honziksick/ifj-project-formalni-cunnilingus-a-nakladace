@@ -288,7 +288,7 @@ void TAC_generateIf(AST_IfNode *if_node) {
         count = 0;
         return;
     }
-    
+
     // Vyhodnotíme podmínku
     printf("# if_%d\n", id);
     TAC_generateExpression(if_node->condition);
@@ -315,7 +315,7 @@ void TAC_generateIf(AST_IfNode *if_node) {
     // Generujeme tělo else
     TAC_generateStatementBlock(if_node->elseBranch);
     printf("LABEL if_end$%d\n", id);
-    
+
 }  // TAC_generateIf
 
 /**
@@ -391,10 +391,9 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         }
         else if(string_compare_const_str(funCallNode->identifier, "write") == STRING_EQUAL) {
             AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
-            printf("CREATEFRAME\n");
-            printf("PUSHFRAME\n");
             TAC_generateExpression(arg->expression); // Asi předpokládám, že tohle vypočítá případný obsah
-
+            printf("POPS GF@?tempSRC1\n");
+            printf("WRITE GF@?tempSRC1\n");
         }
         else if(string_compare_const_str(funCallNode->identifier, "i2f") == STRING_EQUAL) {
             // Vyhodnotíme parametr
@@ -425,7 +424,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             printf("PUSHS GF@?tempDEST\n");
         }
         else if(string_compare_const_str(funCallNode->identifier, "substring") == STRING_EQUAL) {
-            
+
         }
         else if(string_compare_const_str(funCallNode->identifier, "strcmp") == STRING_EQUAL) {
             // TODO implementace funkce STRCMP
