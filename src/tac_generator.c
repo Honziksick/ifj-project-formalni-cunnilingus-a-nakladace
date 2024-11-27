@@ -436,6 +436,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             // TODO implementace funkce CHR
         }
     }
+    else {
 
     // Vytvoříme temporary frame pro parametry funkce
     printf("CREATEFRAME\n");
@@ -494,6 +495,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         printf("CALL $$%s\n", key->str);
     }
     string_free(key);
+    }
 }  // TAC_generateFunctionCall
 
 DString *TAC_convertSpecialSymbols(DString *origin) {
