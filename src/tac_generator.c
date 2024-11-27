@@ -30,6 +30,8 @@
 
 #define RESET_STATIC (AST_NodeType)123
 
+int dumbGlobalCounter = 0;
+
 /**
  * @brief Generuje cílový kód programu ze stromu AST.
  */
@@ -388,7 +390,11 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             printf("PUSHS GF@?tempSRC1\n");
         }
         else if(string_compare_const_str(funCallNode->identifier, "write") == STRING_EQUAL) {
-            // TODO implementace funkce WRITE
+            AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
+            printf("CREATEFRAME\n");
+            printf("PUSHFRAME\n");
+            TAC_generateExpression(arg->expression); // Asi předpokládám, že tohle vypočítá případný obsah
+
         }
         else if(string_compare_const_str(funCallNode->identifier, "i2f") == STRING_EQUAL) {
             // Vyhodnotíme parametr
