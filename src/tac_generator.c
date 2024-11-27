@@ -435,19 +435,26 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         else if(string_compare_const_str(funCallNode->identifier, "chr") == STRING_EQUAL) {
             // TODO implementace funkce CHR
         }
-        else {
-            // Neznámá vestavěná funkce
+    }
+
+    // Vytvoříme temporary frame pro parametry funkce
+    printf("CREATEFRAME\n");
+
+    // Najdeme definici funkce
+    DString *key;
+    SymtableItemPtr function;
+
+
+    // Pokud je funkce vestavěná, tak přidáme prefix ifj.
+    if(funCallNode->isBuiltIn){
+        key = string_charToDString("ifj.");
+        if(key == NULL){
             error_handle(ERROR_INTERNAL);
         }
-    }
-    else {
-        // Vytvoříme temporary frame pro parametry funkce
-        printf("CREATEFRAME\n");
-
-        // Najdeme definici funkce
-        DString *key;
-        SymtableItemPtr function;
-
+        for(size_t i = 0; i < funCallNode->identifier->length; i++){
+            string_append_char(key, funCallNode->identifier->str[i]);
+        }
+    }else {
         key = string_init();
         if(key == NULL){
             error_handle(ERROR_INTERNAL);
@@ -455,29 +462,38 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         if(string_copy(funCallNode->identifier, key) != STRING_SUCCESS){
             error_handle(ERROR_INTERNAL);
         }
-        if(symtable_findItem(frameStack.bottom->frame, key, &function) != SYMTABLE_SUCCESS) {
-            string_free(key);
-            error_handle(ERROR_INTERNAL);
-        }
-
-        SymtableFunctionData *functionData = function->data;    /**< Definovaná data funkce */
-        AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
-        // Pro všechny parametry
-        for(size_t i = 0; i < functionData->param_count; i++) {
-            // Na zásobník vyhodnotíme hodnotu parametru
-            TAC_generateExpression(arg->expression);
-
-            // Vytvoříme instrukci DEFVAR pro parametr
-            printf("DEFVAR TF@%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
-            printf("POPS TF@%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
-
-            arg = arg->next;
-        }
-
-        // Přidáme skok na návěští funkce
-        printf("CALL $$%s\n", key->str);
-        string_free(key);
     }
+
+    if(symtable_findItem(frameStack.bottom->frame, key, &function) != SYMTABLE_SUCCESS) {
+        string_free(key);
+        error_handle(ERROR_INTERNAL);
+    }
+
+    SymtableFunctionData *functionData = function->data;    /**< Definovaná data funkce */
+    AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
+    // Pro všechny parametry
+    for(size_t i = 0; i < functionData->param_count; i++) {
+        // Na zásobník vyhodnotíme hodnotu parametru
+        TAC_generateExpression(arg->expression);
+
+        // Vytvoříme instrukci DEFVAR pro parametr
+        // Pokud je funkce built-in, tak se nepřidává frameID do názvu
+        if(funCallNode->isBuiltIn) {
+            printf("DEFVAR TF@$%s\n", functionData->params[i].id->str);
+            printf("POPS TF@$%s\n", functionData->params[i].id->str);
+        }else {
+            printf("DEFVAR TF@$%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
+            printf("POPS TF@$%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
+        }
+    }
+
+    // Přidáme skok na návěští funkce
+    if(funCallNode->isBuiltIn) {
+        printf("CALL $$ifj$%s\n", funCallNode->identifier->str);
+    }else {
+        printf("CALL $$%s\n", key->str);
+    }
+    string_free(key);
 }  // TAC_generateFunctionCall
 
 DString *TAC_convertSpecialSymbols(DString *origin) {
