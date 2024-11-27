@@ -35,11 +35,12 @@ NORMAL='\033[0m'
 run_test() {
     local inputFile=$1
     local expectedOut=$2
+    local stdinInput=${3:-""}
     local base_name=$(basename "$inputFile" .zig)
     local output_file="$OUTPUT_DIR/$base_name.ifj24code"
 
     # Výpis označení testu
-    echo -e "${PINK}TESTING: ${NORMAL}$inputFile"
+    echo -e "${PINK}"$testCnt") TESTING: ${NORMAL}$inputFile"
 
     # Vytvoření výstupního adresáře, pokud neexistuje
     mkdir -p "$OUTPUT_DIR"
@@ -55,7 +56,11 @@ run_test() {
 
     # Spuštění interpretu a zachycení výstupu
     local actualOut
-    actualOut=$("$INTERPRET" "$output_file" 2>&1)
+    if [ -n "$stdinInput" ]; then
+        actualOut=$(echo -e "$stdinInput" | "$INTERPRET" "$output_file" 2>&1)
+    else
+        actualOut=$("$INTERPRET" "$output_file" 2>&1)
+    fi
 
     echo -e "${YELLOW}Expected Output:${NORMAL}"
     echo -e "$expectedOut"
@@ -68,7 +73,7 @@ run_test() {
         passed=$((passed + 1))
     else
         failed=$((failed + 1))
-        failedTests+=("$inputFile")
+        failedTests+=("$testCnt) $inputFile")
         echo -e "${RED}[FAILED]${NORMAL}\n"
     fi
 
@@ -76,9 +81,9 @@ run_test() {
 }
 
 # Seznam jednotlivých testů
-run_test "$EXAMPLES_PATH/example1.zig" $'Zadejte cislo pro vypocet faktorialu\nVysledek: 0x1.ep6 = 120'
-run_test "$EXAMPLES_PATH/example2.zig" $'Zadejte cislo pro vypocet faktorialu: Vysledek: 720'
-run_test "$EXAMPLES_PATH/example3.zig" $'Toto je nejaky text v programu jazyka IFJ24\nToto je nejaky text v programu jazyka IFJ24, ktery jeste trochu obohatime\nZadejte serazenou posloupnost vsech malych pismen a-h, Spatne zadana posloupnost, zkuste znovu\nSpatne zadana posloupnost, zkuste znovu:\nSpravne zadano!\nxxxabcdefhg'
+run_test "$EXAMPLES_PATH/example1.zig" $'Zadejte cislo pro vypocet faktorialu\nVysledek: 0x1.ep6 = 120' "5"
+run_test "$EXAMPLES_PATH/example2.zig" $'Zadejte cislo pro vypocet faktorialu: Vysledek: 720' "6" 
+run_test "$EXAMPLES_PATH/example3.zig" $'Toto je nejaky text v programu jazyka IFJ24\nToto je nejaky text v programu jazyka IFJ24, ktery jeste trochu obohatime\nZadejte serazenou posloupnost vsech malych pismen a-h, Spatne zadana posloupnost, zkuste znovu\nSpatne zadana posloupnost, zkuste znovu:\nSpravne zadano!\nxxxabcdefhg' $'xxx\nabcdefhg\nabcdefgh\n'
 run_test "$EXAMPLES_PATH/hello.zig" $'Hello from IFJ24'
 run_test "$EXAMPLES_PATH/fun.zig" $'calling f with 10\ncalling g with 9\ncalling f with 9\nres: 8'
 run_test "$EXAMPLES_PATH/multiline.zig" "$(cat <<'END_EXPECTED'
@@ -95,10 +100,10 @@ run_test "$EXAMPLES_PATH/wanna_die.zig" "\n"
 echo -e "${BLUE}SUMMARY:${RESET}"
 testCnt=$((testCnt - 1))
 if [ $failed -eq 0 ]; then
-    echo -e "${GREEN}Passed: $passed/$testCnt${NORMAL}"
+    echo -e "${GREEN}ALL passed: $passed/$testCnt${NORMAL}"
     exit 0      # návratový kód 0 znamená úspěšné dokončení testů
 else
-    echo -e "Passed: $passed/$testCnt"
+    echo -e "${GREEN}Passed: $passed/$testCnt${NORMAL}"
     echo -e "\n${BLUE}FAILED TESTS:${RESET}"
     for test in "${failedTests[@]}"; do
         echo -e "${RED}$test${NORMAL}"
