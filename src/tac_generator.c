@@ -218,9 +218,9 @@ void TAC_generateVarDef(AST_ExprNode *expr_node) {
 
     // Definujeme proměnnou
     AST_VarNode *var = (AST_VarNode *)bin_node->left->expression;
-    printf("DEFVAR LF@$%s$%lu$\n", var->identifier->str, var->frameID);
+    printf("DEFVAR LF@$%s$%lu$ \n", var->identifier->str, var->frameID);
     // Nahrajeme hodnotu výrazu do proměnné
-    printf("POPS LF@$%s$%lu$\n", var->identifier->str, var->frameID);
+    printf("POPS LF@$%s$%lu$ \n", var->identifier->str, var->frameID);
 }  // TAC_generateVarDef
 
 /**
@@ -254,18 +254,18 @@ void TAC_generateLiteral(AST_VarNode *literal) {
     DString *value = (DString*)literal->value;
     switch (literal->literalType) {
         case AST_LITERAL_INT:
-            printf("PUSHS int@%d\n", *(int*)literal->value);
+            printf("PUSHS int@%d \n", *(int*)literal->value);
             break;
         case AST_LITERAL_FLOAT:
-            printf("PUSHS float@%a\n", *(double*)literal->value);
+            printf("PUSHS float@%a \n", *(double*)literal->value);
             break;
         case AST_LITERAL_STRING:
             value = TAC_convertSpecialSymbols(value);
-            printf("PUSHS string@%s\n", value->str);
+            printf("PUSHS string@%s \n", value->str);
             string_free(value);
             break;
         case AST_LITERAL_NULL:
-            printf("PUSHS nil@nil\n");
+            printf("PUSHS nil@nil \n");
             break;
         default:
             error_handle(ERROR_INTERNAL);
@@ -278,23 +278,27 @@ void TAC_generateLiteral(AST_VarNode *literal) {
 void TAC_generateIf(AST_IfNode *if_node) {
     // Unikátní identifikátor pro if
     static unsigned int count = 0;
+    unsigned int id = count;
+    count++;
 
     // Pro reset mezi testy
     if(if_node->type == RESET_STATIC){
         count = 0;
         return;
     }
-
+    
     // Vyhodnotíme podmínku
+    printf("# if_%d\n", id);
     TAC_generateExpression(if_node->condition);
+    printf("# THEN_%d\n", id);
     // je normální nebo null condition?
     if(if_node->nullCondition == NULL) {
         printf("PUSHS bool@true\n");
-        printf("JUMPIFNEQS if_else$%d\n", count);
+        printf("JUMPIFNEQS if_else$%d\n", id);
     }else {
         // Výsledek podmínky dáme do proměnné
         printf("POPS GF@?tempSRC1\n");
-        printf("JUMPIFEQ if_else$%d GF@?tempSRC1 nil@nil\n", count);
+        printf("JUMPIFEQ if_else$%d GF@?tempSRC1 nil@nil\n", id);
         // Definujeme id_bez_null
         DString *id_bez_null = if_node->nullCondition->identifier;
         printf("DEFVAR LF@$%s$%lu$\n", id_bez_null->str, if_node->nullCondition->frameID);
@@ -303,13 +307,13 @@ void TAC_generateIf(AST_IfNode *if_node) {
 
     // Generujeme tělo if
     TAC_generateStatementBlock(if_node->thenBranch);
-    printf("JUMP if_end$%d\n", count);
+    printf("JUMP if_end$%d\n", id);
 
-    printf("LABEL if_else$%d\n", count);
+    printf("LABEL if_else$%d\n", id);
     // Generujeme tělo else
     TAC_generateStatementBlock(if_node->elseBranch);
-    printf("LABEL if_end$%d\n", count);
-    count++;
+    printf("LABEL if_end$%d\n", id);
+    
 }  // TAC_generateIf
 
 /**
@@ -318,6 +322,9 @@ void TAC_generateIf(AST_IfNode *if_node) {
 void TAC_generateWhile(AST_WhileNode *while_node) {
     // Unikátní identifikátor pro while
     static unsigned int count = 0;
+    unsigned int id = count;
+
+    count++;
 
     // Pro reset mezi testy
     if(while_node->type == RESET_STATIC){
@@ -332,27 +339,27 @@ void TAC_generateWhile(AST_WhileNode *while_node) {
         printf("DEFVAR LF@$%s$%lu$\n", id_bez_null->str, while_node->nullCondition->frameID);
     }
     // Label začátku while
-    printf("LABEL while_start$%d\n", count);
+    printf("LABEL while_start$%d\n", id);
     // Vyhodnotíme podmínku
     TAC_generateExpression(while_node->condition);
+    printf("# while_body_%d\n", id);
     // je normální nebo null condition?
     if(while_node->nullCondition == NULL) {
         printf("PUSHS bool@true\n");
-        printf("JUMPIFNEQS while_end$%d\n", count);
+        printf("JUMPIFNEQS while_end$%d\n", id);
     }else {
         // Výsledek podmínky dáme do proměnné
         printf("POPS GF@?tempSRC1\n");
-        printf("JUMPIFEQ while_end$%d GF@?tempSRC1 nil@nil\n", count);
+        printf("JUMPIFEQ while_end$%d GF@?tempSRC1 nil@nil\n", id);
         // Přesuneme hodnotu do id_bez_null
         printf("MOVE LF@$%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, while_node->nullCondition->frameID);
     }
 
     // Generujeme tělo while
     TAC_generateStatementBlock(while_node->body);
-    printf("JUMP while_start$%d\n", count);
-    printf("LABEL while_end$%d\n", count);
+    printf("JUMP while_start$%d\n", id);
+    printf("LABEL while_end$%d\n", id);
 
-    count++;
 }  // TAC_generateWhile
 
 /**
@@ -369,34 +376,50 @@ void TAC_generateReturn(AST_ExprNode *expr) {
 void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     if(funCallNode->isBuiltIn) {
         if(string_compare_const_str(funCallNode->identifier, "readstr") == STRING_EQUAL) {
-            // TODO implementace READSTR
+            printf("READ GF@?tempSRC1 string\n");
+            printf("PUSHS GF@?tempSRC1\n");
         }
         else if(string_compare_const_str(funCallNode->identifier, "readi32") == STRING_EQUAL) {
-            // TODO implementace funkce READ32
+            printf("READ GF@?tempSRC1 int\n");
+            printf("PUSHS GF@?tempSRC1\n");
         }
         else if(string_compare_const_str(funCallNode->identifier, "readf64") == STRING_EQUAL) {
-            // TODO implementace funkce READ64
+            printf("READ GF@?tempSRC1 float\n");
+            printf("PUSHS GF@?tempSRC1\n");
         }
         else if(string_compare_const_str(funCallNode->identifier, "write") == STRING_EQUAL) {
             // TODO implementace funkce WRITE
         }
         else if(string_compare_const_str(funCallNode->identifier, "i2f") == STRING_EQUAL) {
-            // TODO implementace funkce I2F
+            // Vyhodnotíme parametr
+            TAC_generateExpression(funCallNode->arguments->expression);
+            printf("INT2FLOATS\n");
         }
         else if(string_compare_const_str(funCallNode->identifier, "f2i") == STRING_EQUAL) {
-            // TODO implementace funkce F2I
+            // Vyhodnotíme parametr
+            TAC_generateExpression(funCallNode->arguments->expression);
+            printf("FLOAT2INTS\n");
         }
         else if(string_compare_const_str(funCallNode->identifier, "string") == STRING_EQUAL) {
-            // TODO implementace funkce STRING
+            // Nechápu, proč tato funkce existuje
+            TAC_generateExpression(funCallNode->arguments->expression);
         }
         else if(string_compare_const_str(funCallNode->identifier, "length") == STRING_EQUAL) {
-            // TODO implementace funkce LENGTH
+            TAC_generateExpression(funCallNode->arguments->expression);
+            printf("POPS GF@?tempSRC1\n");
+            printf("STRLEN GF@?tempDEST GF@?tempSRC1\n");
+            printf("PUSHS GF@?tempDEST\n");
         }
         else if(string_compare_const_str(funCallNode->identifier, "concat") == STRING_EQUAL) {
-            // TODO implementace funkce CONCAT
+            TAC_generateExpression(funCallNode->arguments->expression);
+            printf("POPS GF@?tempSRC1\n");
+            TAC_generateExpression(funCallNode->arguments->next->expression);
+            printf("POPS GF@?tempSRC2\n");
+            printf("CONCAT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n");
+            printf("PUSHS GF@?tempDEST\n");
         }
         else if(string_compare_const_str(funCallNode->identifier, "substring") == STRING_EQUAL) {
-            // TODO implementace funkce SUBSTRING
+            
         }
         else if(string_compare_const_str(funCallNode->identifier, "strcmp") == STRING_EQUAL) {
             // TODO implementace funkce STRCMP
