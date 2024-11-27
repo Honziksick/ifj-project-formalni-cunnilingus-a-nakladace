@@ -36,32 +36,32 @@ void built_in_functions() {
             LABEL $$ifj$substring\n\
             PUSHFRAME\n\
             \n\
-                LT GF@$?tempDEST LF@$i int@0\n\
+                LT GF@$?tempDEST LF@i int@0\n\
                 JUMPIFEQ $$$null GF@$tempDEST bool@true\n\
                 \n\
-                LT GF@$?tempDEST LF@$j int@0\n\
+                LT GF@$?tempDEST LF@j int@0\n\
                 JUMPIFEQ $$$null GF@$tempDEST bool@true\n\
                 \n\
-                GT GF@$?tempDEST LF@$i LF@$j\n\
+                GT GF@$?tempDEST LF@i LF@j\n\
                 JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
                 \n\
-                STRLEN GF@?tempSRC1 LF@$s\n\
+                STRLEN GF@?tempSRC1 LF@s\n\
                 \n\
-                GT GF@$?tempDEST LF@$i GF@?tempSRC1\n\
+                GT GF@$?tempDEST LF@i GF@?tempSRC1\n\
                 JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
-                EQ GF@$?tempDEST LF@$i GF@?tempSRC1\n\
+                EQ GF@$?tempDEST LF@i GF@?tempSRC1\n\
                 JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
                 \n\
-                GT GF@$?tempDEST LF@$j GF@?tempSRC1\n\
+                GT GF@$?tempDEST LF@j GF@?tempSRC1\n\
                 JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
             \n\
             LABEL $$$while\n\
             \n\
                 JUMPIFEQ $$$sub_end TF@i TF@j\n\
                 \n\
-                GETCHAR GF@?tempSRC1 LF@$s LF@$i\n\
+                GETCHAR GF@?tempSRC1 LF@s LF@i\n\
                 CONCAT GF@?tempDEST GF@?tempDEST GF@?tempSRC1\n\
-                ADD LF@$i LF@$i int@1\n\
+                ADD LF@i LF@i int@1\n\
                 JUMP $$$while\n\
                 \n\
                 PUSHS GF@?tempDEST\n\
@@ -78,90 +78,66 @@ void built_in_functions() {
             \n\
             ";
 
-   /* char built_in_fun_strcmp[] = "\n\
+    char built_in_fun_strcmp[] = "\n\
             #-----------------------------------------\n\
             #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32\n\
             LABEL $$ifj$strcmp\n\
             PUSHFRAME\n\
             \n\
-            DEFVAR LF@$x\n\
-            DEFVAR LF@$y\n\
-            DEFVAR LF@$n\n\
-            MOVE LF@$n int@0\n\
-            DEFVAR LF@$z\n\
+            STRLEN GF@?tempSRC1 LF@s1\n\
+            STRLEN GF@?tempSRC2 LF@s2\n\
+            LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
+            JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true\n\
+            GT GF@?tempDEST GF@?tempSRC1 GF?tempSRC2\n\
+            JUMPIFEQ $$$strcmp1 GF@?tempDEST bool@true\n\
             \n\
-            DEFVAR LF@$len1\n\
-            STRLEN LF@$len1 LF@$s1\n\
-            DEFVAR LF@$len2\n\
-            STRLEN LF@$len2 LF@$s2\n\
+            DEFVAR LF@len\n\
+            MOVE LF@len GF@?tempSRC1\n\
+            DEFVAR LF@i\n\
+            MOVE LF@i int@0\n\
+            LABEL $$$cmp_while\n\
             \n\
-            DEFVAR LF@$tf1\n\
-            DEFVAR LF@$tf2\n\
-            \n\
-            JUMPIFEQ $$$cmp_while2 LF@$len1 LF@$len2\n\
-            \n\
-            LABEL $$$cmp_while1\n\
-            \n\
-                GETCHAR LF@$x LF@$s1 LF@$n\n\
-                GETCHAR LF@$y LF@$s2 LF@$n\n\
+                JUMPIFEQ $$$strcmp0 LF@i LF@len\n\
+                GETCHAR GF@?tempSRC1 LF@s1 LF@i\n\
+                GETCHAR GF@?tempSRC2 LF@s2 LF@i\n\
                 \n\
-                LT LF@$tf1 LF@$x LF@$y\n\
-                JUMPIFEQ $$$strcmp1 LF@$tf1 bool@true\n\
+                LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
+                JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true\n\
                 \n\
-                GT LF@$tf2 LF@$x LF@$y\n\
-                JUMPIFEQ $$$strcmp2 LF@$tf2 bool@true\n\
+                GT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
+                JUMPIFEQ $$$strcmp2 GF@?tempDEST bool@true\n\
                 \n\
-                ADD LF@$n LF@$n int@1\n\
+                ADD LF@i LF@i int@1\n\
             \n\
-            JUMP $$$cmp_while1\n\
+            JUMP $$$cmp_while\n\
             \n\
-            LABEL $$$cmp_while2\n\
-            \n\
-                GETCHAR LF@$x LF@$s1 LF@$n\n\
-                GETCHAR LF@$y LF@$s2 LF@$n\n\
-                \n\
-                LT LF@$tf1 LF@$x LF@$y\n\
-                JUMPIFEQ $$$strcmp1 LF@$tf1 bool@true\n\
-                \n\
-                GT LF@$tf2 LF@$x LF@$y\n\
-                JUMPIFEQ $$$strcmp2 LF@$tf2 bool@true\n\
-                \n\
-                ADD LF@$n LF@$n int@1\n\
-                \n\
-                JUMPIFEQ $$$strcmp3 LF@$n LF@$len1\n\
-            \n\
-            JUMP $$$cmp_while2\n\
+            LABEL $$$strcmp-1\n\
+                PUSHS int@-1\n\
+                JUMP $$$cmp_end\n\
             \n\
             LABEL $$$strcmp1\n\
-                MOVE LF@$z int@-1\n\
+                PUSHS int@1\n\
                 JUMP $$$cmp_end\n\
             \n\
-            LABEL $$$strcmp2\n\
-                MOVE LF@$z int@1\n\
-                JUMP $$$cmp_end\n\
-            \n\
-            LABEL $$$strcmp3\n\
-                MOVE LF@$z int@0\n\
+            LABEL $$$strcmp0\n\
+                PUSHS int@0\n\
                 JUMP $$$cmp_end\n\
             \n\
             LABEL $$$cmp_end\n\
-            \n\
-            PUSHS LF@$z\n\
             \n\
             POPFRAME\n\
             RETURN\n\
             \n\
             \n\
-            \n\
             ";
 
-    char built_in_fun_ord[] = "\n\
+   char built_in_fun_ord[] = "\n\
             #-----------------------------------\n\
             #pub fn ifj.ord(𝑠: []u8, i: i32) i32\n\
             LABEL $$ifj$ord\n\
             PUSHFRAME\n\
             \n\
-            DEFVAR LF@$x\n\
+            DEFVAR LF@x\n\
             STRLEN LF@$x LF@$s\n\
             DEFVAR LF@$z\n\
             \n\
@@ -186,26 +162,9 @@ void built_in_functions() {
             \n\
             ";
 
-    char built_in_fun_chr[] = "\n\
-            #---------------------------\n\
-            #pub fn ifj.chr(i: i32) []u8\n\
-            LABEL $$ifj$chr\n\
-            PUSHFRAME\n\
-            \n\
-            DEFVAR LF@$x\n\
-            INT2CHAR LF@$x LF@$i\n\
-            PUSHS LF@$x\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            \n\
-            ";*/
     printf("%s", built_in_fun_substring);
-    /*printf("%s", built_in_fun_strcmp);
+    printf("%s", built_in_fun_strcmp);
     printf("%s", built_in_fun_ord);
-    printf("%s", built_in_fun_chr);*/
 }
 
 /*** Konec souboru built_in_functions.c ***/

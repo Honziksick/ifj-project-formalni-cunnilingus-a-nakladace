@@ -143,7 +143,7 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node) {
             printf("POPS GF@?tempDEST\n");
         } else {
             // Nahrajeme hodnotu výrazu do proměnné
-            printf("POPS LF@$%s$%lu$\n", var->identifier->str, var->frameID);
+            printf("POPS LF@%s$%lu$\n", var->identifier->str, var->frameID);
         }
         // Zahodíme hodnotu levé strany ze zásobníku
         printf("POPS GF@?tempDEST\n");
@@ -220,9 +220,9 @@ void TAC_generateVarDef(AST_ExprNode *expr_node) {
 
     // Definujeme proměnnou
     AST_VarNode *var = (AST_VarNode *)bin_node->left->expression;
-    printf("DEFVAR LF@$%s$%lu$ \n", var->identifier->str, var->frameID);
+    printf("DEFVAR LF@%s$%lu$ \n", var->identifier->str, var->frameID);
     // Nahrajeme hodnotu výrazu do proměnné
-    printf("POPS LF@$%s$%lu$ \n", var->identifier->str, var->frameID);
+    printf("POPS LF@%s$%lu$ \n", var->identifier->str, var->frameID);
 }  // TAC_generateVarDef
 
 /**
@@ -235,7 +235,7 @@ void TAC_generateExpression(AST_ExprNode *expr) {
             TAC_generateLiteral(var);
             break;
         case AST_EXPR_VARIABLE:
-            printf("PUSHS LF@$%s$%lu$\n", var->identifier->str, var->frameID);
+            printf("PUSHS LF@%s$%lu$\n", var->identifier->str, var->frameID);
             break;
         case AST_EXPR_BINARY_OP:
             TAC_generateBinaryOperator(expr->expression);
@@ -303,8 +303,8 @@ void TAC_generateIf(AST_IfNode *if_node) {
         printf("JUMPIFEQ if_else$%d GF@?tempSRC1 nil@nil\n", id);
         // Definujeme id_bez_null
         DString *id_bez_null = if_node->nullCondition->identifier;
-        printf("DEFVAR LF@$%s$%lu$\n", id_bez_null->str, if_node->nullCondition->frameID);
-        printf("MOVE LF@$%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, if_node->nullCondition->frameID);
+        printf("DEFVAR LF@%s$%lu$\n", id_bez_null->str, if_node->nullCondition->frameID);
+        printf("MOVE LF@%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, if_node->nullCondition->frameID);
     }
 
     // Generujeme tělo if
@@ -338,7 +338,7 @@ void TAC_generateWhile(AST_WhileNode *while_node) {
     DString *id_bez_null = NULL;
     if(while_node->nullCondition != NULL) {
         id_bez_null = while_node->nullCondition->identifier;
-        printf("DEFVAR LF@$%s$%lu$\n", id_bez_null->str, while_node->nullCondition->frameID);
+        printf("DEFVAR LF@%s$%lu$\n", id_bez_null->str, while_node->nullCondition->frameID);
     }
     // Label začátku while
     printf("LABEL while_start$%d\n", id);
@@ -354,7 +354,7 @@ void TAC_generateWhile(AST_WhileNode *while_node) {
         printf("POPS GF@?tempSRC1\n");
         printf("JUMPIFEQ while_end$%d GF@?tempSRC1 nil@nil\n", id);
         // Přesuneme hodnotu do id_bez_null
-        printf("MOVE LF@$%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, while_node->nullCondition->frameID);
+        printf("MOVE LF@%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, while_node->nullCondition->frameID);
     }
 
     // Generujeme tělo while
@@ -380,40 +380,48 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         if(string_compare_const_str(funCallNode->identifier, "readstr") == STRING_EQUAL) {
             printf("READ GF@?tempSRC1 string\n");
             printf("PUSHS GF@?tempSRC1\n");
+            return;
         }
         else if(string_compare_const_str(funCallNode->identifier, "readi32") == STRING_EQUAL) {
             printf("READ GF@?tempSRC1 int\n");
             printf("PUSHS GF@?tempSRC1\n");
+            return;
         }
         else if(string_compare_const_str(funCallNode->identifier, "readf64") == STRING_EQUAL) {
             printf("READ GF@?tempSRC1 float\n");
             printf("PUSHS GF@?tempSRC1\n");
+            return;
         }
         else if(string_compare_const_str(funCallNode->identifier, "write") == STRING_EQUAL) {
             AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
             TAC_generateExpression(arg->expression); // Asi předpokládám, že tohle vypočítá případný obsah
             printf("POPS GF@?tempSRC1\n");
             printf("WRITE GF@?tempSRC1\n");
+            return;
         }
         else if(string_compare_const_str(funCallNode->identifier, "i2f") == STRING_EQUAL) {
             // Vyhodnotíme parametr
             TAC_generateExpression(funCallNode->arguments->expression);
             printf("INT2FLOATS\n");
+            return;
         }
         else if(string_compare_const_str(funCallNode->identifier, "f2i") == STRING_EQUAL) {
             // Vyhodnotíme parametr
             TAC_generateExpression(funCallNode->arguments->expression);
             printf("FLOAT2INTS\n");
+            return;
         }
         else if(string_compare_const_str(funCallNode->identifier, "string") == STRING_EQUAL) {
             // Nechápu, proč tato funkce existuje
             TAC_generateExpression(funCallNode->arguments->expression);
+            return;
         }
         else if(string_compare_const_str(funCallNode->identifier, "length") == STRING_EQUAL) {
             TAC_generateExpression(funCallNode->arguments->expression);
             printf("POPS GF@?tempSRC1\n");
             printf("STRLEN GF@?tempDEST GF@?tempSRC1\n");
             printf("PUSHS GF@?tempDEST\n");
+            return;
         }
         else if(string_compare_const_str(funCallNode->identifier, "concat") == STRING_EQUAL) {
             TAC_generateExpression(funCallNode->arguments->expression);
@@ -422,21 +430,14 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             printf("POPS GF@?tempSRC2\n");
             printf("CONCAT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n");
             printf("PUSHS GF@?tempDEST\n");
-        }
-        else if(string_compare_const_str(funCallNode->identifier, "substring") == STRING_EQUAL) {
-
-        }
-        else if(string_compare_const_str(funCallNode->identifier, "strcmp") == STRING_EQUAL) {
-            // TODO implementace funkce STRCMP
-        }
-        else if(string_compare_const_str(funCallNode->identifier, "ord") == STRING_EQUAL) {
-            // TODO implementace funkce ORD
+            return;
         }
         else if(string_compare_const_str(funCallNode->identifier, "chr") == STRING_EQUAL) {
-            // TODO implementace funkce CHR
+            TAC_generateExpression(funCallNode->arguments->expression);
+            printf("INT2CHARS GF@?tempDEST GF@?tempSRC1\n");
         }
     }
-    else {
+    
 
     // Vytvoříme temporary frame pro parametry funkce
     printf("CREATEFRAME\n");
@@ -480,11 +481,11 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         // Vytvoříme instrukci DEFVAR pro parametr
         // Pokud je funkce built-in, tak se nepřidává frameID do názvu
         if(funCallNode->isBuiltIn) {
-            printf("DEFVAR TF@$%s\n", functionData->params[i].id->str);
-            printf("POPS TF@$%s\n", functionData->params[i].id->str);
+            printf("DEFVAR TF@%s\n", functionData->params[i].id->str);
+            printf("POPS TF@%s\n", functionData->params[i].id->str);
         }else {
-            printf("DEFVAR TF@$%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
-            printf("POPS TF@$%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
+            printf("DEFVAR TF@%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
+            printf("POPS TF@%s$%lu$\n", functionData->params[i].id->str, functionData->body_frameID);
         }
     }
 
@@ -495,7 +496,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         printf("CALL $$%s\n", key->str);
     }
     string_free(key);
-    }
+    
 }  // TAC_generateFunctionCall
 
 DString *TAC_convertSpecialSymbols(DString *origin) {
