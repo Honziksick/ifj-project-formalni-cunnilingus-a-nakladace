@@ -31,105 +31,105 @@
 void built_in_functions() {
 
     char built_in_fun_substring[] = "\n\
-            #---------------------------------------------------\n\
-            #pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8\n\
-            LABEL $$ifj$substring\n\
-            PUSHFRAME\n\
+        #---------------------------------------------------\n\
+        #pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8\n\
+        LABEL $$ifj$substring\n\
+        PUSHFRAME\n\
+        \n\
+            LT GF@$?tempDEST LF@i int@0\n\
+            JUMPIFEQ $$$null GF@$tempDEST bool@true\n\
             \n\
-                LT GF@$?tempDEST LF@i int@0\n\
-                JUMPIFEQ $$$null GF@$tempDEST bool@true\n\
-                \n\
-                LT GF@$?tempDEST LF@j int@0\n\
-                JUMPIFEQ $$$null GF@$tempDEST bool@true\n\
-                \n\
-                GT GF@$?tempDEST LF@i LF@j\n\
-                JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
-                \n\
-                STRLEN GF@?tempSRC1 LF@s\n\
-                \n\
-                GT GF@$?tempDEST LF@i GF@?tempSRC1\n\
-                JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
-                EQ GF@$?tempDEST LF@i GF@?tempSRC1\n\
-                JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
-                \n\
-                GT GF@$?tempDEST LF@j GF@?tempSRC1\n\
-                JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
+            LT GF@$?tempDEST LF@j int@0\n\
+            JUMPIFEQ $$$null GF@$tempDEST bool@true\n\
             \n\
-            LABEL $$$while\n\
+            GT GF@$?tempDEST LF@i LF@j\n\
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
             \n\
-                JUMPIFEQ $$$sub_end TF@i TF@j\n\
-                \n\
-                GETCHAR GF@?tempSRC1 LF@s LF@i\n\
-                CONCAT GF@?tempDEST GF@?tempDEST GF@?tempSRC1\n\
-                ADD LF@i LF@i int@1\n\
-                JUMP $$$while\n\
-                \n\
-                PUSHS GF@?tempDEST\n\
-                JUMP &&&sub_end\n\
+            STRLEN GF@?tempSRC1 LF@s\n\
             \n\
-            LABEL $$$null\n\
-                PUSHS nil@nil\n\
+            GT GF@$?tempDEST LF@i GF@?tempSRC1\n\
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
+            EQ GF@$?tempDEST LF@i GF@?tempSRC1\n\
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
             \n\
-            LABEL $$$sub_end\n\
+            GT GF@$?tempDEST LF@j GF@?tempSRC1\n\
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true\n\
+        \n\
+        LABEL $$$while\n\
+        \n\
+            JUMPIFEQ $$$sub_end TF@i TF@j\n\
             \n\
-            POPFRAME\n\
-            RETURN\n\
+            GETCHAR GF@?tempSRC1 LF@s LF@i\n\
+            CONCAT GF@?tempDEST GF@?tempDEST GF@?tempSRC1\n\
+            ADD LF@i LF@i int@1\n\
+            JUMP $$$while\n\
             \n\
-            \n\
-            ";
+            PUSHS GF@?tempDEST\n\
+            JUMP &&&sub_end\n\
+        \n\
+        LABEL $$$null\n\
+            PUSHS nil@nil\n\
+        \n\
+        LABEL $$$sub_end\n\
+        \n\
+        POPFRAME\n\
+        RETURN\n\
+        \n\
+        \n\
+        ";
 
-    char built_in_fun_strcmp[] = "\n\
-            #-----------------------------------------\n\
-            #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32\n\
-            LABEL $$ifj$strcmp\n\
-            PUSHFRAME\n\
+char built_in_fun_strcmp[] = "\n\
+    #-----------------------------------------\n\
+    #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32\n\
+        LABEL $$ifj$strcmp\n\
+        PUSHFRAME\n\
+        \n\
+        STRLEN GF@?tempSRC1 LF@s1\n\
+        STRLEN GF@?tempSRC2 LF@s2\n\
+        LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
+        JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true\n\
+        GT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
+        JUMPIFEQ $$$strcmp1 GF@?tempDEST bool@true\n\
+        \n\
+        DEFVAR LF@len\n\
+        MOVE LF@len GF@?tempSRC1\n\
+        DEFVAR LF@i\n\
+        MOVE LF@i int@0\n\
+        LABEL $$$cmp_while\n\
+        \n\
+            JUMPIFEQ $$$strcmp0 LF@i LF@len\n\
+            GETCHAR GF@?tempSRC1 LF@s1 LF@i\n\
+            GETCHAR GF@?tempSRC2 LF@s2 LF@i\n\
             \n\
-            STRLEN GF@?tempSRC1 LF@s1\n\
-            STRLEN GF@?tempSRC2 LF@s2\n\
             LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
             JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true\n\
+            \n\
             GT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
             JUMPIFEQ $$$strcmp1 GF@?tempDEST bool@true\n\
             \n\
-            DEFVAR LF@len\n\
-            MOVE LF@len GF@?tempSRC1\n\
-            DEFVAR LF@i\n\
-            MOVE LF@i int@0\n\
-            LABEL $$$cmp_while\n\
-            \n\
-                JUMPIFEQ $$$strcmp0 LF@i LF@len\n\
-                GETCHAR GF@?tempSRC1 LF@s1 LF@i\n\
-                GETCHAR GF@?tempSRC2 LF@s2 LF@i\n\
-                \n\
-                LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
-                JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true\n\
-                \n\
-                GT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
-                JUMPIFEQ $$$strcmp2 GF@?tempDEST bool@true\n\
-                \n\
-                ADD LF@i LF@i int@1\n\
-            \n\
-            JUMP $$$cmp_while\n\
-            \n\
-            LABEL $$$strcmp-1\n\
-                PUSHS int@-1\n\
-                JUMP $$$cmp_end\n\
-            \n\
-            LABEL $$$strcmp1\n\
-                PUSHS int@1\n\
-                JUMP $$$cmp_end\n\
-            \n\
-            LABEL $$$strcmp0\n\
-                PUSHS int@0\n\
-                JUMP $$$cmp_end\n\
-            \n\
-            LABEL $$$cmp_end\n\
-            \n\
-            POPFRAME\n\
-            RETURN\n\
-            \n\
-            \n\
-            ";
+            ADD LF@i LF@i int@1\n\
+        \n\
+        JUMP $$$cmp_while\n\
+        \n\
+        LABEL $$$strcmp-1\n\
+            PUSHS int@-1\n\
+            JUMP $$$cmp_end\n\
+        \n\
+        LABEL $$$strcmp1\n\
+            PUSHS int@1\n\
+            JUMP $$$cmp_end\n\
+        \n\
+        LABEL $$$strcmp0\n\
+            PUSHS int@0\n\
+            JUMP $$$cmp_end\n\
+        \n\
+        LABEL $$$cmp_end\n\
+        \n\
+        POPFRAME\n\
+        RETURN\n\
+        \n\
+        \n\
+        ";
 
     printf("%s", built_in_fun_substring);
     printf("%s", built_in_fun_strcmp);

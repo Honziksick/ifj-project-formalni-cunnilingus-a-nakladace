@@ -39,6 +39,12 @@
 
 #define MAX_BUFFER_SIZE 5
 
+typedef enum {
+    TAC_ALL,
+    TAC_VAR_DEF_ONLY,
+    TAC_EXCEPT_VAR_DEF
+} TAC_MODE;
+
 /**
  * @brief Generuje cílový kód programu ze stromu AST.
  *
@@ -73,7 +79,7 @@ void TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode);
  *
  * @param [in] statement Ukazatel na uzel bloku příkazů
  */
-void TAC_generateStatementBlock(AST_StatementNode* statement);
+void TAC_generateStatementBlock(AST_StatementNode* statement, TAC_MODE mode);
 
 /**
  * @brief Generuje cílový kód pro binární operace
@@ -94,7 +100,7 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node);
  *
  * @param [in] expr_node Ukazatel na výraz obsahující binarní operaci přiřazení
  */
-void TAC_generateVarDef(AST_ExprNode *expr_node);
+void TAC_generateVarDef(AST_ExprNode *expr_node, TAC_MODE mode);
 
 /**
  * @brief Generuje cílový kód pro výraz
@@ -129,7 +135,7 @@ void TAC_generateLiteral(AST_VarNode *literal);
  *
  * @param [in] if_node Ukazatel na uzel podmíněného příkazu if
  */
-void TAC_generateIf(AST_IfNode *if_node);
+void TAC_generateIf(AST_IfNode *if_node, TAC_MODE mode);
 
 /**
  * @brief Generuje cílový kód pro smyčku while
@@ -143,7 +149,7 @@ void TAC_generateIf(AST_IfNode *if_node);
  *
  * @param [in] while_node Ukazatel na uzel smyčky while
  */
-void TAC_generateWhile(AST_WhileNode *while_node);
+void TAC_generateWhile(AST_WhileNode *while_node, TAC_MODE mode);
 
 /**
  * @brief Generuje cílový kód pro návrat z funkce

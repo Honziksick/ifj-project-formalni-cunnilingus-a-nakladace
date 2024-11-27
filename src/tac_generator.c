@@ -80,7 +80,7 @@ void TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode) {
     printf("LABEL $$%s\n", funDefNode->identifier->str);
     printf("PUSHFRAME\n");
 
-    TAC_generateStatementBlock(funDefNode->body);
+    TAC_generateStatementBlock(funDefNode->body, TAC_ALL);
 
     // Tady by šlo přidat podmínku, že se toto přidá jen u void funkce
     // Ostatní funkce by už měly mít, takže toto může být mrtvý kód
@@ -92,26 +92,32 @@ void TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode) {
 /**
  * @brief Generuje cílový kód pro blok příkazů
  */
-void TAC_generateStatementBlock(AST_StatementNode* statement) {
+void TAC_generateStatementBlock(AST_StatementNode* statement, TAC_MODE mode) {
     while(statement != NULL) {
         switch(statement->statementType) {
             case AST_STATEMENT_VAR_DEF:
-                TAC_generateVarDef(statement->statement);
+                TAC_generateVarDef(statement->statement, mode);
                 break;
             case AST_STATEMENT_EXPR:
-                TAC_generateExpression(statement->statement);
+                if(mode != TAC_VAR_DEF_ONLY){
+                    TAC_generateExpression(statement->statement);
+                }
                 break;
             case AST_STATEMENT_FUN_CALL:
-                TAC_generateFunctionCall(statement->statement);
+                if(mode != TAC_VAR_DEF_ONLY){
+                    TAC_generateFunctionCall(statement->statement);
+                }
                 break;
             case AST_STATEMENT_IF:
-                TAC_generateIf(statement->statement);
+                TAC_generateIf(statement->statement, mode);
                 break;
             case AST_STATEMENT_WHILE:
-                TAC_generateWhile(statement->statement);
+                TAC_generateWhile(statement->statement, mode);
                 break;
             case AST_STATEMENT_RETURN:
-                TAC_generateReturn(statement->statement);
+                if(mode != TAC_VAR_DEF_ONLY){
+                    TAC_generateReturn(statement->statement);
+                }
                 // Vracíme se z funkce
                 return;
             default:
@@ -241,16 +247,21 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node) {
 /**
  * @brief Generuje cílový kód pro definici proměnné
  */
-void TAC_generateVarDef(AST_ExprNode *expr_node) {
+void TAC_generateVarDef(AST_ExprNode *expr_node, TAC_MODE mode) {
     AST_BinOpNode *bin_node = expr_node->expression;
-    // Na vrchol zásobníku vložíme hodnotu výrazu vpravo
-    TAC_generateExpression(bin_node->right);
 
     // Definujeme proměnnou
     AST_VarNode *var = (AST_VarNode *)bin_node->left->expression;
-    printf("DEFVAR LF@%s$%lu$ \n", var->identifier->str, var->frameID);
-    // Nahrajeme hodnotu výrazu do proměnné
-    printf("POPS LF@%s$%lu$ \n", var->identifier->str, var->frameID);
+    if(mode != TAC_EXCEPT_VAR_DEF){
+        printf("DEFVAR LF@%s$%lu$ \n", var->identifier->str, var->frameID);
+    }
+    if(mode != TAC_VAR_DEF_ONLY){
+        // Na vrchol zásobníku vložíme hodnotu výrazu vpravo
+        TAC_generateExpression(bin_node->right);
+        // Nahrajeme hodnotu výrazu do proměnné
+        printf("POPS LF@%s$%lu$ \n", var->identifier->str, var->frameID);
+    }
+    
 }  // TAC_generateVarDef
 
 /**
@@ -305,7 +316,7 @@ void TAC_generateLiteral(AST_VarNode *literal) {
 /**
  * @brief Generuje cílový kód pro podmíněný příkaz if
  */
-void TAC_generateIf(AST_IfNode *if_node) {
+void TAC_generateIf(AST_IfNode *if_node, TAC_MODE mode) {
     // Unikátní identifikátor pro if
     static unsigned int count = 0;
     unsigned int id = count;
@@ -314,6 +325,16 @@ void TAC_generateIf(AST_IfNode *if_node) {
     // Pro reset mezi testy
     if(if_node->type == RESET_STATIC){
         count = 0;
+        return;
+    }
+
+    if(mode == TAC_VAR_DEF_ONLY){
+        if(if_node->nullCondition != NULL){
+            DString *id_bez_null = if_node->nullCondition->identifier;
+            printf("DEFVAR LF@%s$%lu$\n", id_bez_null->str, if_node->nullCondition->frameID);
+        }
+        TAC_generateStatementBlock(if_node->thenBranch, TAC_VAR_DEF_ONLY);
+        TAC_generateStatementBlock(if_node->elseBranch, TAC_VAR_DEF_ONLY);
         return;
     }
 
@@ -331,17 +352,19 @@ void TAC_generateIf(AST_IfNode *if_node) {
         printf("JUMPIFEQ if_else$%d GF@?tempSRC1 nil@nil\n", id);
         // Definujeme id_bez_null
         DString *id_bez_null = if_node->nullCondition->identifier;
-        printf("DEFVAR LF@%s$%lu$\n", id_bez_null->str, if_node->nullCondition->frameID);
+        if(mode != TAC_EXCEPT_VAR_DEF){
+            printf("DEFVAR LF@%s$%lu$\n", id_bez_null->str, if_node->nullCondition->frameID);
+        }
         printf("MOVE LF@%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, if_node->nullCondition->frameID);
     }
 
     // Generujeme tělo if
-    TAC_generateStatementBlock(if_node->thenBranch);
+    TAC_generateStatementBlock(if_node->thenBranch, mode);
     printf("JUMP if_end$%d\n", id);
 
     printf("LABEL if_else$%d\n", id);
     // Generujeme tělo else
-    TAC_generateStatementBlock(if_node->elseBranch);
+    TAC_generateStatementBlock(if_node->elseBranch, mode);
     printf("LABEL if_end$%d\n", id);
 
 }  // TAC_generateIf
@@ -349,7 +372,7 @@ void TAC_generateIf(AST_IfNode *if_node) {
 /**
  * @brief Generuje cílový kód pro smyčku while
  */
-void TAC_generateWhile(AST_WhileNode *while_node) {
+void TAC_generateWhile(AST_WhileNode *while_node, TAC_MODE mode) {
     // Unikátní identifikátor pro while
     static unsigned int count = 0;
     unsigned int id = count;
@@ -362,11 +385,24 @@ void TAC_generateWhile(AST_WhileNode *while_node) {
         return;
     }
 
+    if(mode == TAC_VAR_DEF_ONLY){
+        if(while_node->nullCondition != NULL){
+            DString *id_bez_null = while_node->nullCondition->identifier;
+            printf("DEFVAR LF@%s$%lu$\n", id_bez_null->str, while_node->nullCondition->frameID);
+        }
+        TAC_generateStatementBlock(while_node->body, TAC_VAR_DEF_ONLY);
+        return;
+    }
     // Pokud máme NULL podmínku, tak nejdříve definujeme id_bez_null
     DString *id_bez_null = NULL;
-    if(while_node->nullCondition != NULL) {
+    if(while_node->nullCondition != NULL && mode != TAC_EXCEPT_VAR_DEF){
         id_bez_null = while_node->nullCondition->identifier;
         printf("DEFVAR LF@%s$%lu$\n", id_bez_null->str, while_node->nullCondition->frameID);
+    }
+    // Definujeme proměnné těla
+    if(mode == TAC_ALL){
+        printf("# Definice vsech promennych v tele while\n");
+        TAC_generateStatementBlock(while_node->body, TAC_VAR_DEF_ONLY);
     }
     // Label začátku while
     printf("LABEL while_start$%d\n", id);
@@ -382,11 +418,12 @@ void TAC_generateWhile(AST_WhileNode *while_node) {
         printf("POPS GF@?tempSRC1\n");
         printf("JUMPIFEQ while_end$%d GF@?tempSRC1 nil@nil\n", id);
         // Přesuneme hodnotu do id_bez_null
+        
         printf("MOVE LF@%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, while_node->nullCondition->frameID);
     }
 
     // Generujeme tělo while
-    TAC_generateStatementBlock(while_node->body);
+    TAC_generateStatementBlock(while_node->body, TAC_EXCEPT_VAR_DEF);
     printf("JUMP while_start$%d\n", id);
     printf("LABEL while_end$%d\n", id);
 
@@ -511,6 +548,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
     // Pro všechny parametry
     for(size_t i = 0; i < functionData->param_count; i++) {
+        printf("\n#fun: %s, arg: %lu\n", funCallNode->identifier->str, i);
         // Na zásobník vyhodnotíme hodnotu parametru
         TAC_generateExpression(arg->expression);
         // Vytvoříme instrukci DEFVAR pro parametr
@@ -562,6 +600,6 @@ DString *TAC_convertSpecialSymbols(DString *origin) {
 void TAC_resetStatic() {
     AST_IfNode if_node = {.type = RESET_STATIC};
     AST_WhileNode while_node = {.type = RESET_STATIC};
-    TAC_generateIf(&if_node);
-    TAC_generateWhile(&while_node);
+    TAC_generateIf(&if_node, TAC_ALL);
+    TAC_generateWhile(&while_node, TAC_ALL);
 }
