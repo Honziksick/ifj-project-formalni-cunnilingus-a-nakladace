@@ -57,13 +57,16 @@ run_test() {
     local actualOut
     actualOut=$("$INTERPRET" "$output_file" 2>&1)
 
+    echo -e "${YELLOW}Expected Output:${NORMAL}"
+    echo -e "$expectedOut"
+    echo -e "${YELLOW}Actual Output:${NORMAL}"
+    echo -e "$actualOut"
+
     # Porovnání výstupu interpretu s očekávaným výstupem
     if [[ "$actualOut" == "$expectedOut" ]]; then
         echo -e "${GREEN}[PASSED]${NORMAL}\n"
         passed=$((passed + 1))
     else
-        echo -e "${YELLOW}Expected:${NORMAL} $expectedOut"
-        echo -e "${YELLOW}Got:${NORMAL} $actualOut"
         failed=$((failed + 1))
         failedTests+=("$inputFile")
         echo -e "${RED}[FAILED]${NORMAL}\n"
@@ -73,12 +76,12 @@ run_test() {
 }
 
 # Seznam jednotlivých testů
-run_test "$EXAMPLES_PATH/example1.zig" "xxx"
-run_test "$EXAMPLES_PATH/example2.zig" "xxx"
-run_test "$EXAMPLES_PATH/example3.zig" "xxx"
-run_test "$EXAMPLES_PATH/hello.zig" "xxx"
-run_test "$EXAMPLES_PATH/fun.zig" "xxx"
-run_test "$EXAMPLES_PATH/multiline.zig" "xxx"
+run_test "$EXAMPLES_PATH/example1.zig" $'Zadejte cislo pro vypocet faktorialu\nVysledek: 0x1.ep6 = 120'
+run_test "$EXAMPLES_PATH/example2.zig" $'Zadejte cislo pro vypocet faktorialu: \nVysledek: 720'
+run_test "$EXAMPLES_PATH/example3.zig" $'Toto je nejaky text v programu jazyka IFJ24\nToto je nejaky text v programu jazyka IFJ24, ktery jeste trochu obohatime\nZadejte serazenou posloupnost vsech malych pismen a-h, Spatne zadana posloupnost, zkuste znovu\nSpatne zadana posloupnost, zkuste znovu:\nSpravne zadano!\nxxxabcdefhg'
+run_test "$EXAMPLES_PATH/hello.zig" $'Hello from IFJ24'
+run_test "$EXAMPLES_PATH/fun.zig" $'calling f with 10\ncalling g with 9\ncalling f with 9\nres: 8'
+run_test "$EXAMPLES_PATH/multiline.zig" $'To\\tto \n je \n\n nejaky\n \n  text  // ve viceradkovem retezcovem literalu nelze mit komentar'
 
 # Výpis shrnutí na závěr testovací sady
 echo -e "${BLUE}SUMMARY:${RESET}"
