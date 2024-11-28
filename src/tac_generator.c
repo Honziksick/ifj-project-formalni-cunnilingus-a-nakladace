@@ -261,7 +261,7 @@ void TAC_generateVarDef(AST_ExprNode *expr_node, TAC_MODE mode) {
         // Nahrajeme hodnotu výrazu do proměnné
         printf("POPS LF@%s$%lu$ \n", var->identifier->str, var->frameID);
     }
-    
+
 }  // TAC_generateVarDef
 
 /**
@@ -418,7 +418,7 @@ void TAC_generateWhile(AST_WhileNode *while_node, TAC_MODE mode) {
         printf("POPS GF@?tempSRC1\n");
         printf("JUMPIFEQ while_end$%d GF@?tempSRC1 nil@nil\n", id);
         // Přesuneme hodnotu do id_bez_null
-        
+
         printf("MOVE LF@%s$%lu$ GF@?tempSRC1\n", id_bez_null->str, while_node->nullCondition->frameID);
     }
 
@@ -510,7 +510,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             printf("INT2CHARS GF@?tempDEST GF@?tempSRC1\n");
         }
     }
-    
+
 
     // Vytvoříme temporary frame pro parametry funkce
     printf("CREATEFRAME\n");
@@ -570,7 +570,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         printf("CALL $$%s\n", key->str);
     }
     string_free(key);
-    
+
 }  // TAC_generateFunctionCall
 
 DString *TAC_convertSpecialSymbols(DString *origin) {

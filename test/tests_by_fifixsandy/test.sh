@@ -19,7 +19,7 @@ BLUE="\033[34m"
 BROWN="\033[0;33m"
 PINK='\033[35m' 
 
-Check for required arguments
+# Check for required arguments
 if [ $# -gt 0 ]; then
     echo -e "${RED}Usage: $0${RESET}"
     echo -e "${RED}Before running this script make sure you launched "make"!${RESET}"
@@ -44,7 +44,7 @@ for code in "$path_in"/*.ifj; do
 
     # Generate .ifjcode file using the compiler
     ifjcode="${path_out}/${base_name}.ifjcode"
-    echo -e "Compiling: $code -> $ifjcode${RESET}"
+    echo -e "\nCompiling: $code -> $ifjcode${RESET}"
 
     "$COMPILER" < "$code" > "$ifjcode"
 
