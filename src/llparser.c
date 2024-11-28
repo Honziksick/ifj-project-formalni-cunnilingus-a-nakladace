@@ -344,7 +344,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
 
     // Přidáme definici funkce do tabulky symbolů
     SymtableItem *functionItem = NULL;
-    frame_stack_result result = frameStack_addItemExpress(functionName, SYMTABLE_SYMBOL_FUNCTION, false, NULL, &functionItem);
+    frame_stack_result result = frameStack_addItemExpress(functionName, SYMTABLE_SYMBOL_FUNCTION, IS_VAR, NULL, &functionItem);
     if(result != FRAME_STACK_SUCCESS) {
         if(result == FRAME_STACK_ITEM_ALREADY_EXISTS) {
             Parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
@@ -628,7 +628,7 @@ AST_ArgOrParamNode *LLparser_parseParam() {
     Parser_mapASTDataTypeToSymtableState(dataType, &state);
 
     // Přidáme parametr do tabulky symbolů jako lokální proměnnou
-    frame_stack_result result = frameStack_addItemExpress(paramId, state, true, NULL, NULL);
+    frame_stack_result result = frameStack_addItemExpress(paramId, state, IS_CONST, NULL, NULL);
     if(result != FRAME_STACK_SUCCESS) {
         if(result == FRAME_STACK_ITEM_ALREADY_EXISTS) {
             Parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
@@ -1314,7 +1314,7 @@ AST_VarNode *LLparser_parseNullCond() {
 
             // Vložíme do rámce pro "if" větev "id_bez_null"
             frame_stack_result addResult = \
-            frameStack_addItemExpress(identifier, SYMTABLE_SYMBOL_UNKNOWN, false, NULL, NULL);
+            frameStack_addItemExpress(identifier, SYMTABLE_SYMBOL_UNKNOWN, IS_CONST, NULL, NULL);
 
             // Kontrola úspěšného vložení do tabulky symbolů
             if(addResult != FRAME_STACK_SUCCESS) {
@@ -1989,8 +1989,9 @@ AST_StatementNode *LLparser_parseRuleStatementRest1(DString **identifier) {
         goto parseRuleStatementRest1_errorLevel_1;
     }
 
-    // Pokud obsažena byla, nastavíme, že byla změněna
+    // Pokud obsažena byla, nastavíme, že byla změněna a použita
     varItem->changed = true;
+    varItem->used = true;
 
     // Vytvoříme uzel pro proměnnou
     AST_VarNode *varNode = (AST_VarNode *)AST_createNode(AST_VAR_NODE);

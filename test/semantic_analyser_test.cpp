@@ -30,6 +30,8 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+//#define PRINT_FRAME_STACK_OUT 1
+
 #include "ifj24_compiler_test_utils.h"
 
 void TestSemantic(){
@@ -57,6 +59,85 @@ TEST(Incorrect, VoidFunctionReturnExpr){
     fclose(f);
 }
 */
+/*
+TEST(FifixSandy, HodyHodyDejteBodyFUNEXP){
+    string path = sem_path + "fifixsandy_test_hodyhodydejtebodyFUNEXP.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    LLparser_parseProgram();
+    PRINT_FRAME_STACK();
+    semantic_analyseProgram();
+    fprintf(stderr, "\n\n\n\n");
+    PRINT_FRAME_STACK();
+
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+*/
+
+TEST(FifixSandy, StringTestFUNEXP){
+    string path = sem_path + "fifixsandy_string_testFUNEXP.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    LLparser_parseProgram();
+    PRINT_FRAME_STACK();
+    semantic_analyseProgram();
+    fprintf(stderr, "\n\n\n\n");
+    PRINT_FRAME_STACK();
+
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+
+TEST(FifixSandy, Test7){
+    string path = sem_path + "fifixsandy_test_7.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    LLparser_parseProgram();
+    PRINT_FRAME_STACK();
+    semantic_analyseProgram();
+    fprintf(stderr, "\n\n\n\n");
+    PRINT_FRAME_STACK();
+
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+
+TEST(FifixSandy, Substring){
+    string path = sem_path + "fifixsandy_test_substring.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    LLparser_parseProgram();
+    PRINT_FRAME_STACK();
+    semantic_analyseProgram();
+
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
 
 TEST(Correct, Simplest){
     string path = sem_path + "simplest.zig";

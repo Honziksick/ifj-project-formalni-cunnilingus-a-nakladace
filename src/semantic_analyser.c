@@ -147,7 +147,7 @@ ErrorType semantic_analyseVariables() {
 
             if(item.symbol_state == SYMTABLE_SYMBOL_DEAD) {
                 // Nemělo by se nikdy stát, jinak je chyba v implementaci
-                // Položky by se měly mazat jen na konci běhu prohramu
+                // Položky by se měly mazat jen na konci běhu programu
                 return ERROR_SEM_OTHER;
             }
 
@@ -696,8 +696,8 @@ ErrorType semantic_analyseExpr(AST_ExprNode *expr_node, Semantic_Data *type, voi
  * @brief Provede sémantickou analýzu volání funkce
  */
 ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *return_type){
-    SymtableItemPtr item;
-    DString *key;
+    SymtableItemPtr item = NULL;
+    DString *key = NULL;
 
     // Specíální případ funkce ifj.write
     if(fun_node->isBuiltIn &&
@@ -751,7 +751,7 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
         // THE HOLY EMPEROR WAS HERE - NEW START !!!
 
         // Analýza výrazu argumentu
-        Semantic_Data actual_type;
+        Semantic_Data actual_type = SEM_DATA_UNKNOWN;
         ErrorType result = semantic_analyseExpr(arg->expression, &actual_type, NULL);
         if(result != 0){
             string_free(key);
@@ -760,6 +760,7 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
 
         // Zjistíme, jestli sedí typ argumentu
         Semantic_Data defined_type = semantic_returnToSemType(data->params[i].type);
+
         result = semantic_compatibleAssign(defined_type, actual_type);
 
         // THE HOLY EMPEROR WAS HERE - NEW END !!!
@@ -770,7 +771,7 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
         AST_VarNode *var_node = arg->expression->expression;
         SymtablePtr table = frameArray.array[var_node->frameID]->frame;
 
-        Semantic_Data actual_type;
+        Semantic_Data actual_type = SEM_DATA_UNKNOWN;
         if(var_node->identifier == NULL){
             // Argument je literál
             actual_type = semantic_literalToSemType(var_node->literalType);
@@ -814,6 +815,7 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
 
     return 0;
 }
+
 
 /**
  * @brief Provede sémantickou analýzu podmíněného příkazu if
@@ -1330,9 +1332,17 @@ ErrorType semantic_checkIFJWrite(AST_FunCallNode *fun_node){
         return ERROR_SEM_PARAMS_OR_RETVAL;
     }
 
+    /* THE HOLY EMPEROR WAS HERE - OLD START !!! */
     // Argument je použit
-    AST_ExprNode *expr = arg->expression->expression;
-    if(expr->exprType == AST_EXPR_VARIABLE){
+    // AST_ExprNode *expr = arg->expression->expression;
+    /* THE HOLY EMPEROR WAS HERE - OLD END !!! */
+
+        /* THE HOLY EMPEROR WAS HERE - NEW START !!! */
+        // AST_ExprNode *expr = arg->expression;
+        /* THE HOLY EMPEROR WAS HERE - NEW END !!! */
+
+    /* THE HOLY EMPEROR WAS HERE - OLD START !!! */
+    /*if(expr->exprType == AST_EXPR_VARIABLE){
         AST_VarNode *var_node = expr->expression;
         if(var_node->identifier != NULL){
             // Argument je proměnná
@@ -1345,7 +1355,18 @@ ErrorType semantic_checkIFJWrite(AST_FunCallNode *fun_node){
             item->used = true;
         }
     }
-    return 0;
+
+    return 0;*/
+    /* THE HOLY EMPEROR WAS HERE - OLD END !!! */
+
+    // THE HOLY EMPEROR WAS HERE - NEW START !!!
+
+    // Analýza výrazu argumentu
+    Semantic_Data actual_type = SEM_DATA_UNKNOWN;
+
+    return semantic_analyseExpr(arg->expression, &actual_type, NULL);
+
+    // THE HOLY EMPEROR WAS HERE - NEW END !!!
 }
 
 /**
