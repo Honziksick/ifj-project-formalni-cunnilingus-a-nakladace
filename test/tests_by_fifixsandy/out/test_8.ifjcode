@@ -1,0 +1,143 @@
+.IFJcode24
+DEFVAR GF@?tempDEST
+DEFVAR GF@?tempSRC1
+DEFVAR GF@?tempSRC2
+CREATEFRAME
+CALL $$main
+JUMP $$end$$
+
+        #---------------------------------------------------
+        #pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8
+        LABEL $$ifj$substring
+        PUSHFRAME
+        
+            LT GF@$?tempDEST LF@i int@0
+            JUMPIFEQ $$$null GF@$tempDEST bool@true
+            
+            LT GF@$?tempDEST LF@j int@0
+            JUMPIFEQ $$$null GF@$tempDEST bool@true
+            
+            GT GF@$?tempDEST LF@i LF@j
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true
+            
+            STRLEN GF@?tempSRC1 LF@s
+            
+            GT GF@$?tempDEST LF@i GF@?tempSRC1
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true
+            EQ GF@$?tempDEST LF@i GF@?tempSRC1
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true
+            
+            GT GF@$?tempDEST LF@j GF@?tempSRC1
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true
+        
+        LABEL $$$while
+        
+            JUMPIFEQ $$$sub_end TF@i TF@j
+            
+            GETCHAR GF@?tempSRC1 LF@s LF@i
+            CONCAT GF@?tempDEST GF@?tempDEST GF@?tempSRC1
+            ADD LF@i LF@i int@1
+            JUMP $$$while
+            
+            PUSHS GF@?tempDEST
+            JUMP &&&sub_end
+        
+        LABEL $$$null
+            PUSHS nil@nil
+        
+        LABEL $$$sub_end
+        
+        POPFRAME
+        RETURN
+        
+        
+        
+    #-----------------------------------------
+    #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32
+        LABEL $$ifj$strcmp
+        PUSHFRAME
+        
+        STRLEN GF@?tempSRC1 LF@s1
+        STRLEN GF@?tempSRC2 LF@s2
+        LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+        JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true
+        GT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+        JUMPIFEQ $$$strcmp1 GF@?tempDEST bool@true
+        
+        DEFVAR LF@len
+        MOVE LF@len GF@?tempSRC1
+        DEFVAR LF@i
+        MOVE LF@i int@0
+        LABEL $$$cmp_while
+        
+            JUMPIFEQ $$$strcmp0 LF@i LF@len
+            GETCHAR GF@?tempSRC1 LF@s1 LF@i
+            GETCHAR GF@?tempSRC2 LF@s2 LF@i
+            
+            LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+            JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true
+            
+            GT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+            JUMPIFEQ $$$strcmp1 GF@?tempDEST bool@true
+            
+            ADD LF@i LF@i int@1
+        
+        JUMP $$$cmp_while
+        
+        LABEL $$$strcmp-1
+            PUSHS int@-1
+            JUMP $$$cmp_end
+        
+        LABEL $$$strcmp1
+            PUSHS int@1
+            JUMP $$$cmp_end
+        
+        LABEL $$$strcmp0
+            PUSHS int@0
+            JUMP $$$cmp_end
+        
+        LABEL $$$cmp_end
+        
+        POPFRAME
+        RETURN
+        
+        
+        
+LABEL $$main
+PUSHFRAME
+DEFVAR LF@y$1$ 
+READ GF@?tempSRC1 int
+PUSHS GF@?tempSRC1
+POPS LF@y$1$ 
+# if_0
+PUSHS LF@y$1$
+# THEN_0
+POPS GF@?tempSRC1
+JUMPIFEQ if_else$0 GF@?tempSRC1 nil@nil
+DEFVAR LF@b$2$
+MOVE LF@b$2$ GF@?tempSRC1
+PUSHS LF@y$1$
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+PUSHS string@\010 
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+DEFVAR LF@a$2$ 
+PUSHS int@5 
+PUSHS LF@b$2$
+IDIVS
+POPS LF@a$2$ 
+PUSHS LF@a$2$
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+PUSHS string@\010 
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+JUMP if_end$0
+LABEL if_else$0
+LABEL if_end$0
+POPFRAME
+RETURN
+
+LABEL $$end$$
+

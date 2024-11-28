@@ -1,0 +1,359 @@
+.IFJcode24
+DEFVAR GF@?tempDEST
+DEFVAR GF@?tempSRC1
+DEFVAR GF@?tempSRC2
+CREATEFRAME
+CALL $$main
+JUMP $$end$$
+
+        #---------------------------------------------------
+        #pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8
+        LABEL $$ifj$substring
+        PUSHFRAME
+        
+            LT GF@$?tempDEST LF@i int@0
+            JUMPIFEQ $$$null GF@$tempDEST bool@true
+            
+            LT GF@$?tempDEST LF@j int@0
+            JUMPIFEQ $$$null GF@$tempDEST bool@true
+            
+            GT GF@$?tempDEST LF@i LF@j
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true
+            
+            STRLEN GF@?tempSRC1 LF@s
+            
+            GT GF@$?tempDEST LF@i GF@?tempSRC1
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true
+            EQ GF@$?tempDEST LF@i GF@?tempSRC1
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true
+            
+            GT GF@$?tempDEST LF@j GF@?tempSRC1
+            JUMPIFEQ $$$null GF@$?tempDEST bool@true
+        
+        LABEL $$$while
+        
+            JUMPIFEQ $$$sub_end TF@i TF@j
+            
+            GETCHAR GF@?tempSRC1 LF@s LF@i
+            CONCAT GF@?tempDEST GF@?tempDEST GF@?tempSRC1
+            ADD LF@i LF@i int@1
+            JUMP $$$while
+            
+            PUSHS GF@?tempDEST
+            JUMP &&&sub_end
+        
+        LABEL $$$null
+            PUSHS nil@nil
+        
+        LABEL $$$sub_end
+        
+        POPFRAME
+        RETURN
+        
+        
+        
+    #-----------------------------------------
+    #pub fn ifj.strcmp(𝑠1: []u8, s2: []u8) i32
+        LABEL $$ifj$strcmp
+        PUSHFRAME
+        
+        STRLEN GF@?tempSRC1 LF@s1
+        STRLEN GF@?tempSRC2 LF@s2
+        LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+        JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true
+        GT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+        JUMPIFEQ $$$strcmp1 GF@?tempDEST bool@true
+        
+        DEFVAR LF@len
+        MOVE LF@len GF@?tempSRC1
+        DEFVAR LF@i
+        MOVE LF@i int@0
+        LABEL $$$cmp_while
+        
+            JUMPIFEQ $$$strcmp0 LF@i LF@len
+            GETCHAR GF@?tempSRC1 LF@s1 LF@i
+            GETCHAR GF@?tempSRC2 LF@s2 LF@i
+            
+            LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+            JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true
+            
+            GT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+            JUMPIFEQ $$$strcmp1 GF@?tempDEST bool@true
+            
+            ADD LF@i LF@i int@1
+        
+        JUMP $$$cmp_while
+        
+        LABEL $$$strcmp-1
+            PUSHS int@-1
+            JUMP $$$cmp_end
+        
+        LABEL $$$strcmp1
+            PUSHS int@1
+            JUMP $$$cmp_end
+        
+        LABEL $$$strcmp0
+            PUSHS int@0
+            JUMP $$$cmp_end
+        
+        LABEL $$$cmp_end
+        
+        POPFRAME
+        RETURN
+        
+        
+        
+LABEL $$main
+PUSHFRAME
+DEFVAR LF@viewportWidth$1$ 
+PUSHS float@0x1.4p+4 
+POPS LF@viewportWidth$1$ 
+DEFVAR LF@viewportHeight$1$ 
+PUSHS float@0x1.4p+3 
+POPS LF@viewportHeight$1$ 
+DEFVAR LF@sphereX$1$ 
+PUSHS float@0x0p+0 
+POPS LF@sphereX$1$ 
+DEFVAR LF@sphereY$1$ 
+PUSHS float@0x0p+0 
+POPS LF@sphereY$1$ 
+DEFVAR LF@sphereRadius$1$ 
+PUSHS float@0x1.4p+2 
+POPS LF@sphereRadius$1$ 
+DEFVAR LF@lightX$1$ 
+PUSHS float@0x1.4p+3 
+POPS LF@lightX$1$ 
+DEFVAR LF@lightY$1$ 
+PUSHS float@0x1.4p+3 
+POPS LF@lightY$1$ 
+DEFVAR LF@y$1$ 
+PUSHS float@0x0p+0 
+PUSHS float@0x1p+0 
+SUBS
+PUSHS LF@viewportHeight$1$
+PUSHS float@0x1p+1 
+DIVS
+MULS
+POPS LF@y$1$ 
+# Definice vsech promennych v tele while
+DEFVAR LF@x$2$ 
+DEFVAR LF@rayX$3$ 
+DEFVAR LF@rayY$3$ 
+DEFVAR LF@dx$3$ 
+DEFVAR LF@dy$3$ 
+DEFVAR LF@distSq$3$ 
+DEFVAR LF@nx$4$ 
+DEFVAR LF@ny$4$ 
+DEFVAR LF@lx$4$ 
+DEFVAR LF@ly$4$ 
+DEFVAR LF@input$4$ 
+DEFVAR LF@lenL$4$ 
+DEFVAR LF@normLx$5$ 
+DEFVAR LF@normLy$5$ 
+DEFVAR LF@dot$5$ 
+LABEL while_start$0
+PUSHS LF@y$1$
+PUSHS LF@viewportHeight$1$
+PUSHS float@0x1p+1 
+DIVS
+GTS
+NOTS
+# while_body_0
+PUSHS bool@true
+JUMPIFNEQS while_end$0
+PUSHS float@0x0p+0 
+PUSHS float@0x1p+0 
+SUBS
+PUSHS LF@viewportWidth$1$
+PUSHS float@0x1p+1 
+DIVS
+MULS
+POPS LF@x$2$ 
+LABEL while_start$2
+PUSHS LF@x$2$
+PUSHS LF@viewportWidth$1$
+PUSHS float@0x1p+1 
+DIVS
+GTS
+NOTS
+# while_body_2
+PUSHS bool@true
+JUMPIFNEQS while_end$2
+PUSHS LF@x$2$
+PUSHS float@0x1p+0 
+MULS
+POPS LF@rayX$3$ 
+PUSHS LF@y$1$
+PUSHS float@0x1p+0 
+MULS
+POPS LF@rayY$3$ 
+PUSHS LF@rayX$3$
+PUSHS LF@sphereX$1$
+SUBS
+POPS LF@dx$3$ 
+PUSHS LF@rayY$3$
+PUSHS LF@sphereY$1$
+SUBS
+POPS LF@dy$3$ 
+PUSHS LF@dx$3$
+PUSHS LF@dx$3$
+MULS
+PUSHS LF@dy$3$
+PUSHS LF@dy$3$
+MULS
+ADDS
+POPS LF@distSq$3$ 
+# if_3
+PUSHS LF@distSq$3$
+PUSHS LF@sphereRadius$1$
+PUSHS LF@sphereRadius$1$
+MULS
+GTS
+NOTS
+# THEN_3
+PUSHS bool@true
+JUMPIFNEQS if_else$3
+PUSHS LF@dx$3$
+PUSHS LF@sphereRadius$1$
+DIVS
+POPS LF@nx$4$ 
+PUSHS LF@dy$3$
+PUSHS LF@sphereRadius$1$
+DIVS
+POPS LF@ny$4$ 
+PUSHS LF@lightX$1$
+PUSHS LF@rayX$3$
+SUBS
+POPS LF@lx$4$ 
+PUSHS LF@lightY$1$
+PUSHS LF@rayY$3$
+SUBS
+POPS LF@ly$4$ 
+PUSHS LF@lx$4$
+PUSHS LF@lx$4$
+MULS
+PUSHS LF@ly$4$
+PUSHS LF@ly$4$
+MULS
+ADDS
+POPS LF@input$4$ 
+CREATEFRAME
+
+#fun: sqrt, arg: 0
+PUSHS LF@input$4$
+DEFVAR TF@x$10$
+POPS TF@x$10$
+CALL $$sqrt
+POPS LF@lenL$4$ 
+# if_4
+PUSHS LF@lenL$4$
+PUSHS float@0x0p+0 
+GTS
+# THEN_4
+PUSHS bool@true
+JUMPIFNEQS if_else$4
+PUSHS LF@lx$4$
+PUSHS LF@lenL$4$
+DIVS
+POPS LF@normLx$5$ 
+PUSHS LF@ly$4$
+PUSHS LF@lenL$4$
+DIVS
+POPS LF@normLy$5$ 
+PUSHS LF@nx$4$
+PUSHS LF@normLx$5$
+MULS
+PUSHS LF@ny$4$
+PUSHS LF@normLy$5$
+MULS
+ADDS
+POPS LF@dot$5$ 
+# if_5
+PUSHS LF@dot$5$
+PUSHS float@0x0p+0 
+GTS
+# THEN_5
+PUSHS bool@true
+JUMPIFNEQS if_else$5
+PUSHS string@\042 
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+JUMP if_end$5
+LABEL if_else$5
+PUSHS string@\046 
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+LABEL if_end$5
+JUMP if_end$4
+LABEL if_else$4
+PUSHS string@\046 
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+LABEL if_end$4
+JUMP if_end$3
+LABEL if_else$3
+PUSHS string@\032 
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+LABEL if_end$3
+PUSHS LF@x$2$
+PUSHS float@0x1p+0 
+ADDS
+POPS LF@x$2$
+JUMP while_start$2
+LABEL while_end$2
+PUSHS string@\010 
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+PUSHS LF@y$1$
+PUSHS float@0x1p+0 
+ADDS
+POPS LF@y$1$
+JUMP while_start$0
+LABEL while_end$0
+PUSHS string@Raytracing\032complete\046\010 
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+POPFRAME
+RETURN
+
+LABEL $$sqrt
+PUSHFRAME
+DEFVAR LF@guess$10$ 
+PUSHS LF@x$10$
+PUSHS float@0x1p+1 
+DIVS
+POPS LF@guess$10$ 
+DEFVAR LF@tolerance$10$ 
+PUSHS float@0x1.0c6f7a0b5ed8dp-20 
+POPS LF@tolerance$10$ 
+# Definice vsech promennych v tele while
+LABEL while_start$3
+PUSHS LF@guess$10$
+PUSHS LF@guess$10$
+MULS
+PUSHS LF@x$10$
+PUSHS LF@tolerance$10$
+ADDS
+GTS
+# while_body_3
+PUSHS bool@true
+JUMPIFNEQS while_end$3
+PUSHS LF@guess$10$
+PUSHS LF@x$10$
+PUSHS LF@guess$10$
+DIVS
+ADDS
+PUSHS float@0x1p+1 
+DIVS
+POPS LF@guess$10$
+JUMP while_start$3
+LABEL while_end$3
+PUSHS LF@guess$10$
+POPFRAME
+RETURN
+POPFRAME
+RETURN
+
+LABEL $$end$$
+
