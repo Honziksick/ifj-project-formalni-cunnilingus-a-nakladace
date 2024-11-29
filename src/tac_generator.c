@@ -137,12 +137,23 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node) {
     // Na vrchol datového zásobníku dáme pravý operand
     //TAC_generateExpression(bin_node->right);
 
+    // THE HOLY SECURITY
+    if(bin_node == NULL) {
+        return;
+    }
+
     // Pomocné proměnné je potřeba definovat mimo switch-case
-    Semantic_Data type;     /** Typ operandů (pro dělení) */
-    AST_VarNode *var;       /** Uzel proměnné (pro přiřazení) */
+    Semantic_Data type = SEM_DATA_UNKNOWN;     /** Typ operandů (pro dělení) */
+    AST_VarNode *var = NULL;       /** Uzel proměnné (pro přiřazení) */
+
 
     switch (bin_node->op) {
     case AST_OP_ASSIGNMENT:
+        // THE HOLY SECURITY
+        if(bin_node->left->expression == NULL) {
+            return;
+        }
+
         var = (AST_VarNode *)bin_node->left->expression;
         // Na vrchol datového zásobníku dáme pravý operand
         TAC_generateExpression(bin_node->right);
@@ -248,10 +259,21 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node) {
  * @brief Generuje cílový kód pro definici proměnné
  */
 void TAC_generateVarDef(AST_ExprNode *expr_node, TAC_MODE mode) {
+    // THE HOLY SECURITY
+    if(expr_node == NULL || expr_node->expression == NULL) {
+        return;
+    }
+
     AST_BinOpNode *bin_node = expr_node->expression;
+
+    // THE HOLY SECURITY
+    if(bin_node->left == NULL || bin_node->left->expression == NULL) {
+        return;
+    }
 
     // Definujeme proměnnou
     AST_VarNode *var = (AST_VarNode *)bin_node->left->expression;
+
     if(mode != TAC_EXCEPT_VAR_DEF){
         printf("DEFVAR LF@%s$%lu$ \n", var->identifier->str, var->frameID);
     }
@@ -268,6 +290,11 @@ void TAC_generateVarDef(AST_ExprNode *expr_node, TAC_MODE mode) {
  * @brief Generuje cílový kód pro výraz
  */
 void TAC_generateExpression(AST_ExprNode *expr) {
+    // THE HOLY SECURITY
+    if(expr == NULL) {
+        return;
+    }
+
     AST_VarNode *var = (AST_VarNode*)expr->expression;
     switch (expr->exprType) {
         case AST_EXPR_LITERAL:
@@ -292,7 +319,12 @@ void TAC_generateExpression(AST_ExprNode *expr) {
  * @brief Generuje cílový kód pro literál
  */
 void TAC_generateLiteral(AST_VarNode *literal) {
-    DString *value = (DString*)literal->value;
+    // THE HOLY SECURITY
+    if(literal == NULL) {
+        return;
+    }
+
+    DString *value = NULL;
     switch (literal->literalType) {
         case AST_LITERAL_INT:
             printf("PUSHS int@%d \n", *(int*)literal->value);
@@ -301,6 +333,7 @@ void TAC_generateLiteral(AST_VarNode *literal) {
             printf("PUSHS float@%a \n", *(double*)literal->value);
             break;
         case AST_LITERAL_STRING:
+            value = (DString*)literal->value;
             value = TAC_convertSpecialSymbols(value);
             printf("PUSHS string@%s \n", value->str);
             string_free(value);
@@ -317,6 +350,11 @@ void TAC_generateLiteral(AST_VarNode *literal) {
  * @brief Generuje cílový kód pro podmíněný příkaz if
  */
 void TAC_generateIf(AST_IfNode *if_node, TAC_MODE mode) {
+    // THE HOLY SECURITY
+    if(if_node == NULL) {
+        return;
+    }
+
     // Unikátní identifikátor pro if
     static unsigned int count = 0;
     unsigned int id = count;
@@ -516,8 +554,8 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     printf("CREATEFRAME\n");
 
     // Najdeme definici funkce
-    DString *key;
-    SymtableItemPtr function;
+    DString *key = NULL;
+    SymtableItemPtr function = NULL;
 
 
     // Pokud je funkce vestavěná, tak přidáme prefix ifj.
