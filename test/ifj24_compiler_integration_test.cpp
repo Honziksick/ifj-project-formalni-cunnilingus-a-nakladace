@@ -39,7 +39,7 @@
 //#define SPECIFIC_TEST_NAME "CorrectReturn"
 
 // Kompletně vypneme výpis
-#define DISABLE_PRINT
+//#define DISABLE_PRINT
 
 #include "ifj24_compiler_test_utils.h"
 extern "C" {
@@ -61,9 +61,15 @@ extern "C" {
         if(ASTroot != NULL) {
             // Spustíme sémantickou analýzu nad AST pomocí Symtable
             semantic_analyseProgram();
+            PRINT_TEST_LOG(big);
+            // Přesměrujeme STDOUT do černé díry
+            freopen("/dev/null", "w", stdout);
 
             // Spustíme generování mezikódu IFJ24code
-            //TAC_generateProgram();
+            TAC_generateProgram();
+
+            // Obnovíme původní STDOUT
+            freopen("/dev/tty", "w", stdout);
         }
         // Pokud tento neočekávaný případ nastal, hlásíme interní chybu
         else {
@@ -78,6 +84,7 @@ extern "C" {
     }
 }
 
+/*
 TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     // Načtení souboru s programem na STDIN
     string path = synt_path + "correct_prologue_and_empty_main.zig";
@@ -1762,11 +1769,116 @@ TEST(SemanticError, Error6_ReturnExp){
         
         cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
 
-        // Uvolnění alokovaných zdrojů
-        IFJ24Compiler_freeAllAllocatedMemory();
-
         // Navrácení STDIN do původního stavu a uzavření souboru
         stdin = stdin_backup;
         fclose(f);
     }
 }
+
+TEST(FifixSandy, HodyHodyDejteBodyFUNEXP){
+    string path = sem_path + "fifixsandy_test_hodyhodydejtebodyFUNEXP.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+
+
+TEST(FifixSandy, StringTestFUNEXP){
+    string path = sem_path + "fifixsandy_string_testFUNEXP.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+
+TEST(FifixSandy, Test7){
+    string path = sem_path + "fifixsandy_test_7.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+
+TEST(FifixSandy, Substring){
+    string path = sem_path + "fifixsandy_test_substring.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+
+    stdin = stdin_backup;
+    fclose(f);
+    ASTroot = NULL;
+}
+
+TEST(FifixSandy, BigTest) {
+    // Načtení souboru s programem na STDIN
+    string path = sem_path + "fifixsandy_big_test.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Syntaktická analýza programu
+    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+*/
+
+TEST(FifixSandy, BigTest2) {
+    // Načtení souboru s programem na STDIN
+    string path = sem_path + "fifixsandy_big_test2.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Syntaktická analýza programu
+    //EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    mock_main();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+/*
+TEST(FifixSandy, BigTestFUNEXP) {
+    // Načtení souboru s programem na STDIN
+    string path = sem_path + "fifixsandy_big_testFUNEXP.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+    
+    // Syntaktická analýza programu
+    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+*/

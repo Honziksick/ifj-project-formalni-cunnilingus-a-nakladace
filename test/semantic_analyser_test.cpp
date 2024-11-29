@@ -59,7 +59,7 @@ TEST(Incorrect, VoidFunctionReturnExpr){
     fclose(f);
 }
 */
-/*
+
 TEST(FifixSandy, HodyHodyDejteBodyFUNEXP){
     string path = sem_path + "fifixsandy_test_hodyhodydejtebodyFUNEXP.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -79,7 +79,7 @@ TEST(FifixSandy, HodyHodyDejteBodyFUNEXP){
     fclose(f);
     ASTroot = NULL;
 }
-*/
+
 
 TEST(FifixSandy, StringTestFUNEXP){
     string path = sem_path + "fifixsandy_string_testFUNEXP.zig";
