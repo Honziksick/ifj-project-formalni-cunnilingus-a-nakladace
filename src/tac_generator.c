@@ -535,7 +535,8 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             printf("PUSHS GF@?tempDEST\n");
             return;
         }
-        else if(string_compare_const_str(funCallNode->identifier, "ord") == STRING_EQUAL) {
+        // THE HOLY EMPEROR WAS HERE: Nahrazena za funkci
+        /*else if(string_compare_const_str(funCallNode->identifier, "ord") == STRING_EQUAL) {
             TAC_generateExpression(funCallNode->arguments->expression);
             printf("POPS GF@?tempSRC1\n");
             TAC_generateExpression(funCallNode->arguments->next->expression);
@@ -543,7 +544,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             printf("STRI2INT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n");
             printf("PUSHS GF@?tempDEST\n");
             return;
-        }
+        }*/
         else if(string_compare_const_str(funCallNode->identifier, "chr") == STRING_EQUAL) {
             TAC_generateExpression(funCallNode->arguments->expression);
 

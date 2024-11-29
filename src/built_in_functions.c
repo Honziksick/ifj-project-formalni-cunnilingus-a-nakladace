@@ -132,8 +132,41 @@ char built_in_fun_strcmp[] = "\n\
         \n\
         ";
 
+char built_in_fun_ord[] = "\n\
+    #-----------------------------------------\n\
+    #pub fn ifj.ord(s: []u8, i: i32) i32\n\
+        LABEL $$ifj$ord\n\
+        PUSHFRAME\n\
+        \n\
+        STRLEN GF@?tempSRC1 LF@s\n\
+        EQ GF@?tempDEST GF@?tempSRC1 int@0\n\
+        JUMPIFEQ $$$ord_zero GF@?tempDEST bool@true\n\
+        \n\
+        LT GF@?tempDEST LF@i int@0\n\
+        JUMPIFEQ $$$ord_zero GF@?tempDEST bool@true\n\
+        EQ GF@?tempDEST LF@i GF@?tempSRC1\n\
+        JUMPIFEQ $$$ord_zero GF@?tempDEST bool@true\n\
+        GT GF@?tempDEST LF@i GF@?tempSRC1\n\
+        JUMPIFEQ $$$ord_zero GF@?tempDEST bool@true\n\
+        \n\
+        STRI2INT GF@?tempDEST LF@s LF@i\n\
+        PUSHS GF@?tempDEST\n\
+        JUMP $$$ord_end\n\
+        \n\
+        # Vrácení hodnoty 0\n\
+        LABEL $$$ord_zero\n\
+        PUSHS int@0\n\
+        \n\
+        LABEL $$$ord_end\n\
+        POPFRAME\n\
+        RETURN\n\
+        \n\
+        \n\
+        ";
+
     printf("%s", built_in_fun_substring);
     printf("%s", built_in_fun_strcmp);
+    printf("%s", built_in_fun_ord);
 }
 
 /*** Konec souboru built_in_functions.c ***/
