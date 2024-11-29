@@ -43,6 +43,7 @@
 
 #include "ifj24_compiler_test_utils.h"
 
+
 TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     // Načtení souboru s programem na STDIN
     string path = synt_path + "correct_prologue_and_empty_main.zig";
@@ -1599,6 +1600,28 @@ TEST(LLParserBasicsCorrect, Return){
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
     PRINT_TEST_LOG(CorrectReturn);
+
+    // Uvolnění alokovaných zdrojů
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+TEST(LLParserBasicsCorrect, Priority) {
+    // Načtení souboru s programem na STDIN
+    string path = synt_path + "priority.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
+    PRINT_TEST_LOG(CorrectPriority);
 
     // Uvolnění alokovaných zdrojů
     IFJ24Compiler_freeAllAllocatedMemory();
