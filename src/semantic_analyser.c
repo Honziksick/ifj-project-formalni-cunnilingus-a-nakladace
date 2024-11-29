@@ -6,7 +6,7 @@
  * Autor:            Krejčí David   <xkrejcd00>                                *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   18.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -763,37 +763,6 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
 
         result = semantic_compatibleAssign(defined_type, actual_type);
 
-        // THE HOLY EMPEROR WAS HERE - NEW END !!!
-
-        /* THE HOLY EMPEROR WAS HERE - OLD START !!!
-
-        // Najdeme tabulku symbolů pro argument
-        AST_VarNode *var_node = arg->expression->expression;
-        SymtablePtr table = frameArray.array[var_node->frameID]->frame;
-
-        Semantic_Data actual_type = SEM_DATA_UNKNOWN;
-        if(var_node->identifier == NULL){
-            // Argument je literál
-            actual_type = semantic_literalToSemType(var_node->literalType);
-
-        }else{
-            // Argument je proměnná
-            // Najdeme argument v tabulce symbolů
-            sym_result = symtable_findItem(table, var_node->identifier, &item);
-            if(sym_result != SYMTABLE_SUCCESS){
-                string_free(key);
-                return ERROR_INTERNAL;
-            }
-            actual_type = semantic_stateToSemType(item->symbol_state);
-            item->used = true;
-        }
-
-        // Zjistíme, jestli sedí typ argumentu
-        Semantic_Data defined_type = semantic_returnToSemType(data->params[i].type);
-        ErrorType result = semantic_compatibleAssign(defined_type, actual_type);
-
-        THE HOLY EMPEROR WAS HERE - OLD END !!! */
-
         if(result != 0){
             string_free(key);
             return result;
@@ -1331,35 +1300,6 @@ ErrorType semantic_checkIFJWrite(AST_FunCallNode *fun_node){
     } else if(arg->next != NULL){
         return ERROR_SEM_PARAMS_OR_RETVAL;
     }
-
-    /* THE HOLY EMPEROR WAS HERE - OLD START !!! */
-    // Argument je použit
-    // AST_ExprNode *expr = arg->expression->expression;
-    /* THE HOLY EMPEROR WAS HERE - OLD END !!! */
-
-        /* THE HOLY EMPEROR WAS HERE - NEW START !!! */
-        // AST_ExprNode *expr = arg->expression;
-        /* THE HOLY EMPEROR WAS HERE - NEW END !!! */
-
-    /* THE HOLY EMPEROR WAS HERE - OLD START !!! */
-    /*if(expr->exprType == AST_EXPR_VARIABLE){
-        AST_VarNode *var_node = expr->expression;
-        if(var_node->identifier != NULL){
-            // Argument je proměnná
-            SymtablePtr table = frameArray.array[var_node->frameID]->frame;
-            SymtableItemPtr item;
-            if(symtable_findItem(table, var_node->identifier, &item) != SYMTABLE_SUCCESS){
-                return ERROR_INTERNAL;
-            }
-
-            item->used = true;
-        }
-    }
-
-    return 0;*/
-    /* THE HOLY EMPEROR WAS HERE - OLD END !!! */
-
-    // THE HOLY EMPEROR WAS HERE - NEW START !!!
 
     // Analýza výrazu argumentu
     Semantic_Data actual_type = SEM_DATA_UNKNOWN;

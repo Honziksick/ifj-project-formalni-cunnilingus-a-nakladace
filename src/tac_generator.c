@@ -4,6 +4,7 @@
  *                                                                             *
  * Soubor:           tac_generator.c                                           *
  * Autor:            Lukáš Farkašovský   <xfarkal00>                           *
+ *                   David Krejčí        <xkrejcd00>                           *
  *                                                                             *
  * Datum:            12.11.2024                                                *
  * Poslední změna:   25.11.2024                                                *
@@ -29,8 +30,6 @@
 #include "built_in_functions.h"
 
 #define RESET_STATIC (AST_NodeType)123
-
-int dumbGlobalCounter = 0;
 
 /**
  * @brief Generuje cílový kód programu ze stromu AST.
@@ -132,10 +131,12 @@ void TAC_generateStatementBlock(AST_StatementNode* statement, TAC_MODE mode) {
  * @brief Generuje cílový kód pro binární operace
  */
 void TAC_generateBinaryOperator(AST_BinOpNode *bin_node) {
-    // Na vrchol datového zásobníku dáme levý operand
-    //TAC_generateExpression(bin_node->left);
+    // Pokud operace není přiřazení, tak na vrchol datového zásobníku dáme levý operand
+    if(bin_node->op != AST_OP_ASSIGNMENT) {
+        TAC_generateExpression(bin_node->left);
+    }
     // Na vrchol datového zásobníku dáme pravý operand
-    //TAC_generateExpression(bin_node->right);
+    TAC_generateExpression(bin_node->right);
 
     // THE HOLY SECURITY
     if(bin_node == NULL) {
@@ -155,9 +156,6 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node) {
         }
 
         var = (AST_VarNode *)bin_node->left->expression;
-        // Na vrchol datového zásobníku dáme pravý operand
-        TAC_generateExpression(bin_node->right);
-
         if(string_compare_const_str(var->identifier, "_" ) == STRING_EQUAL){
             // Přiřazujeme do pseudoproměnné - zahodíme hodnotu
             printf("POPS GF@?tempDEST\n");
@@ -167,32 +165,15 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node) {
         }
         break;
     case AST_OP_ADD:
-        // Na vrchol datového zásobníku dáme levý operand
-        TAC_generateExpression(bin_node->left);
-        // Na vrchol datového zásobníku dáme pravý operand
-        TAC_generateExpression(bin_node->right);
         printf("ADDS\n");
         break;
     case AST_OP_SUBTRACT:
-        // Na vrchol datového zásobníku dáme levý operand
-        TAC_generateExpression(bin_node->left);
-        // Na vrchol datového zásobníku dáme pravý operand
-        TAC_generateExpression(bin_node->right);
         printf("SUBS\n");
         break;
     case AST_OP_MULTIPLY:
-        // Na vrchol datového zásobníku dáme levý operand
-        TAC_generateExpression(bin_node->left);
-        // Na vrchol datového zásobníku dáme pravý operand
-        TAC_generateExpression(bin_node->right);
         printf("MULS\n");
         break;
     case AST_OP_DIVIDE:
-        // Na vrchol datového zásobníku dáme levý operand
-        TAC_generateExpression(bin_node->left);
-        // Na vrchol datového zásobníku dáme pravý operand
-        TAC_generateExpression(bin_node->right);
-
         // Musíme zjistit, zda se jedná o celočíselné nebo desetinné dělení
         if(semantic_analyseExpr(bin_node->right, &type, NULL) != 0) {
             error_handle(ERROR_INTERNAL);
@@ -205,47 +186,23 @@ void TAC_generateBinaryOperator(AST_BinOpNode *bin_node) {
         }
         break;
     case AST_OP_EQUAL:
-        // Na vrchol datového zásobníku dáme levý operand
-        TAC_generateExpression(bin_node->left);
-        // Na vrchol datového zásobníku dáme pravý operand
-        TAC_generateExpression(bin_node->right);
         printf("EQS\n");
         break;
     case AST_OP_NOT_EQUAL:
-        // Na vrchol datového zásobníku dáme levý operand
-        TAC_generateExpression(bin_node->left);
-        // Na vrchol datového zásobníku dáme pravý operand
-        TAC_generateExpression(bin_node->right);
         printf("EQS\n");
         printf("NOTS\n");
         break;
     case AST_OP_LESS_THAN:
-        // Na vrchol datového zásobníku dáme levý operand
-        TAC_generateExpression(bin_node->left);
-        // Na vrchol datového zásobníku dáme pravý operand
-        TAC_generateExpression(bin_node->right);
         printf("LTS\n");
         break;
     case AST_OP_GREATER_THAN:
-        // Na vrchol datového zásobníku dáme levý operand
-        TAC_generateExpression(bin_node->left);
-        // Na vrchol datového zásobníku dáme pravý operand
-        TAC_generateExpression(bin_node->right);
         printf("GTS\n");
         break;
     case AST_OP_LESS_EQUAL:
-        // Na vrchol datového zásobníku dáme levý operand
-        TAC_generateExpression(bin_node->left);
-        // Na vrchol datového zásobníku dáme pravý operand
-        TAC_generateExpression(bin_node->right);
         printf("GTS\n");
         printf("NOTS\n");
         break;
     case AST_OP_GREATER_EQUAL:
-        // Na vrchol datového zásobníku dáme levý operand
-        TAC_generateExpression(bin_node->left);
-        // Na vrchol datového zásobníku dáme pravý operand
-        TAC_generateExpression(bin_node->right);
         printf("LTS\n");
         printf("NOTS\n");
         break;
@@ -379,7 +336,7 @@ void TAC_generateIf(AST_IfNode *if_node, TAC_MODE mode) {
     // Vyhodnotíme podmínku
     printf("# if_%d\n", id);
     TAC_generateExpression(if_node->condition);
-    printf("# THEN_%d\n", id);
+    printf("# then_%d\n", id);
     // je normální nebo null condition?
     if(if_node->nullCondition == NULL) {
         printf("PUSHS bool@true\n");
@@ -528,33 +485,17 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         }
         else if(string_compare_const_str(funCallNode->identifier, "concat") == STRING_EQUAL) {
             TAC_generateExpression(funCallNode->arguments->expression);
-            printf("POPS GF@?tempSRC1\n");
             TAC_generateExpression(funCallNode->arguments->next->expression);
             printf("POPS GF@?tempSRC2\n");
+            printf("POPS GF@?tempSRC1\n");
             printf("CONCAT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n");
             printf("PUSHS GF@?tempDEST\n");
             return;
         }
-        // THE HOLY EMPEROR WAS HERE: Nahrazena za funkci
-        /*else if(string_compare_const_str(funCallNode->identifier, "ord") == STRING_EQUAL) {
-            TAC_generateExpression(funCallNode->arguments->expression);
-            printf("POPS GF@?tempSRC1\n");
-            TAC_generateExpression(funCallNode->arguments->next->expression);
-            printf("POPS GF@?tempSRC2\n");
-            printf("STRI2INT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n");
-            printf("PUSHS GF@?tempDEST\n");
-            return;
-        }*/
         else if(string_compare_const_str(funCallNode->identifier, "chr") == STRING_EQUAL) {
             TAC_generateExpression(funCallNode->arguments->expression);
 
-            // THE HOLY EMPEROR WAS HERE: Změna zásobníkové INT2CHARS na parametrickou INT2CHAR
-            // printf("INT2CHARS GF@?tempDEST GF@?tempSRC1\n");
-
-            // THE NEW HOLY ifj.chr
-            printf("POPS GF@?tempSRC1\n");
-            printf("INT2CHAR GF@?tempDEST GF@?tempSRC1\n");
-            printf("PUSHS GF@?tempDEST\n");
+            printf("INT2CHARS\n");
             return;
         }
     }
@@ -596,7 +537,6 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
     // Pro všechny parametry
     for(size_t i = 0; i < functionData->param_count; i++) {
-        printf("\n#fun: %s, arg: %lu\n", funCallNode->identifier->str, i);
         // Na zásobník vyhodnotíme hodnotu parametru
         TAC_generateExpression(arg->expression);
         // Vytvoříme instrukci DEFVAR pro parametr

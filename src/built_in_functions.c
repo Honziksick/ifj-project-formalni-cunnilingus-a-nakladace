@@ -27,7 +27,6 @@
 
 #include "built_in_functions.h"
 
-//Ještě chybí dodělat 4 funkce
 void built_in_functions() {
 
     char built_in_fun_substring[] = "\n\
@@ -90,13 +89,15 @@ char built_in_fun_strcmp[] = "\n\
         \n\
         STRLEN GF@?tempSRC1 LF@s1\n\
         STRLEN GF@?tempSRC2 LF@s2\n\
-        LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
-        JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true\n\
-        GT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
-        JUMPIFEQ $$$strcmp1 GF@?tempDEST bool@true\n\
-        \n\
         DEFVAR LF@len\n\
         MOVE LF@len GF@?tempSRC1\n\
+        \n\
+        LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n\
+        JUMPIFEQ $$$cmp_def GF@?tempDEST bool@true\n\
+        \n\
+        MOVE LF@len GF@?tempSRC2\n\
+        \n\
+        LABEL $$$cmp_def\n\
         DEFVAR LF@i\n\
         MOVE LF@i int@0\n\
         LABEL $$$cmp_while\n\
