@@ -421,7 +421,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
     AST_initNewFunDefNode(funDefNode, functionName, parameters, returnType, sequence);
 
     // Vytvoříme strukturu SymtableFunctionData pro uložení do tabulky symbolů
-    SymtableFunctionData *functionData = symtable_init_function_data(paramCount);
+    SymtableFunctionData *functionData = symtable_initFunctionData(paramCount);
 
     // Kontrola úspěchu vytvoření dat pro funkci
     if(functionData == NULL) {
@@ -443,8 +443,8 @@ AST_FunDefNode *LLparser_parseFunDef() {
     }
 
     Parser_mapASTDataTypeToFunReturnType(returnType, &funType);
-    functionData->body_frameID = function_frameID;
-    functionData->return_type = funType;
+    functionData->bodyFrameID = function_frameID;
+    functionData->returnType = funType;
 
     // Přidáme data funkce do položky v tabulce symbolů
     functionItem->data = functionData;

@@ -7,7 +7,7 @@
  *                                                                             *
  *                                                                             *
  * Datum:            09.11.2024                                                *
- * Poslední změna:   10.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -125,7 +125,7 @@ TEST(FrameStack, General){
     // Ověříme, že položka byla přidána
     ASSERT_NE(item, nullptr);
     ASSERT_EQ(string_compare(item->key, key), STRING_EQUAL);
-    item->symbol_state = SYMTABLE_SYMBOL_VARIABLE_INT;
+    item->symbolState = SYMTABLE_SYMBOL_VARIABLE_INT;
 
     // Přidáme nový rámec
     frameStack_push(false);
@@ -133,12 +133,12 @@ TEST(FrameStack, General){
     SymtableItemPtr item2;
     ASSERT_EQ(frameStack_findItem(key, &item2), FRAME_STACK_SUCCESS);
     ASSERT_EQ(item2, item);
-    ASSERT_EQ(item2->symbol_state, SYMTABLE_SYMBOL_VARIABLE_INT);
+    ASSERT_EQ(item2->symbolState, SYMTABLE_SYMBOL_VARIABLE_INT);
 
     SymtableItemPtr item3;
     ASSERT_EQ(frameStack_addItem(key, &item3), FRAME_STACK_ITEM_ALREADY_EXISTS);
     ASSERT_EQ(item3, item);
-    ASSERT_EQ(item3->symbol_state, SYMTABLE_SYMBOL_VARIABLE_INT);
+    ASSERT_EQ(item3->symbolState, SYMTABLE_SYMBOL_VARIABLE_INT);
 
     // Přidáme rámec funkce
     frameStack_push(true);
@@ -149,7 +149,7 @@ TEST(FrameStack, General){
     SymtableItemPtr item4;
     ASSERT_EQ(frameStack_addItem(key, &item4), FRAME_STACK_SUCCESS);
     ASSERT_NE(item4, item);
-    EXPECT_EQ(item4->symbol_state, SYMTABLE_SYMBOL_UNKNOWN);
+    EXPECT_EQ(item4->symbolState, SYMTABLE_SYMBOL_UNKNOWN);
 
     SymtableItemPtr item5;
     ASSERT_EQ(frameStack_findItem(key, &item5), FRAME_STACK_SUCCESS);
@@ -162,9 +162,9 @@ TEST(FrameStack, General){
     ASSERT_EQ(frameStack_findItem(key, &item6), FRAME_STACK_SUCCESS);
     ASSERT_EQ(item6, item);
 
-    ASSERT_EQ(frameArray.array[1]->frame->used_size, 1ULL);    
-    ASSERT_EQ(frameArray.array[2]->frame->used_size, 0ULL);
-    ASSERT_EQ(frameArray.array[3]->frame->used_size, 1ULL);
+    ASSERT_EQ(frameArray.array[1]->frame->usedSize, 1ULL);    
+    ASSERT_EQ(frameArray.array[2]->frame->usedSize, 0ULL);
+    ASSERT_EQ(frameArray.array[3]->frame->usedSize, 1ULL);
 
     // Uvolníme zásobník
     frameStack_destroyAll();
@@ -335,10 +335,10 @@ TEST(FrameStack, print){
     ASSERT_EQ(frameStack_addItem(key19, NULL), FRAME_STACK_SUCCESS);
     SymtableItemPtr item;
     ASSERT_EQ(frameStack_addItem(key20, &item), FRAME_STACK_SUCCESS);
-    item->symbol_state = SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL;
+    item->symbolState = SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL;
     item->changed = true;
     item->constant = true;
-    item->known_value = true;
+    item->knownValue = true;
     item->used = true;
     item->data = (void*)malloc(sizeof(int));
 
@@ -348,7 +348,7 @@ TEST(FrameStack, print){
      */
 
     // Uložíme originální stdout
-    int saved_stdout = dup(STDOUT_FILENO);
+    int savedStdout = dup(STDOUT_FILENO);
 
     // Vyrobíme potrubí a přesměrujeme stdout na zápisový konec potrubí
     int fds[2];
@@ -361,8 +361,8 @@ TEST(FrameStack, print){
 
     // Obnovíme stdout
     fflush(stdout);
-    dup2(saved_stdout, STDOUT_FILENO);
-    close(saved_stdout);
+    dup2(savedStdout, STDOUT_FILENO);
+    close(savedStdout);
 
     // Přečteme výstup z potrubí
     char buffer[1];

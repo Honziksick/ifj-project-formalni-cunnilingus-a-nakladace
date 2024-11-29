@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            08.11.2024                                                *
- * Poslední změna:   09.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -63,12 +63,12 @@ using namespace std;
 using namespace testing;
 using namespace internal;
 
-extern string exam_path;
-extern string lex_path;
-extern string synt_path;
-extern string synt_error_path;
-extern string sem_path;
-extern string sem_error_path;
+extern string examPath;
+extern string lexPath;
+extern string syntPath;
+extern string syntErrorPath;
+extern string semPath;
+extern string semErrorPath;
 
 
 /*******************************************************************************

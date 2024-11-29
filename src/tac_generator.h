@@ -4,9 +4,10 @@
  *                                                                             *
  * Soubor:           tac_generator.h                                           *
  * Autor:            Lukáš Farkašovský   <xfarkal00>                           *
+ *                   David Krejčí        <xkrejcd00>                           *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   26.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -37,8 +38,19 @@
 #include "frame_stack.h"
 #include "error.h"
 
+/**
+ * @details Maximální velikost bufferu pro zpracování speciálních znaků
+ *          ve funkci TAC_convertSpecialSymbols.
+ */
 #define MAX_BUFFER_SIZE 5
 
+/**
+ * @brief Režim generování kódu
+ * 
+ * @details Kvůli definicím proměnných v cyklech je nutné nejdříve všechny 
+ *          proměnné definovat a až poté generovat příkazy bez definic.
+ *          Pokud nejsem v cyklu, tak generuji všechny příkazy.
+ */
 typedef enum {
     TAC_ALL,
     TAC_VAR_DEF_ONLY,
@@ -57,8 +69,8 @@ void TAC_generateProgram();
 /**
  * @brief Generuje cílový kód definice funkce
  *
- * @details Přidá label a pushne rámec s parametry, následně zpracuje všechny
- *          instukce pomocí TAC_generateStatementBlock, popne rámec a volá return
+ * @details Přidá label a přidá rámec s parametry, následně zpracuje všechny
+ *          instukce pomocí TAC_generateStatementBlock, odstraní rámec a volá return
  *
  * @param [in] funDefNode Ukazatel na uzel definice funkce
  */
@@ -78,6 +90,10 @@ void TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode);
  *          Pokud narazí na return, tak přestává generovat mrtvý kód
  *
  * @param [in] statement Ukazatel na uzel bloku příkazů
+ * @param [in] mode Režim generování kódu (nutné pro definice proměnných v cyklech)
+ *                  - TAC_ALL - generuje všechny příkazy
+ *                  - TAC_VAR_DEF_ONLY - generuje pouze definice proměnných
+ *                  - TAC_EXCEPT_VAR_DEF - generuje všechny příkazy kromě definic proměnných
  */
 void TAC_generateStatementBlock(AST_StatementNode* statement, TAC_MODE mode);
 
@@ -89,18 +105,22 @@ void TAC_generateStatementBlock(AST_StatementNode* statement, TAC_MODE mode);
  *          dále podle operátoru provede operaci. Výsledek je opět
  *          na vrcholu datového zásobníku
  *
- * @param [in] bin_node Ukazatel na uzel binární operace
+ * @param [in] binNode Ukazatel na uzel binární operace
  */
-void TAC_generateBinaryOperator(AST_BinOpNode *bin_node);
+void TAC_generateBinaryOperator(AST_BinOpNode *binNode);
 
 /**
  * @brief Generuje cílový kód pro definici proměnné
  *
  * @details Vyhodnotí výraz vpravo a její hodnotu uloží do proměnné
  *
- * @param [in] expr_node Ukazatel na výraz obsahující binarní operaci přiřazení
+ * @param [in] exprNode Ukazatel na výraz obsahující binarní operaci přiřazení
+ * @param [in] mode Režim generování kódu (nutné pro definice proměnných v cyklech)
+ *                  - TAC_ALL - definuje proměnnou a vloží hodnotu
+ *                  - TAC_VAR_DEF_ONLY - pouze definuje proměnnou
+ *                  - TAC_EXCEPT_VAR_DEF - pouze vloží hodnotu do proměnné
  */
-void TAC_generateVarDef(AST_ExprNode *expr_node, TAC_MODE mode);
+void TAC_generateVarDef(AST_ExprNode *exprNode, TAC_MODE mode);
 
 /**
  * @brief Generuje cílový kód pro výraz
@@ -133,7 +153,11 @@ void TAC_generateLiteral(AST_VarNode *literal);
  *          id_bez_null.
  *          Každý if má svůj unikátní číselný identifikátor a návěští.
  *
- * @param [in] if_node Ukazatel na uzel podmíněného příkazu if
+ * @param [in] ifNode Ukazatel na uzel podmíněného příkazu if
+ * @param [in] mode Režim generování kódu (nutné pro definice proměnných v cyklech)
+ *                  - TAC_ALL - generuje všechny příkazy
+ *                  - TAC_VAR_DEF_ONLY - generuje pouze definice proměnných
+ *                  - TAC_EXCEPT_VAR_DEF - generuje všechny příkazy kromě definic proměnných
  */
 void TAC_generateIf(AST_IfNode *if_node, TAC_MODE mode);
 
@@ -147,15 +171,21 @@ void TAC_generateIf(AST_IfNode *if_node, TAC_MODE mode);
  *          na konec cyklu.
  *          Každý cyklus má svůj unikátní číselný identifikátor a návěští.
  *
- * @param [in] while_node Ukazatel na uzel smyčky while
+ * @param [in] whileNode Ukazatel na uzel smyčky while
+ * @param [in] mode Režim generování kódu (nutné pro definice proměnných v cyklech)
+ *                  - TAC_ALL - Nejdříve definuje proměnné v podmínce a těle cyklu
+ *                  a následně generuje příkazy bez definic
+ *                  - TAC_VAR_DEF_ONLY - Definuje proměnné v podmínce a těle cyklu
+ *                  - TAC_EXCEPT_VAR_DEF - Generuje příkazy bez definic
+ * 
  */
-void TAC_generateWhile(AST_WhileNode *while_node, TAC_MODE mode);
+void TAC_generateWhile(AST_WhileNode *whileNode, TAC_MODE mode);
 
 /**
  * @brief Generuje cílový kód pro návrat z funkce
  *
  * @details Vyhodnotí výraz a výsledek uloží na vrchol datového zásobníku.
- *          Popne rámec funkce a volá return.
+ *          Odstraní rámec funkce a volá return.
  *
  * @param [in] expr Ukazatel na uzel výrazu
  */
@@ -164,7 +194,7 @@ void TAC_generateReturn(AST_ExprNode *expr);
 /**
  * @brief Generuje cílový kód pro volání funkce
  *
- * @details Vytvoří temporary frame pro parametry funkce, najde definici funkce
+ * @details Vytvoří dočasný rámec pro parametry funkce, najde definici funkce
  *          a pro všechny parametry vyhodnotí hodnotu a uloží ji do parametru.
  *          Parametry pro vestavěné funkce nemají rámcový suffix.
  *
@@ -172,8 +202,22 @@ void TAC_generateReturn(AST_ExprNode *expr);
  */
 void TAC_generateFunctionCall(AST_FunCallNode *funCallNode);
 
+/**
+ * @brief Převede speciální znaky na escape sekvence
+ * 
+ * @details Převede speciální znaky na escape sekvence pro výpis do cílového kódu
+ * 
+ * @param [in] origin Ukazatel na řetězec, který chceme převést
+ */
 DString *TAC_convertSpecialSymbols(DString *origin);
 
+/**
+ * @brief Resetuje statické proměnné v generátoru
+ * 
+ * @details Resetuje statické proměnné count v if a while funkcích v případě
+ *          více testů v jednom spuštění.
+ * 
+ */
 void TAC_resetStatic();
 
 #endif // TAC_H_

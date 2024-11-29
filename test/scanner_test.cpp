@@ -7,7 +7,7 @@
  *                   Krejčí David       <xhyzapa00>                            *
  *                                                                             *
  * Datum:            9.10.2024                                                 *
- * Poslední změna:   22.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -626,7 +626,7 @@ TEST(FSM, FSM_OPERATOR_ERROR_2){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program hello.zig
  */
 TEST(Lex, Hello) {
-    string path = exam_path + "hello.zig";
+    string path = examPath + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -707,7 +707,7 @@ TEST(Lex, Hello) {
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program fun.zig
  */
 TEST(Lex, Fun) {
-    string path = exam_path + "fun.zig";
+    string path = examPath + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -860,7 +860,7 @@ TEST(Lex, Fun) {
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example1.zig
  */
 TEST(Lex, Example1){
-    string path = exam_path + "example1.zig";
+    string path = examPath + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1004,7 +1004,7 @@ TEST(Lex, Example1){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example2.zig
  */
 TEST(Lex, Example2) {
-    string path = exam_path + "example2.zig";
+    string path = examPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1153,7 +1153,7 @@ TEST(Lex, Example2) {
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example3.zig
  */
 TEST(Lex, Example3) {
-    string path = exam_path + "example3.zig";
+    string path = examPath + "example3.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1403,7 +1403,7 @@ TEST(Lex, Multiline){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi.zig
  */
 TEST(Lex, lex_test_multi){
-    string path = lex_path + "lex_test_multi.zig";
+    string path = lexPath + "lex_test_multi.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1514,7 +1514,7 @@ TEST(Lex, lex_test_multi){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi2.zig
  */
 TEST(Lex, lex_test_multi2){
-    string path = lex_path + "lex_test_multi2.zig";
+    string path = lexPath + "lex_test_multi2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1618,7 +1618,7 @@ TEST(Lex, lex_test_multi2){
  * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_string_escapes.zig
  */
 TEST(Lex, lex_test_string_escapes){
-    string path = lex_path + "lex_test_string_escapes.zig";
+    string path = lexPath + "lex_test_string_escapes.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1722,7 +1722,7 @@ TEST(Lex, lex_test_string_escapes){
  * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_comment.zig
  */
 TEST(Lex, Comment) {
-    string path = lex_path + "lex_test_comment.zig";
+    string path = lexPath + "lex_test_comment.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1783,7 +1783,7 @@ TEST(Lex, Comment) {
  * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_satanic.zig
  */
 TEST(Lex, Satanic) {
-    string path = lex_path + "lex_test_satanic.zig";
+    string path = lexPath + "lex_test_satanic.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1844,7 +1844,7 @@ TEST(Lex, Satanic) {
 TEST(Lex, UnterminatedString){
     for (int i = 1; i <= 4; i++) {
         string filename = "lex_test_unterminated_string_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = lex_path + filename;
+        string path = lexPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 

@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            26.11.2024                                                *
- * Poslední změna:   26.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -864,7 +864,7 @@ TEST(LLParserBasicsCorrect, IfCondition) {
 }
 
 TEST(LLParserExamples, Example1){
-    string path = exam_path + "example1.zig";
+    string path = exampPath + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -879,7 +879,7 @@ TEST(LLParserExamples, Example1){
 }
 
 TEST(LLParserExamples, Example2){
-    string path = exam_path + "example2.zig";
+    string path = exampPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -894,7 +894,7 @@ TEST(LLParserExamples, Example2){
 }
 
 TEST(LLParserExamples, Example3){
-    string path = exam_path + "example3.zig";
+    string path = exampPath + "example3.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -909,7 +909,7 @@ TEST(LLParserExamples, Example3){
 }
 
 TEST(LLParserExamples, Fun){
-    string path = exam_path + "fun.zig";
+    string path = exampPath + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -924,7 +924,7 @@ TEST(LLParserExamples, Fun){
 }
 
 TEST(LLParserExamples, Hello){
-    string path = exam_path + "hello.zig";
+    string path = exampPath + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -939,7 +939,7 @@ TEST(LLParserExamples, Hello){
 }
 
 TEST(LLParserExamples, Multiline){
-    string path = exam_path + "multiline.zig";
+    string path = exampPath + "multiline.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1040,7 +1040,7 @@ TEST(Correct, Simplest){
 }
 
 TEST(Correct, Hello){
-    string path = exam_path + "hello.zig";
+    string path = exampPath + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1054,7 +1054,7 @@ TEST(Correct, Hello){
 }
 
 TEST(Correct, Example1){
-    string path = exam_path + "example1.zig";
+    string path = exampPath + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1068,7 +1068,7 @@ TEST(Correct, Example1){
 }
 
 TEST(Correct, Example2){
-    string path = exam_path + "example2.zig";
+    string path = exampPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1082,7 +1082,7 @@ TEST(Correct, Example2){
 }
 
 TEST(Correct, Example3){
-    string path = exam_path + "example2.zig";
+    string path = exampPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1096,7 +1096,7 @@ TEST(Correct, Example3){
 }
 
 TEST(Correct, Fun){
-    string path = exam_path + "fun.zig";
+    string path = exampPath + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1851,7 +1851,7 @@ TEST(FifixSandy, BigTest) {
 
 TEST(FifixSandy, BigTest2) {
     // Načtení souboru s programem na STDIN
-    string path = sem_path + "fifixsandy_big_test2.zig";
+    string path = semPath + "fifixsandy_big_test2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;

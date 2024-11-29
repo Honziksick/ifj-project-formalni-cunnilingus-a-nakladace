@@ -6,7 +6,7 @@
  * Autor:            Hýža Pavel         <xhyzapa00>                            *
  *                                                                             *
  * Datum:            22.11.2024                                                *
- * Poslední změna:   26.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -20,16 +20,16 @@
  * @author Hýža Pavel \<xhyzapa00>
  *
  * @brief Vestavěné funkce jazyka IFJ24
- * @details Tento soubor obsahuje definice vestavěných funkcí jazyka IFJ24
- *          pomocí assembler instrukcí poskytovaných jazykem IFJcode24 pro
- *          generátor kódu tac_generator.
+ * @details Tento soubor obsahuje definice někteých vestavěných funkcí jazyka
+ *          IFJ24 pomocí assembler instrukcí poskytovaných jazykem IFJcode24
+ *          pro generátor kódu tac_generator.
  */
 
 #include "built_in_functions.h"
 
-void built_in_functions() {
+void TAC_builtInFunctions() {
 
-    char built_in_fun_substring[] = "\n\
+    char builtInFunSubstring[] = "\n\
         #---------------------------------------------------\n\
         #pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8\n\
         LABEL $$ifj$substring\n\
@@ -81,7 +81,7 @@ void built_in_functions() {
         \n\
         ";
 
-char built_in_fun_strcmp[] = "\n\
+char builtInFunStrcmp[] = "\n\
     #-----------------------------------------\n\
     #pub fn ifj.strcmp(s1: []u8, s2: []u8) i32\n\
         LABEL $$ifj$strcmp\n\
@@ -136,7 +136,7 @@ char built_in_fun_strcmp[] = "\n\
         \n\
         ";
 
-char built_in_fun_ord[] = "\n\
+char builtInFunOrd[] = "\n\
     #-----------------------------------------\n\
     #pub fn ifj.ord(s: []u8, i: i32) i32\n\
         LABEL $$ifj$ord\n\
@@ -168,9 +168,9 @@ char built_in_fun_ord[] = "\n\
         \n\
         ";
 
-    printf("%s", built_in_fun_substring);
-    printf("%s", built_in_fun_strcmp);
-    printf("%s", built_in_fun_ord);
+    printf("%s", builtInFunSubstring);
+    printf("%s", builtInFunStrcmp);
+    printf("%s", builtInFunOrd);
 }
 
 /*** Konec souboru built_in_functions.c ***/

@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            08.11.2024                                                *
- * Poslední změna:   19.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -32,12 +32,12 @@ using namespace std;
 using namespace testing;
 using namespace internal;
 
-string lex_path = "../test/test_examples/lexical_examples/";
-string exam_path = "../ifj24_examples/";
-string synt_path = "../test/test_examples/syntactic_examples/";
-string synt_error_path = synt_path + "syntax_error/";
-string sem_path = "../test/test_examples/semantic_examples/";
-string sem_error_path = sem_path + "semantic_error/";
+string lexPath = "../test/test_examples/lexical_examples/";
+string examPath = "../ifj24_examples/";
+string syntPath = "../test/test_examples/syntactic_examples/";
+string syntErrorPath = syntPath + "syntax_error/";
+string semPath = "../test/test_examples/semantic_examples/";
+string semErrorPath = semPath + "semantic_error/";
 
 /*******************************************************************************
  *                                                                             *

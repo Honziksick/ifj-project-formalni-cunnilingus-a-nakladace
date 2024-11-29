@@ -6,7 +6,7 @@
  * Autor:            Hýža Pavel         <xhyzapa00>                            *
  *                                                                             *
  * Datum:            22.11.2024                                                *
- * Poslední změna:   22.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -32,7 +32,7 @@
 
 #include <stdio.h>
 
-void built_in_functions();
+void TAC_builtInFunctions();
 
 
 #endif // BUILT_IN_H_

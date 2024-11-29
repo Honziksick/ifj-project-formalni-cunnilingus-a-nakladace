@@ -6,7 +6,7 @@
  * Autor:            Krejčí David   <xkrejcd00>                                *
  *                                                                             *
  * Datum:            11.11.2024                                                *
- * Poslední změna:   19.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -30,12 +30,14 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <math.h>
 #include "ast_nodes.h"
 #include "ast_interface.h"
 #include "frame_stack.h"
 #include "symtable.h"
 #include "error.h"
 
+#define SEMANTIC_OK 0
 
 typedef enum {
     SEM_DATA_UNKNOWN = 0,
@@ -119,14 +121,14 @@ ErrorType semantic_probeFunction(AST_FunDefNode *node);
  *          pomocné funkce podle typu příkazu. Je volána pro bloky funkcí,
  *          cyklů a podmínek. 
  * 
- * @param [in] fun_return Návratový typ funkce, ve které se blok nachází
+ * @param [in] funReturn Návratový typ funkce, ve které se blok nachází
  * @param [in] statement Ukazatel na uzel bloku (první příkaz)
  * @param [out] returned Ukazatel na proměnnou, do které se uloží, zda byla
  *                      nalezena návratová hodnota
  * 
  * @return  '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  */
-ErrorType semantic_probeBlock(Semantic_Data fun_return,
+ErrorType semantic_probeBlock(Semantic_Data funReturn,
                               AST_StatementNode *statement, bool* returned);
 
 
@@ -150,13 +152,13 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement);
  *          nastaví typ a hodnotu. Pro binární operátory a volání funkcí volá
  *          další funkce (semantic_analyseFunCall, semantic_analyseBinOp).
  * 
- * @param [in] expr_node Ukazatel na uzel výrazu
+ * @param [in] exprNode Ukazatel na uzel výrazu
  * @param [out] type Ukazatel na proměnnou, do které se uloží typ výrazu
  * @param [out] value Ukazatel na proměnnou, do které se uloží hodnota výrazu
  * 
  * @return  '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  */
-ErrorType semantic_analyseExpr(AST_ExprNode *expr_node, Semantic_Data *type, void **value);
+ErrorType semantic_analyseExpr(AST_ExprNode *exprNode, Semantic_Data *type, void **value);
 
 /**
  * @brief Provede sémantickou analýzu binárního operátoru
@@ -181,11 +183,11 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
  *          ifj.write a ifj.string volá konktrétní funkce pro kontrolu,
  *          protože argumenty mohou mít více typů.
  * 
- * @param [in] fun_node Ukazatel na uzel volání funkce
- * @param [out] return_type Ukazatel na proměnnou, do které se uloží návratový typ
+ * @param [in] funNode Ukazatel na uzel volání funkce
+ * @param [out] returnType Ukazatel na proměnnou, do které se uloží návratový typ
  * 
  */
-ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *return_type);
+ErrorType semantic_analyseFunCall(AST_FunCallNode *funNode, Semantic_Data *returnType);
 
 /**
  * @brief Provede sémantickou analýzu podmíněného příkazu if
@@ -193,15 +195,15 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *fun_node, Semantic_Data *retu
  * @details Provede sémantickou analýzu podmínky, která má buď pravdivostní typ
  *          nebo typ s null. Provede sémantickou analýzu bloků then a else.
  * 
- * @param [in] fun_return Návratový typ funkce, ve které se blok nachází
- * @param [in] if_node Ukazatel na uzel podmíněného příkazu if
+ * @param [in] funReturn Návratový typ funkce, ve které se blok nachází
+ * @param [in] ifNode Ukazatel na uzel podmíněného příkazu if
  * @param [out] returned Ukazatel na proměnnou, do které se uloží, zda byla
  *                     v then i else nalezena návratová hodnota
  * 
  * @return  '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  */
-ErrorType semantic_analyseIf(Semantic_Data fun_return,       \
-                             AST_IfNode *if_node, bool *returned);
+ErrorType semantic_analyseIf(Semantic_Data funReturn,       \
+                             AST_IfNode *ifNode, bool *returned);
 
 /**
  * @brief Provede sémantickou analýzu cyklu while
@@ -209,15 +211,15 @@ ErrorType semantic_analyseIf(Semantic_Data fun_return,       \
  * @details Provede sémantickou analýzu podmínky, která musí mít pravdivostní typ.
  *          Provede sémantickou analýzu těla cyklu.
  * 
- * @param [in] fun_return Návratový typ funkce, ve které se blok nachází
- * @param [in] while_node Ukazatel na uzel cyklu while
+ * @param [in] funReturn Návratový typ funkce, ve které se blok nachází
+ * @param [in] whileNode Ukazatel na uzel cyklu while
  * @param [out] returned Ukazatel na proměnnou, do které se uloží, zda byla
  *                    v těle cyklu nalezena návratová hodnota
  * 
  * @return  '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  */
-ErrorType semantic_analyseWhile(Semantic_Data fun_return,       \
-                                AST_WhileNode *while_node, bool *returned);
+ErrorType semantic_analyseWhile(Semantic_Data funReturn,       \
+                                AST_WhileNode *whileNode, bool *returned);
 
 /**
  * @brief Provede sémantickou analýzu návratového příkazu return
@@ -225,14 +227,14 @@ ErrorType semantic_analyseWhile(Semantic_Data fun_return,       \
  * @details Provede sémantickou analýzu výrazu, který musí být kompatibilní
  *         s návratovým typem funkce.
  * 
- * @param [in] fun_return Návratový typ funkce
+ * @param [in] funReturn Návratový typ funkce
  * @param [in] node Ukazatel na uzel návratového příkazu return
  * 
  * @return  '0', pokud nebyla nalezena sémantická chyba, jinak kód chyby
  */
-ErrorType semantic_analyseReturn(Semantic_Data fun_return, AST_ExprNode *node);
+ErrorType semantic_analyseReturn(Semantic_Data funReturn, AST_ExprNode *node);
 
-ErrorType semantic_analyseCondition(AST_IfNode *if_while_node);
+ErrorType semantic_analyseCondition(AST_IfNode *ifWhileNode);
 
 /**
  * @brief Vyhodnotí, zda lze provést přiřazení z typu from do typu to
@@ -254,12 +256,12 @@ ErrorType semantic_compatibleAssign(Semantic_Data to, Semantic_Data from);
  *          to znamená, že vrací 0 pokud typy nejsou rovnou kompatibilní,
  *          ale je šance, že se dají převést.
  * 
- * @param [in] type_1 Typ 1
- * @param [in] type_2 Typ 2
+ * @param [in] type1 Typ 1
+ * @param [in] type2 Typ 2
  * 
  * @return  '0', pokud je operace možná, jinak kód chyby
  */
-ErrorType semantic_compatibleRelation(Semantic_Data type_1, Semantic_Data type_2);
+ErrorType semantic_compatibleRelation(Semantic_Data type1, Semantic_Data type2);
 
 /**
  * @brief Vyhodnotí, zda lze provést rovnostní operaci mezi typy
@@ -268,12 +270,12 @@ ErrorType semantic_compatibleRelation(Semantic_Data type_1, Semantic_Data type_2
  *          Počítá s možností konverze, to znamená, že vrací 0 pokud typy
  *          nejsou rovnou kompatibilní, ale je šance, že se dají převést.
  * 
- * @param [in] type_1 Typ 1
- * @param [in] type_2 Typ 2
+ * @param [in] type1 Typ 1
+ * @param [in] type2 Typ 2
  * 
  * @return  '0', pokud je operace možná, jinak kód chyby
  */
-ErrorType semantic_compatibleEqual(Semantic_Data type_1, Semantic_Data type_2);
+ErrorType semantic_compatibleEqual(Semantic_Data type1, Semantic_Data type2);
 
 /**
  * @brief Vyhodnotí, zda lze provést aritmetickou operaci mezi typy
@@ -281,12 +283,12 @@ ErrorType semantic_compatibleEqual(Semantic_Data type_1, Semantic_Data type_2);
  * @details Typy musí být číselné. Počítá s možností konverze, to znamená,
  *          že typy mohou být různé, ale musí být oba číselné.
  * 
- * @param [in] type_1 Typ 1
- * @param [in] type_2 Typ 2
+ * @param [in] type1 Typ 1
+ * @param [in] type2 Typ 2
  * 
  * @return  '0', pokud je operace možná, jinak kód chyby
  */
-ErrorType semantic_compatibleArithmetic(Semantic_Data type_1, Semantic_Data type_2);
+ErrorType semantic_compatibleArithmetic(Semantic_Data type1, Semantic_Data type2);
 
 /**
  * @brief Převede hodnotu z typu float na typ int
@@ -348,12 +350,12 @@ AST_LiteralType semantic_semToLiteral(Semantic_Data type);
 /**
  * @brief Kontroluje počet parametrů volání funkce ifj.write
  */
-ErrorType semantic_checkIFJWrite(AST_FunCallNode *fun_node);
+ErrorType semantic_checkIFJWrite(AST_FunCallNode *funNode);
 
 /**
  * @brief Kontroluje typ a počet parametrů volání funkce ifj.string
  */
-ErrorType semantic_checkIFJString(AST_FunCallNode *fun_node);
+ErrorType semantic_checkIFJString(AST_FunCallNode *funNode);
 
 #endif // SEMANTIC_ANALYSER_H_
 

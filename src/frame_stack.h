@@ -7,7 +7,7 @@
  *                   David Krejčí <xkrejcd00> (návrh)                          *
  *                                                                             *
  * Datum:            30.10.2024                                                *
- * Poslední změna:   9.11.2024                                                 *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -166,7 +166,7 @@ frame_stack_result frameStack_pop();
  *          na @c true.
  *
  * @param [in]  key Klíč hledané položky.
- * @param [out] out_item Ukazatel pro uložení nalezené položky.
+ * @param [out] outItem Ukazatel pro uložení nalezené položky.
  * @return - @c FRAME_STACK_SUCCESS při úspěchu.
  *         - @c FRAME_STACK_ITEM_DOESNT_EXIST pokud se položka s daným klíčem
  *           nenachází v rozsahu platnosti.
@@ -175,7 +175,7 @@ frame_stack_result frameStack_pop();
  *         - @c FRAME_STACK_ALLOCATION_FAIL pokud selhalo alokování paměti
  *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
-frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item);
+frame_stack_result frameStack_findItem(DString *key, SymtableItem **outItem);
 
 /**
  * @brief Přidá novou položku do vrchního rámce zásobníku.
@@ -183,7 +183,7 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item);
  * @details Přidá novou položku do tabulky symbolů ve vrcholovém rámci zásobníku.
  *
  * @param [in]  key Klíč nové položky.
- * @param [out] out_item Ukazatel pro uložení přidané položky nebo již
+ * @param [out] outItem Ukazatel pro uložení přidané položky nebo již
  *                       existující položky nebo NULL,
  *                       pokud není vrácení potřeba
  * @return - @c FRAME_STACK_SUCCESS při úspěchu.
@@ -194,7 +194,7 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item);
  *         - @c FRAME_STACK_ALLOCATION_FAIL pokud selhalo alokování paměti
  *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
-frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item);
+frame_stack_result frameStack_addItem(DString *key, SymtableItem **outItem);
 
 /**
  * @brief Přidá novou položku s daty do vrchního rámce zásobníku.
@@ -206,7 +206,7 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item);
  * @param [in] state Stav symbolu
  * @param [in] constant Příznak, zda je položka konstantní
  * @param [in] data Ukazatel na data, která se mají uložit
- * @param [in] out_item Ukazatel, kam se má vrátit přidaná položka (výstupní parametr)
+ * @param [in] outItem Ukazatel, kam se má vrátit přidaná položka (výstupní parametr)
  *                  Pokud je NULL, položka není vrácena.
  *
  * @return - @c FRAME_STACK_SUCCESS při úspěchu.
@@ -218,7 +218,7 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item);
  *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
 frame_stack_result frameStack_addItemExpress(DString *key,
-                    symtable_symbolState state, bool constant, void* data, SymtableItem **out_item);
+                    symtable_symbolState state, bool constant, void* data, SymtableItem **outItem);
 
 /**
  * @brief Vrátí ID rámce, ve kterém je položka s daným klíčem.

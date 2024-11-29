@@ -6,7 +6,7 @@
  * Autor:            Krejčí David   <xkrejcd00>                                *
  *                                                                             *
  * Datum:            17.11.2024                                                *
- * Poslední změna:   20.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -39,32 +39,13 @@ void TestSemantic(){
     semantic_analyseProgram();
     exit(0);
 }
-/*
-TEST(Incorrect, VoidFunctionReturnExpr){
-    string filename = "void_function_return_expression.zig";
-    string path = sem_path + filename;
 
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
-
-    FILE* stdin_backup = stdin;
-    stdin = f;
-
-    // Sémantická analýza by měl skončit chybou
-    LLparser_parseProgram();
-    semantic_analyseProgram();
-
-    // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
-    fclose(f);
-}
-*/
 
 TEST(FifixSandy, HodyHodyDejteBodyFUNEXP){
-    string path = sem_path + "fifixsandy_test_hodyhodydejtebodyFUNEXP.zig";
+    string path = semPath + "fifixsandy_test_hodyhodydejtebodyFUNEXP.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
     
     LLparser_parseProgram();
@@ -75,17 +56,17 @@ TEST(FifixSandy, HodyHodyDejteBodyFUNEXP){
 
     IFJ24Compiler_freeAllAllocatedMemory();
 
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 
 TEST(FifixSandy, StringTestFUNEXP){
-    string path = sem_path + "fifixsandy_string_testFUNEXP.zig";
+    string path = semPath + "fifixsandy_string_testFUNEXP.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
     
     LLparser_parseProgram();
@@ -96,16 +77,16 @@ TEST(FifixSandy, StringTestFUNEXP){
 
     IFJ24Compiler_freeAllAllocatedMemory();
 
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(FifixSandy, Test7){
-    string path = sem_path + "fifixsandy_test_7.zig";
+    string path = semPath + "fifixsandy_test_7.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
     
     LLparser_parseProgram();
@@ -116,16 +97,16 @@ TEST(FifixSandy, Test7){
 
     IFJ24Compiler_freeAllAllocatedMemory();
 
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(FifixSandy, Substring){
-    string path = sem_path + "fifixsandy_test_substring.zig";
+    string path = semPath + "fifixsandy_test_substring.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
     
     LLparser_parseProgram();
@@ -134,16 +115,16 @@ TEST(FifixSandy, Substring){
 
     IFJ24Compiler_freeAllAllocatedMemory();
 
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Simplest){
-    string path = sem_path + "simplest.zig";
+    string path = semPath + "simplest.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
     
     LLparser_parseProgram();
@@ -169,537 +150,537 @@ TEST(Correct, Simplest){
     semantic_analyseProgram();
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 
 TEST(Correct, Hello){
-    string path = exam_path + "hello.zig";
+    string path = examPath + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Example1){
-    string path = exam_path + "example1.zig";
+    string path = examPath + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
     
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Example2){
-    string path = exam_path + "example2.zig";
+    string path = examPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Example3){
-    string path = exam_path + "example2.zig";
+    string path = examPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Fun){
-    string path = exam_path + "fun.zig";
+    string path = examPath + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Implicit_to_float){
-    string path = sem_path + "implicit_to_float.zig";
+    string path = semPath + "implicit_to_float.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Implicit_to_int){
-    string path = sem_path + "implicit_to_int.zig";
+    string path = semPath + "implicit_to_int.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Pseudo){
-    string path = sem_path + "pseudo.zig";
+    string path = semPath + "pseudo.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Pseudo2){
-    string path = sem_path + "pseudo2.zig";
+    string path = semPath + "pseudo2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Inference){
-    string path = sem_path + "type_inference_good.zig";
+    string path = semPath + "type_inference_good.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 
 TEST(Correct, Void_fun){
-    string path = sem_path + "void_fun_good.zig";
+    string path = semPath + "void_fun_good.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Correct, Void_fun2){
-    string path = sem_path + "void_fun_good2.zig";
+    string path = semPath + "void_fun_good2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
     
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(0), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 
 TEST(Incorrect, Undefined_Var){
-    string path = sem_path + "semen_test_1_undefined_var.zig";
+    string path = semPath + "semen_test_1_undefined_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Undefined_Fun){
-    string path = sem_path + "semen_test_2_undefined_fun.zig";
+    string path = semPath + "semen_test_2_undefined_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 
 TEST(Incorrect, ParamCount){
-    string path = sem_path + "semen_test_3_wrong_number_of_parameters_in_fun.zig";
+    string path = semPath + "semen_test_3_wrong_number_of_parameters_in_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, ParamType){
-    string path = sem_path + "semen_test_4_wrong_type_of_parameters_in_fun.zig";
+    string path = semPath + "semen_test_4_wrong_type_of_parameters_in_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Return){
-    string path = sem_path + "semen_test_5_incompatible_return_value.zig";
+    string path = semPath + "semen_test_5_incompatible_return_value.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Return2){
-    string path = sem_path + "semen_test_6_missing_return.zig";
+    string path = semPath + "semen_test_6_missing_return.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(6), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Return3){
-    string path = sem_path + "semen_test_7_missing_return_completely.zig";
+    string path = semPath + "semen_test_7_missing_return_completely.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(6), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Redefined_Var){
-    string path = sem_path + "semen_test_8_redefining_var.zig";
+    string path = semPath + "semen_test_8_redefining_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
     
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(5), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Redefined_Fun){
-    string path = sem_path + "semen_test_9_redefining_fun.zig";
+    string path = semPath + "semen_test_9_redefining_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(5), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, ConstAssign){
-    string path = sem_path + "semen_test_10_assigning_value_to_const.zig";
+    string path = semPath + "semen_test_10_assigning_value_to_const.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(5), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, AssignType){
-    string path = sem_path + "semen_test_11_uncompatible_assignment_1.zig";
+    string path = semPath + "semen_test_11_uncompatible_assignment_1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(7), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, AssignType2){
-    string path = sem_path + "semen_test_12_uncompatible_assignment_2.zig";
+    string path = semPath + "semen_test_12_uncompatible_assignment_2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(7), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Unused_Var){
-    string path = sem_path + "semen_test_13_unused_variable.zig";
+    string path = semPath + "semen_test_13_unused_variable.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(9), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 
 TEST(Incorrect, MainInt){
-    string path = sem_path + "main_type_int.zig";
+    string path = semPath + "main_type_int.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, NoMain){
-    string path = sem_path + "missing_main.zig";
+    string path = semPath + "missing_main.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(3), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Prolog){
-    string path = sem_path + "prolog_issue.zig";
+    string path = semPath + "prolog_issue.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
  
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(2), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Prolog2){
-    string path = sem_path + "prolog_issue2.zig";
+    string path = semPath + "prolog_issue2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(2), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Inference){
-    string path = sem_path + "type_inference.zig";
+    string path = semPath + "type_inference.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
     
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Inference2){
-    string path = sem_path + "type_inference2.zig";
+    string path = semPath + "type_inference2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
     
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Unchanged_var){
-    string path = sem_path + "unchanged_var.zig";
+    string path = semPath + "unchanged_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(9), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Unused_value){
-    string path = sem_path + "unused_value.zig";
+    string path = semPath + "unused_value.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(2), "");
     
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Unused_value2){
-    string path = sem_path + "unused_value2.zig";
+    string path = semPath + "unused_value2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(4), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
 
 TEST(Incorrect, Void_fun){
-    string path = sem_path + "void_fun_bad.zig";
+    string path = semPath + "void_fun_bad.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     EXPECT_EXIT(TestSemantic(), ExitedWithCode(8), "");
 
     IFJ24Compiler_freeAllAllocatedMemory();
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
     ASTroot = NULL;
 }
@@ -707,12 +688,12 @@ TEST(Incorrect, Void_fun){
 
 TEST(Incorrect, CantDetermineNullCondType){
     string filename = "cant_determine_nullcond_type.zig";
-    string path = sem_path + filename;
+    string path = semPath + filename;
 
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
 
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     // Sémantická analýza by měl skončit chybou
@@ -722,18 +703,18 @@ TEST(Incorrect, CantDetermineNullCondType){
     IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
 }
 
 TEST(Correct, TypeCasting){
     string filename = "more_advanced_type_casting.zig";
-    string path = sem_path + filename;
+    string path = semPath + filename;
 
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
 
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
 
     // Sémantická analýza by měl skončit chybou
@@ -743,21 +724,21 @@ TEST(Correct, TypeCasting){
     IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
 }
 
 TEST(SemanticError, Error3_UndefinedVariable){
     for (int i = 1; i <= 8; i++) {
         string filename = "error_3_undef_var_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
         
-        FILE* stdin_backup = stdin;
+        FILE* stdinBackup = stdin;
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
@@ -769,7 +750,7 @@ TEST(SemanticError, Error3_UndefinedVariable){
         IFJ24Compiler_freeAllAllocatedMemory();
 
         // Navrácení STDIN do původního stavu a uzavření souboru
-        stdin = stdin_backup;
+        stdin = stdinBackup;
         fclose(f);
     }
 }
@@ -777,14 +758,14 @@ TEST(SemanticError, Error3_UndefinedVariable){
 TEST(SemanticError, Error3_UndefinedFunction){
     for (int i = 1; i <= 8; i++) {
         string filename = "error_3_undef_fun_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
         
-        FILE* stdin_backup = stdin;
+        FILE* stdinBackup = stdin;
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
@@ -796,7 +777,7 @@ TEST(SemanticError, Error3_UndefinedFunction){
         IFJ24Compiler_freeAllAllocatedMemory();
 
         // Navrácení STDIN do původního stavu a uzavření souboru
-        stdin = stdin_backup;
+        stdin = stdinBackup;
         fclose(f);
     }
 }
@@ -804,14 +785,14 @@ TEST(SemanticError, Error3_UndefinedFunction){
 TEST(SemanticError, Error3_UndefinedIFJFunction){
     for (int i = 1; i <= 8; i++) {
         string filename = "error_3_undef_ifj_fun_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
         
-        FILE* stdin_backup = stdin;
+        FILE* stdinBackup = stdin;
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
@@ -823,7 +804,7 @@ TEST(SemanticError, Error3_UndefinedIFJFunction){
         IFJ24Compiler_freeAllAllocatedMemory();
 
         // Navrácení STDIN do původního stavu a uzavření souboru
-        stdin = stdin_backup;
+        stdin = stdinBackup;
         fclose(f);
     }
 }
@@ -831,14 +812,14 @@ TEST(SemanticError, Error3_UndefinedIFJFunction){
 TEST(SemanticError, Error4_WrongNumberOfFunParams){
     for (int i = 1; i <= 10; i++) {
         string filename = "error_4_wrong_num_of_fun_params_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
         
-        FILE* stdin_backup = stdin;
+        FILE* stdinBackup = stdin;
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
@@ -850,7 +831,7 @@ TEST(SemanticError, Error4_WrongNumberOfFunParams){
         IFJ24Compiler_freeAllAllocatedMemory();
 
         // Navrácení STDIN do původního stavu a uzavření souboru
-        stdin = stdin_backup;
+        stdin = stdinBackup;
         fclose(f);
     }
 }
@@ -858,14 +839,14 @@ TEST(SemanticError, Error4_WrongNumberOfFunParams){
 TEST(SemanticError, Error4_WrongParamType){
     for (int i = 1; i <= 8; i++) {
         string filename = "error_4_wrong_param_type_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
         
-        FILE* stdin_backup = stdin;
+        FILE* stdinBackup = stdin;
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
@@ -877,7 +858,7 @@ TEST(SemanticError, Error4_WrongParamType){
         IFJ24Compiler_freeAllAllocatedMemory();
 
         // Navrácení STDIN do původního stavu a uzavření souboru
-        stdin = stdin_backup;
+        stdin = stdinBackup;
         fclose(f);
     }
 }
@@ -885,14 +866,14 @@ TEST(SemanticError, Error4_WrongParamType){
 TEST(SemanticError, Error4_WrongFunReturnType){
     for (int i = 1; i <= 3; i++) {
         string filename = "error_4_wrong_param_type_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
         
-        FILE* stdin_backup = stdin;
+        FILE* stdinBackup = stdin;
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
@@ -904,7 +885,7 @@ TEST(SemanticError, Error4_WrongFunReturnType){
         IFJ24Compiler_freeAllAllocatedMemory();
 
         // Navrácení STDIN do původního stavu a uzavření souboru
-        stdin = stdin_backup;
+        stdin = stdinBackup;
         fclose(f);
     }
 }
@@ -912,14 +893,14 @@ TEST(SemanticError, Error4_WrongFunReturnType){
 TEST(SemanticError, Error4_ReturnValueDump){
     for (int i = 1; i <= 2; i++) {
         string filename = "error_4_return_value_dump_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
         
-        FILE* stdin_backup = stdin;
+        FILE* stdinBackup = stdin;
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
@@ -931,7 +912,7 @@ TEST(SemanticError, Error4_ReturnValueDump){
         IFJ24Compiler_freeAllAllocatedMemory();
 
         // Navrácení STDIN do původního stavu a uzavření souboru
-        stdin = stdin_backup;
+        stdin = stdinBackup;
         fclose(f);
     }
 }
@@ -939,14 +920,14 @@ TEST(SemanticError, Error4_ReturnValueDump){
 TEST(SemanticError, Error5_VariableRedefinition){
     for (int i = 1; i <= 10; i++) {
         string filename = "error_5_variable_redefinition_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
         
-        FILE* stdin_backup = stdin;
+        FILE* stdinBackup = stdin;
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
@@ -958,7 +939,7 @@ TEST(SemanticError, Error5_VariableRedefinition){
         IFJ24Compiler_freeAllAllocatedMemory();
 
         // Navrácení STDIN do původního stavu a uzavření souboru
-        stdin = stdin_backup;
+        stdin = stdinBackup;
         fclose(f);
     }
 }
@@ -966,14 +947,14 @@ TEST(SemanticError, Error5_VariableRedefinition){
 TEST(SemanticError, Error6_ReturnExp){
     for (int i = 1; i <= 21; i++) {
         string filename = "error_6_return_exp_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
         
-        FILE* stdin_backup = stdin;
+        FILE* stdinBackup = stdin;
         stdin = f;
 
         // Sémantická analýza by měl skončit chybou
@@ -985,7 +966,7 @@ TEST(SemanticError, Error6_ReturnExp){
         IFJ24Compiler_freeAllAllocatedMemory();
 
         // Navrácení STDIN do původního stavu a uzavření souboru
-        stdin = stdin_backup;
+        stdin = stdinBackup;
         fclose(f);
     }
 }
