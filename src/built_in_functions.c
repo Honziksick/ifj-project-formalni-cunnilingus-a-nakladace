@@ -60,7 +60,7 @@ void built_in_functions() {
         \n\
         LABEL $$$while\n\
         \n\
-            JUMPIFEQ $$$sub_end LF@i LF@j\n\
+            JUMPIFEQ $$$substring_success LF@i LF@j\n\
             \n\
             GETCHAR GF@?tempSRC1 LF@s LF@i\n\
             CONCAT GF@?tempDEST GF@?tempDEST GF@?tempSRC1\n\
@@ -69,9 +69,12 @@ void built_in_functions() {
         \n\
         LABEL $$$null\n\
             PUSHS nil@nil\n\
+            JUMP $$$substring_end\n\
         \n\
-        LABEL $$$sub_end\n\
+        LABEL $$$substring_success\n\
             PUSHS GF@?tempDEST\n\
+        \n\
+        LABEL $$$substring_end\n\
         \n\
         POPFRAME\n\
         RETURN\n\
