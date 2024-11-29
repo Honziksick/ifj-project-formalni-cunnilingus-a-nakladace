@@ -542,10 +542,19 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             printf("POPS GF@?tempSRC2\n");
             printf("STRI2INT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n");
             printf("PUSHS GF@?tempDEST\n");
+            return;
         }
         else if(string_compare_const_str(funCallNode->identifier, "chr") == STRING_EQUAL) {
             TAC_generateExpression(funCallNode->arguments->expression);
-            printf("INT2CHARS GF@?tempDEST GF@?tempSRC1\n");
+
+            // THE HOLY EMPEROR WAS HERE: Změna zásobníkové INT2CHARS na parametrickou INT2CHAR
+            // printf("INT2CHARS GF@?tempDEST GF@?tempSRC1\n");
+
+            // THE NEW HOLY ifj.chr
+            printf("POPS GF@?tempSRC1\n");
+            printf("INT2CHAR GF@?tempDEST GF@?tempSRC1\n");
+            printf("PUSHS GF@?tempDEST\n");
+            return;
         }
     }
 
