@@ -28,7 +28,10 @@
 #include "scanner.h"
 #include "parser_common.h"
 
-//NEW STUFF
+
+/**
+ * @brief Globální proměnné scanneru.
+ */
 int lex_char;
 bool lex_stopFSM;
 bool lex_keyflag;

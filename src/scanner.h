@@ -39,17 +39,33 @@
 
 
 /**
+ * @brief Globální proměnné scanneru.
+ * 
+ * @details int lex_char        - Uchování hodnoty znaku v podobě int.
+ *          bool lex_stopFSM    - Ano/Ne proměnná sloužící pro ukončení/pokračování chodu FSM dle potřeby.
+ *          bool lex_keyflag    - Ano/Ne proměnná sloužící pro zaznamená, zda došlo k vytvoření Tokenu s klíčovým slovem.
+ *          StateFSM lex_state  - Enum proměnná sloužící pro ovládání podstavů v rámci vyšších stavů FSM.
+ *                                Je jednotná pro všechny vyšší stavy (funkce).
+ */
+int lex_char;
+bool lex_stopFSM;
+bool lex_keyflag;
+StateFSM lex_state;
+
+
+
+/**
  * @brief Enum různých typů Tokenů.
  *
  * @details Tokeny se dělí podle odstavců: Základní, Jednoduché operátory, Složité operátory, Klíčová slova, Neinicializováno
  */
 typedef enum {
-    //Základní
+    //Základní (4)
     TOKEN_IDENTIFIER = 1,
     TOKEN_INT = 2,
     TOKEN_FLOAT = 3,
     TOKEN_STRING = 4,
-    //Jednoduché operátory
+    //Jednoduché operátory (11)
     TOKEN_LEFT_PARENTHESIS = 5,
     TOKEN_RIGHT_PARENTHESIS = 6,
     TOKEN_ASTERISK = 7,
@@ -61,7 +77,7 @@ typedef enum {
     TOKEN_LEFT_CURLY_BRACKET = 13,
     TOKEN_VERTICAL_BAR = 14,
     TOKEN_RIGHT_CURLY_BRACKET = 15,
-    //Složité operátory
+    //Složité operátory (10)
     TOKEN_PERIOD = 16,
     TOKEN_EQUALITY_SIGN = 17,
     TOKEN_SLASH = 18,
@@ -72,7 +88,7 @@ typedef enum {
     TOKEN_GREATER_THAN = 23,
     TOKEN_GREATER_EQUAL_THAN = 24,
     TOKEN_EOF = 25,
-    //Klíčová slova
+    //Klíčová slova (19)
     TOKEN_K_const = 26,
     TOKEN_K_var = 27,
     TOKEN_K_i32 = 28,
@@ -92,7 +108,7 @@ typedef enum {
     TOKEN_K_import = 42,
     TOKEN_K_underscore = 43,
     TOKEN_K_ifj = 44,
-    //Neinicializováno
+    //Neinicializováno (1)
     TOKEN_UNINITIALIZED = 45
 } TokenType;
 
