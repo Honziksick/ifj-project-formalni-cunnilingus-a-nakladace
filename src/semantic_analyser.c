@@ -328,7 +328,9 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
 
     // Pokud známe hodnotu operace, tak ve stromě změníme operaci na literál
     if(value != NULL) {
-        //TODO
+        if(*value != NULL) {
+            free(*value);
+        }
     }
     //TODO
 
@@ -382,6 +384,7 @@ ErrorType semantic_analyseAssignmentBinOp(AST_BinOpNode *binNode,
     }
 
     item->changed = true;
+    item->knownValue = false;
     return SEMANTIC_OK;
     
 }  // semantic_analyseAssignmentBinOp
@@ -392,50 +395,50 @@ ErrorType semantic_analyseAssignmentBinOp(AST_BinOpNode *binNode,
 ErrorType semantic_analyseArithmeticBinOp(AST_BinOpNode *binNode,
                                           Semantic_Data *type, void **value) {
     // Zjistíme typy a hodnoty operandů
-    Semantic_Data left_type;
-    Semantic_Data right_type;
-    void *left_value;
-    void *right_value;
+    Semantic_Data leftType;
+    Semantic_Data rightType;
+    void *leftValue = NULL;
+    void *rightValue = NULL;
 
     // Zjistíme typy a hodnoty operandů
-    ErrorType result = semantic_analyseExpr(binNode->left, &left_type, &left_value);
+    ErrorType result = semantic_analyseExpr(binNode->left, &leftType, &leftValue);
     if(result != SEMANTIC_OK) {
         return result;
     }
 
-    result = semantic_analyseExpr(binNode->right, &right_type, &right_value);
+    result = semantic_analyseExpr(binNode->right, &rightType, &rightValue);
     if(result != SEMANTIC_OK) {
         return result;
     }
     
-    result = semantic_compatibleArithmetic(left_type, right_type);
+    result = semantic_compatibleArithmetic(leftType, rightType);
     if(result != 0) {
         return result;
     }
 
-    /* Pokud známe obě hodnoty, tak můžeme uzel nahradit
-    if(left_value != NULL && right_value != NULL) {
-        AST_VarNode* new_node = semantic_magic(node);
-    }*/
-
-    // Pokud jsou typy stejné, tak nic neřešíme
-    if(left_type == right_type) {
-        *type = left_type;
-        if(value != NULL) {
+    // Pokud jsou typy stejné, tak je vše v pořádku
+    if(leftType == rightType) {
+        *type = leftType;
+        // Pokud známe hodnotu výrazu, tak ji zjistíme
+        /*if(value != NULL && leftValue != NULL && rightValue != NULL) {
+            result = semantic_getArithmeticValue(*type, leftValue, rightValue,
+                                                    binNode->op, value);
+        }*/
+       if(value != NULL) {
             *value = NULL;
         }
-        return 0;
+        return result;
     }
 
     // Pokud neznáme ani jednu hodnotu a typy nejsou stejné, tak je chyba
-    if(left_value == NULL && right_value == NULL) {
+    if(leftValue == NULL && rightValue == NULL) {
         return ERROR_SEM_TYPE_COMPATIBILITY;
     }
 
     // Pokud jsou typy rozdílné, tak se pokusíme o konverzi
     // Levý typ je celočíselný
-    if(left_type == SEM_DATA_INT) {
-        if(left_value != NULL) {
+    if(leftType == SEM_DATA_INT) {
+        if(leftValue != NULL) {
             // Konvertujeme left na float
             result = semantic_toFloat(binNode->left);
             *type = SEM_DATA_FLOAT;
@@ -446,7 +449,7 @@ ErrorType semantic_analyseArithmeticBinOp(AST_BinOpNode *binNode,
             *type = SEM_DATA_INT;
         }
     }else{
-        if(right_value != NULL) {
+        if(rightValue != NULL) {
             // Konvertujeme right na float
             result = semantic_toFloat(binNode->right);
             *type = SEM_DATA_FLOAT;
@@ -456,11 +459,15 @@ ErrorType semantic_analyseArithmeticBinOp(AST_BinOpNode *binNode,
             *type = SEM_DATA_INT;
         }
     }
+
+    if(result != 0) {
+        return result;
+    }
         
     // Pokusíme zjistíme hodnotu výrazu
-    /*if(left_value != NULL && right_value != NULL && value != NULL) {
+    if(value != NULL) {
         *value = NULL;
-    }*/
+    }
     return SEMANTIC_OK;
 }  // semantic_analyseArithmetic
 
@@ -470,53 +477,53 @@ ErrorType semantic_analyseArithmeticBinOp(AST_BinOpNode *binNode,
 ErrorType semantic_analyseRelationBinOp(AST_BinOpNode *binNode,
                                         Semantic_Data *type, void **value) {
     // Zjistíme typy a hodnoty operandů
-    Semantic_Data left_type;
-    Semantic_Data right_type;
-    void *left_value;
-    void *right_value;
+    Semantic_Data leftType;
+    Semantic_Data rightType;
+    void *leftValue;
+    void *rightValue;
 
     // Zjistíme typy a hodnoty operandů
-    ErrorType result = semantic_analyseExpr(binNode->left, &left_type, &left_value);
+    ErrorType result = semantic_analyseExpr(binNode->left, &leftType, &leftValue);
     if(result != SEMANTIC_OK) {
         return result;
     }
 
-    result = semantic_analyseExpr(binNode->right, &right_type, &right_value);
+    result = semantic_analyseExpr(binNode->right, &rightType, &rightValue);
     if(result != SEMANTIC_OK) {
         return result;
     }
 
-    result = semantic_compatibleEqual(left_type, right_type);
+    result = semantic_compatibleEqual(leftType, rightType);
     if(result != 0) {
         return result;
     }
 
     // Jedná se o relační operátor
     if(binNode->op == AST_OP_EQUAL || binNode->op == AST_OP_NOT_EQUAL) {
-        result = semantic_compatibleEqual(left_type, right_type);
+        result = semantic_compatibleEqual(leftType, rightType);
         if(result != 0) {
             return result;
         }
 
         // Pokud je jeden typ i32 a druhý f64, tak se pokusíme o konverzi
-        if(left_type == SEM_DATA_INT && right_type == SEM_DATA_FLOAT) {
-            if(left_value != NULL) {
+        if(leftType == SEM_DATA_INT && rightType == SEM_DATA_FLOAT) {
+            if(leftValue != NULL) {
                 //konverze left na float
                 result = semantic_toFloat(binNode->left);
                 *type = SEM_DATA_FLOAT;
-            }else if(right_value != NULL) {
+            }else if(rightValue != NULL) {
                 // konverze right na int
                 result = semantic_toInt(binNode->right);
                 *type = SEM_DATA_INT;
             }else{
                 return ERROR_SEM_TYPE_COMPATIBILITY;
             }
-        }else if(right_type == SEM_DATA_INT && left_type == SEM_DATA_FLOAT) {
-            if(right_value != NULL) {
+        }else if(rightType == SEM_DATA_INT && leftType == SEM_DATA_FLOAT) {
+            if(rightValue != NULL) {
                 //konverze right na float
                 result = semantic_toFloat(binNode->right);
                 *type = SEM_DATA_FLOAT;
-            }else if(left_value != NULL) {
+            }else if(leftValue != NULL) {
                 // konverze left na int
                 result = semantic_toInt(binNode->left);
                 *type = SEM_DATA_INT;
@@ -536,18 +543,18 @@ ErrorType semantic_analyseRelationBinOp(AST_BinOpNode *binNode,
 
     }
     else {
-        result = semantic_compatibleRelation(left_type, right_type);
+        result = semantic_compatibleRelation(leftType, rightType);
         if(result != 0) {
             return result;
         }
 
         // Pokud je jeden typ i32 a druhý f64, tak se pokusíme o konverzi
-        if(left_type == SEM_DATA_INT && right_type == SEM_DATA_FLOAT) {
-            if(left_value != NULL) {
+        if(leftType == SEM_DATA_INT && rightType == SEM_DATA_FLOAT) {
+            if(leftValue != NULL) {
                 // konverze levé na float
                 result = semantic_toFloat(binNode->left);
                 *type = SEM_DATA_FLOAT;
-            }else if(right_value != NULL) {
+            }else if(rightValue != NULL) {
                 // konverze pravé na int
                 result = semantic_toInt(binNode->right);
                 *type = SEM_DATA_INT;
@@ -555,12 +562,12 @@ ErrorType semantic_analyseRelationBinOp(AST_BinOpNode *binNode,
                 return ERROR_SEM_TYPE_COMPATIBILITY;
             }
         }
-        else if(right_type == SEM_DATA_INT && left_type == SEM_DATA_FLOAT) {
-            if(right_value != NULL) {
+        else if(rightType == SEM_DATA_INT && leftType == SEM_DATA_FLOAT) {
+            if(rightValue != NULL) {
                 // konverze pravé na float
                 result = semantic_toFloat(binNode->right);
                 *type = SEM_DATA_FLOAT;
-            }else if(left_value != NULL) {
+            }else if(leftValue != NULL) {
                 // konverze levé na int
                 result = semantic_toInt(binNode->left);
                 *type = SEM_DATA_INT;
@@ -726,16 +733,34 @@ ErrorType semantic_analyseExpr(AST_ExprNode *exprNode, Semantic_Data *type, void
             }
 
             // Pokud známe hodnotu, tak nahradíme uzel literálem
-            /*if(value != NULL && item->knownValue == true) {
-                AST_LiteralType lit_type = semantic_semToLiteral(*type);
+            if(value != NULL && item->knownValue == true) {
+                AST_LiteralType litType = semantic_semToLiteral(*type);
                 // Pokud se nepodaří převést typ, tak končíme funkci
-                if(lit_type == AST_LITERAL_NOT_DEFINED) {
+                if(litType == AST_LITERAL_INT) {
+                    int *val = malloc(sizeof(int));
+                    if(val == NULL) {
+                        return ERROR_INTERNAL;
+                    }
+                    *val = *(int*)item->data;
+                    *value = val;
+                }
+                else if(litType == AST_LITERAL_FLOAT) {
+                    double *val = malloc(sizeof(double));
+                    if(val == NULL) {
+                        return ERROR_INTERNAL;
+                    }
+                    *val = *(double*)item->data;
+                    *value = val;
+                }
+                else {
                     return 0;
                 }
                 string_free(node->identifier);
                 node->identifier = NULL;
-                node->literalType = lit_type;
-            }*/
+                node->literalType = litType;
+                node->value = *value;
+                exprNode->exprType = AST_EXPR_LITERAL;
+            }
 
             // Není co dále kontrolovat, v pořádku se vracíme
             return SEMANTIC_OK;
@@ -1032,6 +1057,71 @@ ErrorType semantic_analyseCondition(AST_IfNode *ifWhileNode) {
     }
     return SEMANTIC_OK;
 }  // semantic_analyseCondition
+
+
+ErrorType semantic_getArithmeticValue(Semantic_Data type, void *leftValue,
+                                  void *rightValue, AST_BinOpType op, void **value) {
+
+    if(type == SEM_DATA_INT) {
+        int *result = malloc(sizeof(int));
+        if(result == NULL) {
+            return ERROR_INTERNAL;
+        }
+        int left = *(int*)leftValue;
+        int right = *(int*)rightValue;
+
+        switch(op) {
+            case AST_OP_ADD:
+                *result = left + right;
+                break;
+            case AST_OP_SUBTRACT:
+                *result = left - right;
+                break;
+            case AST_OP_MULTIPLY:
+                *result = left * right;
+                break;
+            case AST_OP_DIVIDE:
+                if(right == 0) {
+                    return ERROR_SEM_OTHER;
+                }
+                *result = left / right;
+                break;
+            default:
+                return ERROR_INTERNAL;
+        }
+        *value = result;
+    }
+    else {
+        double *result = malloc(sizeof(double));
+        if(result == NULL) {
+            return ERROR_INTERNAL;
+        }
+        double left = *(double*)leftValue;
+        double right = *(double*)rightValue;
+
+        switch(op) {
+            case AST_OP_ADD:
+                *result = left + right;
+                break;
+            case AST_OP_SUBTRACT:
+                *result = left - right;
+                break;
+            case AST_OP_MULTIPLY:
+                *result = left * right;
+                break;
+            case AST_OP_DIVIDE:
+                if(right == 0) {
+                    return ERROR_SEM_OTHER;
+                }
+                *result = left / right;
+                break;
+            default:
+                return ERROR_INTERNAL;
+        }
+        *value = result;
+    }
+    return SEMANTIC_OK;
+}
 
 /**
  * @brief Vyhodnotí, zda lze provést přiřazení z typu from do typu to
