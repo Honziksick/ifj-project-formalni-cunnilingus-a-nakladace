@@ -54,11 +54,11 @@
  ******************************************************************************/
 
 /**
- * @brief Spouští syntaktickou analýzu programu od neterminálu @c <PROGRAM>.
+ * @brief Spouští syntaktickou analýzu programu od neterminálu @c \<PROGRAM>.
  *
  * @details Tato funkce inicializuje všechny potřebné struktury, jako je AST strom,
  *          zásobník rámců a seznam precedenčních zásobníků. Poté začíná parsovat
- *          program podle LL gramatiky, počínaje neterminálem @c <PROGRAM>. Během
+ *          program podle LL gramatiky, počínaje neterminálem @c \<PROGRAM>. Během
  *          parsování jsou vytvářeny uzly AST, které reprezentují strukturu programu.
  *          Na konci kontroluje, zda byl program korektně zpracován a zda bylo dosaženo
  *          konce vstupu (EOF).
@@ -72,7 +72,7 @@ void LLparser_parseProgram();
  ******************************************************************************/
 
 /**
- * @brief Parsuje neterminál @c <PROLOGUE>, který reprezentuje úvod programu.
+ * @brief Parsuje neterminál @c \<PROLOGUE>, který reprezentuje úvod programu.
  *
  * @details Funkce zpracovává začátek programu, kde očekává deklaraci konstanty
  *          s názvem @c ifj a importuje soubor @c "ifj24.zig". Během parsování
@@ -90,7 +90,7 @@ void LLparser_parseProgram();
 AST_VarNode *LLparser_parsePrologue();
 
 /**
- * @brief Parsuje neterminál @c <FUN_DEF_LIST>, který reprezentuje seznam definic funkcí.
+ * @brief Parsuje neterminál @c \<FUN_DEF_LIST>, který reprezentuje seznam definic funkcí.
  *
  * @details Funkce rekurzivně parsuje jednotlivé definice funkcí pomocí volání
  *          @c LLparser_parseFunDef() a vytváří z nich propojený seznam uzlů typu
@@ -109,7 +109,7 @@ AST_VarNode *LLparser_parsePrologue();
 AST_FunDefNode *LLparser_parseFunDefList();
 
 /**
- * @brief Parsuje neterminál @c <FUN_DEF>, který reprezentuje definici jedné funkce.
+ * @brief Parsuje neterminál @c \<FUN_DEF>, který reprezentuje definici jedné funkce.
  *
  * @details Funkce zpracovává kompletní definici funkce, včetně klíčových slov `pub fn`,
  *          identifikátoru funkce, parametrů, návratového typu a těla funkce.
@@ -128,7 +128,7 @@ AST_FunDefNode *LLparser_parseFunDefList();
 AST_FunDefNode *LLparser_parseFunDef();
 
 /**
- * @brief Parsuje neterminál @c <PARAMETERS>, který reprezentuje seznam
+ * @brief Parsuje neterminál @c \<PARAMETERS>, který reprezentuje seznam
  *        parametrů funkce.
  *
  * @details Funkce zpracovává seznam parametrů, který může být buď prázdný, nebo
@@ -150,7 +150,7 @@ AST_FunDefNode *LLparser_parseFunDef();
 AST_ArgOrParamNode *LLparser_parseParameters(size_t *paramCount);
 
 /**
- * @brief Parsuje neterminál @c <PARAM_LIST>, který reprezentuje neprázdný
+ * @brief Parsuje neterminál @c \<PARAM_LIST>, který reprezentuje neprázdný
  *        seznam parametrů.
  *
  * @details Funkce zpracovává seznam parametrů oddělených čárkami. Rekurzivně
@@ -170,7 +170,7 @@ AST_ArgOrParamNode *LLparser_parseParameters(size_t *paramCount);
 AST_ArgOrParamNode *LLparser_parseParamList(size_t *paramCount);
 
 /**
- * @brief Parsuje neterminál @c <PARAM_LIST_REST>, který reprezentuje pokračování
+ * @brief Parsuje neterminál @c \<PARAM_LIST_REST>, který reprezentuje pokračování
  *        seznamu parametrů.
  *
  * @details Funkce zpracovává případné další parametry v seznamu po první čárce.
@@ -190,7 +190,7 @@ AST_ArgOrParamNode *LLparser_parseParamList(size_t *paramCount);
 AST_ArgOrParamNode *LLparser_parseParamListRest(size_t *paramCount);
 
 /**
- * @brief Parsuje neterminál @c <PARAM>, který reprezentuje jeden parametr funkce.
+ * @brief Parsuje neterminál @c \<PARAM>, který reprezentuje jeden parametr funkce.
  *
  * @details Funkce zpracovává jeden parametr funkce, který obsahuje identifikátor
  *          a datový typ oddělený dvojtečkou. Identifikátor parametru je přidán do
@@ -206,7 +206,7 @@ AST_ArgOrParamNode *LLparser_parseParamListRest(size_t *paramCount);
 AST_ArgOrParamNode *LLparser_parseParam();
 
 /**
- * @brief Parsuje neterminál @c <RETURN_TYPE>, který reprezentuje návratový
+ * @brief Parsuje neterminál @c \<RETURN_TYPE>, který reprezentuje návratový
  *        typ funkce.
  *
  * @details Funkce zpracovává návratový typ funkce, který může být buď konkrétní
@@ -224,7 +224,7 @@ AST_ArgOrParamNode *LLparser_parseParam();
 AST_DataType LLparser_parseReturnType();
 
 /**
- * @brief Parsuje neterminál @c <DATA_TYPE>, který reprezentuje podporované
+ * @brief Parsuje neterminál @c \<DATA_TYPE>, který reprezentuje podporované
  *        datové typy.
  *
  * @details Funkce zpracovává různé datové typy podporované jazykem, včetně
@@ -247,7 +247,7 @@ AST_DataType LLparser_parseReturnType();
 AST_DataType LLparser_parseDataType();
 
 /**
- * @brief Parsuje neterminál @c <STATEMENT_LIST>, který reprezentuje seznam příkazů.
+ * @brief Parsuje neterminál @c \<STATEMENT_LIST>, který reprezentuje seznam příkazů.
  *
  * @details Funkce rekurzivně parsuje jednotlivé příkazy pomocí volání
  *          @c LLparser_parseStatement() a vytváří z nich propojený seznam uzlů
@@ -263,7 +263,7 @@ AST_DataType LLparser_parseDataType();
 AST_StatementNode *LLparser_parseStatementList();
 
 /**
- * @brief Parsuje neterminál @c <STATEMENT>, který reprezentuje jeden příkaz programu.
+ * @brief Parsuje neterminál @c \<STATEMENT>, který reprezentuje jeden příkaz programu.
  *
  * @details Funkce zpracovává různé typy příkazů, jako je definice proměnné,
  *          přiřazení, volání funkce, podmíněný příkaz @c if, cyklus @c while,
@@ -286,7 +286,7 @@ AST_StatementNode *LLparser_parseStatementList();
 AST_StatementNode *LLparser_parseStatement();
 
 /**
- * @brief Parsuje neterminál @c <VAR_DEF>, který reprezentuje definici proměnné.
+ * @brief Parsuje neterminál @c \<VAR_DEF>, který reprezentuje definici proměnné.
  *
  * @details Funkce zpracovává definici proměnné, která může být deklarována jako
  *          modifikovatelná (`var`) nebo konstantní (`const`). Následuje identifikátor
@@ -303,7 +303,7 @@ AST_StatementNode *LLparser_parseStatement();
 AST_StatementNode *LLparser_parseVarDef();
 
 /**
- * @brief Parsuje neterminál @c <MODIFIABLE>, který určuje modifikovatelnost proměnné.
+ * @brief Parsuje neterminál @c \<MODIFIABLE>, který určuje modifikovatelnost proměnné.
  *
  * @details Funkce zpracovává klíčová slova @c var a @c const, která určují,
  *          zda je proměnná modifikovatelná nebo konstantní. Na základě nalezeného
@@ -320,7 +320,7 @@ AST_StatementNode *LLparser_parseVarDef();
 void LLparser_parseModifiable(bool *isConstant);
 
 /**
- * @brief Parsuje neterminál @c <POSSIBLE_TYPE>, který reprezentuje případný
+ * @brief Parsuje neterminál @c \<POSSIBLE_TYPE>, který reprezentuje případný
  *        datový typ proměnné.
  *
  * @details Funkce zpracovává možnost, že proměnná má explicitně uvedený datový
@@ -338,7 +338,7 @@ void LLparser_parseModifiable(bool *isConstant);
 AST_DataType LLparser_parsePossibleType();
 
 /**
- * @brief Parsuje neterminál @c <STATEMENT_REST>, který reprezentuje zbytek
+ * @brief Parsuje neterminál @c \<STATEMENT_REST>, který reprezentuje zbytek
  *        příkazu po identifikátoru.
  *
  * @details Funkce zpracovává dvě možnosti pokračování příkazu po identifikátoru:
@@ -361,7 +361,7 @@ AST_DataType LLparser_parsePossibleType();
 AST_StatementNode *LLparser_parseStatementRest(DString **identifier);
 
 /**
- * @brief Parsuje neterminál @c <THROW_AWAY>, který reprezentuje výraz s
+ * @brief Parsuje neterminál @c \<THROW_AWAY>, který reprezentuje výraz s
  *        výsledkem k zahození.
  *
  * @details Funkce zpracovává výraz, jehož výsledek není dále využíván, typicky
@@ -377,7 +377,7 @@ AST_StatementNode *LLparser_parseStatementRest(DString **identifier);
 AST_ExprNode *LLparser_parseThrowAway();
 
 /**
- * @brief Parsuje neterminál @c <IF>, který reprezentuje podmíněný příkaz @c if.
+ * @brief Parsuje neterminál @c \<IF>, který reprezentuje podmíněný příkaz @c if.
  *
  * @details Funkce zpracovává konstrukci podmíněného příkazu @c if, včetně podmínky,
  *          případné null podmínky a těla příkazu. Podmínka je zpracována pomocí
@@ -393,7 +393,7 @@ AST_ExprNode *LLparser_parseThrowAway();
 AST_IfNode *LLparser_parseIf();
 
 /**
- * @brief Parsuje neterminál @c <NT_NULL_COND>, který reprezentuje případnou
+ * @brief Parsuje neterminál @c \<NT_NULL_COND>, který reprezentuje případnou
  *        null podmínku.
  *
  * @details Funkce zpracovává možnost, že v konstrukci @c if nebo @c while je
@@ -413,7 +413,7 @@ AST_IfNode *LLparser_parseIf();
 AST_VarNode *LLparser_parseNullCond();
 
 /**
- * @brief Parsuje neterminál @c <SEQUENCE>, který reprezentuje blok kódu
+ * @brief Parsuje neterminál @c \<SEQUENCE>, který reprezentuje blok kódu
  *        ohraničený složenými závorkami.
  *
  * @details Funkce zpracovává blok kódu, který může obsahovat seznam příkazů.
@@ -433,7 +433,7 @@ AST_VarNode *LLparser_parseNullCond();
 AST_StatementNode *LLparser_parseSequence(bool createFrame);
 
 /**
- * @brief Parsuje neterminál @c <WHILE>, který reprezentuje cyklus @c while.
+ * @brief Parsuje neterminál @c \<WHILE>, který reprezentuje cyklus @c while.
  *
  * @details Funkce zpracovává konstrukci cyklu @c while, včetně podmínky,
  *          případné null podmínky a těla cyklu. Podmínka je zpracována pomocí
@@ -449,7 +449,7 @@ AST_StatementNode *LLparser_parseSequence(bool createFrame);
 AST_WhileNode *LLparser_parseWhile();
 
 /**
- * @brief Parsuje neterminál @c <ARGUMENTS>, který reprezentuje seznam
+ * @brief Parsuje neterminál @c \<ARGUMENTS>, který reprezentuje seznam
  *        argumentů funkce.
  *
  * @details Funkce zpracovává seznam argumentů předávaných funkci. Každý argument je

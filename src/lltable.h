@@ -141,50 +141,50 @@ typedef enum LLNonTerminals {
  *          efektivní odkazování v parsovací tabulce.
  */
 typedef enum LLRuleSet {
-    RULE_UNDEFINED    = -2,     /**<  LL pravidlo zatím nebylo zvoleno                                  */
-    SYNTAX_ERROR      = -1,     /**<  Chyba syntaxe (takovéto pravidlo se v LL-tabulce nevyskytuje)     */
-    PROGRAM           = 0,      /**<  <PROGRAM> -> <PROLOGUE> <FUN_DEF_LIST> EOF                        */
-    PROLOGUE          = 1,      /**<  <PROLOGUE> -> const ifj = @import ( "ifj24.zig" ) ;               */
-    FUN_DEF_LIST_1    = 2,      /**<  <FUN_DEF_LIST> -> <FUN_DEF> <FUN_DEF_LIST>                        */
-    FUN_DEF_LIST_2    = 3,      /**<  <FUN_DEF_LIST> -> ε                                               */
-    FUN_DEF           = 4,      /**<  <FUN_DEF> -> pub fn id ( <PARAMETERS> ) <RETURN_TYPE> <SEQUENCE>  */
-    PARAMETERS_1      = 5,      /**<  <PARAMETERS> -> <PARAM_LIST>                                      */
-    PARAMETERS_2      = 6,      /**<  <PARAMETERS> -> ε                                                 */
-    PARAM_LIST        = 7,      /**<  <PARAM_LIST> -> <PARAM> <PARAM_LIST_REST>                         */
-    PARAM_LIST_REST_1 = 8,      /**<  <PARAM_LIST_REST> -> , <PARAM_LIST>                               */
-    PARAM_LIST_REST_2 = 9,      /**<  <PARAM_LIST_REST> -> ε                                            */
-    PARAM             = 10,     /**<  <PARAM> -> id : <DATA_TYPE>                                       */
-    RETURN_TYPE_1     = 11,     /**<  <RETURN_TYPE> -> <DATA_TYPE>                                      */
-    RETURN_TYPE_2     = 12,     /**<  <RETURN_TYPE> -> void                                             */
-    DATA_TYPE_1       = 13,     /**<  <DATA_TYPE> -> i32                                                */
-    DATA_TYPE_2       = 14,     /**<  <DATA_TYPE> -> ?i32                                               */
-    DATA_TYPE_3       = 15,     /**<  <DATA_TYPE> -> f64                                                */
-    DATA_TYPE_4       = 16,     /**<  <DATA_TYPE> -> ?f64                                               */
-    DATA_TYPE_5       = 17,     /**<  <DATA_TYPE> -> []u8                                               */
-    DATA_TYPE_6       = 18,     /**<  <DATA_TYPE> -> ?[]u8                                              */
-    STATEMENT_LIST_1  = 19,     /**<  <STATEMENT_LIST> -> <STATEMENT> <STATEMENT_LIST>                  */
-    STATEMENT_LIST_2  = 20,     /**<  <STATEMENT_LIST> -> ε                                             */
-    STATEMENT_1       = 21,     /**<  <STATEMENT> -> <VAR_DEF> ;                                        */
-    STATEMENT_2       = 22,     /**<  <STATEMENT> -> id <STATEMENT_REST> ;                              */
-    STATEMENT_3       = 23,     /**<  <STATEMENT> -> _ = <THROW_AWAY> ;                                 */
-    STATEMENT_4       = 24,     /**<  <STATEMENT> -> <IF>                                               */
-    STATEMENT_5       = 25,     /**<  <STATEMENT> -> <WHILE>                                            */
-    STATEMENT_6       = 26,     /**<  <STATEMENT> -> return [precedence_expr] ;                         */
-    STATEMENT_7       = 27,     /**<  <STATEMENT> -> ifj . id ( <ARGUMENTS> ) ;                         */
-    VAR_DEF           = 28,     /**<  <VAR_DEF> -> <MODIFIABLE> id <POSSIBLE_TYPE> = [precedence_expr]  */
-    MODIFIABLE_1      = 29,     /**<  <MODIFIABLE> -> var                                               */
-    MODIFIABLE_2      = 30,     /**<  <MODIFIABLE> -> const                                             */
-    POSSIBLE_TYPE_1   = 31,     /**<  <POSSIBLE_TYPE> -> : <DATA_TYPE>                                  */
-    POSSIBLE_TYPE_2   = 32,     /**<  <POSSIBLE_TYPE> -> ε                                              */
-    STATEMENT_REST_1  = 33,     /**<  <STATEMENT_REST> -> = [precedence_expr]                           */
-    STATEMENT_REST_2  = 34,     /**<  <STATEMENT_REST> -> ( <ARGUMENTS> )                               */
-    THROW_AWAY        = 35,     /**<  <THROW_AWAY> -> [precedence_expr]                                 */
-    IF                = 36,     /**<  <IF> -> if ( [precedence_expr] ) <NULL_COND> <SEQUENCE> else <SEQUENCE> */
-    NULL_COND_1       = 37,     /**<  <NULL_COND> -> | id |                                             */
-    NULL_COND_2       = 38,     /**<  <NULL_COND> -> ε                                                  */
-    SEQUENCE          = 39,     /**<  <SEQUENCE> -> { <STATEMENT_LIST> }                                */
-    WHILE             = 40,     /**<  <WHILE> -> while ( [precedence_expr] ) <NULL_COND> <SEQUENCE>     */
-    ARGUMENTS         = 41,     /**<  <ARGUMENTS> -> [precedence_expr]                                  */
+    RULE_UNDEFINED    = -2,     /**<  LL pravidlo zatím nebylo zvoleno                                            */
+    SYNTAX_ERROR      = -1,     /**<  Chyba syntaxe (takovéto pravidlo se v LL-tabulce nevyskytuje)               */
+    PROGRAM           = 0,      /**<  \<PROGRAM> -> \<PROLOGUE> \<FUN_DEF_LIST> EOF                               */
+    PROLOGUE          = 1,      /**<  \<PROLOGUE> -> const ifj = @import ( "ifj24.zig" ) ;                        */
+    FUN_DEF_LIST_1    = 2,      /**<  \<FUN_DEF_LIST> -> \<FUN_DEF> \<FUN_DEF_LIST>                               */
+    FUN_DEF_LIST_2    = 3,      /**<  \<FUN_DEF_LIST> -> ε                                                        */
+    FUN_DEF           = 4,      /**<  \<FUN_DEF> -> pub fn id ( \<PARAMETERS> ) \<RETURN_TYPE> \<SEQUENCE>        */
+    PARAMETERS_1      = 5,      /**<  \<PARAMETERS> -> \<PARAM_LIST>                                              */
+    PARAMETERS_2      = 6,      /**<  \<PARAMETERS> -> ε                                                          */
+    PARAM_LIST        = 7,      /**<  \<PARAM_LIST> -> \<PARAM> \<PARAM_LIST_REST>                                */
+    PARAM_LIST_REST_1 = 8,      /**<  \<PARAM_LIST_REST> -> , \<PARAM_LIST>                                       */
+    PARAM_LIST_REST_2 = 9,      /**<  \<PARAM_LIST_REST> -> ε                                                     */
+    PARAM             = 10,     /**<  \<PARAM> -> id : \<DATA_TYPE>                                               */
+    RETURN_TYPE_1     = 11,     /**<  \<RETURN_TYPE> -> \<DATA_TYPE>                                              */
+    RETURN_TYPE_2     = 12,     /**<  \<RETURN_TYPE> -> void                                                      */
+    DATA_TYPE_1       = 13,     /**<  \<DATA_TYPE> -> i32                                                         */
+    DATA_TYPE_2       = 14,     /**<  \<DATA_TYPE> -> ?i32                                                        */
+    DATA_TYPE_3       = 15,     /**<  \<DATA_TYPE> -> f64                                                         */
+    DATA_TYPE_4       = 16,     /**<  \<DATA_TYPE> -> ?f64                                                        */
+    DATA_TYPE_5       = 17,     /**<  \<DATA_TYPE> -> []u8                                                        */
+    DATA_TYPE_6       = 18,     /**<  \<DATA_TYPE> -> ?[]u8                                                       */
+    STATEMENT_LIST_1  = 19,     /**<  \<STATEMENT_LIST> -> \<STATEMENT> \<STATEMENT_LIST>                         */
+    STATEMENT_LIST_2  = 20,     /**<  \<STATEMENT_LIST> -> ε                                                      */
+    STATEMENT_1       = 21,     /**<  \<STATEMENT> -> \<VAR_DEF> ;                                                */
+    STATEMENT_2       = 22,     /**<  \<STATEMENT> -> id \<STATEMENT_REST> ;                                      */
+    STATEMENT_3       = 23,     /**<  \<STATEMENT> -> _ = \<THROW_AWAY> ;                                         */
+    STATEMENT_4       = 24,     /**<  \<STATEMENT> -> \<IF>                                                       */
+    STATEMENT_5       = 25,     /**<  \<STATEMENT> -> \<WHILE>                                                    */
+    STATEMENT_6       = 26,     /**<  \<STATEMENT> -> return [precedence_expr] ;                                  */
+    STATEMENT_7       = 27,     /**<  \<STATEMENT> -> ifj . id ( \<ARGUMENTS> ) ;                                 */
+    VAR_DEF           = 28,     /**<  \<VAR_DEF> -> \<MODIFIABLE> id \<POSSIBLE_TYPE> = [precedence_expr]         */
+    MODIFIABLE_1      = 29,     /**<  \<MODIFIABLE> -> var                                                        */
+    MODIFIABLE_2      = 30,     /**<  \<MODIFIABLE> -> const                                                      */
+    POSSIBLE_TYPE_1   = 31,     /**<  \<POSSIBLE_TYPE> -> : \<DATA_TYPE>                                          */
+    POSSIBLE_TYPE_2   = 32,     /**<  \<POSSIBLE_TYPE> -> ε                                                       */
+    STATEMENT_REST_1  = 33,     /**<  \<STATEMENT_REST> -> = [precedence_expr]                                    */
+    STATEMENT_REST_2  = 34,     /**<  \<STATEMENT_REST> -> ( \<ARGUMENTS> )                                       */
+    THROW_AWAY        = 35,     /**<  \<THROW_AWAY> -> [precedence_expr]                                          */
+    IF                = 36,     /**<  \<IF> -> if ( [precedence_expr] ) \<NULL_COND> \<SEQUENCE> else \<SEQUENCE> */
+    NULL_COND_1       = 37,     /**<  \<NULL_COND> -> | id |                                                      */
+    NULL_COND_2       = 38,     /**<  \<NULL_COND> -> ε                                                           */
+    SEQUENCE          = 39,     /**<  \<SEQUENCE> -> { \<STATEMENT_LIST> }                                        */
+    WHILE             = 40,     /**<  \<WHILE> -> while ( [precedence_expr] ) \<NULL_COND> \<SEQUENCE>            */
+    ARGUMENTS         = 41,     /**<  \<ARGUMENTS> -> [precedence_expr]                                           */
 } LLRuleSet;
 
 

@@ -83,8 +83,8 @@ typedef enum ReductionRule {
     REDUCE_E_LESS_EQUAL_E           = 13,     /**<  E -> E <= E                    */
     REDUCE_E_GREATER_EQUAL_E        = 14,     /**<  E -> E >= E                    */
     REDUCE_E_INTO_BRACKETS          = 15,     /**<  E -> ( E )                     */
-    REDUCE_E_FUN_CALL               = 16,     /**<  E -> id <ARG_LIST>             */
-    REDUCE_E_IFJ_CALL               = 17,     /**<  E -> ifj . id <ARG_LIST>       */
+    REDUCE_E_FUN_CALL               = 16,     /**<  E -> id \<ARG_LIST>             */
+    REDUCE_E_IFJ_CALL               = 17,     /**<  E -> ifj . id \<ARG_LIST>       */
 } ReductionRule;
 
 
@@ -309,7 +309,7 @@ void PrecParser_reduceBinOp(AST_BinOpType binOp);
 void PrecParser_reduceIntoBrackets();
 
 /**
- * @brief Aplikuje redukci pro volání funkce `E -> id <ARG_LIST>` nebo `E -> ifj . id <ARG_LIST>`.
+ * @brief Aplikuje redukci pro volání funkce `E -> id \<ARG_LIST>` nebo `E -> ifj . id \<ARG_LIST>`.
  *
  * @details Tato funkce zpracovává redukci volání uživatelských nebo vestavěných
  *          funkcí. Vytváří nový AST uzel pro volání funkce a pushuje ho na zásobník.
