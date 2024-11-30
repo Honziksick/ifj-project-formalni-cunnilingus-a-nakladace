@@ -480,6 +480,8 @@ ErrorType semantic_analyseArithmeticBinOp(AST_BinOpNode *binNode,
     if(value != NULL && leftValue != NULL && rightValue != NULL) {
         result = semantic_getArithmeticValue(*type, leftValue, rightValue,
                                              binNode->op, value);
+    }else if(value != NULL) {
+        *value = NULL;
     }
     return result;
 }  // semantic_analyseArithmetic
