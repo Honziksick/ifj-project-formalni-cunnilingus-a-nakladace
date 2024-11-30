@@ -6,7 +6,7 @@
  * Autor:            Hýža Pavel         <xhyzapa00>                            *
  *                                                                             *
  * Datum:            06.10.2024                                                *
- * Poslední změna:   15.11.2024                                                *
+ * Poslední změna:   30.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -36,13 +36,20 @@
 #include "dynamic_string.h"
 #include "error.h"
 
-// Definice různých typů tokenů
+
+
+/**
+ * @brief Enum různých typů Tokenů.
+ *
+ * @details Tokeny se dělí podle odstavců: Základní, Jednoduché operátory, Složité operátory, Klíčová slova, Neinicializováno
+ */
 typedef enum {
+    //Základní
     TOKEN_IDENTIFIER = 1,
     TOKEN_INT = 2,
     TOKEN_FLOAT = 3,
     TOKEN_STRING = 4,
-    //SPECIAL SIMPLE
+    //Jednoduché operátory
     TOKEN_LEFT_PARENTHESIS = 5,
     TOKEN_RIGHT_PARENTHESIS = 6,
     TOKEN_ASTERISK = 7,
@@ -54,7 +61,7 @@ typedef enum {
     TOKEN_LEFT_CURLY_BRACKET = 13,
     TOKEN_VERTICAL_BAR = 14,
     TOKEN_RIGHT_CURLY_BRACKET = 15,
-    //SPECIAL COMPLEX
+    //Složité operátory
     TOKEN_PERIOD = 16,
     TOKEN_EQUALITY_SIGN = 17,
     TOKEN_SLASH = 18,
@@ -65,7 +72,7 @@ typedef enum {
     TOKEN_GREATER_THAN = 23,
     TOKEN_GREATER_EQUAL_THAN = 24,
     TOKEN_EOF = 25,
-    //KEYWORDS
+    //Klíčová slova
     TOKEN_K_const = 26,
     TOKEN_K_var = 27,
     TOKEN_K_i32 = 28,
@@ -85,11 +92,23 @@ typedef enum {
     TOKEN_K_import = 42,
     TOKEN_K_underscore = 43,
     TOKEN_K_ifj = 44,
-    //OTHER
+    //Neinicializováno
     TOKEN_UNINITIALIZED = 45
 } TokenType;
 
-// Definice rozlišovaných typů znaků (char) na vstupu
+
+
+/**
+ * @brief Enum typů znaků pro funkci scanner_charIdentity.
+ *
+ * @details LETTER = 1,             - Písmeno
+ *          NUMBER = 2,             - Číslice
+ *          WHITESPACE = 3,         - Prázdný znak
+ *          NOT_IN_LANGUAGE = 4,    - Znak, který není v jazyce používán, ale může být v komentářích
+ *          SIMPLE = 5,             - Jednoduchý operátor (ihned se bude vracet jako Token)
+ *          COMPLEX = 6,            - Složitý operátor (pro zjištění typu Tokenu bude potřeba více kroků)
+ *          CHAR_EOF = 7.           - Znak konce souboru
+ */
 typedef enum {
     LETTER = 1,
     NUMBER = 2,
@@ -100,103 +119,421 @@ typedef enum {
     CHAR_EOF = 7
 } CharType;
 
-// Definice stavů FSM lexikálního analyzátoru
+
+
+/**
+ * @brief Definice pomocných stavů FSM lexikálního analyzátoru.
+ */
 typedef enum {
-    STATE0_START = 0,
-    STATE1_LETTERS = 1,
-    STATE2_NUMBERS = 2,
-    STATE3_FLOAT_UNREADY = 3,
-    STATE33_FLOAT_UNREADY_E1 = 33,
-    STATE4_FLOAT_READY = 4,
-    STATE5_SIMPLE = 5,
-    STATE6_COMPLEX = 6,
-    STATE7_EXCLAMATION_MARK = 7,
-    STATE8_LESS = 8,
-    STATE9_GREATER = 9,
-    STATE10_EQUALITY_MARK = 10,
-    STATE11_SLASH = 11,
-    STATE12_DOUBLE_SLASH = 12,
-    STATE13_AT_SIGN = 13,
-    STATE14_LEFT_SQUARE_BRACKET_A = 14,
-    STATE15_LEFT_SQUARE_BRACKET_B = 15,
-    STATE16_LEFT_SQUARE_BRACKET_C = 16,
-    STATE17_QUESTION_MARK = 17,
-    STATE18_QUESTION_MARK_A1 = 18,
-    STATE19_QUESTION_MARK_B1 = 19,
-    STATE20_QUESTION_MARK_C1 = 20,
-    STATE21_QUESTION_MARK_A2 = 21,
-    STATE22_QUESTION_MARK_B2 = 22,
-    STATE23_QUESTION_MARK_C2 = 23,
-    STATE24_QUESTION_MARK_C3 = 24,
-    STATE25_DOUBLE_QUOTATION_MARKS = 25,
-    STATE26_ESCAPE_BACKSLASH = 26,
-    STATE27_ESCAPE_BACKSLASH_X = 27,
-    STATE28_BACKSLASH = 28,
-    STATE29_DOUBLE_BACKSLASH = 29,
-    STATE30_DOUBLE_BACKSLASH_LF = 30
+    STATE1_NUMBERS = 1,
+    STATE2_FLOAT_PERIOD = 2,
+    STATE3_FLOAT_EXP = 3,
+    STATE4_FLOAT = 4,
+    STATE5_FLOAT_AFTER_PERIOD = 5,
+
+    STATE6_u8_A = 6,
+    STATE7_u8_B = 7,
+    STATE8_u8_C = 8,
+
+    STATE9_QMARK = 9,
+    STATE10_QMARK_i32_A = 10,
+    STATE11_QMARK_f64_A = 11,
+    STATE12_QMARK_u8_A = 12,
+    STATE13_QMARK_i32_B = 13,
+    STATE14_QMARK_f64_B = 14,
+    STATE15_QMARK_u8_B = 15,
+    STATE16_QMARK_u8_C = 16,
+
+    STATE17_DOUBLE_QUOTATION_MARKS = 17,
+    STATE18_ESCAPE_BACKSLASH = 18,
+    STATE19_ESCAPE_BACKSLASH_X = 19,
+
+    STATE20_BACKSLASH = 20,
+    STATE21_DOUBLE_BACKSLASH = 21,
+    STATE22_DOUBLE_BACKSLASH_LF = 22
 } StateFSM;
 
-typedef enum {
-    KEY_IDENTIFIER = 1,
 
-    KEY_const = 26,
-    KEY_var = 27,
-    KEY_i32 = 28,
-    KEY_f64 = 29,
 
-    KEY_pub = 34,
-    KEY_fn = 35,
-    KEY_void = 36,
-    KEY_return = 37,
-    KEY_null = 38,
-    KEY_if = 39,
-    KEY_else = 40,
-    KEY_while = 41,
-    KEY_underscore = 43,
-    KEY_ifj = 44
-} Keywords;
-
-/* Každý token má typ, hodnotu (tj. dynamický řetězec) a informace o pozici
-   tokenu ve zdrojovém kódu (řádek a sloupec) */
+/**
+ * @brief   Datový typ Token
+ * 
+ * @details Obsahuje typ Tokenu a případně ukazatel na jeho dynamický řetězec.
+ *          Většina Tokenů mívá value nastavený na NULL.
+ */
 typedef struct {
-    TokenType type;     // ten TokenType tu musí být, aby mohl být enum pojmenovaný
+    TokenType type;
     DString* value;
 } Token;
 
-// Práce se znaky na vstupu
-// Přečte další znak ze zdrojového kódu
+
+
+/**
+ * @brief Získá znak ze vstupu programu.
+ *
+ * @details Funguje pomocí funkce getchar().
+ *
+ * @return Vrací int hodnotu, která náleží ASCII hodnotě daného načteného znaku.
+ */
 int scanner_getNextChar();
 
-// Vrácí znak zpět do vstupu (backtracking)
+
+
+/**
+ * @brief Vrátí potřebný znak zpět na vstup programu.
+ * 
+ * @param [in] c Int hodnota ASCII daného znaku.
+ *
+ * @details Funguje pomocí funkce ungetc().
+ */
 void scanner_ungetChar(int c);
 
-// Rozhodování o typu znaku na vstupu
+
+
+/**
+ * @brief Rozhodne o identitě znaku.
+ * 
+ * @param [in] c Int hodnota ASCII daného znaku.
+ *
+ * @details Rozděluje znaky do 7 skupin CharType.
+ * 
+ * @return Vrací konkrétní CharType.
+ */
 CharType scanner_charIdentity(int c);
 
-// Rozhodování o tom, jestli LETTERS je IDENTIFIKÁTOR, nebo KEYWORD
-Keywords scanner_isKeyword(DString *value);
 
-// Vytvoří nový token
+
+/**
+ * @brief V rámci FSM rozhodne o tom, zda je načtený řetězec znaků klíčovým slovem.
+ * 
+ * @param [in] value Ukazatel na dynamický řetězec s načtenými znaky.
+ * @param [out] lex_keyflag Globální proměnná, která oznamuje na konci programu,
+ *                          že se jedná o token s klíčovým slovem, takže se uvolní DString.
+ *
+ * @details Rozhoduje, zda se jedná o identifikátor, nebo o jedno ze 14 klíčových slov.
+ * 
+ * @return Vrací token identifikátoru, nebo kokrétního klíčového slova.
+ */
+Token scanner_isKeyword(DString *value);
+
+
+
+/**
+ * @brief Vytvoří nový token.
+ * 
+ * @param [in] type Typ tokenu.
+ * @param [in] value Ukazatel na dynamický řetězec s načtenými znaky.
+ *
+ * @details Vytvoří strukturu Tokenu, přiřadí typ a value.
+ * 
+ * @return Vrací vytvořený Token s přiřazenými hodnotami.
+ */
 Token scanner_tokenCreate(TokenType type, DString *value);
 
-// Vytvoří nový token bez stringu (všechny prvky stringu nastaveny na NULL)
+
+
+/**
+ * @brief Vytvoří nový token BEZ STRINGu.
+ * 
+ * @param [in] type Typ tokenu.
+ *
+ * @details Vytvoří strukturu Tokenu, přiřadí typ a prvek DString nastavý na NULL.
+ * 
+ * @return Vrací vytvořený Token s přiřazenou hodnotou typu.
+ */
 Token scanner_stringlessTokenCreate(TokenType type);
 
-// Finite State Machine lexikálního analyzátoru, z proudu charů na vstupu udělá Token na výstupu.
+
+
+/**
+ * @brief Inicializace scanneru.
+ * 
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * @param [out] lex_keyflag Globální proměnná, která oznamuje na konci programu,
+ *                          že se jedná o token s klíčovým slovem, takže se uvolní DString.
+ * 
+ * @details Inicializuje ovládací prvky automatu na začátku programu. Inicializuje token
+ *          na neinicializovaný typ a string = NULL.
+ * 
+ * @return Vrací Token do Complex.
+ */
+Token scanner_init();
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování stringů vyvolaných znakem \.
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [in,out] str Ukazatel na dynamický řetězec s načtenými znaky.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @details Načítá znaky do stringu. Má možnost víceřádkových stringů.
+ *          Větví se na 3 podstavy.
+ * 
+ * @return Vrací Token do Complex.
+ */
+Token scanner_stateComplexBackslash(Token lexToken, DString *str);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování stringů vyvolaných znakem ".
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [in,out] str Ukazatel na dynamický řetězec s načtenými znaky.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @details Načítá znaky do stringu. Má možnost načítat i escape sekvence.
+ *          Větví se na 3 podstavy.
+ * 
+ * @return Vrací Token do Complex.
+ */
+Token scanner_stateComplexQuotation(Token lexToken, DString *str);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování klíčových slov ?i32, ?f64 a ?[]u8.
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @details Postupně načítá znaky s tím, že mezi ? [ a ] a u8
+ *          mohou být mezery, také mezi ? a i32, ? a f64.
+ *          Větví se na 7 podstavů.
+ * 
+ * @return Vrací Token do Complex.
+ */
+Token scanner_stateComplexQuestion(Token lexToken);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování klíčového slova []u8.
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @details Postupně načítá znaky s tím, že mezi [ a ] a u8
+ *          mohou být mezery. Větví se na 3 podstavy.
+ * 
+ * @return Vrací Token do Complex.
+ */
+Token scanner_stateComplexLeftSqrBr(Token lexToken);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování klíčového slova @import.
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [in,out] str Ukazatel na dynamický řetězec s načtenými znaky.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * @param [out] lex_keyflag Globální proměnná, která oznamuje na konci programu,
+ *                          že se jedná o token s klíčovým slovem, takže se uvolní DString.
+ * 
+ * @details Do nekonečna načítá znaky, dokud nenarazí na něco, co není
+ *          písmeno. Zjistí, zda je načteno "import" a podle toho vrací
+ *          token nebo error.
+ * 
+ * @return Vrací Token do Complex.
+ */
+Token scanner_stateComplexAtSign(Token lexToken, DString *value);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování komentářů //.
+ * 
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @details Načte a zapomene všechny znaky za //, dokud nenarazí na konec řádku.
+ */
+void scanner_stateComplexDoubleSlash();
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování složitého operátoru /.
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @details Větví se do funkce: scanner_stateComplexDoubleSlash.
+ * 
+ * @return Vrací Token do Complex.
+ */
+Token scanner_stateComplexSlash(Token lexToken);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování složitých operátorů = a ==.
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @return Vrací Token do Complex.
+ */
+Token scanner_stateComplexEqual(Token lexToken);
+
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování složitých operátorů > a >=.
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @return Vrací Token do Complex.
+ */
+Token scanner_stateComplexGreater(Token lexToken);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování složitých operátorů < a <=.
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @return Vrací Token do Complex.
+ */
+Token scanner_stateComplexLess(Token lexToken);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování složitého operátoru !=.
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @return Vrací Token do Complex.
+ */
+Token scanner_stateComplexExclamation(Token lexToken);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování a řízení zpracování složitých operátorů.
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [in] loc_lex_char Lokální lexikální char.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @details Rozhodne o konkrétním druhu složitého operátoru,
+ *          větví se do funkcí:
+ *          scanner_stateComplexExclamation,
+ *          scanner_stateComplexLess,
+ *          scanner_stateComplexGreater,
+ *          scanner_stateComplexEqual,
+ *          scanner_stateComplexSlash,
+ *          scanner_stateComplexAtSign,
+ *          scanner_stateComplexLeftSqrBr,
+ *          scanner_stateComplexQuestion,
+ *          scanner_stateComplexQuotation,
+ *          scanner_stateComplexBackslash.
+ * 
+ * @return Vrací Token do FSM.
+ */
+Token scanner_stateComplex(Token lexToken, int loc_lex_char);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování jednoduchých operátorů.
+ * 
+ * @param [in] lexToken Nehotový token.
+ * @param [in] loc_lex_char Lokální lexikální char.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @details Rozhodne o konkrétním druhu jednoduchého operátoru.
+ * 
+ * @return Vrací Token do FSM.
+ */
+Token scanner_stateSimple(Token lexToken, int loc_lex_char);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování řetězce s číslicemi.
+ *
+ * @param [in] lexToken Nehotový token.
+ * @param [in] lex_state Globální proměnná určující podstavy.
+ * @param [in,out] str Ukazatel na dynamický řetězec s načtenými znaky.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @details Postupně načítá číslice do řetězce, který se může stát int, nebo float,
+ *          větví se na 5 podstavů.
+ *          Čísla mohou mít tvar například: 123
+ *                                          123.123
+ *                                          123e123
+ *                                          123.123e123
+ * 
+ * @return Vrací Token do FSM.
+ */
+Token scanner_stateNumbers(Token lexToken, DString *str);
+
+
+
+/**
+ * @brief Funkce scanneru pro zpracování řetězce s písmeny.
+ *
+ * @param [in] lexToken Nehotový token.
+ * @param [in,out] str Ukazatel na dynamický řetězec s načtenými znaky.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @details Postupně načítá písmena do řetězce, který se může stát idenfikátorem,
+ *          nebo klíčovým slovem, dokud nenarazí na ukončovací znak.
+ * 
+ * @return Vrací Token do FSM.
+ */
+Token scanner_stateLetters(Token lexToken, DString *str);
+
+
+
+/**
+ * @brief Řídící funkce scanneru.
+ *
+ * @param [out] str Ukazatel na dynamický řetězec s načtenými znaky.
+ * @param [out] lex_stopFSM Globální proměnná pro zastavení chodu FSM.
+ * 
+ * @details Stavový automat lexikálního analyzátoru,
+ *          z proudu znaků na vstupu vytvoří Token na výstupu.
+ * 
+ *          Může volat funkce:  scanner_init,
+ *                              scanner_tokenCreate,
+ *                              scanner_stringlessTokenCreate,
+ *                              scanner_getNextToken,
+ *                              scanner_isKeyword,
+ *                              scanner_charIdentity,
+ *                              scanner_getNextChar,
+ *                              scanner_ungetChar,
+ *                              funkce knihoven dynamic_string a error.
+ * 
+ *          Tyto funkce mohou volat i funkce, do který se větví:
+ *                              scanner_stateLetters,
+ *                              scanner_stateNumbers,
+ *                              scanner_stateSimple,
+ *                              scanner_stateComplexControl.
+ * 
+ * @return Vrací Token.
+ */
 Token scanner_FSM();
 
-// Volá parser, žádost o další token
+
+
+/**
+ * @brief Získá jeden Token.
+ *
+ * @details Tato funkce je volána parserem, když si žádá další Token.
+ * 
+ * @return Předává Token parseru. 
+ */
 Token scanner_getNextToken();
-
-// Odstraní token
-//void scanner_tokenDestroy(Token *token);
-
-/* možná další is_něco() funkce nebo jiné funkce
-   - je nějak potřeba poznat, zda se jedná o escape sekvenci
-   - pozor na case sesitivitu
-   - kontrolovat, zda má lexém správnou strukturu (např. pavel%honza obsahuje neplatný znak )
-   - ...
-*/
 
 #endif  // SCANNER_H_
 
