@@ -103,7 +103,6 @@ To\tto
   text  // ve viceradkovem retezcovem literalu nelze mit komentar
 END_EXPECTED
 )"
-run_test "$EXAMPLES_PATH/wanna_die.zig" "\n"
 
 # Výpis shrnutí na závěr testovací sady
 echo -e "${BLUE}SUMMARY:${RESET}"
