@@ -163,3 +163,31 @@ TEST(TAC, generate_example2) {
     stdin = stdinBackup;
     fclose(f);
 }
+
+
+TEST(TAC, ray) {
+    string path = semPath + "test_raytrace.ifj";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdinBackup = stdin;
+    stdin = f;
+    
+    // Inicializace zásobníku rámců
+    frameStack_init();
+
+    // Syntaktická analýza programu
+    LLparser_parseProgram();
+
+    // Kořen je inicializován
+    EXPECT_NE(ASTroot, nullptr);
+
+    EXPECT_EXIT(TAC_generateProgram(), ::testing::ExitedWithCode(0), "");
+
+    // Uvolnění alokovaných zdrojů
+    IFJ24Compiler_freeAllAllocatedMemory();
+
+    // Navrácení STDIN do původního stavu a uzavření souboru
+    stdin = stdinBackup;
+    fclose(f);
+}
+

@@ -329,10 +329,19 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
     // Pokud známe hodnotu operace, tak ve stromě změníme operaci na literál
     if(value != NULL) {
         if(*value != NULL) {
-            free(*value);
+            AST_destroyNode(AST_BIN_OP_NODE, binNode);
+            node->exprType = AST_EXPR_LITERAL;
+            AST_VarNode *newNode = AST_createVarNode(AST_LITERAL_NODE);
+            if(newNode == NULL) {
+                return ERROR_INTERNAL;
+            }
+            newNode->literalType = semantic_semToLiteral(*type);
+            newNode->value = *value;
+            newNode->identifier = NULL;
+
+            node->expression = newNode;
         }
     }
-    //TODO
 
     return SEMANTIC_OK;
 }  // semantic_analyseBinOp
@@ -420,11 +429,11 @@ ErrorType semantic_analyseArithmeticBinOp(AST_BinOpNode *binNode,
     if(leftType == rightType) {
         *type = leftType;
         // Pokud známe hodnotu výrazu, tak ji zjistíme
-        /*if(value != NULL && leftValue != NULL && rightValue != NULL) {
+        if(value != NULL && leftValue != NULL && rightValue != NULL) {
             result = semantic_getArithmeticValue(*type, leftValue, rightValue,
                                                     binNode->op, value);
-        }*/
-       if(value != NULL) {
+        }
+        else if(value != NULL) {
             *value = NULL;
         }
         return result;
@@ -442,21 +451,25 @@ ErrorType semantic_analyseArithmeticBinOp(AST_BinOpNode *binNode,
             // Konvertujeme left na float
             result = semantic_toFloat(binNode->left);
             *type = SEM_DATA_FLOAT;
+            semantic_analyseExpr(binNode->left, &leftType, &leftValue);
 
         }else{
             // Pokusíme se konvertovat right na int
             result = semantic_toInt(binNode->right);
             *type = SEM_DATA_INT;
+            semantic_analyseExpr(binNode->right, &rightType, &rightValue);
         }
     }else{
         if(rightValue != NULL) {
             // Konvertujeme right na float
             result = semantic_toFloat(binNode->right);
             *type = SEM_DATA_FLOAT;
+            semantic_analyseExpr(binNode->right, &rightType, &rightValue);
         }else{
             // Pokusíme se konvertovat left na int
             result = semantic_toInt(binNode->left);
             *type = SEM_DATA_INT;
+            semantic_analyseExpr(binNode->left, &leftType, &leftValue);
         }
     }
 
@@ -464,11 +477,11 @@ ErrorType semantic_analyseArithmeticBinOp(AST_BinOpNode *binNode,
         return result;
     }
         
-    // Pokusíme zjistíme hodnotu výrazu
-    if(value != NULL) {
-        *value = NULL;
+    if(value != NULL && leftValue != NULL && rightValue != NULL) {
+        result = semantic_getArithmeticValue(*type, leftValue, rightValue,
+                                             binNode->op, value);
     }
-    return SEMANTIC_OK;
+    return result;
 }  // semantic_analyseArithmetic
 
 /**
