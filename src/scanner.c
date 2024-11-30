@@ -730,7 +730,6 @@ Token scanner_stateComplexSlash(Token lexToken) {
     return lexToken;
 }
 
-//PŘIDAT
 /**
  * @brief Funkce scanneru pro zpracování složitých operátorů = a ==.
  */
