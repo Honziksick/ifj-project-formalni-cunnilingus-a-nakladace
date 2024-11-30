@@ -6,7 +6,7 @@
  * Autor:            Krejčí David   <xkrejcd00>                                *
  *                                                                             *
  * Datum:            11.11.2024                                                *
- * Poslední změna:   29.11.2024                                                *
+ * Poslední změna:   30.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -176,6 +176,13 @@ ErrorType semantic_analyseExpr(AST_ExprNode *exprNode, Semantic_Data *type, void
  */
 ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** value);
 
+ErrorType semantic_analyseAssignmentBinOp(AST_BinOpNode *binNode, Semantic_Data *type);
+
+ErrorType semantic_analyseArithmeticBinOp(AST_BinOpNode *binNode, Semantic_Data *type, void **value);
+
+ErrorType semantic_analyseRelationBinOp(AST_BinOpNode *binNode, Semantic_Data *type, void **value);
+
+
 /**
  * @brief Provede sémantickou analýzu volání funkce
  * 
@@ -234,6 +241,9 @@ ErrorType semantic_analyseWhile(Semantic_Data funReturn,       \
  */
 ErrorType semantic_analyseReturn(Semantic_Data funReturn, AST_ExprNode *node);
 
+/**
+ * 
+ */
 ErrorType semantic_analyseCondition(AST_IfNode *ifWhileNode);
 
 /**

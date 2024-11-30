@@ -6,7 +6,7 @@
  * Autor:            Krejčí David   <xkrejcd00>                                *
  *                                                                             *
  * Datum:            17.11.2024                                                *
- * Poslední změna:   29.11.2024                                                *
+ * Poslední změna:   30.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -969,4 +969,19 @@ TEST(SemanticError, Error6_ReturnExp){
         stdin = stdinBackup;
         fclose(f);
     }
+}
+
+TEST(SemanticError, DeadCode){
+    string path = semPath + "dead_after_return.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdinBackup = stdin;
+    stdin = f;
+
+    EXPECT_EXIT(TestSemantic(), ExitedWithCode(10), "");
+    
+    IFJ24Compiler_freeAllAllocatedMemory();
+    stdin = stdinBackup;
+    fclose(f);
+    ASTroot = NULL;
 }
