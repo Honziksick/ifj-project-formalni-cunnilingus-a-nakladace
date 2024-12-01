@@ -1868,5 +1868,145 @@ TEST(Lex, UnterminatedString){
     }
 }
 
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro vstupní program semen_test_2_undefined_fun.zig
+ */
+TEST(Lex, Semantic_2_Undefined_fun) {
+    string path = semPath + "semen_test_2_undefined_fun.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // Your corrected expected tokens
+        //const ifj = @import("ifj24.zig");
+        TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //7
+        //pub fn main() void {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET, //14
+        //ifj.write("ned ynkep ijerp\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //21
+        //const a: i32 = decrement(10, 5);
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_INT, TOKEN_COMMA, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,  //33
+        //const b: i32 = increment(20, 30); //Volani nedefinovane funkce 'increment'
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_INT, TOKEN_COMMA, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,  //45
+        //ifj.write(a);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //52
+        //ifj.write(b);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //59
+        //}
+        TOKEN_RIGHT_CURLY_BRACKET,  //60
+        //pub fn decrement(n: i32, m: i32) i32 {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_COMMA, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_i32, TOKEN_LEFT_CURLY_BRACKET,    //75
+        //return n - m;
+        TOKEN_K_return, TOKEN_IDENTIFIER, TOKEN_MINUS, TOKEN_IDENTIFIER, TOKEN_SEMICOLON,   //80
+        //}
+        TOKEN_RIGHT_CURLY_BRACKET, TOKEN_EOF //82
+    };
+
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
+        long int current_pos = ftell(stdin);
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
+            exit(0);
+        } else {
+            // Parent process waits for the child
+            int status;
+            waitpid(pid, &status, 0);
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Print the remaining input
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+
+                FAIL();
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro vstupní program semen_test_2_undefined_fun.zig
+ */
+TEST(Lex, Double_simple) {
+    string path = lexPath + "lex_test_double_simple.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // Your corrected expected tokens
+        //()
+        TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_EOF
+    };
+
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
+        long int current_pos = ftell(stdin);
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
+            exit(0);
+        } else {
+            // Parent process waits for the child
+            int status;
+            waitpid(pid, &status, 0);
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Print the remaining input
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+
+                FAIL();
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+}
+
 
 /*** Konec souboru scanner_test.cpp ***/
