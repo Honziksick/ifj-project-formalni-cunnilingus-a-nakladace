@@ -45,6 +45,11 @@
 #define MAX_BUFFER_SIZE 5
 
 /**
+ * @details Velikost bufferu pro optimalizaci
+ */
+#define OPTIMIZE_BUFFER_SIZE 2048
+
+/**
  * @brief Režim generování kódu
  * 
  * @details Kvůli definicím proměnných v cyklech je nutné nejdříve všechny 
@@ -219,6 +224,8 @@ DString *TAC_convertSpecialSymbols(DString *origin);
  * 
  */
 void TAC_resetStatic();
+
+void TAC_bufferPrint(char (*newInstruction)[OPTIMIZE_BUFFER_SIZE]);
 
 #endif // TAC_H_
 

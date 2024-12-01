@@ -614,7 +614,10 @@ ErrorType semantic_analyseRelationBinOp(AST_BinOpNode *binNode,
         }
 
         *type = SEM_DATA_BOOL;
-        if(value != NULL) {
+        if(value != NULL && leftValue != NULL && rightValue != NULL) {
+            result = semantic_getRelationValue(leftType, leftValue, rightValue, binNode->op, value);
+        }
+        else if(value != NULL) {
             *value = NULL;
         }
     }
