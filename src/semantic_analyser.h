@@ -185,6 +185,9 @@ ErrorType semantic_analyseRelationBinOp(AST_BinOpNode *binNode, Semantic_Data *t
 ErrorType semantic_getArithmeticValue(Semantic_Data type, void *leftValue,
                                   void *rightValue, AST_BinOpType op, void **value);
 
+ErrorType semantic_getRelationValue(Semantic_Data type, void *leftValue, void *rightValue,
+                          AST_BinOpType op, void **value);
+
 
 /**
  * @brief Provede sémantickou analýzu volání funkce

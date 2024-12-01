@@ -308,6 +308,13 @@ void TAC_generateLiteral(AST_VarNode *literal) {
         case AST_LITERAL_NULL:
             printf("PUSHS nil@nil \n");
             break;
+        case AST_LITERAL_BOOL:
+            if(*(bool*)literal->value) {
+                printf("PUSHS bool@true \n");
+            } else {
+                printf("PUSHS bool@false \n");
+            }
+            break;
         default:
             error_handle(ERROR_INTERNAL);
     }
