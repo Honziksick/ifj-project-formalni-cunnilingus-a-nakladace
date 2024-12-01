@@ -82,6 +82,7 @@ zig-out/
 **/sandbox/*
 **/backup/*
 **/raw/*
+**/out/*
 *.doc
 *.docx
 **/pack/*
