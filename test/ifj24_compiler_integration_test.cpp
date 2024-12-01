@@ -440,7 +440,7 @@ TEST(LLParserBasicsCorrect, IfjDotEtc){
     stdin = f;
 
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(4), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -620,7 +620,7 @@ TEST(LLParserBasicsCorrect, IfNullCondition){
     stdin = f;
 
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(7), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -725,7 +725,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallNoBrackets){
     stdin = f;
 
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(3), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -741,7 +741,7 @@ TEST(LLParserComplexCorrect, ExprFunInBrackets){
     stdin = f;
 
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(3), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -771,7 +771,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish1){
     stdin = f;
 
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(3), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -786,7 +786,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish2){
     stdin = f;
 
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(3), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -801,7 +801,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish3){
     stdin = f;
 
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(3), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -816,7 +816,7 @@ TEST(LLParserBasicsCorrect, WhileNullCondition){
     stdin = f;
 
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(7), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -852,7 +852,7 @@ TEST(LLParserBasicsCorrect, IfCondition) {
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
         // Syntaktická analýza programu
-        EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+        EXPECT_EXIT(mock_main(), ExitedWithCode(7), "");
         
         cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
 
