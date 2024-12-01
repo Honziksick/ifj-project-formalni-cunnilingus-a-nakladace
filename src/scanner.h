@@ -38,7 +38,7 @@
 
 
 #define ALF 10                  /**< ASCII hodnota znaku NEW LINE LF*/
-#define ASQ 32                  /**< ASCII hodnota znaku SINGLE QUOTE '*/
+#define ASQ 39                  /**< ASCII hodnota znaku SINGLE QUOTE '*/
 #define ABS 92                  /**< ASCII hodnota znaku BACLSLASH \*/
 #define ADL 127                 /**< ASCII hodnota znaku DELETE*/
 
