@@ -428,7 +428,7 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
     node->frameID = frameID;
     node->literalType = literalType;
 
-    // Pomocné proměnné pro funkce "strtol" a "strtod"
+    // Pomocná proměnná pro funkce "strtol" a "strtod"
     char *endptr;       // Ukazatel na první neplatný znak po čísle
 
     // Převod hodnoty na příslušný typ na základě "literalType"
@@ -508,7 +508,9 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
         }
 
         // Hodnotou je NULL nebo není typ literálu
+        // Pozn. Nad pseudo literálem typu boolean by neměla být funkce volána
         case AST_LITERAL_NULL:
+        case AST_LITERAL_BOOL:
         case AST_LITERAL_NOT_DEFINED: {
             node->value = NULL;
             break;
@@ -1036,13 +1038,10 @@ void AST_destroyVarNode(AST_VarNode *node) {
             case AST_LITERAL_NOT_DEFINED:
                 break;
 
-            // Literál typu i32
+            // Literál typu i32 a f64 a pseudo literál typu boolean
             case AST_LITERAL_INT:
-                free(node->value);
-                break;
-
-            // Literál typu f64
             case AST_LITERAL_FLOAT:
+            case AST_LITERAL_BOOL:
                 free(node->value);
                 break;
 
