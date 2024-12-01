@@ -1,0 +1,349 @@
+.IFJcode24
+DEFVAR GF@?tempDEST
+DEFVAR GF@?tempSRC1
+DEFVAR GF@?tempSRC2
+CREATEFRAME
+CALL $$main
+JUMP $$end$$
+
+        #---------------------------------------------------
+        #pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8
+        LABEL $$ifj$substring
+        PUSHFRAME
+        
+            LT GF@?tempDEST LF@i int@0
+            JUMPIFEQ $$$null GF@?tempDEST bool@true
+            
+            LT GF@?tempDEST LF@j int@0
+            JUMPIFEQ $$$null GF@?tempDEST bool@true
+            
+            GT GF@?tempDEST LF@i LF@j
+            JUMPIFEQ $$$null GF@?tempDEST bool@true
+            
+            STRLEN GF@?tempSRC1 LF@s
+            
+            GT GF@?tempDEST LF@i GF@?tempSRC1
+            JUMPIFEQ $$$null GF@?tempDEST bool@true
+            EQ GF@?tempDEST LF@i GF@?tempSRC1
+            JUMPIFEQ $$$null GF@?tempDEST bool@true
+            
+            GT GF@?tempDEST LF@j GF@?tempSRC1
+            JUMPIFEQ $$$null GF@?tempDEST bool@true
+        
+        PUSHS string@ 
+        POPS GF@?tempDEST 
+        
+        LABEL $$$while
+        
+            JUMPIFEQ $$$substring_success LF@i LF@j
+            
+            GETCHAR GF@?tempSRC1 LF@s LF@i
+            CONCAT GF@?tempDEST GF@?tempDEST GF@?tempSRC1
+            ADD LF@i LF@i int@1
+            JUMP $$$while
+        
+        LABEL $$$null
+            PUSHS nil@nil
+            JUMP $$$substring_end
+        
+        LABEL $$$substring_success
+            PUSHS GF@?tempDEST
+        
+        LABEL $$$substring_end
+        
+        POPFRAME
+        RETURN
+        
+        
+        
+    #-----------------------------------------
+    #pub fn ifj.strcmp(s1: []u8, s2: []u8) i32
+        LABEL $$ifj$strcmp
+        PUSHFRAME
+        
+        STRLEN GF@?tempSRC1 LF@s1
+        STRLEN GF@?tempSRC2 LF@s2
+        DEFVAR LF@len
+        MOVE LF@len GF@?tempSRC1
+        
+        LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+        JUMPIFEQ $$$cmp_def GF@?tempDEST bool@true
+        
+        MOVE LF@len GF@?tempSRC2
+        
+        LABEL $$$cmp_def
+        DEFVAR LF@i
+        MOVE LF@i int@0
+        LABEL $$$cmp_while
+        
+            JUMPIFEQ $$$strcmp0 LF@i LF@len
+            GETCHAR GF@?tempSRC1 LF@s1 LF@i
+            GETCHAR GF@?tempSRC2 LF@s2 LF@i
+            
+            LT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+            JUMPIFEQ $$$strcmp-1 GF@?tempDEST bool@true
+            
+            GT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+            JUMPIFEQ $$$strcmp1 GF@?tempDEST bool@true
+            
+            ADD LF@i LF@i int@1
+        
+        JUMP $$$cmp_while
+        
+        LABEL $$$strcmp-1
+            PUSHS int@-1
+            JUMP $$$cmp_end
+        
+        LABEL $$$strcmp1
+            PUSHS int@1
+            JUMP $$$cmp_end
+        
+        LABEL $$$strcmp0
+            PUSHS int@0
+            JUMP $$$cmp_end
+        
+        LABEL $$$cmp_end
+        
+        POPFRAME
+        RETURN
+        
+        
+        
+    #-----------------------------------------
+    #pub fn ifj.ord(s: []u8, i: i32) i32
+        LABEL $$ifj$ord
+        PUSHFRAME
+        
+        STRLEN GF@?tempSRC1 LF@s
+        EQ GF@?tempDEST GF@?tempSRC1 int@0
+        JUMPIFEQ $$$ord_zero GF@?tempDEST bool@true
+        
+        LT GF@?tempDEST LF@i int@0
+        JUMPIFEQ $$$ord_zero GF@?tempDEST bool@true
+        EQ GF@?tempDEST LF@i GF@?tempSRC1
+        JUMPIFEQ $$$ord_zero GF@?tempDEST bool@true
+        GT GF@?tempDEST LF@i GF@?tempSRC1
+        JUMPIFEQ $$$ord_zero GF@?tempDEST bool@true
+        
+        STRI2INT GF@?tempDEST LF@s LF@i
+        PUSHS GF@?tempDEST
+        JUMP $$$ord_end
+        
+        # Vrácení hodnoty 0
+        LABEL $$$ord_zero
+        PUSHS int@0
+        
+        LABEL $$$ord_end
+        POPFRAME
+        RETURN
+        
+        
+        
+LABEL $$factorial
+PUSHFRAME
+# if_0
+PUSHS LF@n$1$
+PUSHS int@1 
+GTS
+NOTS
+# then_0
+PUSHS bool@true
+JUMPIFNEQS if_else$0
+PUSHS int@1 
+POPFRAME
+RETURN
+JUMP if_end$0
+LABEL if_else$0
+PUSHS LF@n$1$
+CREATEFRAME
+PUSHS LF@n$1$
+PUSHS int@1 
+SUBS
+DEFVAR TF@n$1$
+POPS TF@n$1$
+CALL $$factorial
+MULS
+POPFRAME
+RETURN
+LABEL if_end$0
+
+LABEL $$sumOfFirstN
+PUSHFRAME
+# if_1
+PUSHS LF@n$4$
+PUSHS int@0 
+GTS
+NOTS
+# then_1
+PUSHS bool@true
+JUMPIFNEQS if_else$1
+PUSHS int@0 
+POPFRAME
+RETURN
+JUMP if_end$1
+LABEL if_else$1
+PUSHS LF@n$4$
+CREATEFRAME
+PUSHS LF@n$4$
+PUSHS int@1 
+SUBS
+DEFVAR TF@n$4$
+POPS TF@n$4$
+CALL $$sumOfFirstN
+ADDS
+POPFRAME
+RETURN
+LABEL if_end$1
+
+LABEL $$complexMathOperations
+PUSHFRAME
+DEFVAR LF@total$7$ 
+PUSHS LF@start$7$
+POPS LF@total$7$ 
+DEFVAR LF@i$7$ 
+PUSHS int@0 
+POPS LF@i$7$ 
+# Definice vsech promennych v tele while
+LABEL while_start$0
+PUSHS LF@i$7$
+PUSHS int@1000 
+LTS
+# while_body_0
+PUSHS bool@true
+JUMPIFNEQS while_end$0
+PUSHS LF@total$7$
+PUSHS int@2 
+SUBS
+POPS LF@total$7$
+PUSHS LF@total$7$
+PUSHS int@5 
+ADDS
+POPS LF@total$7$
+PUSHS LF@i$7$
+PUSHS int@1 
+ADDS
+POPS LF@i$7$
+JUMP while_start$0
+LABEL while_end$0
+PUSHS LF@total$7$
+POPFRAME
+RETURN
+
+LABEL $$complexStringOperations
+PUSHFRAME
+DEFVAR LF@base$9$ 
+PUSHS string@HODY\032HODY\032DEJTE\032BODY\032KDYZ\032NEDATE\032PLNY\032POCET\032DEJTE\032ASPON\032NA\032ZAPOCET\046\032 
+POPS LF@base$9$ 
+DEFVAR LF@result$9$ 
+PUSHS LF@base$9$
+POPS LF@result$9$ 
+DEFVAR LF@i$9$ 
+PUSHS int@0 
+POPS LF@i$9$ 
+# Definice vsech promennych v tele while
+LABEL while_start$1
+PUSHS LF@i$9$
+PUSHS int@1000 
+LTS
+# while_body_1
+PUSHS bool@true
+JUMPIFNEQS while_end$1
+PUSHS LF@result$9$
+PUSHS LF@base$9$
+POPS GF@?tempSRC2
+POPS GF@?tempSRC1
+CONCAT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2
+PUSHS GF@?tempDEST
+POPS LF@result$9$
+PUSHS LF@i$9$
+PUSHS int@1 
+ADDS
+POPS LF@i$9$
+JUMP while_start$1
+LABEL while_end$1
+PUSHS LF@result$9$
+POPFRAME
+RETURN
+
+LABEL $$nestedFunctionCalls
+PUSHFRAME
+# if_2
+PUSHS LF@n$11$
+PUSHS int@0 
+GTS
+NOTS
+# then_2
+PUSHS bool@true
+JUMPIFNEQS if_else$2
+PUSHS int@1 
+POPFRAME
+RETURN
+JUMP if_end$2
+LABEL if_else$2
+CREATEFRAME
+PUSHS LF@n$11$
+PUSHS int@1 
+SUBS
+DEFVAR TF@n$11$
+POPS TF@n$11$
+CALL $$nestedFunctionCalls
+PUSHS LF@n$11$
+MULS
+POPFRAME
+RETURN
+LABEL if_end$2
+
+LABEL $$main
+PUSHFRAME
+DEFVAR LF@factResult$14$ 
+CREATEFRAME
+PUSHS int@10 
+DEFVAR TF@n$1$
+POPS TF@n$1$
+CALL $$factorial
+POPS LF@factResult$14$ 
+PUSHS LF@factResult$14$
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+DEFVAR LF@sumResult$14$ 
+CREATEFRAME
+PUSHS int@100 
+DEFVAR TF@n$4$
+POPS TF@n$4$
+CALL $$sumOfFirstN
+POPS LF@sumResult$14$ 
+PUSHS LF@sumResult$14$
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+DEFVAR LF@mathResult$14$ 
+CREATEFRAME
+PUSHS int@100 
+DEFVAR TF@start$7$
+POPS TF@start$7$
+CALL $$complexMathOperations
+POPS LF@mathResult$14$ 
+PUSHS LF@mathResult$14$
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+DEFVAR LF@strResult$14$ 
+CREATEFRAME
+CALL $$complexStringOperations
+POPS LF@strResult$14$ 
+PUSHS LF@strResult$14$
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+DEFVAR LF@nestedResult$14$ 
+CREATEFRAME
+PUSHS int@10 
+DEFVAR TF@n$11$
+POPS TF@n$11$
+CALL $$nestedFunctionCalls
+POPS LF@nestedResult$14$ 
+PUSHS LF@nestedResult$14$
+POPS GF@?tempSRC1
+WRITE GF@?tempSRC1
+POPFRAME
+RETURN
+
+LABEL $$end$$
+

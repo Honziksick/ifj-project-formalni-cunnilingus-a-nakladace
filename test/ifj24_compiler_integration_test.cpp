@@ -39,7 +39,7 @@
 //#define SPECIFIC_TEST_NAME "CorrectReturn"
 
 // Kompletně vypneme výpis
-//#define DISABLE_PRINT
+#define DISABLE_PRINT
 
 #include "ifj24_compiler_test_utils.h"
 extern "C" {
@@ -61,7 +61,7 @@ extern "C" {
         if(ASTroot != NULL) {
             // Spustíme sémantickou analýzu nad AST pomocí Symtable
             semantic_analyseProgram();
-            PRINT_TEST_LOG(big);
+
             // Přesměrujeme STDOUT do černé díry
             freopen("/dev/null", "w", stdout);
 
@@ -84,10 +84,9 @@ extern "C" {
     }
 }
 
-/*
 TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     // Načtení souboru s programem na STDIN
-    string path = synt_path + "correct_prologue_and_empty_main.zig";
+    string path = syntPath + "correct_prologue_and_empty_main.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -102,7 +101,7 @@ TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
 }
 
 TEST(LLParserBasicsCorrect, OneParam){
-    string path = synt_path + "correct_one_param.zig";
+    string path = syntPath + "correct_one_param.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -117,7 +116,7 @@ TEST(LLParserBasicsCorrect, OneParam){
 }
 
 TEST(LLParserBasicsCorrect, TwoParams){
-    string path = synt_path + "correct_two_params.zig";
+    string path = syntPath + "correct_two_params.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -132,7 +131,7 @@ TEST(LLParserBasicsCorrect, TwoParams){
 }
 
 TEST(LLParserBasicsCorrect, TwoFunctions){
-    string path = synt_path + "correct_two_fun.zig";
+    string path = syntPath + "correct_two_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -147,7 +146,7 @@ TEST(LLParserBasicsCorrect, TwoFunctions){
 }
 
 TEST(LLParserBasicsCorrect, VarDef){
-    string path = synt_path + "correct_var_def.zig";
+    string path = syntPath + "correct_var_def.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -162,7 +161,7 @@ TEST(LLParserBasicsCorrect, VarDef){
 }
 
 TEST(LLParserBasicsCorrect, FunCallNoArgs){
-    string path = synt_path + "correct_fun_call_no_args.zig";
+    string path = syntPath + "correct_fun_call_no_args.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -177,14 +176,14 @@ TEST(LLParserBasicsCorrect, FunCallNoArgs){
 }
 
 TEST(LLParserBasicsCorrect, NonVoidFun){
-    string path = synt_path + "correct_nonvoid_fun.zig";
+    string path = syntPath + "correct_nonvoid_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(2), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -192,7 +191,7 @@ TEST(LLParserBasicsCorrect, NonVoidFun){
 }
 
 TEST(LLParserBasicsCorrect, FunCallIntLit){
-    string path = synt_path + "correct_fun_call_int_lit.zig";
+    string path = syntPath + "correct_fun_call_int_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -207,7 +206,7 @@ TEST(LLParserBasicsCorrect, FunCallIntLit){
 }
 
 TEST(LLParserBasicsCorrect, FunCallFloatLit){
-    string path = synt_path + "correct_fun_call_float_lit.zig";
+    string path = syntPath + "correct_fun_call_float_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -222,7 +221,7 @@ TEST(LLParserBasicsCorrect, FunCallFloatLit){
 }
 
 TEST(LLParserBasicsCorrect, FunCallStringLit){
-    string path = synt_path + "correct_fun_call_string_lit.zig";
+    string path = syntPath + "correct_fun_call_string_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -237,7 +236,7 @@ TEST(LLParserBasicsCorrect, FunCallStringLit){
 }
 
 TEST(LLParserBasicsCorrect, FunCallVar){
-    string path = synt_path + "correct_fun_call_var.zig";
+    string path = syntPath + "correct_fun_call_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -252,7 +251,7 @@ TEST(LLParserBasicsCorrect, FunCallVar){
 }
 
 TEST(LLParserBasicsCorrect, FunCallTwoArgs){
-    string path = synt_path + "correct_fun_call_two_args.zig";
+    string path = syntPath + "correct_fun_call_two_args.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -267,14 +266,14 @@ TEST(LLParserBasicsCorrect, FunCallTwoArgs){
 }
 
 TEST(LLParserBasicsCorrect, FunCallManyArgs){
-    string path = synt_path + "correct_fun_call_many_args.zig";
+    string path = syntPath + "correct_fun_call_many_args.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(4), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -282,14 +281,14 @@ TEST(LLParserBasicsCorrect, FunCallManyArgs){
 }
 
 TEST(LLParserBasicsCorrect, FunCallCommaLast){
-    string path = synt_path + "correct_fun_call_comma_last.zig";
+    string path = syntPath + "correct_fun_call_comma_last.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(4), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -297,7 +296,7 @@ TEST(LLParserBasicsCorrect, FunCallCommaLast){
 }
 
 TEST(LLParserBasicsCorrect, IFJFunCallNoArgs){
-    string path = synt_path + "correct_ifj_fun_call_no_args.zig";
+    string path = syntPath + "correct_ifj_fun_call_no_args.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -313,7 +312,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallNoArgs){
 
 
 TEST(LLParserBasicsCorrect, IFJFunCallIntLit){
-    string path = synt_path + "correct_ifj_fun_call_int_lit.zig";
+    string path = syntPath + "correct_ifj_fun_call_int_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -329,7 +328,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallIntLit){
 
 
 TEST(LLParserBasicsCorrect, IFJFunCallFloatLit){
-    string path = synt_path + "correct_ifj_fun_call_float_lit.zig";
+    string path = syntPath + "correct_ifj_fun_call_float_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -344,7 +343,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallFloatLit){
 }
 
 TEST(LLParserBasicsCorrect, IFJFunCallStringLit){
-    string path = synt_path + "correct_ifj_fun_call_string_lit.zig";
+    string path = syntPath + "correct_ifj_fun_call_string_lit.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -359,7 +358,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallStringLit){
 }
 
 TEST(LLParserBasicsCorrect, IFJFunCallVar){
-    string path = synt_path + "correct_ifj_fun_call_var.zig";
+    string path = syntPath + "correct_ifj_fun_call_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -374,7 +373,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallVar){
 }
 
 TEST(LLParserBasicsCorrect, IFJFunCallTwoArgs){
-    string path = synt_path + "correct_ifj_fun_call_two_args.zig";
+    string path = syntPath + "correct_ifj_fun_call_two_args.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -389,7 +388,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallTwoArgs){
 }
 
 TEST(LLParserBasicsCorrect, IFJFunCallManyArgs){
-    string path = synt_path + "correct_ifj_fun_call_many_args.zig";
+    string path = syntPath + "correct_ifj_fun_call_many_args.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -404,14 +403,14 @@ TEST(LLParserBasicsCorrect, IFJFunCallManyArgs){
 }
 
 TEST(LLParserBasicsCorrect, IFJFunCallCommaLast){
-    string path = synt_path + "correct_ifj_fun_call_comma_last.zig";
+    string path = syntPath + "correct_ifj_fun_call_comma_last.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
     
     // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+    EXPECT_EXIT(mock_main(), ExitedWithCode(4), "");
 
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
@@ -419,7 +418,7 @@ TEST(LLParserBasicsCorrect, IFJFunCallCommaLast){
 }
 
 TEST(LLParserBasicsCorrect, ExcesiveCurlyBrackets){
-    string path = synt_path + "correct_excesive_curly_brackets.zig";
+    string path = syntPath + "correct_excesive_curly_brackets.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -434,7 +433,7 @@ TEST(LLParserBasicsCorrect, ExcesiveCurlyBrackets){
 }
 
 TEST(LLParserBasicsCorrect, IfjDotEtc){
-    string path = synt_path + "X_correct_ifj_dot_etc.zig";
+    string path = syntPath + "X_correct_ifj_dot_etc.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -449,7 +448,7 @@ TEST(LLParserBasicsCorrect, IfjDotEtc){
 }
 
 TEST(LLParserBasicsCorrect, AddOperatorsMinus){
-    string path = synt_path + "X_correct_add_operators_minus.zig";
+    string path = syntPath + "X_correct_add_operators_minus.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -464,7 +463,7 @@ TEST(LLParserBasicsCorrect, AddOperatorsMinus){
 }
 
 TEST(LLParserBasicsCorrect, AddOperatorsPlus){
-    string path = synt_path + "X_correct_add_operators_plus.zig";
+    string path = syntPath + "X_correct_add_operators_plus.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -479,7 +478,7 @@ TEST(LLParserBasicsCorrect, AddOperatorsPlus){
 }
 
 TEST(LLParserBasicsCorrect, MultiOperatorsAsterisk){
-    string path = synt_path + "X_correct_multi_operators_asterisk.zig";
+    string path = syntPath + "X_correct_multi_operators_asterisk.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -494,7 +493,7 @@ TEST(LLParserBasicsCorrect, MultiOperatorsAsterisk){
 }
 
 TEST(LLParserBasicsCorrect, MultiOperatorsSlash){
-    string path = synt_path + "X_correct_multi_operators_slash.zig";
+    string path = syntPath + "X_correct_multi_operators_slash.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -509,7 +508,7 @@ TEST(LLParserBasicsCorrect, MultiOperatorsSlash){
 }
 
 TEST(LLParserBasicsCorrect, RelOperatorsEE){
-    string path = synt_path + "X_correct_rel_operators_EE.zig";
+    string path = syntPath + "X_correct_rel_operators_EE.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -524,7 +523,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsEE){
 }
 
 TEST(LLParserBasicsCorrect, RelOperatorsG){
-    string path = synt_path + "X_correct_rel_operators_G.zig";
+    string path = syntPath + "X_correct_rel_operators_G.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -539,7 +538,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsG){
 }
 
 TEST(LLParserBasicsCorrect, RelOperatorsGE){
-    string path = synt_path + "X_correct_rel_operators_GE.zig";
+    string path = syntPath + "X_correct_rel_operators_GE.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -554,7 +553,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsGE){
 }
 
 TEST(LLParserBasicsCorrect, RelOperatorsL){
-    string path = synt_path + "X_correct_rel_operators_L.zig";
+    string path = syntPath + "X_correct_rel_operators_L.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -569,7 +568,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsL){
 }
 
 TEST(LLParserBasicsCorrect, RelOperatorsLE){
-    string path = synt_path + "X_correct_rel_operators_LE.zig";
+    string path = syntPath + "X_correct_rel_operators_LE.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -584,7 +583,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsLE){
 }
 
 TEST(LLParserBasicsCorrect, RelOperatorsNE){
-    string path = synt_path + "X_correct_rel_operators_NE.zig";
+    string path = syntPath + "X_correct_rel_operators_NE.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -599,7 +598,7 @@ TEST(LLParserBasicsCorrect, RelOperatorsNE){
 }
 
 TEST(LLParserBasicsCorrect, DataTypes){
-    string path = synt_path + "X_correct_data_types.zig";
+    string path = syntPath + "X_correct_data_types.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -614,7 +613,7 @@ TEST(LLParserBasicsCorrect, DataTypes){
 }
 
 TEST(LLParserBasicsCorrect, IfNullCondition){
-    string path = synt_path + "correct_if_null_condition.zig";
+    string path = syntPath + "correct_if_null_condition.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -629,7 +628,7 @@ TEST(LLParserBasicsCorrect, IfNullCondition){
 }
 
 TEST(LLParserBasicsCorrect, ThrowAway){
-    string path = synt_path + "X_correct_throw_away.zig";
+    string path = syntPath + "X_correct_throw_away.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -644,7 +643,7 @@ TEST(LLParserBasicsCorrect, ThrowAway){
 }
 
 TEST(LLParserBasicsCorrect, FunReturn){
-    string path = synt_path + "X_correct_fun_return.zig";
+    string path = syntPath + "X_correct_fun_return.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -659,7 +658,7 @@ TEST(LLParserBasicsCorrect, FunReturn){
 }
 
 TEST(LLParserBasicsCorrect, IfElse){
-    string path = synt_path + "X_correct_if_else.zig";
+    string path = syntPath + "X_correct_if_else.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -674,7 +673,7 @@ TEST(LLParserBasicsCorrect, IfElse){
 }
 
 TEST(LLParserBasicsCorrect, While){
-    string path = synt_path + "X_correct_while.zig";
+    string path = syntPath + "X_correct_while.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -689,7 +688,7 @@ TEST(LLParserBasicsCorrect, While){
 }
 
 TEST(LLParserComplexCorrect, ExprNoBrackets){
-    string path = synt_path + "correct_complex_expr_no_brackets.zig";
+    string path = syntPath + "correct_complex_expr_no_brackets.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -704,7 +703,7 @@ TEST(LLParserComplexCorrect, ExprNoBrackets){
 }
 
 TEST(LLParserComplexCorrect, ExprWithBrackets){
-    string path = synt_path + "correct_complex_expr_with_brackets.zig";
+    string path = syntPath + "correct_complex_expr_with_brackets.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -719,7 +718,7 @@ TEST(LLParserComplexCorrect, ExprWithBrackets){
 }
 
 TEST(LLParserComplexCorrect, ExprWithFunCallNoBrackets){
-    string path = synt_path + "correct_complex_expr_with_fun_no_brackets.zig";
+    string path = syntPath + "correct_complex_expr_with_fun_no_brackets.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -735,7 +734,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallNoBrackets){
 
 
 TEST(LLParserComplexCorrect, ExprFunInBrackets){
-    string path = synt_path + "correct_complex_expr_fun_in_brackets.zig";
+    string path = syntPath + "correct_complex_expr_fun_in_brackets.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -750,7 +749,7 @@ TEST(LLParserComplexCorrect, ExprFunInBrackets){
 }
 
 TEST(LLParserComplexCorrect, ExprWithFunCallAndBrackets){
-    string path = synt_path + "correct_complex_expr_with_fun_and_brackets.zig";
+    string path = syntPath + "correct_complex_expr_with_fun_and_brackets.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -765,7 +764,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBrackets){
 }
 
 TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish1){
-    string path = synt_path + "correct_complex_expr_with_fun_and_brackets_hellish_1.zig";
+    string path = syntPath + "correct_complex_expr_with_fun_and_brackets_hellish_1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -780,7 +779,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish1){
 }
 
 TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish2){
-    string path = synt_path + "correct_complex_expr_with_fun_and_brackets_hellish_2.zig";
+    string path = syntPath + "correct_complex_expr_with_fun_and_brackets_hellish_2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -795,7 +794,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish2){
 }
 
 TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish3){
-    string path = synt_path + "correct_complex_expr_with_fun_and_brackets_hellish_3.zig";
+    string path = syntPath + "correct_complex_expr_with_fun_and_brackets_hellish_3.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -810,7 +809,7 @@ TEST(LLParserComplexCorrect, ExprWithFunCallAndBracketsHellish3){
 }
 
 TEST(LLParserBasicsCorrect, WhileNullCondition){
-    string path = synt_path + "X_correct_while_null_condition.zig";
+    string path = syntPath + "X_correct_while_null_condition.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -825,7 +824,7 @@ TEST(LLParserBasicsCorrect, WhileNullCondition){
 }
 
 TEST(LLParserBasicsCorrect, Return){
-    string path = synt_path + "correct_return.zig";
+    string path = syntPath + "correct_return.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -842,7 +841,7 @@ TEST(LLParserBasicsCorrect, Return){
 TEST(LLParserBasicsCorrect, IfCondition) {
     for (int i = 1; i <= 7; i++) {
         string filename = "correct_if_condition_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = synt_path + filename;
+        string path = syntPath + filename;
         
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << "Can't open file: " << filename;
@@ -864,7 +863,7 @@ TEST(LLParserBasicsCorrect, IfCondition) {
 }
 
 TEST(LLParserExamples, Example1){
-    string path = exampPath + "example1.zig";
+    string path = examPath + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -879,7 +878,7 @@ TEST(LLParserExamples, Example1){
 }
 
 TEST(LLParserExamples, Example2){
-    string path = exampPath + "example2.zig";
+    string path = examPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -894,7 +893,7 @@ TEST(LLParserExamples, Example2){
 }
 
 TEST(LLParserExamples, Example3){
-    string path = exampPath + "example3.zig";
+    string path = examPath + "example3.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -909,7 +908,7 @@ TEST(LLParserExamples, Example3){
 }
 
 TEST(LLParserExamples, Fun){
-    string path = exampPath + "fun.zig";
+    string path = examPath + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -924,7 +923,7 @@ TEST(LLParserExamples, Fun){
 }
 
 TEST(LLParserExamples, Hello){
-    string path = exampPath + "hello.zig";
+    string path = examPath + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -939,7 +938,7 @@ TEST(LLParserExamples, Hello){
 }
 
 TEST(LLParserExamples, Multiline){
-    string path = exampPath + "multiline.zig";
+    string path = examPath + "multiline.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -956,7 +955,7 @@ TEST(LLParserExamples, Multiline){
 TEST(ParserSyntaxError, Prologue) {
     for (int i = 1; i <= 12; i++) {
         string filename = "error_prologue_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = synt_error_path + filename;
+        string path = syntErrorPath + filename;
         
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << "Can't open file: " << path;
@@ -980,7 +979,7 @@ TEST(ParserSyntaxError, Prologue) {
 TEST(ParserSyntaxError, FunctionDefinition) {
     for (int i = 1; i <= 21; i++) {
         string filename = "error_fun_def_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = synt_error_path + filename;
+        string path = syntErrorPath + filename;
         
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << "Can't open file: " << filename;
@@ -1004,7 +1003,7 @@ TEST(ParserSyntaxError, FunctionDefinition) {
 TEST(ParserSyntaxError, Statements) {
     for (int i = 1; i <= 118; i++) {
         string filename = "error_statement_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = synt_error_path + filename;
+        string path = syntErrorPath + filename;
         
         FILE* f = fopen(path.c_str(), "r");
         ASSERT_NE(f, nullptr) << "Can't open file: " << filename;
@@ -1026,7 +1025,7 @@ TEST(ParserSyntaxError, Statements) {
 }
 
 TEST(Correct, Simplest){
-    string path = sem_path + "simplest.zig";
+    string path = semPath + "simplest.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1040,7 +1039,7 @@ TEST(Correct, Simplest){
 }
 
 TEST(Correct, Hello){
-    string path = exampPath + "hello.zig";
+    string path = examPath + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1054,7 +1053,7 @@ TEST(Correct, Hello){
 }
 
 TEST(Correct, Example1){
-    string path = exampPath + "example1.zig";
+    string path = examPath + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1068,7 +1067,7 @@ TEST(Correct, Example1){
 }
 
 TEST(Correct, Example2){
-    string path = exampPath + "example2.zig";
+    string path = examPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1082,7 +1081,7 @@ TEST(Correct, Example2){
 }
 
 TEST(Correct, Example3){
-    string path = exampPath + "example2.zig";
+    string path = examPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1096,7 +1095,7 @@ TEST(Correct, Example3){
 }
 
 TEST(Correct, Fun){
-    string path = exampPath + "fun.zig";
+    string path = examPath + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1110,7 +1109,7 @@ TEST(Correct, Fun){
 }
 
 TEST(Correct, Implicit_to_float){
-    string path = sem_path + "implicit_to_float.zig";
+    string path = semPath + "implicit_to_float.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1124,7 +1123,7 @@ TEST(Correct, Implicit_to_float){
 }
 
 TEST(Correct, Implicit_to_int){
-    string path = sem_path + "implicit_to_int.zig";
+    string path = semPath + "implicit_to_int.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1138,7 +1137,7 @@ TEST(Correct, Implicit_to_int){
 }
 
 TEST(Correct, Pseudo){
-    string path = sem_path + "pseudo.zig";
+    string path = semPath + "pseudo.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1152,7 +1151,7 @@ TEST(Correct, Pseudo){
 }
 
 TEST(Correct, Pseudo2){
-    string path = sem_path + "pseudo2.zig";
+    string path = semPath + "pseudo2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1166,7 +1165,7 @@ TEST(Correct, Pseudo2){
 }
 
 TEST(Correct, Inference){
-    string path = sem_path + "type_inference_good.zig";
+    string path = semPath + "type_inference_good.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1181,7 +1180,7 @@ TEST(Correct, Inference){
 
 
 TEST(Correct, Void_fun){
-    string path = sem_path + "void_fun_good.zig";
+    string path = semPath + "void_fun_good.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1195,7 +1194,7 @@ TEST(Correct, Void_fun){
 }
 
 TEST(Correct, Void_fun2){
-    string path = sem_path + "void_fun_good2.zig";
+    string path = semPath + "void_fun_good2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1209,7 +1208,7 @@ TEST(Correct, Void_fun2){
 }
 
 TEST(Incorrect, Undefined_Var){
-    string path = sem_path + "semen_test_1_undefined_var.zig";
+    string path = semPath + "semen_test_1_undefined_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1223,7 +1222,7 @@ TEST(Incorrect, Undefined_Var){
 }
 
 TEST(Incorrect, Undefined_Fun){
-    string path = sem_path + "semen_test_2_undefined_fun.zig";
+    string path = semPath + "semen_test_2_undefined_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1237,7 +1236,7 @@ TEST(Incorrect, Undefined_Fun){
 }
 
 TEST(Incorrect, ParamCount){
-    string path = sem_path + "semen_test_3_wrong_number_of_parameters_in_fun.zig";
+    string path = semPath + "semen_test_3_wrong_number_of_parameters_in_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1251,7 +1250,7 @@ TEST(Incorrect, ParamCount){
 }
 
 TEST(Incorrect, ParamType){
-    string path = sem_path + "semen_test_4_wrong_type_of_parameters_in_fun.zig";
+    string path = semPath + "semen_test_4_wrong_type_of_parameters_in_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1265,7 +1264,7 @@ TEST(Incorrect, ParamType){
 }
 
 TEST(Incorrect, Return){
-    string path = sem_path + "semen_test_5_incompatible_return_value.zig";
+    string path = semPath + "semen_test_5_incompatible_return_value.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1279,7 +1278,7 @@ TEST(Incorrect, Return){
 }
 
 TEST(Incorrect, Return2){
-    string path = sem_path + "semen_test_6_missing_return.zig";
+    string path = semPath + "semen_test_6_missing_return.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1293,7 +1292,7 @@ TEST(Incorrect, Return2){
 }
 
 TEST(Incorrect, Return3){
-    string path = sem_path + "semen_test_7_missing_return_completely.zig";
+    string path = semPath + "semen_test_7_missing_return_completely.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1307,7 +1306,7 @@ TEST(Incorrect, Return3){
 }
 
 TEST(Incorrect, Redefined_Var){
-    string path = sem_path + "semen_test_8_redefining_var.zig";
+    string path = semPath + "semen_test_8_redefining_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1321,7 +1320,7 @@ TEST(Incorrect, Redefined_Var){
 }
 
 TEST(Incorrect, Redefined_Fun){
-    string path = sem_path + "semen_test_9_redefining_fun.zig";
+    string path = semPath + "semen_test_9_redefining_fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1335,7 +1334,7 @@ TEST(Incorrect, Redefined_Fun){
 }
 
 TEST(Incorrect, ConstAssign){
-    string path = sem_path + "semen_test_10_assigning_value_to_const.zig";
+    string path = semPath + "semen_test_10_assigning_value_to_const.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1349,7 +1348,7 @@ TEST(Incorrect, ConstAssign){
 }
 
 TEST(Incorrect, AssignType){
-    string path = sem_path + "semen_test_11_uncompatible_assignment_1.zig";
+    string path = semPath + "semen_test_11_uncompatible_assignment_1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1363,7 +1362,7 @@ TEST(Incorrect, AssignType){
 }
 
 TEST(Incorrect, AssignType2){
-    string path = sem_path + "semen_test_12_uncompatible_assignment_2.zig";
+    string path = semPath + "semen_test_12_uncompatible_assignment_2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1377,7 +1376,7 @@ TEST(Incorrect, AssignType2){
 }
 
 TEST(Incorrect, Unused_Var){
-    string path = sem_path + "semen_test_13_unused_variable.zig";
+    string path = semPath + "semen_test_13_unused_variable.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1391,7 +1390,7 @@ TEST(Incorrect, Unused_Var){
 }
 
 TEST(Incorrect, MainInt){
-    string path = sem_path + "main_type_int.zig";
+    string path = semPath + "main_type_int.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1405,7 +1404,7 @@ TEST(Incorrect, MainInt){
 }
 
 TEST(Incorrect, NoMain){
-    string path = sem_path + "missing_main.zig";
+    string path = semPath + "missing_main.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1419,7 +1418,7 @@ TEST(Incorrect, NoMain){
 }
 
 TEST(Incorrect, Prolog){
-    string path = sem_path + "prolog_issue.zig";
+    string path = semPath + "prolog_issue.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1433,7 +1432,7 @@ TEST(Incorrect, Prolog){
 }
 
 TEST(Incorrect, Prolog2){
-    string path = sem_path + "prolog_issue2.zig";
+    string path = semPath + "prolog_issue2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1447,7 +1446,7 @@ TEST(Incorrect, Prolog2){
 }
 
 TEST(Incorrect, Inference){
-    string path = sem_path + "type_inference.zig";
+    string path = semPath + "type_inference.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1461,7 +1460,7 @@ TEST(Incorrect, Inference){
 }
 
 TEST(Incorrect, Inference2){
-    string path = sem_path + "type_inference2.zig";
+    string path = semPath + "type_inference2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1475,7 +1474,7 @@ TEST(Incorrect, Inference2){
 }
 
 TEST(Incorrect, Unchanged_var){
-    string path = sem_path + "unchanged_var.zig";
+    string path = semPath + "unchanged_var.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1489,7 +1488,7 @@ TEST(Incorrect, Unchanged_var){
 }
 
 TEST(Incorrect, Unused_value){
-    string path = sem_path + "unused_value.zig";
+    string path = semPath + "unused_value.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1503,7 +1502,7 @@ TEST(Incorrect, Unused_value){
 }
 
 TEST(Incorrect, Unused_value2){
-    string path = sem_path + "unused_value2.zig";
+    string path = semPath + "unused_value2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1517,7 +1516,7 @@ TEST(Incorrect, Unused_value2){
 }
 
 TEST(Incorrect, Void_fun){
-    string path = sem_path + "void_fun_bad.zig";
+    string path = semPath + "void_fun_bad.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1532,7 +1531,7 @@ TEST(Incorrect, Void_fun){
 
 TEST(Incorrect, CantDetermineNullCondType){
     string filename = "cant_determine_nullcond_type.zig";
-    string path = sem_path + filename;
+    string path = semPath + filename;
 
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
@@ -1550,7 +1549,7 @@ TEST(Incorrect, CantDetermineNullCondType){
 
 TEST(Correct, TypeCasting){
     string filename = "more_advanced_type_casting.zig";
-    string path = sem_path + filename;
+    string path = semPath + filename;
 
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
@@ -1570,7 +1569,7 @@ TEST(Correct, TypeCasting){
 TEST(SemanticError, Error3_UndefinedVariable){
     for (int i = 1; i <= 8; i++) {
         string filename = "error_3_undef_var_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
@@ -1593,7 +1592,7 @@ TEST(SemanticError, Error3_UndefinedVariable){
 TEST(SemanticError, Error3_UndefinedFunction){
     for (int i = 1; i <= 8; i++) {
         string filename = "error_3_undef_fun_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
@@ -1616,7 +1615,7 @@ TEST(SemanticError, Error3_UndefinedFunction){
 TEST(SemanticError, Error3_UndefinedIFJFunction){
     for (int i = 1; i <= 8; i++) {
         string filename = "error_3_undef_ifj_fun_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
@@ -1639,7 +1638,7 @@ TEST(SemanticError, Error3_UndefinedIFJFunction){
 TEST(SemanticError, Error4_WrongNumberOfFunParams){
     for (int i = 1; i <= 10; i++) {
         string filename = "error_4_wrong_num_of_fun_params_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
@@ -1660,9 +1659,9 @@ TEST(SemanticError, Error4_WrongNumberOfFunParams){
 }
 
 TEST(SemanticError, Error4_WrongParamType){
-    for (int i = 1; i <= 8; i++) {
+    for (int i = 1; i <= 22; i++) {
         string filename = "error_4_wrong_param_type_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
@@ -1684,8 +1683,8 @@ TEST(SemanticError, Error4_WrongParamType){
 
 TEST(SemanticError, Error4_WrongFunReturnType){
     for (int i = 1; i <= 3; i++) {
-        string filename = "error_4_wrong_param_type_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string filename = "error_4_wrong_fun_return_type_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
@@ -1708,7 +1707,7 @@ TEST(SemanticError, Error4_WrongFunReturnType){
 TEST(SemanticError, Error4_ReturnValueDump){
     for (int i = 1; i <= 2; i++) {
         string filename = "error_4_return_value_dump_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
@@ -1731,7 +1730,7 @@ TEST(SemanticError, Error4_ReturnValueDump){
 TEST(SemanticError, Error5_VariableRedefinition){
     for (int i = 1; i <= 10; i++) {
         string filename = "error_5_variable_redefinition_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
@@ -1754,7 +1753,7 @@ TEST(SemanticError, Error5_VariableRedefinition){
 TEST(SemanticError, Error6_ReturnExp){
     for (int i = 1; i <= 21; i++) {
         string filename = "error_6_return_exp_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = sem_error_path + filename;
+        string path = semErrorPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
@@ -1775,66 +1774,9 @@ TEST(SemanticError, Error6_ReturnExp){
     }
 }
 
-TEST(FifixSandy, HodyHodyDejteBodyFUNEXP){
-    string path = sem_path + "fifixsandy_test_hodyhodydejtebodyFUNEXP.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+TEST(Lex, EscapeAndHexadecimal) {
+    string path = lexPath + "escape_and_hexa.zig";
 
-    stdin = stdin_backup;
-    fclose(f);
-    ASTroot = NULL;
-}
-
-
-TEST(FifixSandy, StringTestFUNEXP){
-    string path = sem_path + "fifixsandy_string_testFUNEXP.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
-
-    stdin = stdin_backup;
-    fclose(f);
-    ASTroot = NULL;
-}
-
-TEST(FifixSandy, Test7){
-    string path = sem_path + "fifixsandy_test_7.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
-
-    stdin = stdin_backup;
-    fclose(f);
-    ASTroot = NULL;
-}
-
-TEST(FifixSandy, Substring){
-    string path = sem_path + "fifixsandy_test_substring.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
-
-    stdin = stdin_backup;
-    fclose(f);
-    ASTroot = NULL;
-}
-
-TEST(FifixSandy, BigTest) {
-    // Načtení souboru s programem na STDIN
-    string path = sem_path + "fifixsandy_big_test.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1847,38 +1789,3 @@ TEST(FifixSandy, BigTest) {
     stdin = stdin_backup;
     fclose(f);
 }
-*/
-
-TEST(FifixSandy, BigTest2) {
-    // Načtení souboru s programem na STDIN
-    string path = semPath + "fifixsandy_big_test2.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    // Syntaktická analýza programu
-    //EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
-    mock_main();
-
-    // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
-    fclose(f);
-}
-/*
-TEST(FifixSandy, BigTestFUNEXP) {
-    // Načtení souboru s programem na STDIN
-    string path = sem_path + "fifixsandy_big_testFUNEXP.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
-
-    // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
-    fclose(f);
-}
-*/

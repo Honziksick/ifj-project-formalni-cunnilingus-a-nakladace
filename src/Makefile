@@ -767,31 +767,31 @@ BASE_PATH = ../test/test_examples/ifj24code_examples
 
 ### G # run-script: Spustí All-In-One testovací skript na kompilátor.
 run-script: build
-	$(TEST_DIR)/ifj24compiler_test_script.sh
+	$(TEST_DIR)/test.sh
 
 ### G # run-code: # Spustí interpret jazyk IFJ24 s IFJ24code assembler souborem: \nUSAGE: "make run-code F=<FILE>" \n(očekává soubor bez přípony '.zig' a ve složce: \n'../test/test_examples/ifj24code_examples/pregenerated_ifj24code/<FILE>.zig')
 run-code:
 	@echo "\033[35mLaunching 'ic24int' interpreter with:\033[0m \033[33m$(F).ifj24code\033[0m"
-	@echo "\033[35mRUNNING:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m"
-	@$(TEST_DIR)/ic24int $(BASE_PATH)/ifj24code_output/$(F).ifj24code
+	@echo "\033[35mRUNNING:\033[0m \033[33m$(BASE_PATH)/out/$(F).ifj24code\033[0m"
+	@$(TEST_DIR)/ic24int $(BASE_PATH)/out/$(F).ifj24code
 	@echo "\n\033[35mINTERPRETATION DONE\033[0m"
 
 ### G # gen-code: # Spustí týmový překladač jazyka IFJ24 a vygeneruje pomocí něj IFJ24code \npro zvolený program: \nUSAGE: "make gen-code F=<FILE>" \n(očekává soubor bez přípony '.zig' a ve složce: \n'../test/test_examples/ifj24code_examples/programs/<FILE>.zig')
 gen-code: $(BUILD_DIR)/$(EXECUTABLE)
-	@mkdir -p $(BASE_PATH)/ifj24code_output
+	@mkdir -p $(BASE_PATH)/out
 	@echo "\033[35mLaunching 'ifj24compiler' with:\033[0m \033[33m$(F).zig\033[0m"
-	@$(BUILD_DIR)/$(EXECUTABLE) < $(BASE_PATH)/programs/$(F).zig > $(BASE_PATH)/ifj24code_output/$(F).ifj24code
-	@echo "\033[35mCOMPILATION DONE:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m"
+	@$(BUILD_DIR)/$(EXECUTABLE) < $(BASE_PATH)/in/$(F).zig > $(BASE_PATH)/out/$(F).ifj24code
+	@echo "\033[35mCOMPILATION DONE:\033[0m \033[33m$(BASE_PATH)/out/$(F).ifj24code\033[0m"
 
 ### G # gen-run-code: # Spustí týmový překladač jazyka IFJ24 a vygeneruje pomocí něj IFJ24code \npro zvolený program. Následně spustí vygenerovaný IFJ24code soubor: \nUSAGE: "make gen-run-code F=<FILE>" \n(očekává soubor bez přípony '.zig' a ve složce: \n'../test/test_examples/ifj24code_examples/programs/<FILE>.zig')
 gen-run-code: $(BUILD_DIR)/$(EXECUTABLE)
-	@mkdir -p $(BASE_PATH)/ifj24code_output
+	@mkdir -p $(BASE_PATH)/out
 	@echo "\033[35mLaunching 'ifj24compiler' with:\033[0m \033[33m$(F).zig\033[0m"
-	@$(BUILD_DIR)/$(EXECUTABLE) < $(BASE_PATH)/programs/$(F).zig > $(BASE_PATH)/ifj24code_output/$(F).ifj24code
-	@echo "\033[35mCOMPILATION DONE:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m\n"
+	@$(BUILD_DIR)/$(EXECUTABLE) < $(BASE_PATH)/in/$(F).zig > $(BASE_PATH)/out/$(F).ifj24code
+	@echo "\033[35mCOMPILATION DONE:\033[0m \033[33m$(BASE_PATH)/out/$(F).ifj24code\033[0m\n"
 	@echo "\033[35mLaunching 'ic24int' interpreter with:\033[0m \033[33m$(F).ifj24code\033[0m"
-	@echo "\033[35mRUNNING:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m"
-	@$(TEST_DIR)/ic24int $(BASE_PATH)/ifj24code_output/$(F).ifj24code
+	@echo "\033[35mRUNNING:\033[0m \033[33m$(BASE_PATH)/out/$(F).ifj24code\033[0m"
+	@$(TEST_DIR)/ic24int $(BASE_PATH)/out/$(F).ifj24code
 	@echo "\n\033[35mINTERPRETATION DONE\033[0m"
 
 

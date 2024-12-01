@@ -33,7 +33,7 @@ using namespace testing;
 using namespace internal;
 
 string lexPath = "../test/test_examples/lexical_examples/";
-string examPath = "../ifj24_examples/";
+string examPath = "../test/test_examples/ifj24code_examples/in/";
 string syntPath = "../test/test_examples/syntactic_examples/";
 string syntErrorPath = syntPath + "syntax_error/";
 string semPath = "../test/test_examples/semantic_examples/";
