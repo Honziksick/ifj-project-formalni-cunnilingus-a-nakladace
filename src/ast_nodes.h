@@ -7,7 +7,7 @@
  *                   David Krejčí <xkrejcd00> (návrh)                          *
  *                                                                             *
  * Datum:            30.10.2024                                                *
- * Poslední změna:   30.11.2024                                                *
+ * Poslední změna:   01.12.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -22,9 +22,9 @@
  * @author David Krejčí \<xkrejcd00> (návrh)
  *
  * @brief Hlavičkový soubor pro uzly abstraktního syntaktického stromu (AST).
- * @details Tento soubor obsahuje deklarace datových struktur a funkcí pro práci
- *          s uzly v abstraktním syntaktickém stromu (AST), který je základem
- *          pro sémantickou analýzu a generování kódu v překladači IFJ24.
+ * @details Tento soubor obsahuje deklarace výčtů a datových struktur uzlů
+ *          abstraktního syntaktického stromu (AST), který je základem
+ *          pro sémantickou analýzu a generování vnitřního kódu v překladači.
  *          Definuje typy uzlů příkazů, výrazů, literálů a datových typů
  *          používaných v AST. Dále zahrnuje základní struktury jako jsou uzly
  *          pro program, funkce, parametry, příkazy, výrazy apod.
@@ -175,7 +175,7 @@ typedef enum AST_DataType {
  */
 typedef enum AST_ExprType {
     AST_EXPR_NOT_DEFINED        = 0,            /**< Typ výrazu nebyl definován      */
-    AST_EXPR_LITERAL            = 1,            /**< Literál (i32, f664, []u8, null) */
+    AST_EXPR_LITERAL            = 1,            /**< Literál (i32, f64, []u8, null)  */
     AST_EXPR_VARIABLE           = 2,            /**< Proměnná (identifikátor)        */
     AST_EXPR_FUN_CALL           = 3,            /**< Volání funkce                   */
     AST_EXPR_BINARY_OP          = 4,            /**< Binární operace                 */
@@ -189,10 +189,12 @@ typedef enum AST_ExprType {
  ******************************************************************************/
 
 /**
- * @brief Kořenový uzel pro programu.
+ * @brief Kořenový uzel pro program.
  *
- * @details Tento uzel reprezentuje celý program v AST. Větví ze z něj celý
- *          abstraktní syntaktický strom (AST).
+ * @details Tento uzel reprezentuje celý program ve formě abstraktního
+ *          syntaktického stromu (AST). Z tohoto uzlu se větví všechny ostatní
+ *          části programu. Obsahuje seznam funkcí a cestu k importovanému
+ *          modulu.
  */
 typedef struct AST_ProgramNode {
     enum   AST_NodeType   type;                 /**< Typ uzlu: `AST_PROGRAM_NODE`                     */
@@ -201,111 +203,147 @@ typedef struct AST_ProgramNode {
 } AST_ProgramNode;
 
 /**
- * @brief Struktura pro definici funkce.
+ * @brief Uzlová struktura pro definici funkce (resp. seznam definic funkcí).
+ *
+ * @details Tento uzel představuje definici funkce, včetně jejího názvu,
+ *          parametrů, návratového typu a těla. Funkce může mít libovolný
+ *          počet parametrů a tělo funkce může být prázdné (NULL).
  */
 typedef struct AST_FunDefNode {
-    enum   AST_NodeType       type;             /**< Typ uzlu: `AST_FUN_DEF_NODE`       */
-           DString            *identifier;      /**< Identifikátor funkce               */
-    struct AST_ArgOrParamNode *parameters;      /**< Parametry funkce (může být NULL)   */
-    enum   AST_DataType       returnType;       /**< Návratový typ funkce               */
-    struct AST_StatementNode  *body;            /**< Tělo funkce (může být NULL)        */
-    struct AST_FunDefNode     *next;            /**< Ukazatel na další funkci v seznamu */
+    enum   AST_NodeType       type;             /**< Typ uzlu: `AST_FUN_DEF_NODE`            */
+           DString            *identifier;      /**< Identifikátor funkce                    */
+    struct AST_ArgOrParamNode *parameters;      /**< Seznam parametrů funkce (může být NULL) */
+    enum   AST_DataType       returnType;       /**< Návratový typ funkce                    */
+    struct AST_StatementNode  *body;            /**< Tělo funkce (může být NULL)             */
+    struct AST_FunDefNode     *next;            /**< Ukazatel na další funkci v seznamu      */
 } AST_FunDefNode;
 
 /**
- * @brief Struktura pro seznam argumentů.
+ * @brief Uzlová struktura pro argument/parametr funkce (resp. seznam argumentů/parametrů).
  *
- * @details Pokud se jedná o parametr funkce či argument volání funkce,
- *
+ * @details Tento uzel reprezentuje jeden parametr při definici funkce nebo
+ *          argument při volání funkce. Uzel je součástí lineární seznamu
+ *          parametrů či argumentů. Každý uzel obsahuje datový typ a výraz
+ *          reprezentující hodnotu argumentu nebo parametru. Datový typ je
+ *          uveden pouze u parametrů při definici funkce, zatímco u argumentů
+ *          uváděn není.
  */
 typedef struct AST_ArgOrParamNode {
-    enum   AST_NodeType        type;            /**< Typ uzlu (AST_ARG_NODE) */
-    enum   AST_DataType        dataType;        /**< Datový typ parametru funkce */
-    struct AST_ExprNode        *expression;     /**< Argument/Parametr funkce */
-    struct AST_ArgOrParamNode  *next;           /**< Ukazatel na další argument/parametr */
+    enum   AST_NodeType        type;            /**< Typ uzlu: `AST_ARG_NODE`                      */
+    enum   AST_DataType        dataType;        /**< Datový typ parametru funkce                   */
+    struct AST_ExprNode        *expression;     /**< Výraz reprezentující argument/parametr funkce */
+    struct AST_ArgOrParamNode  *next;           /**< Ukazatel na další argument/parametr funkce    */
 } AST_ArgOrParamNode;
 
 /**
- * @brief Struktura pro obecný příkaz.
+ * @brief Uzlová struktura pro příkaz (resp. seznam příkazů).
  *
- * @details Tento uzel reprezentuje obecný příkaz v AST. Obsahuje typ uzlu,
- *          ukazatel na další příkaz a ukazatel na data specifická pro daný příkaz.
+ * @details Tento uzel reprezentuje libovolný příkaz programu, jako je přiřazení,
+ *          volání funkce, podmínka nebo cyklus. Obsahuje také ukazatel na
+ *          další příkaz v sekvenci příkazů. Typ příkazu určuje, jaká data jsou
+ *          uložena ve členu `statement`.
  *
- * @note Povolené typy pro `void *statementData`:
- *       - @c definice @c funkce (tj. ve skutečnosti AST_ExprNode*)
- *       - @c AST_ExprNode*
- *       - @c AST_FunCallNode*
- *       - @c AST_IfNode*
- *       - @c AST_WhileNode*
- *       - @c návratový @c výraz (tj. ve skutečnosti AST_ExprNode*)
+ * @note Povolené typy pro `void *statement`:
+ *       - @c AST_ExprNode* (pro přiřazení, volání funkce, návratový výraz)
+ *       - @c AST_FunCallNode* (pro volání funkce)
+ *       - @c AST_IfNode* (pro podmíněný příkaz)
+ *       - @c AST_WhileNode* (pro cyklus typu `while()`)
  */
 typedef struct AST_StatementNode {
-    enum   AST_NodeType      type;              /**< Typ uzlu (AST_STATEMENT_NODE) */
-           size_t            frameID;           /**< ID příslušného rámce */
-    enum   AST_StatementType statementType;     /**< Typ příkazu */
+    enum   AST_NodeType      type;              /**< Typ uzlu: `AST_STATEMENT_NODE`              */
+           size_t            frameID;           /**< ID rámce, ve kterém se příkaz nachází       */
+    enum   AST_StatementType statementType;     /**< Typ příkazu                                 */
            void              *statement;        /**< Ukazatel na uzel specifický pro daný příkaz */
-    struct AST_StatementNode *next;             /**< Ukazatel na další příkaz */
+    struct AST_StatementNode *next;             /**< Ukazatel na další příkaz v lineární seznamu */
 } AST_StatementNode;
 
 /**
- * @brief Struktura pro volání funkce.
+ * @brief Uzlová struktura pro volání funkce.
+ *
+ * @details Tento uzel reprezentuje volání funkce v programu, včetně
+ *          identifikátoru funkce a předaných argumentů. Funkce může být
+ *          vestavěná (tj.`ifj.*`) nebo uživatelsky definovaná.
  */
 typedef struct AST_FunCallNode {
-    enum   AST_NodeType        type;            /**< Typ uzlu (AST_FUN_CALL_NODE) */
-           DString             *identifier;     /**< Název funkce */
-           bool                isBuiltIn;       /**< Příznak, zda je funkce vestavěná (ifj.*) */
-    struct AST_ArgOrParamNode  *arguments;      /**< Uzly argumentů */
+    enum   AST_NodeType        type;            /**< Typ uzlu: `AST_FUN_CALL_NODE`              */
+           DString             *identifier;     /**< Identifikátor funkce                       */
+           bool                isBuiltIn;       /**< Příznak, zda je funkce vestavěná (`ifj.*`) */
+    struct AST_ArgOrParamNode  *arguments;      /**< Seznam uzlů argumentů volané funkce        */
 } AST_FunCallNode;
 
 /**
- * @brief Struktura pro podmíněný příkaz if.
+ * @brief Uzlová struktura pro podmíněný příkaz `if`.
+ *
+ * @details Tento uzel reprezentuje podmíněný příkaz, který obsahuje podmínku,
+ *          větev `then` a povinně také  větev `else`. Podmínka je vyhodnocena
+ *          jako výraz a na základě její hodnoty se vykoná buď větev `then`,
+ *          nebo větev `else`. Pomocí tohoto uzlu lze také reprezentovat
+ *          variantu podmíněného příkazu `if` s nullable podmínkou.
  */
 typedef struct AST_IfNode {
-    enum   AST_NodeType      type;              /**< Typ uzlu (AST_IF_NODE) */
-    struct AST_ExprNode      *condition;        /**< Podmínka */
-    struct AST_VarNode       *nullCondition;    /**< Identifikátor: Volitelná podmínka NULL */
-    struct AST_StatementNode *thenBranch;       /**< Větev 'then' */
-    struct AST_StatementNode *elseBranch;       /**< Větev 'else' */
+    enum   AST_NodeType      type;              /**< Typ uzlu: `AST_IF_NODE`                     */
+    struct AST_ExprNode      *condition;        /**< Výraz reprezentující podmínku               */
+    struct AST_VarNode       *nullCondition;    /**< Identifikátor: Volitelná nullable podmínka  */
+    struct AST_StatementNode *thenBranch;       /**< Seznam příkazů větve 'then' (může být NULL) */
+    struct AST_StatementNode *elseBranch;       /**< Seznam příkazů větve 'else' (může být NULL) */
 } AST_IfNode;
 
 /**
- * @brief Struktura pro smyčku while.
+ * @brief Uzlová struktura pro smyčku `while`.
+ *
+ * @details Tento uzel reprezentuje cyklus s podmínkou na začátku, obsahuje
+ *          podmínku a tělo smyčky. Podmínka je vyhodnocena před každou iterací
+ *          smyčky a pokud je splněna, vykoná se tělo smyčky. Pomocí tohoto uzlu
+ *          lze také reprezentovat variantu cyklu příkazu `while` s nullable
+ *          podmínkou.
  */
 typedef struct AST_WhileNode {
-    enum   AST_NodeType      type;              /**< Typ uzlu (AST_WHILE_NODE) */
-    struct AST_ExprNode      *condition;        /**< Podmínka */
-    struct AST_VarNode       *nullCondition;    /**< Identifikátor: Volitelná podmínka NULL */
-    struct AST_StatementNode *body;             /**< Tělo cyklu */
+    enum   AST_NodeType      type;              /**< Typ uzlu: `AST_WHILE_NODE`                 */
+    struct AST_ExprNode      *condition;        /**< Výraz reprezentující podmínku              */
+    struct AST_VarNode       *nullCondition;    /**< Identifikátor: Volitelná nullable podmínka */
+    struct AST_StatementNode *body;             /**< Seznam příkazů těla cyklu                  */
 } AST_WhileNode;
 
 /**
- * @brief Struktura pro výraz.
+ * @brief Uzlová struktura pro výraz.
+ *
+ * @details Tento uzel reprezentuje obecný výraz v programu, který může být
+ *          proměnnou, literálem, voláním funkce nebo binární operací. Typ
+ *          výrazu určuje, jaká data jsou uložena v poli `expression`.
  *
  * @note Povolené typy pro `void *expression`:
- *       - @c AST_VarNode*
- *       - @c AST_FunCallNode*
- *       - @c AST_BinaryOpNode*
+ *       - @c AST_VarNode* (pro proměnnou nebo literál)
+ *       - @c AST_FunCallNode* (pro volání funkce)
+ *       - @c AST_BinOpNode* (pro binární operaci)
  */
 typedef struct AST_ExprNode {
-    enum AST_NodeType type;                     /**< Typ uzlu (AST_EXPR_NODE) */
-    enum AST_ExprType exprType;                 /**< Typ výrazu */
-         void         *expression;              /**< Ukazatel na uzel konkrétního výrazu */
+    enum AST_NodeType type;                     /**< Typ uzlu: `AST_EXPR_NODE`         */
+    enum AST_ExprType exprType;                 /**< Specifický typ výrazu             */
+         void         *expression;              /**< Ukazatel na konkrétní uzel výrazu */
 } AST_ExprNode;
 
 /**
- * @brief Struktura pro binární operátor.
+ * @brief Uzlová struktura pro binární operaci.
+ *
+ * @details Tento uzel reprezentuje binární operaci s levým a pravým operandem.
+ *          Operátorem může být aritmetická, relační nebo logická operace.
+ *          Levý a pravý operand jsou výrazy.
  */
 typedef struct AST_BinOpNode {
-    enum   AST_NodeType  type;                  /**< Typ uzlu (AST_BINARY_OP_NODE) */
-    enum   AST_BinOpType op;                    /**< Operátor (+, -, *, /, atd.) */
-    struct AST_ExprNode  *left;                 /**< Levý operand */
-    struct AST_ExprNode  *right;                /**< Pravý operand */
+    enum   AST_NodeType  type;                  /**< Typ uzlu: `AST_BINARY_OP_NODE` */
+    enum   AST_BinOpType op;                    /**< Operátor (+, -, *, /, atd.)    */
+    struct AST_ExprNode  *left;                 /**< Levý operand (výraz)           */
+    struct AST_ExprNode  *right;                /**< Pravý operand (výraz)          */
 } AST_BinOpNode;
 
 /**
- * @brief Struktura pro proměnnou nebo literál.
+ * @brief Uzlová struktura pro proměnnou nebo literál.
  *
- * @details Pokud je typem literálu NULL literál, tak bude hodnota "*value" NULL.
+ * @details Tento uzel reprezentuje buď proměnnou s identifikátorem, nebo
+ *          literál s hodnotou. Umožňuje uchovávat informace o typu a hodnotě
+ *          proměnné či literálu. Pokud je typem literálu `NULL`, hodnota bude
+ *          `NULL`. Tento univerzálně uzel umožňuje jednoduché předvyhodnocení
+ *          některých výrazů během sémantické analýzy.
  *
  * @note Povolené typy pro `void *value`:
  *       - Celé číslo: @c int*
@@ -314,11 +352,11 @@ typedef struct AST_BinOpNode {
  *       - Null: @c NULL
  */
 typedef struct AST_VarNode {
-    enum AST_NodeType    type;                  /**< Typ uzlu (AST_VAR_NODE) */
-         DString         *identifier;           /**< Identifikátor proměnné (pro literál NULL)*/
-         size_t          frameID;               /**< ID rámce, kde je proměnná definovaná */
-    enum AST_LiteralType literalType;           /**< Typ hodnoty */
-         void            *value;                /**< Ukazatel na hodnotu literálu */
+    enum AST_NodeType    type;                  /**< Typ uzlu: `AST_VAR_NODE`                  */
+         DString         *identifier;           /**< Identifikátor proměnné (pro literál NULL) */
+         size_t          frameID;               /**< ID rámce, kde je proměnná deklarována     */
+    enum AST_LiteralType literalType;           /**< Typ hodnoty                               */
+         void            *value;                /**< Ukazatel na hodnotu literálu              */
 } AST_VarNode;
 
 
@@ -333,11 +371,12 @@ typedef struct AST_VarNode {
  *
  * @details Tato proměnná obsahuje kořenový uzel abstraktního syntaktického
  *          stromu (AST), který je vytvářen během syntaktické analýzy. AST je
- *          používán pro reprezentaci struktury programu a je generován parserem.
- *          Dále je využíván k sémantické analýze a generování 3AK.
+ *          používán pro reprezentaci struktury programu a je generován během
+ *          syntaktické analýzy vstupního programu. Dále je využíván k sémantické
+ *          analýze a generování vnitřního kódu.
  *
- * @note Ukazatel na kořen abstraktního syntaktického stromu bude před svou
- *       skutečnou inicializací inicializován na @c NULL.
+ * @note Ukazatel na kořen abstraktního syntaktického stromu (AST) bude před
+ *       svou skutečnou inicializací (alokací paměti) inicializován na @c NULL.
  */
 extern AST_ProgramNode *ASTroot;
 
