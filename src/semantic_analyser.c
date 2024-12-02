@@ -699,6 +699,9 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
             else {
                 return result;
             }
+            semantic_analyseExpr(assignNode.right, &r_type, &value);
+            item->data = value;
+            item->symbolState = semantic_semTypeToState(r_type);
         }
 
     }
