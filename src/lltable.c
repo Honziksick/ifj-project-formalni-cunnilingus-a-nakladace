@@ -44,21 +44,21 @@
 void LLtable_findRule(LLTerminals terminal, LLNonTerminals nonTerminal, LLRuleSet *rule) {
     // Ověření platnosti předaného ukazatele - interní chyba
     if(rule == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         *rule = RULE_UNDEFINED;
         return;
     }
 
     // Pokud byl předán neplatný (nedefinovaný) LL NEterminál - interní chyba
     if(nonTerminal == NT_UNDEFINED) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         *rule = RULE_UNDEFINED;
         return;
     }
 
     // Pokud byl předán neplatný (nedefinovaný) LL terminál - syntaktická chyba
     if(terminal == T_UNDEFINED) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);
+        parser_errorWatcher(SET_ERROR_SYNTAX);
         *rule = RULE_UNDEFINED;
         return;
     }
@@ -119,7 +119,7 @@ void LLtable_findRule(LLTerminals terminal, LLNonTerminals nonTerminal, LLRuleSe
         if(LLtable[mid].key == terminal) {
             // Pokud pravidlo neexistuje, došlo k syntaktické chybě
             if(LLtable[mid].value[nonTerminal] == SYNTAX_ERROR) {
-                Parser_errorWatcher(SET_ERROR_SYNTAX);
+                parser_errorWatcher(SET_ERROR_SYNTAX);
                 *rule = SYNTAX_ERROR;
                 return;
             }
@@ -141,7 +141,7 @@ void LLtable_findRule(LLTerminals terminal, LLNonTerminals nonTerminal, LLRuleSe
     }
 
     // Pokud terminál nebyl v LL tabulce nalezen nastavujeme syntaktickou chybu
-    Parser_errorWatcher(SET_ERROR_SYNTAX);
+    parser_errorWatcher(SET_ERROR_SYNTAX);
     *rule = SYNTAX_ERROR;
 } // LLtable_findRule()
 

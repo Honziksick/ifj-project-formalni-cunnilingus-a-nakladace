@@ -175,7 +175,7 @@ void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bo
 
     // Ověření existence identifikátoru
     if (node->identifier != nullptr && node->identifier->str != nullptr) {
-        char *identifier = string_toConstChar(node->identifier);
+        char *identifier = DString_DStringtoConstChar(node->identifier);
         if (useColors)
             out << COLOR_BLUE << "Function Definition: " << COLOR_RESET << identifier << endl;
         else
@@ -401,7 +401,7 @@ void ASTutils_printFunCallNode(AST_FunCallNode *node, ostream &out, int indent, 
 
     // Ověření existence identifikátoru a tisknutí identifikátoru
     if (node->identifier != nullptr && node->identifier->str != nullptr) { 
-        char *identifier = string_toConstChar(node->identifier);
+        char *identifier = DString_DStringtoConstChar(node->identifier);
         if (useColors)
             out << COLOR_GOLD << "Function Call: " << COLOR_RESET << identifier << endl;
         else
@@ -855,7 +855,7 @@ void ASTutils_printLiteralNode(AST_VarNode *node, ostream &out, int indent, bool
             }
             break;
         case AST_LITERAL_STRING:
-            str = string_toConstChar((DString*)node->value);
+            str = DString_DStringtoConstChar((DString*)node->value);
             // Literál typu string
             if(useColors) {
                 if (node->value != nullptr)
@@ -904,7 +904,7 @@ void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool use
 
     // Ověření existence identifikátoru a tisknutí identifikátoru
     if (node->identifier != nullptr && node->identifier->str != nullptr) { 
-        char *identifier = string_toConstChar(node->identifier);
+        char *identifier = DString_DStringtoConstChar(node->identifier);
         if (useColors)
             out << COLOR_BLUE << "Variable/Literal: " << COLOR_RESET << identifier << endl;
         else

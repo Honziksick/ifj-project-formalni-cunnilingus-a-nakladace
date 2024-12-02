@@ -40,86 +40,6 @@ void TestSemantic(){
     exit(0);
 }
 
-
-TEST(FifixSandy, HodyHodyDejteBodyFUNEXP){
-    string path = semPath + "fifixsandy_test_hodyhodydejtebodyFUNEXP.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdinBackup = stdin;
-    stdin = f;
-    
-    LLparser_parseProgram();
-    PRINT_FRAME_STACK();
-    semantic_analyseProgram();
-    fprintf(stderr, "\n\n\n\n");
-    PRINT_FRAME_STACK();
-
-    IFJ24Compiler_freeAllAllocatedMemory();
-
-    stdin = stdinBackup;
-    fclose(f);
-    ASTroot = NULL;
-}
-
-
-TEST(FifixSandy, StringTestFUNEXP){
-    string path = semPath + "fifixsandy_string_testFUNEXP.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdinBackup = stdin;
-    stdin = f;
-    
-    LLparser_parseProgram();
-    PRINT_FRAME_STACK();
-    semantic_analyseProgram();
-    fprintf(stderr, "\n\n\n\n");
-    PRINT_FRAME_STACK();
-
-    IFJ24Compiler_freeAllAllocatedMemory();
-
-    stdin = stdinBackup;
-    fclose(f);
-    ASTroot = NULL;
-}
-
-TEST(FifixSandy, Test7){
-    string path = semPath + "fifixsandy_test_7.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdinBackup = stdin;
-    stdin = f;
-    
-    LLparser_parseProgram();
-    PRINT_FRAME_STACK();
-    semantic_analyseProgram();
-    fprintf(stderr, "\n\n\n\n");
-    PRINT_FRAME_STACK();
-
-    IFJ24Compiler_freeAllAllocatedMemory();
-
-    stdin = stdinBackup;
-    fclose(f);
-    ASTroot = NULL;
-}
-
-TEST(FifixSandy, Substring){
-    string path = semPath + "fifixsandy_test_substring.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdinBackup = stdin;
-    stdin = f;
-    
-    LLparser_parseProgram();
-    PRINT_FRAME_STACK();
-    semantic_analyseProgram();
-
-    IFJ24Compiler_freeAllAllocatedMemory();
-
-    stdin = stdinBackup;
-    fclose(f);
-    ASTroot = NULL;
-}
-
 TEST(Correct, Simplest){
     string path = semPath + "simplest.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -131,16 +51,16 @@ TEST(Correct, Simplest){
     
     //Test pro AST
     EXPECT_EQ(ASTroot->type, AST_PROGRAM_NODE);
-    char *str1 = string_toConstChar(ASTroot->importedFile->identifier);
+    char *str1 = DString_DStringtoConstChar(ASTroot->importedFile->identifier);
     EXPECT_STREQ(str1, "ifj");
     free(str1);
-    char *str2 = string_toConstChar((DString*)ASTroot->importedFile->value);
+    char *str2 = DString_DStringtoConstChar((DString*)ASTroot->importedFile->value);
     EXPECT_STREQ(str2, "ifj24.zig");
     free(str2);
     EXPECT_NE(ASTroot->functionList, nullptr);
     AST_FunDefNode* fun = ASTroot->functionList;
     EXPECT_EQ(fun->body, nullptr);
-    char *str3 = string_toConstChar(fun->identifier);
+    char *str3 = DString_DStringtoConstChar(fun->identifier);
     EXPECT_STREQ(str3, "main");
     free(str3);
     EXPECT_EQ(fun->next, nullptr);

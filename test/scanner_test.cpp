@@ -36,7 +36,7 @@
 #define TEST_HASH_FUNCTION(keyword, expected_hash) \
     MAKE_STRING(str_##keyword, #keyword); \
     EXPECT_EQ(symtable_hashFunction(str_##keyword), expected_hash); \
-    string_free(str_##keyword);
+    DString_free(str_##keyword);
 
 /**
  * @brief Funkce na testování typu tokenů
@@ -45,7 +45,7 @@ void testTokenType(TokenType expected_type){
     Token token = scanner_FSM();
     EXPECT_EQ(token.type, expected_type);
     if(token.value != NULL) {
-        string_free(token.value);
+        DString_free(token.value);
     }
     if(token.type != expected_type){
         exit(2);
@@ -59,8 +59,8 @@ void testTokenString(const char* expected_string){
     Token token = scanner_FSM();
     EXPECT_EQ(token.type, TOKEN_STRING);
     if(token.value != NULL) {
-        if(string_compare_const_str(token.value, expected_string) != STRING_EQUAL){
-            char *actual_string = string_toConstChar(token.value);
+        if(DString_compareWithConstChar(token.value, expected_string) != STRING_EQUAL){
+            char *actual_string = DString_DStringtoConstChar(token.value);
 
             // Find the first mismatch position
             size_t mismatch_index = 0;
@@ -76,11 +76,11 @@ void testTokenString(const char* expected_string){
             cerr << "Got character at position:      '" << actual_string[mismatch_index] << "'\n\n";
 
             // Clean up and exit
-            string_free(token.value);
+            DString_free(token.value);
             free(actual_string);
             exit(2);
         }
-        string_free(token.value);
+        DString_free(token.value);
     }else{
         exit(2);
     }
@@ -108,27 +108,27 @@ void testTokenString(const char* expected_string){
 
     MAKE_STRING(import, "@import");
     EXPECT_EQ(symtable_hashFunction(import), KEYWORD_IMPORT_HASH);
-    string_free(import);
+    DString_free(import);
 
     MAKE_STRING(underscore, "_");
     EXPECT_EQ(symtable_hashFunction(underscore), KEYWORD_UNDERSCORE_HASH);
-    string_free(underscore);
+    DString_free(underscore);
 
     MAKE_STRING(i32N, "?i32");
     EXPECT_EQ(symtable_hashFunction(i32N), KEYWORD_QI32_HASH);
-    string_free(i32N);
+    DString_free(i32N);
 
     MAKE_STRING(f64N, "?f64");
     EXPECT_EQ(symtable_hashFunction(f64N), KEYWORD_QF64_HASH);
-    string_free(f64N);
+    DString_free(f64N);
 
     MAKE_STRING(u8N, "?[]u8");
     EXPECT_EQ(symtable_hashFunction(u8N), KEYWORD_QU8_HASH);
-    string_free(u8N);
+    DString_free(u8N);
 
     MAKE_STRING(u8, "[]u8");
     EXPECT_EQ(symtable_hashFunction(u8), KEYWORD_U8_HASH);
-    string_free(u8);
+    DString_free(u8);
 
 
 }*/
@@ -179,19 +179,19 @@ TEST(Identity, eof) {
 TEST(Identity, error) {
     // Unprintable znaky v ASCII nebo znaky mimo základní tabulku
     scanner_charIdentity(0);
-    bool result = Parser_errorWatcher(IS_PARSING_ERROR);
+    bool result = parser_errorWatcher(IS_PARSING_ERROR);
     EXPECT_TRUE(result);
-    Parser_errorWatcher(RESET_ERROR_FLAGS);
+    parser_errorWatcher(RESET_ERROR_FLAGS);
 
     scanner_charIdentity(16);
-    result = Parser_errorWatcher(IS_PARSING_ERROR);
+    result = parser_errorWatcher(IS_PARSING_ERROR);
     EXPECT_TRUE(result);
-    Parser_errorWatcher(RESET_ERROR_FLAGS);
+    parser_errorWatcher(RESET_ERROR_FLAGS);
 
     scanner_charIdentity(17);
-    result = Parser_errorWatcher(IS_PARSING_ERROR);
+    result = parser_errorWatcher(IS_PARSING_ERROR);
     EXPECT_TRUE(result);
-    Parser_errorWatcher(RESET_ERROR_FLAGS);
+    parser_errorWatcher(RESET_ERROR_FLAGS);
 }
 
 
@@ -224,7 +224,7 @@ TEST(FSM, FSM_Identifier){
     
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_IDENTIFIER);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /** TOTO JE BLBĚ NAPSANÉ
@@ -300,8 +300,8 @@ TEST(FSM, FSM_Identifier_ERROR_4){
     state = scanner_FSM();
     ASSERT_EQ(state.type, TOKEN_IDENTIFIER);
     ASSERT_NE(state.value, nullptr);
-    ASSERT_EQ(string_compare_const_str(state.value, "hello"), STRING_EQUAL);
-    string_free(state.value);
+    ASSERT_EQ(DString_compareWithConstChar(state.value, "hello"), STRING_EQUAL);
+    DString_free(state.value);
 
 
     // Načteme .
@@ -320,7 +320,7 @@ TEST(FSM, FSM_Number_INT_One_Number){
 
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_INT);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /**
@@ -336,7 +336,7 @@ TEST(FSM, FSM_Number_INT){
 
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_INT);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /**
@@ -368,7 +368,7 @@ TEST(FSM, FSM_Number_FLOAT){
 
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_FLOAT);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /**

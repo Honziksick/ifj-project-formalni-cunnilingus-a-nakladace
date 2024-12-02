@@ -92,7 +92,7 @@ void TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode) {
         printf("POPFRAME\n");
         printf("RETURN\n");
     }
-    
+
 }  // TAC_generateFunctionDefinition
 
 
@@ -168,7 +168,7 @@ void TAC_generateBinaryOperator(AST_BinOpNode *binNode) {
             }
 
             var = (AST_VarNode *)binNode->left->expression;
-            if(string_compare_const_str(var->identifier, "_" ) == STRING_EQUAL) {
+            if(DString_compareWithConstChar(var->identifier, "_" ) == STRING_EQUAL) {
                 // Přiřazujeme do pseudoproměnné - zahodíme hodnotu
                 //printf("POPS GF@?tempDEST\n");
                 snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS GF@?tempSRC1\n");
@@ -187,7 +187,7 @@ void TAC_generateBinaryOperator(AST_BinOpNode *binNode) {
                 TAC_bufferPrint(&buffer);
             }
             break;
-            
+
         case AST_OP_ADD:
             TAC_bufferPrint(NULL);
             printf("ADDS\n");
@@ -244,7 +244,7 @@ void TAC_generateBinaryOperator(AST_BinOpNode *binNode) {
         default:
             error_handle(ERROR_INTERNAL);
     }
-    
+
 }  // TAC_generateBinaryOperator
 
 /**
@@ -359,7 +359,7 @@ void TAC_generateLiteral(AST_VarNode *literal) {
             value = TAC_convertSpecialSymbols(value);
             //printf("PUSHS string@%s\n", value->str);
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS string@%s \n", value->str);
-            string_free(value);
+            DString_free(value);
             break;
         case AST_LITERAL_NULL:
             //printf("PUSHS nil@nil\n");
@@ -537,9 +537,9 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     // Vytvoříme buffer pro instrukce
     char buffer[OPTIMIZE_BUFFER_SIZE] = {0};
     int writtenSize = 0;
-    
+
     if(funCallNode->isBuiltIn) {
-        if(string_compare_const_str(funCallNode->identifier, "readstr") == STRING_EQUAL) {
+        if(DString_compareWithConstChar(funCallNode->identifier, "readstr") == STRING_EQUAL) {
             // Načteme řetězec a výsledek nahrajeme na zásobník
             printf("READ GF@?tempSRC1 string\n");
             //printf("PUSHS GF@?tempSRC1\n");
@@ -547,7 +547,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             TAC_bufferPrint(&buffer);
             return;
         }
-        else if(string_compare_const_str(funCallNode->identifier, "readi32") == STRING_EQUAL) {
+        else if(DString_compareWithConstChar(funCallNode->identifier, "readi32") == STRING_EQUAL) {
             // Načteme číslo a výsledek nahrajeme na zásobník
             printf("READ GF@?tempSRC1 int\n");
             //printf("PUSHS GF@?tempSRC1\n");
@@ -555,7 +555,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             TAC_bufferPrint(&buffer);
             return;
         }
-        else if(string_compare_const_str(funCallNode->identifier, "readf64") == STRING_EQUAL) {
+        else if(DString_compareWithConstChar(funCallNode->identifier, "readf64") == STRING_EQUAL) {
             // Načteme číslo a výsledek nahrajeme na zásobník
             printf("READ GF@?tempSRC1 float\n");
             //printf("PUSHS GF@?tempSRC1\n");
@@ -563,7 +563,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             TAC_bufferPrint(&buffer);
             return;
         }
-        else if(string_compare_const_str(funCallNode->identifier, "write") == STRING_EQUAL) {
+        else if(DString_compareWithConstChar(funCallNode->identifier, "write") == STRING_EQUAL) {
             AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argument volání funkce */
             // Vyhodnotíme parametr
             TAC_generateExpression(arg->expression);
@@ -574,25 +574,25 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             printf("WRITE GF@?tempSRC1\n");
             return;
         }
-        else if(string_compare_const_str(funCallNode->identifier, "i2f") == STRING_EQUAL) {
+        else if(DString_compareWithConstChar(funCallNode->identifier, "i2f") == STRING_EQUAL) {
             // Vyhodnotíme parametr
             TAC_generateExpression(funCallNode->arguments->expression);
             TAC_bufferPrint(NULL);
             printf("INT2FLOATS\n");
             return;
         }
-        else if(string_compare_const_str(funCallNode->identifier, "f2i") == STRING_EQUAL) {
+        else if(DString_compareWithConstChar(funCallNode->identifier, "f2i") == STRING_EQUAL) {
             // Vyhodnotíme parametr
             TAC_generateExpression(funCallNode->arguments->expression);
             TAC_bufferPrint(NULL);
             printf("FLOAT2INTS\n");
             return;
         }
-        else if(string_compare_const_str(funCallNode->identifier, "string") == STRING_EQUAL) {
+        else if(DString_compareWithConstChar(funCallNode->identifier, "string") == STRING_EQUAL) {
             TAC_generateExpression(funCallNode->arguments->expression);
             return;
         }
-        else if(string_compare_const_str(funCallNode->identifier, "length") == STRING_EQUAL) {
+        else if(DString_compareWithConstChar(funCallNode->identifier, "length") == STRING_EQUAL) {
             // Vyhodnotíme parametr a nahrajeme do pomocné proměnné
             TAC_generateExpression(funCallNode->arguments->expression);
             //printf("POPS GF@?tempSRC1\n");
@@ -604,7 +604,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             printf("PUSHS GF@?tempDEST\n");
             return;
         }
-        else if(string_compare_const_str(funCallNode->identifier, "concat") == STRING_EQUAL) {
+        else if(DString_compareWithConstChar(funCallNode->identifier, "concat") == STRING_EQUAL) {
             // Vyhodnotíme oba parametry a nahrajeme do pomocných proměnných
             TAC_generateExpression(funCallNode->arguments->expression);
             TAC_generateExpression(funCallNode->arguments->next->expression);
@@ -620,7 +620,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             printf("PUSHS GF@?tempDEST\n");
             return;
         }
-        else if(string_compare_const_str(funCallNode->identifier, "chr") == STRING_EQUAL) {
+        else if(DString_compareWithConstChar(funCallNode->identifier, "chr") == STRING_EQUAL) {
             // Vyhodnotíme parametr a nahrajeme do pomocné proměnné
             TAC_generateExpression(funCallNode->arguments->expression);
             TAC_bufferPrint(NULL);
@@ -638,28 +638,28 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
 
     // Pokud je funkce vestavěná, tak přidáme prefix ifj.
     if(funCallNode->isBuiltIn) {
-        key = string_charToDString("ifj.");
+        key = DString_constCharToDString("ifj.");
         if(key == NULL) {
             error_handle(ERROR_INTERNAL);
         }
         for(size_t i = 0; i < funCallNode->identifier->length; i++) {
-            string_append_char(key, funCallNode->identifier->str[i]);
+            DString_appendChar(key, funCallNode->identifier->str[i]);
         }
     }
     // Jinak jen překopírujeme identifikátor
     else {
-        key = string_init();
+        key = DString_init();
         if(key == NULL) {
             error_handle(ERROR_INTERNAL);
         }
-        if(string_copy(funCallNode->identifier, key) != STRING_SUCCESS) {
+        if(DString_copy(funCallNode->identifier, key) != STRING_SUCCESS) {
             error_handle(ERROR_INTERNAL);
         }
     }
 
     // Najdeme definici funkce
     if(symtable_findItem(frameStack.bottom->frame, key, &function) != SYMTABLE_SUCCESS) {
-        string_free(key);
+        DString_free(key);
         error_handle(ERROR_INTERNAL);
     }
 
@@ -712,7 +712,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     else {
         printf("CALL $$%s\n", key->str);
     }
-    string_free(key);
+    DString_free(key);
 
 }  // TAC_generateFunctionCall
 
@@ -721,7 +721,7 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
  */
 DString *TAC_convertSpecialSymbols(DString *origin) {
     // Vytvoříme nový řetězec pro výsledek
-    DString *transformed = string_init();
+    DString *transformed = DString_init();
     if(transformed == NULL) {
         error_handle(ERROR_INTERNAL);
     }
@@ -731,18 +731,18 @@ DString *TAC_convertSpecialSymbols(DString *origin) {
         char c = origin->str[i];
         // Pokud je znak alfanumerický, tak ho přidáme do výsledku
         if(isalnum(c)) {
-            string_append_char(transformed, c);
+            DString_appendChar(transformed, c);
         }
         // Pokud je znak speciální, tak ho převedeme na escape sekvenci
         else {
             char buffer[MAX_BUFFER_SIZE];     // 5 = lomítko + 3 číslice + '\0'
             snprintf(buffer, sizeof(buffer), "\\%03d", (unsigned char)c);
             for(int j = 0; j < MAX_BUFFER_SIZE-1; j++) {
-                string_append_char(transformed, buffer[j]);
+                DString_appendChar(transformed, buffer[j]);
             }
         }
     }
-    string_append_char(transformed, '\0');
+    DString_appendChar(transformed, '\0');
 
     return transformed;
 }  // TAC_convertSpecialSymbols

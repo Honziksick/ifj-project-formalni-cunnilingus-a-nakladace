@@ -124,7 +124,7 @@ typedef struct ReductionRuleSet {
  *          syntaktického stromu (AST).
  *
  * @note Konkrétní stav případné chyby, ke které v rámci precedenční syntaktické
- *       analýzy došlo, je zaznamenáván funkcí @c Parser_errorWatcher().
+ *       analýzy došlo, je zaznamenáván funkcí @c parser_errorWatcher().
  *
  * @warning Pokud dojde během precedenční analýzy k chybě, je nutné uvolnit
  *          všechny v rámci precedenční analýzy alokované zdroje před předaním

@@ -37,7 +37,7 @@
 /**
  * @brief Inicializace dynamického řetězce s počáteční kapacitou.
 */
-DString *string_init() {
+DString *DString_init() {
     // Vytvoříme nový string
     DString *stringCreated = (DString *)malloc(sizeof(DString));
 
@@ -63,12 +63,12 @@ DString *string_init() {
     stringCreated->length = 0;
 
     return stringCreated;
-} /* konec string_init() */
+} /* konec DString_init() */
 
 /**
  * @brief Uvolnění paměti dynamického řetězce.
 */
-void string_free(DString *str) {
+void DString_free(DString *str) {
     // Pokud řetězec existuje, smažeme ho
     if(str != NULL) {
         // Nejdříve ukazatel na pole a až pak strukturu
@@ -83,12 +83,12 @@ void string_free(DString *str) {
         free(str);
         str = NULL;
     }
-} /* konec string_free() */
+} /* konec DString_free() */
 
 /**
  * @brief Přidání jednoho znaku na konec dynamického řetězce.
 */
-int string_append_char(DString *str, char character) {
+int DString_appendChar(DString *str, char character) {
     // Kontrola, že přijatý ukazatel není NULL
     if(str == NULL) {
         return STRING_RESIZE_FAIL;
@@ -97,7 +97,7 @@ int string_append_char(DString *str, char character) {
     // Pokud je řetězec plný, musíme ho zvětšit o DEFAULT_RESIZE_SIZE
     if(str->length+1 >= str->allocatedSize) {
         // Kontrola, zda neselhalo zvětšení řetězce
-        str = string_resize(str, DEFAULT_RESIZE_SIZE);
+        str = DString_resize(str, DEFAULT_RESIZE_SIZE);
         if(str == NULL){
             return STRING_RESIZE_FAIL;
         }
@@ -109,12 +109,12 @@ int string_append_char(DString *str, char character) {
     str->length++;
 
     return STRING_SUCCESS;
-} /* konec string_append_char() */
+} /* konec DString_appendChar() */
 
 /**
  * @brief Zkopíruje obsah jednoho dynamického řetězce do druhého.
 */
-int string_copy(DString *strCopied, DString *strTo) {
+int DString_copy(DString *strCopied, DString *strTo) {
     // Pokud jeden z řetězců neexistuje, vrátí STRING_COPY_FAIL
     if(strCopied == NULL || strTo == NULL) {
         return STRING_COPY_FAIL;
@@ -140,12 +140,12 @@ int string_copy(DString *strCopied, DString *strTo) {
     strTo->allocatedSize = strCopied->length + 1;
 
     return STRING_SUCCESS;
-} /* konec string_copy() */
+} /* konec DString_copy() */
 
 /**
  * @brief Porovná dva dynamické řetězce.
 */
-int string_compare(DString *str1, DString *str2) {
+int DString_compare(DString *str1, DString *str2) {
     // Pokud je jeden ze řetězců prázdný, vrátíme STRING_NOT_EQUAL
     if(str1 == NULL || str2 == NULL) {
         return STRING_NOT_EQUAL;
@@ -165,12 +165,12 @@ int string_compare(DString *str1, DString *str2) {
         }
     }
     return STRING_EQUAL;
-} /* konec string_compare() */
+} /* konec DString_compare() */
 
 /**
  * @brief Porovná dynamický řetězec s konstantním řetězcem.
 */
-int string_compare_const_str(DString *str, const char *strConst) {
+int DString_compareWithConstChar(DString *str, const char *strConst) {
     // Pokud porovnávaný řetězec neexistuje
     if(str == NULL) {
         return STRING_NOT_EQUAL;
@@ -192,12 +192,12 @@ int string_compare_const_str(DString *str, const char *strConst) {
     }
 
     return STRING_EQUAL;
-} /* konec string_compare_const_str() */
+} /* konec DString_compareWithConstChar() */
 
 /**
  * @brief Zvětší dynamický řetězec na požadovanou délku.
  */
-DString *string_resize(DString *string, size_t size) {
+DString *DString_resize(DString *string, size_t size) {
     // Pokud nemáme řetězec, tak vracíme NULL
     if(string == NULL) {
         return NULL;
@@ -223,12 +223,12 @@ DString *string_resize(DString *string, size_t size) {
     }
 
     return string;
-} /* konec string_resize() */
+} /* konec DString_resize() */
 
 /**
  * @brief Převede řetězec obsažený v DString na konstantní řetězec typu char.
  */
-char *string_toConstChar(DString *string) {
+char *DString_DStringtoConstChar(DString *string) {
     // Pokud nemáme řetězec, nebo nemá hodnotu, tak vracíme NULL
     if(string == NULL || string->str == NULL || string->length < 1) {
         return NULL;
@@ -248,13 +248,13 @@ char *string_toConstChar(DString *string) {
     constStr[string->length] = '\0';
 
     return constStr;
-} /* konec string_toConstChar() */
+} /* konec DString_DStringtoConstChar() */
 
 
 /**
  * @brief Vytvoří nový dynamický řetězec z konstantního řetězce.
  */
-DString *string_charToDString(const char *strConst){
+DString *DString_constCharToDString(const char *strConst){
     // Pokud nemáme řetězec, nebo nemá hodnotu, tak vracíme NULL
     if(strConst == NULL || strlen(strConst) < 1) {
         return NULL;
@@ -289,6 +289,6 @@ DString *string_charToDString(const char *strConst){
     memcpy(stringCreated->str, strConst, length*sizeof(char));
 
     return stringCreated;
-} /* konec string_charToString() */
+} /* konec DString_constCharToDString() */
 
 /*** Konec souboru dynamic_string.c ***/

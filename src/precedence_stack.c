@@ -58,7 +58,7 @@ void PrecStackList_create() {
 
         // Pokud se alokace nezdařile nastavujeme interní error
         if (precStackList == NULL) {
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
             return;
         }
 
@@ -89,7 +89,7 @@ void PrecStackList_push() {
     // Vytvoření nového precedenčního zásobníku a kontrola úspěchu alokace
     PrecStack *newStack = (PrecStack *)malloc(sizeof(PrecStack));
     if (newStack == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
@@ -193,7 +193,7 @@ void PrecStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType ty
                 newStackNode->symbolType = STACK_NODE_TYPE_HANDLE;
                 break;
             default:
-                Parser_errorWatcher(SET_ERROR_INTERNAL);
+                parser_errorWatcher(SET_ERROR_INTERNAL);
         }
 
         // Inicializujeme zbytek nového uzlu
@@ -290,7 +290,7 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
 void PrecStack_pushHandleAfterFirstTerminal() {
     // Kontrolujeme, že aexstuje seznam zásbníků a vrcholový zásobník
     if (precStackList == NULL || precStackList->stack == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
@@ -306,7 +306,7 @@ void PrecStack_pushHandleAfterFirstTerminal() {
 
     // Pokud jsme žádný nenalezly, nastala interní chyba (nemělo by nikdy nastat)
     if(current == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
     }
 
     // Vytvoření nového uzlu pro handle
@@ -339,7 +339,7 @@ void PrecStack_pushHandleAfterFirstTerminal() {
 PrecStackNode *PrecStack_pop() {
     // Zkontrolujeme, že je co popnout
     if(precStackList == NULL || precStackList->stack == NULL || precStackList->stack->top == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return PARSING_ERROR;
     }
 
@@ -358,7 +358,7 @@ PrecStackNode *PrecStack_pop() {
 inline PrecStackNode* PrecStack_top() {
     // Kontrola, zda je zásobník alokovaný
     if(precStackList == NULL || precStackList->stack == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return PARSING_ERROR;
     }
 
@@ -398,7 +398,7 @@ void PrecStack_freeNode(PrecStackNode *stackNode) {
 void PrecStack_getTopPrecTerminal(PrecTerminals *topTerminal) {
     // Kontrolujem platnost přijatého ukazatele a struktur zásobníku
     if(topTerminal == NULL || precStackList == NULL || precStackList->stack == NULL) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);
+        parser_errorWatcher(SET_ERROR_SYNTAX);
         *topTerminal = T_PREC_UNDEFINED;
         return;
     }
@@ -408,7 +408,7 @@ void PrecStack_getTopPrecTerminal(PrecTerminals *topTerminal) {
 
     // Pokud je zásobník prázdný nastala syntaktická chyba
     if(stackTopNode == NULL) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);
+        parser_errorWatcher(SET_ERROR_SYNTAX);
         *topTerminal = T_PREC_UNDEFINED;
         return;
     }
@@ -420,7 +420,7 @@ void PrecStack_getTopPrecTerminal(PrecTerminals *topTerminal) {
 
     // Pokud nebyl na zásobníku teminál nalezen, nastala interní chyba překladače
     if(stackTopNode == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         *topTerminal = T_PREC_UNDEFINED;
     }
 
@@ -451,20 +451,20 @@ bool PrecStack_isIdOnTop() {
 void PrecStack_getResult(AST_ExprNode **result) {
     // Kontrola, že zásobník není prázdný
     if(PrecStack_isEmpty()) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
     // Získáme vrchní prvek na zásobníku
     PrecStackNode *topNode = PrecStack_top();
     if(topNode == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
     // Ověříme, že vrchní prvek obsahuje výraz
     if(topNode->symbol != PREC_STACK_SYM_EXPRESSION || topNode->node == NULL) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);
+        parser_errorWatcher(SET_ERROR_SYNTAX);
         return;
     }
 
@@ -537,7 +537,7 @@ void PrecStack_purge(PrecStack *stack) {
 bool PrecStack_isEmpty() {
     // Kontrola, zda je zásobník alokovaný
     if (precStackList == NULL || precStackList->stack == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return false;
     }
 
@@ -551,7 +551,7 @@ bool PrecStack_isEmpty() {
 PrecStackNode *PrecStack_createStackNode() {
     // Kontrola, zda je zásobník alokovaný
     if (precStackList == NULL || precStackList->stack == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return NULL;
     }
 
@@ -560,7 +560,7 @@ PrecStackNode *PrecStack_createStackNode() {
 
     // Pokud se alokace nezdařila, hlásíme interní chybu překladače
     if (node == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return NULL;
     }
 
@@ -581,7 +581,7 @@ PrecStackNode *PrecStack_createStackNode() {
 void PrecStack_mapPrecTerminalToStackSymbol(PrecTerminals terminal, PrecStackSymbol *stackSymbol) {
     // Ověření platnosti předaného ukazatele
     if(stackSymbol == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
@@ -694,7 +694,7 @@ void PrecStack_mapPrecTerminalToStackSymbol(PrecTerminals terminal, PrecStackSym
 
         // Defaultní případ: syntaktická chyba
         default:
-            Parser_errorWatcher(SET_ERROR_SYNTAX);
+            parser_errorWatcher(SET_ERROR_SYNTAX);
             break;
     } // switch()
 }  // PrecStack_mapPrecTerminalToStackSymbol()
@@ -704,7 +704,7 @@ void PrecStack_mapPrecTerminalToStackSymbol(PrecTerminals terminal, PrecStackSym
  */
 void PrecStack_mapStackSymbolToPrecTerminal(PrecStackSymbol stackSymbol, PrecTerminals *terminal) {
     if (terminal == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
@@ -817,7 +817,7 @@ void PrecStack_mapStackSymbolToPrecTerminal(PrecStackSymbol stackSymbol, PrecTer
 
         // Defaultní případ: syntaktická chyba
         default:
-            Parser_errorWatcher(SET_ERROR_SYNTAX);
+            parser_errorWatcher(SET_ERROR_SYNTAX);
             break;
     } // switch()
 }  // PrecStack_mapStackSymbolToPrecTerminal()
@@ -828,7 +828,7 @@ void PrecStack_mapStackSymbolToPrecTerminal(PrecStackSymbol stackSymbol, PrecTer
 void PrecStack_mapStackNonTerminalToStackSymbol(PrecStackNonTerminals stackNonTerminal, PrecStackSymbol *symbol) {
     // Ověření platnosti předaného ukazatele
     if(symbol == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
@@ -851,7 +851,7 @@ void PrecStack_mapStackNonTerminalToStackSymbol(PrecStackNonTerminals stackNonTe
 
         // Defaultní případ: syntaktická chyba
         default:
-            Parser_errorWatcher(SET_ERROR_SYNTAX);
+            parser_errorWatcher(SET_ERROR_SYNTAX);
             break;
     } // switch()
 } // PrecStack_mapStackNonTerminalToStackSymbol()

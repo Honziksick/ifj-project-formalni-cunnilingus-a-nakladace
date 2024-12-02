@@ -92,15 +92,15 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **o
            item->symbolState == SYMTABLE_SYMBOL_DEAD) {
 
             // Vytvoříme kopii klíče
-            DString *keyCopy = string_init();
+            DString *keyCopy = DString_init();
             // Pokud se nepodařilo alokovat paměť, vracíme SYMTABLE_ALLOCATION_FAIL
             if(keyCopy == NULL) {
                 return SYMTABLE_ALLOCATION_FAIL;
             }
             // Pokud se nepodařilo zkopírovat klíč,
             // uvolníme alokovanou paměť a vracíme SYMTABLE_ALLOCATION_FAIL
-            if(string_copy(key,keyCopy) == STRING_COPY_FAIL) {
-                string_free(keyCopy);
+            if(DString_copy(key,keyCopy) == STRING_COPY_FAIL) {
+                DString_free(keyCopy);
                 return SYMTABLE_ALLOCATION_FAIL;
             }
 
@@ -126,7 +126,7 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **o
         }
 
         // Pokud položka s daným klíčem již existuje a je živá
-        if(string_compare(item->key, key) == STRING_EQUAL &&
+        if(DString_compare(item->key, key) == STRING_EQUAL &&
            item->symbolState != SYMTABLE_SYMBOL_DEAD) {
 
             // Vrátíme odkaz na existující položku a
@@ -172,7 +172,7 @@ symtable_result symtable_findItem(Symtable *table, DString *searchedKey, Symtabl
     while(item->symbolState != SYMTABLE_SYMBOL_EMPTY) {
 
         // Pokud je nalezena položka se stejným klíčem, vracíme ji
-        if(string_compare(item->key, searchedKey) == STRING_EQUAL) {
+        if(DString_compare(item->key, searchedKey) == STRING_EQUAL) {
             if(outItem != NULL) {
                 *outItem = item;
             }
@@ -215,7 +215,7 @@ symtable_result symtable_deleteItem(Symtable *table, DString *key) {
 
     // Při úspěchu položku odstraníme
     if(item->key != NULL) {
-        string_free(item->key);
+        DString_free(item->key);
         item->key = NULL;
     }
     if(item->data != NULL) {
@@ -223,7 +223,7 @@ symtable_result symtable_deleteItem(Symtable *table, DString *key) {
         if(item->symbolState == SYMTABLE_SYMBOL_FUNCTION) {
             SymtableFunctionData *data = (SymtableFunctionData *)item->data;
             for(size_t i = 0; i < data->paramCount; i++) {
-                string_free(data->params[i].id);
+                DString_free(data->params[i].id);
             }
             free(data->params);
         }
@@ -262,7 +262,7 @@ void symtable_deleteAll(Symtable *table, bool keepData) {
                     if(item.key->length > 4) {
                         if(memcmp(item.key->str, "ifj.", 4) == 0) {
                             for(size_t j = 0; j < data->paramCount; j++) {
-                                string_free(data->params[j].id);
+                                DString_free(data->params[j].id);
                             }
                         }
                     }
@@ -273,7 +273,7 @@ void symtable_deleteAll(Symtable *table, bool keepData) {
                 // Pokud je položka string, uvolníme jako string
                 if(item.symbolState == SYMTABLE_SYMBOL_VARIABLE_STRING ||
                    item.symbolState == SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL) {
-                    
+
                     item.data = NULL;
                 }
                 // Jinak jen uvolníme data
@@ -285,7 +285,7 @@ void symtable_deleteAll(Symtable *table, bool keepData) {
 
             // Uvolníme klíč
             if(item.key != NULL) {
-                string_free(item.key);
+                DString_free(item.key);
                 item.key = NULL;
             }
 
@@ -336,7 +336,7 @@ void symtable_print(Symtable *table, FILE *file, bool printData, bool cutData) {
         }
 
         // Vytiskneme klíč
-        char *key = string_toConstChar(item.key);
+        char *key = DString_DStringtoConstChar(item.key);
         if(cutData) {
             fprintf(file, "%-20.20s", key);
         }else {
@@ -583,13 +583,13 @@ void *symtable_createLiteralData(symtable_symbolState state) {
         case SYMTABLE_SYMBOL_VARIABLE_DOUBLE:
             return malloc(sizeof(double));
         case SYMTABLE_SYMBOL_VARIABLE_STRING:
-            return string_init();
+            return DString_init();
         case SYMTABLE_SYMBOL_VARIABLE_INT_OR_NULL:
             return malloc(sizeof(int));
         case SYMTABLE_SYMBOL_VARIABLE_DOUBLE_OR_NULL:
             return malloc(sizeof(double));
         case SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL:
-            return string_init();
+            return DString_init();
         default:
             return NULL;
     }

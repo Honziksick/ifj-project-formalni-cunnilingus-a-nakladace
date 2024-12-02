@@ -41,20 +41,20 @@
 void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, Precedence *precedence) {
     // Ověření platnosti předaného ukazatele - interní chyba
     if(precedence == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
     // Pokud byl předán neplatný (nedefinovaný) precedenční terminál na vrcholu zásobníku
     if(stackTopTerminal == T_PREC_UNDEFINED) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);    // interní chyba
+        parser_errorWatcher(SET_ERROR_INTERNAL);    // interní chyba
         *precedence = P_PRECEDENCE_UNDEFINED;
         return;
     }
 
     // Pokud byl předán neplatný (nedefinovaný) vstupní precedenční terminál
     if(inputTerminal == T_PREC_UNDEFINED) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);      // syntaktická chyba
+        parser_errorWatcher(SET_ERROR_SYNTAX);      // syntaktická chyba
         *precedence = P_PRECEDENCE_UNDEFINED;
         return;
     }
@@ -106,7 +106,7 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
         if(precedenceTable[mid].key == stackTopTerminal) {
             // Pokud precedence značí snytaktickou chybu, došlo k syntaktické chybě
             if(precedenceTable[mid].value[inputTerminal] == P_SYNTAX_ERROR) {
-                Parser_errorWatcher(SET_ERROR_SYNTAX);
+                parser_errorWatcher(SET_ERROR_SYNTAX);
                 *precedence = P_SYNTAX_ERROR;
                 return;
             }
@@ -128,7 +128,7 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
     }
 
     // Pokud precedence nebyla v precedenční tabulce nalezena nastavujeme syntaktickou chybu
-    Parser_errorWatcher(SET_ERROR_SYNTAX);
+    parser_errorWatcher(SET_ERROR_SYNTAX);
     *precedence = P_SYNTAX_ERROR;
 } // PrecTable_findPrecedence()
 
@@ -139,7 +139,7 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
 void PrecTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, DollarTerminals *currentDollar) {
     // Ověření platnosti předaného ukazatele
     if (currentDollar == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
     }
 
     // Mapujeme typ LL NEterminálu na "dollar" terminál precedenčního parseru
@@ -165,7 +165,7 @@ void PrecTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, Doll
 
         // Pro jakýkoliv jiný NEterminál není "dollar" terminál definován (nemělo by nastat)
         default:
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
             *currentDollar = CURRENT_DOLLAR_UNDEFINED;  // značí syntaktickou chybu
             break;
     }
@@ -179,12 +179,12 @@ void PrecParser_mapInTerminalToDollar(int bracketDepth, DollarTerminals dollarCo
 {
     // Ověření platnosti předaného ukazatele
     if(inTerminal == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
     if(dollarContext == CURRENT_DOLLAR_UNDEFINED) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);
+        parser_errorWatcher(SET_ERROR_SYNTAX);
         return;
     }
 

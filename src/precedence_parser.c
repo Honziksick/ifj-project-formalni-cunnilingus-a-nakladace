@@ -73,7 +73,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     // Hlavní cyklus precedenční analýzy
     while(true) {
         // Pokud došlo v rámci funkce "getTopPrecTerminal" k chybě, končíme smyčku
-        if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+        if(parser_errorWatcher(IS_PARSING_ERROR)) {
             goto precedenceParser_handleError;  // skok na řešení chyb na konci funkce
         }
 
@@ -88,7 +88,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
         PrecTable_findPrecedence(topTerminal, inTerminal, &precedence);
 
         // Pokud došlo v rámci funkce "findPrecedence" k chybě, končíme smyčku
-        if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+        if(parser_errorWatcher(IS_PARSING_ERROR)) {
             goto precedenceParser_handleError;  // skok na řešení chyb na konci funkce
         }
 
@@ -154,7 +154,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     PrecStack_getResult(&result);
 
     // Pokud došlo při získání výsledku k chybě, zničíme seznam zásobníků a končíme precedenční SA
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto precedenceParser_handleError;  // skok na řešení chyb na konci funkce
     }
 
@@ -170,7 +170,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     /***                                                                    ***/
     precedenceParser_handleError:
         // Uvolnění hodnotu currentTerminal
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
 
         // Uvolníme všechny zásobníky včetně obsažených AST uzlů
         PrecStackList_purge();
@@ -204,7 +204,7 @@ void PrecParser_applyEqualPrecedence(int bracketDepth, DollarTerminals dollarCon
     PrecStack_pushBothStackAndASTNode(*inTerminal);
 
     // Žádáme scanner o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Mapování dalšího symbolu na precedenční terminál - chyby jsou ošetřeny při návratu
     PrecParser_mapInTerminalToDollar(bracketDepth, dollarContext, inTerminal);
@@ -229,7 +229,7 @@ void PrecParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarCont
     // Pokud je na vrcholu zásobníku identifikátor a vstpním symbolem je "("
     if (PrecStack_isIdOnTop() && (*inTerminal == T_PREC_LEFT_BRACKET)) {
         // Žádáme scanner o další token
-        Parser_getNextToken(POKE_SCANNER);
+        parser_getNextToken(POKE_SCANNER);
 
         // Dočasně předáváme řízení LL parseru a parsujeme neterminál <ARGUMNETS>
         AST_ArgOrParamNode *argList = LLparser_parseArguments();
@@ -239,7 +239,7 @@ void PrecParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarCont
         PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARG_LIST, AST_ARG_OR_PARAM_NODE, argList);
 
         // Žádáme scanner o další token
-        Parser_getNextToken(POKE_SCANNER);
+        parser_getNextToken(POKE_SCANNER);
 
         // Mapujeme nový terminál na vrcholu zásobníku, jelikož byl změněn
         PrecStack_getTopPrecTerminal(topTerminal);
@@ -253,7 +253,7 @@ void PrecParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarCont
         PrecStack_pushBothStackAndASTNode(*inTerminal);
 
         // Žádáme scanner o další token
-        Parser_getNextToken(POKE_SCANNER);
+        parser_getNextToken(POKE_SCANNER);
     }
 
     // Mapování dalšího symbolu na precedenční terminál - chyby jsou ošetřeny při návratu
@@ -273,7 +273,7 @@ bool PrecParser_applyGreaterPrecedence(int *bracketDepth, LLNonTerminals fromNon
     PrecParser_chooseReductionRule(&rule);
 
     // Pokud došlo při výběru pravidla k chybě, redukci neprovádíme
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         return false;
     }
 
@@ -319,7 +319,7 @@ bool PrecParser_applyGreaterPrecedence(int *bracketDepth, LLNonTerminals fromNon
 void PrecParser_chooseReductionRule(ReductionRule *rule) {
     // Pokud byl funkci předán neplatný ukazatel, zaznamenáme vnitřní chybu
     if(rule == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         *rule = REDUCE_RULE_UNDEFINED;
         return;
     }
@@ -329,7 +329,7 @@ void PrecParser_chooseReductionRule(ReductionRule *rule) {
 
     // Pokud je zásobník prázdný, hlásíme interní chybu
     if(stackNode == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         *rule = REDUCE_RULE_UNDEFINED;
         return;
     }
@@ -368,14 +368,14 @@ void PrecParser_chooseReductionRule(ReductionRule *rule) {
 
     // Pokud nebylo nalezeno konkrétní pravidlo, nstavíme syntaktickou chybu
     if(*rule == REDUCE_RULE_UNDEFINED) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);
+        parser_errorWatcher(SET_ERROR_SYNTAX);
     }
 } // PrecParser_chooseReductionRule()
 
 void PrecParser_findReductionRule(PrecStackSymbol symbolsToReduce[], ReductionRule *rule) {
     // Ověření platnosti předaného ukazatele - interní chyba
     if(rule == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
@@ -511,7 +511,7 @@ void PrecParser_reduce(ReductionRule rule) {
 
         // Pokud jsme dostali neznámé pravidlo, jde o interní chybu
         default:
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
             break;
     } // switch()
 } // PrecParser_reduce()
@@ -527,7 +527,7 @@ bool PrecParser_applyRemainingReductions(PrecTerminals *topTerminal) {
         PrecParser_chooseReductionRule(&rule);
 
         // Pokud došlo při výběru pravidla k chybě, končíme cyklus
-        if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+        if (parser_errorWatcher(IS_PARSING_ERROR)) {
             return false;
         }
 
@@ -535,7 +535,7 @@ bool PrecParser_applyRemainingReductions(PrecTerminals *topTerminal) {
         PrecParser_reduce(rule);
 
         // Pokud došlo při redukci k chybě, končíme cyklus
-        if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+        if (parser_errorWatcher(IS_PARSING_ERROR)) {
             return false;
         }
 
@@ -543,7 +543,7 @@ bool PrecParser_applyRemainingReductions(PrecTerminals *topTerminal) {
         PrecStack_getTopPrecTerminal(topTerminal);
 
         // Pokud došlo při mapování k chybě, končíme cyklus
-        if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+        if (parser_errorWatcher(IS_PARSING_ERROR)) {
             return false;
         }
     }
@@ -575,7 +575,7 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
 
     if(variable == NULL) {
         PrecStack_freeNode(stackNode);  // uvolníme zásobníkový a AST uzel pro id/literál
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
@@ -583,7 +583,7 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
     AST_ExprNode *exprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
 
     // Pokud došlo při tvorbě uzlu k chybě, ukončíme funkci
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         PrecStack_freeNode(stackNode);  // uvolníme zásobníkový a AST uzel pro id/literál
         return;
     }
@@ -596,10 +596,10 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
 
         if(res != FRAME_STACK_SUCCESS) {
             if(res == FRAME_STACK_ITEM_DOESNT_EXIST) {
-                Parser_errorWatcher(SET_ERROR_SEM_UNDEF);
+                parser_errorWatcher(SET_ERROR_SEM_UNDEF);
             }
             else {
-                Parser_errorWatcher(SET_ERROR_INTERNAL);
+                parser_errorWatcher(SET_ERROR_INTERNAL);
             }
 
             PrecStack_freeNode(stackNode);              // Uvolníme zásobníkový uzel včetně AST uzlu
@@ -622,7 +622,7 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
     }
     else {
         PrecStack_freeNode(stackNode);
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     } // if-ifelse-else()
 
@@ -655,7 +655,7 @@ void PrecParser_reduceBinOp(AST_BinOpType binOp) {
     AST_BinOpNode *binOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
 
     // Pokud došlo při tvorbě uzlu k chybě, ukončíme funkci
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         PrecStack_freeNode(leftNode);   // uvolníme zásobníkový a AST uzel pro levý operand
         PrecStack_freeNode(rightNode);  // uvolníme zásobníkový a AST uzel pro pravý operand
         return;
@@ -672,7 +672,7 @@ void PrecParser_reduceBinOp(AST_BinOpType binOp) {
     AST_ExprNode *exprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
 
     // Pokud došlo při tvorbě uzlu k chybě, ukončíme funkci
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         AST_destroyNode(AST_BIN_OP_NODE, binOpNode);    // uvolníme uzel pro binární operaci
         return;
     }
@@ -739,7 +739,7 @@ void PrecParser_reduceFunCall(bool isBuiltIn) {
     AST_FunCallNode *funCallNode = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
 
     // Pokud došlo při tvorbě uzlu k chybě, ukončíme funkci
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         PrecStack_freeNode(argumentsNode);  // Uvolníme zaábníkový uzel se seznamem argumentů
         PrecStack_freeNode(varNode);        // Uvolníme zásobníkový uzel s AST uzle pro id
         return;
@@ -760,7 +760,7 @@ void PrecParser_reduceFunCall(bool isBuiltIn) {
     AST_ExprNode *exprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
 
     // Pokud došlo při tvorbě uzlu k chybě, ukončíme funkci
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         AST_destroyNode(AST_FUN_CALL_NODE, funCallNode); // uvolníme vytvořný uzel pro volání funkce
         return;
     }
@@ -799,7 +799,7 @@ inline bool PrecParser_shouldStopParsingLoop(PrecTerminals inTerminal, \
                                              bool greaterStopFlag)
 {
     // Pokud došlo k chybě během parsování, ukončujeme smyčku
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if (parser_errorWatcher(IS_PARSING_ERROR)) {
         return true;
     }
 
@@ -823,7 +823,7 @@ inline bool PrecParser_shouldStopParsingLoop(PrecTerminals inTerminal, \
 void PrecParser_mapNonTerminalToRule(PrecStackSymbol symbol, ReductionRule *rule) {
     // Ověření platnosti předaného ukazatele
     if (rule == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
     }
 
     switch (symbol) {
@@ -914,7 +914,7 @@ void PrecParser_mapNonTerminalToRule(PrecStackSymbol symbol, ReductionRule *rule
 
         // Defaultní případ: interní chyba
         default:
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
             break;
     } // switch()
 } // PrecParser_mapNonTerminalToRule()

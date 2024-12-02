@@ -91,12 +91,12 @@ extern string semErrorPath;
  ******************************************************************************/
 
 #define MAKE_STRING(id, str) \
-    DString* id = string_init(); \
+    DString* id = DString_init(); \
     do { \
         ASSERT_NE(id, nullptr); \
         const char *tmp_str = str; \
         for(size_t i = 0; i < strlen(tmp_str); i++) { \
-            ASSERT_EQ(string_append_char(id, tmp_str[i]), STRING_SUCCESS); \
+            ASSERT_EQ(DString_appendChar(id, tmp_str[i]), STRING_SUCCESS); \
         } \
     } while(false);
 

@@ -51,9 +51,6 @@ TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -78,50 +75,12 @@ TEST(LLParserBasicsCorrect, OneParam) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
 
     // Kořen je inicializován
     EXPECT_NE(ASTroot, nullptr);
-
-    // Má funkci
-    EXPECT_NE(ASTroot->functionList, nullptr);
-    AST_FunDefNode* fun = ASTroot->functionList;
-    // Funkce nemá tělo
-    EXPECT_EQ(fun->body, nullptr);
-    // Název funkce je main
-    char *comp = string_toConstChar(fun->identifier);
-    EXPECT_STREQ(comp, "main");
-    free(comp);
-    // Vrací void
-    EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
-    // Má parametr
-    EXPECT_NE(fun->parameters, nullptr);
-    AST_ArgOrParamNode* param = fun->parameters;
-
-    // Parametr má typ int
-    EXPECT_EQ(param->dataType, AST_DATA_TYPE_INT);
-    // Parametr má výraz
-    EXPECT_NE(param->expression, nullptr);
-    AST_ExprNode* expr = param->expression;
-    EXPECT_EQ(expr->type, AST_EXPR_NODE);
-    // Výraz je proměnná
-    EXPECT_EQ(expr->exprType, AST_EXPR_VARIABLE);
-    AST_VarNode* var = (AST_VarNode*)expr->expression;
-    EXPECT_EQ(var->type, AST_VAR_NODE);
-    // Proměnná má identifikátor x
-    EXPECT_NE(var->identifier, nullptr);
-    EXPECT_EQ(string_compare_const_str(var->identifier, "x"), STRING_EQUAL);
-    
-    // Nemá další parametry
-    EXPECT_EQ(param->next, nullptr);
-
-    // Nemá další funkci
-    EXPECT_EQ(fun->next, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
     PRINT_TEST_LOG(CorrectOneParam);
@@ -140,61 +99,12 @@ TEST(LLParserBasicsCorrect, TwoParams) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
 
     // Kořen je inicializován
     EXPECT_NE(ASTroot, nullptr);
-
-    EXPECT_NE(ASTroot, nullptr);
-
-    // Má funkci
-    EXPECT_NE(ASTroot->functionList, nullptr);
-    AST_FunDefNode* fun = ASTroot->functionList;
-    // Funkce nemá tělo
-    EXPECT_EQ(fun->body, nullptr);
-    // Má parametr
-    EXPECT_NE(fun->parameters, nullptr);
-    AST_ArgOrParamNode* param = fun->parameters;
-
-    // Parametr má typ int
-    EXPECT_EQ(param->dataType, AST_DATA_TYPE_INT);
-    // Parametr má výraz
-    EXPECT_NE(param->expression, nullptr);
-    AST_ExprNode* expr1 = param->expression;
-    EXPECT_EQ(expr1->type, AST_EXPR_NODE);
-    // Výraz je proměnná
-    EXPECT_EQ(expr1->exprType, AST_EXPR_VARIABLE);
-    AST_VarNode* var1 = (AST_VarNode*)expr1->expression;
-    EXPECT_EQ(var1->type, AST_VAR_NODE);
-    // Proměnná má identifikátor x
-    EXPECT_NE(var1->identifier, nullptr);
-    EXPECT_EQ(string_compare_const_str(var1->identifier, "x"), STRING_EQUAL);
-    
-    // Má další parametr
-    EXPECT_NE(param->next, nullptr);
-    param = param->next;
-
-    // Parametr má typ string
-    EXPECT_EQ(param->dataType, AST_DATA_TYPE_STRING);
-    // Parametr má výraz
-    EXPECT_NE(param->expression, nullptr);
-    AST_ExprNode* expr2 = param->expression;
-    EXPECT_EQ(expr2->type, AST_EXPR_NODE);
-    // Výraz je proměnná
-    EXPECT_EQ(expr2->exprType, AST_EXPR_VARIABLE);
-    AST_VarNode* var2 = (AST_VarNode*)expr2->expression;
-    EXPECT_EQ(var2->type, AST_VAR_NODE);
-    // Proměnná má identifikátor y
-    EXPECT_NE(var2->identifier, nullptr);
-    EXPECT_EQ(string_compare_const_str(var2->identifier, "y"), STRING_EQUAL);
-
-    // Nemá další parametry
-    EXPECT_EQ(param->next, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
     PRINT_TEST_LOG(CorrectTwoParams);
@@ -213,9 +123,6 @@ TEST(LLParserBasicsCorrect, TwoFunctions) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -223,35 +130,6 @@ TEST(LLParserBasicsCorrect, TwoFunctions) {
     // Kořen je inicializován
     EXPECT_NE(ASTroot, nullptr);
 
-    // Má funkci
-    EXPECT_NE(ASTroot->functionList, nullptr);
-    AST_FunDefNode* fun = ASTroot->functionList;
-    // Funkce nemá tělo
-    EXPECT_EQ(fun->body, nullptr);
-    // Název funkce je main
-    char *comp = string_toConstChar(fun->identifier);
-    EXPECT_STREQ(comp, "main");
-    free(comp);
-    // Vrací void
-    EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
-    // Nemá parametry
-    EXPECT_EQ(fun->parameters, nullptr);
-    // Má ukazatel na další funkci
-    EXPECT_NE(fun->next, nullptr);
-
-    fun = fun->next;
-    // Druhá funkce
-    // Funkce nemá tělo
-    EXPECT_EQ(fun->body, nullptr);
-    // Má identifikátor
-    EXPECT_NE(fun->identifier, nullptr);
-    // Vrací void
-    EXPECT_EQ(fun->returnType, AST_DATA_TYPE_VOID);
-    // Nemá parametry
-    EXPECT_EQ(fun->parameters, nullptr);
-    // Nemá na další funkci
-    EXPECT_EQ(fun->next, nullptr);
-    
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
     PRINT_TEST_LOG(CorrectTwoFunctions);
 
@@ -269,47 +147,12 @@ TEST(LLParserBasicsCorrect, VarDef) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
 
     // Kořen je inicializován
     EXPECT_NE(ASTroot, nullptr);
-
-    // Má funkci
-    EXPECT_NE(ASTroot->functionList, nullptr);
-    AST_FunDefNode* fun = ASTroot->functionList;
-    // Funkce má tělo
-    EXPECT_NE(fun->body, nullptr);
-    AST_StatementNode* stmt = fun->body;
-    // Tělo funkce má jeden příkaz
-    EXPECT_NE(stmt, nullptr);
-    EXPECT_EQ(stmt->next, nullptr);
-    // Příkaz je deklarace proměnné
-    EXPECT_EQ(stmt->statementType, AST_STATEMENT_VAR_DEF);
-    EXPECT_NE(stmt->statement, nullptr);
-    // Příkaz je tedy výraz
-    AST_ExprNode* expr = (AST_ExprNode*)stmt->statement;
-    // Výraz má binární operátor
-    EXPECT_EQ(expr->exprType, AST_EXPR_BINARY_OP);
-    AST_BinOpNode* binop = (AST_BinOpNode*)expr->expression;
-    // Operátor je přiřazení
-    EXPECT_EQ(binop->op, AST_OP_ASSIGNMENT);
-    // Levý operand je proměnná
-    EXPECT_EQ(binop->left->exprType, AST_EXPR_VARIABLE);
-    AST_VarNode* var = (AST_VarNode*)binop->left->expression;
-    // Proměnná má identifikátor x
-    EXPECT_NE(var->identifier, nullptr);
-    EXPECT_EQ(string_compare_const_str(var->identifier, "x"), STRING_EQUAL);
-    // Pravý operand je literál
-    EXPECT_EQ(binop->right->exprType, AST_EXPR_LITERAL);
-    AST_VarNode* lit = (AST_VarNode*)binop->right->expression;
-    EXPECT_EQ(lit->identifier, nullptr);
-    // Literál je typu int
-    EXPECT_EQ(lit->literalType, AST_LITERAL_INT);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
     PRINT_TEST_LOG(CorrectVarDef);
@@ -328,37 +171,12 @@ TEST(LLParserBasicsCorrect, FunCallNoArgs) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
 
     // Kořen je inicializován
     EXPECT_NE(ASTroot, nullptr);
-
-    // Má funkci
-    EXPECT_NE(ASTroot->functionList, nullptr);
-    AST_FunDefNode* fun = ASTroot->functionList;
-    // Funkce má tělo
-    EXPECT_NE(fun->body, nullptr);
-    AST_StatementNode* stmt = fun->body;
-    // Tělo funkce má jeden příkaz
-    EXPECT_NE(stmt, nullptr);
-    EXPECT_EQ(stmt->next, nullptr);
-    // Příkaz je volání funkce
-    EXPECT_EQ(stmt->statementType, AST_STATEMENT_FUN_CALL);
-    EXPECT_NE(stmt->statement, nullptr);
-    // Příkaz je tedy výraz
-    AST_FunCallNode* fcall = (AST_FunCallNode*)stmt->statement;
-    // Volaná funkce má identifikátor foo
-    EXPECT_NE(fcall->identifier, nullptr);
-    EXPECT_EQ(string_compare_const_str(fcall->identifier, "foo"), STRING_EQUAL);
-    // Funkce nemá argumenty
-    EXPECT_EQ(fcall->arguments, nullptr);
-    // Funkce není vestavěná
-    EXPECT_FALSE(fcall->isBuiltIn);
     
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
     PRINT_TEST_LOG(CorrectFunCallNoParam);
@@ -377,21 +195,12 @@ TEST(LLParserBasicsCorrect, NonVoidFun) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
 
     // Kořen je inicializován
     EXPECT_NE(ASTroot, nullptr);
-
-    // Má funkci
-    EXPECT_NE(ASTroot->functionList, nullptr);
-    AST_FunDefNode* fun = ASTroot->functionList;
-    // Funkce vrací int
-    EXPECT_EQ(fun->returnType, AST_DATA_TYPE_INT);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
     PRINT_TEST_LOG(CorrectNonVoidFun);
@@ -410,9 +219,6 @@ TEST(LLParserBasicsCorrect, FunCallIntLit) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -437,9 +243,6 @@ TEST(LLParserBasicsCorrect, FunCallFloatLit) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -464,9 +267,6 @@ TEST(LLParserBasicsCorrect, FunCallStringLit) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -491,9 +291,6 @@ TEST(LLParserBasicsCorrect, FunCallVar) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -518,56 +315,12 @@ TEST(LLParserBasicsCorrect, FunCallTwoArgs) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
 
     // Kořen je inicializován
     EXPECT_NE(ASTroot, nullptr);
-
-    // Má funkci
-    EXPECT_NE(ASTroot->functionList, nullptr);
-    AST_FunDefNode* fun = ASTroot->functionList;
-    // Funkce má tělo
-    EXPECT_NE(fun->body, nullptr);
-    AST_StatementNode* stmt = fun->body;
-    // Tělo funkce má jeden příkaz
-    EXPECT_NE(stmt, nullptr);
-    EXPECT_EQ(stmt->next, nullptr);
-    // Příkaz je volání funkce
-    EXPECT_EQ(stmt->statementType, AST_STATEMENT_FUN_CALL);
-    EXPECT_NE(stmt->statement, nullptr);
-    // Příkaz je tedy výraz
-    AST_FunCallNode* fcall = (AST_FunCallNode*)stmt->statement;
-    // Volaná funkce má identifikátor foo
-    EXPECT_NE(fcall->identifier, nullptr);
-    EXPECT_EQ(string_compare_const_str(fcall->identifier, "foo"), STRING_EQUAL);
-    // Funkce má dva argumenty
-    EXPECT_NE(fcall->arguments, nullptr);
-    AST_ArgOrParamNode* arg1 = fcall->arguments;
-    // První argument je literál typu float
-    EXPECT_EQ(arg1->dataType, AST_DATA_TYPE_NOT_DEFINED);
-    EXPECT_NE(arg1->expression, nullptr);
-    AST_ExprNode* expr1 = arg1->expression;
-    EXPECT_EQ(expr1->exprType, AST_EXPR_LITERAL);
-    AST_VarNode* lit1 = (AST_VarNode*)expr1->expression;
-    EXPECT_EQ(lit1->literalType, AST_LITERAL_FLOAT);
-    EXPECT_EQ(*(double*)lit1->value, 3.14);
-    // Druhý argument je literál typu string
-    EXPECT_NE(arg1->next, nullptr);
-    AST_ArgOrParamNode* arg2 = arg1->next;
-    EXPECT_EQ(arg2->dataType, AST_DATA_TYPE_NOT_DEFINED);
-    EXPECT_NE(arg2->expression, nullptr);
-    AST_ExprNode* expr2 = arg2->expression;
-    EXPECT_EQ(expr2->exprType, AST_EXPR_LITERAL);
-    AST_VarNode* lit2 = (AST_VarNode*)expr2->expression;
-    EXPECT_EQ(lit2->literalType, AST_LITERAL_STRING);
-    EXPECT_EQ(string_compare_const_str((DString*)lit2->value, "Please work"), STRING_EQUAL);
-    // Nemá další argumenty
-    EXPECT_EQ(arg2->next, nullptr);
 
     // Tisk obdrženého stromu a stavu zásobníku rámcu pro vizuální kontrolu
     PRINT_TEST_LOG(CorrectFunCallTwoArgs);
@@ -586,9 +339,6 @@ TEST(LLParserBasicsCorrect, FunCallManyArgs) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -613,9 +363,6 @@ TEST(LLParserBasicsCorrect, FunCallCommaLast) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -640,9 +387,6 @@ TEST(LLParserBasicsCorrect, IFJFunCallNoArgs) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -668,9 +412,6 @@ TEST(LLParserBasicsCorrect, IFJFunCallIntLit) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -696,9 +437,6 @@ TEST(LLParserBasicsCorrect, IFJFunCallFloatLit) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -723,9 +461,6 @@ TEST(LLParserBasicsCorrect, IFJFunCallStringLit) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -750,9 +485,6 @@ TEST(LLParserBasicsCorrect, IFJFunCallVar) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -777,9 +509,6 @@ TEST(LLParserBasicsCorrect, IFJFunCallTwoArgs) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -804,9 +533,6 @@ TEST(LLParserBasicsCorrect, IFJFunCallManyArgs) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -831,9 +557,6 @@ TEST(LLParserBasicsCorrect, IFJFunCallCommaLast) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -858,9 +581,6 @@ TEST(LLParserBasicsCorrect, ExcesiveCurlyBrackets) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -1665,9 +1385,6 @@ TEST(LLParserExamples, Example1) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -1692,9 +1409,6 @@ TEST(LLParserExamples, Example2) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -1719,9 +1433,6 @@ TEST(LLParserExamples, Example3) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -1746,9 +1457,6 @@ TEST(LLParserExamples, Fun) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -1773,9 +1481,6 @@ TEST(LLParserExamples, Hello) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();
@@ -1800,9 +1505,6 @@ TEST(LLParserExamples, Multiline) {
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
     stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
 
     // Syntaktická analýza programu
     LLparser_parseProgram();

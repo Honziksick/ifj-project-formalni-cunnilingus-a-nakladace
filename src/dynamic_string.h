@@ -77,7 +77,7 @@ typedef struct {
  * @return Při selhání vrací @c NULL.
  *         V opačném případě vrací ukazatel na nově vytvořený datový typ.
 */
-DString *string_init();
+DString *DString_init();
 
 /**
  * @brief Uvolnění paměti dynamického řetězce.
@@ -86,7 +86,7 @@ DString *string_init();
  *
  * @param [in] str Ukazatel na datový typ @c DString
 */
-void string_free(DString *str);
+void DString_free(DString *str);
 
 /**
  * @brief   Přidání jednoho znaku na konec dynamického řetězce.
@@ -100,7 +100,7 @@ void string_free(DString *str);
  * @return Vrací @c STRING_SUCCESS, pokud se vyvedla operace.
  *         Vrací @c STRING_RESIZE_FAIL, pokud se nezdařilo nafouknout datový typ.
  */
-int string_append_char(DString *str, char character);
+int DString_appendChar(DString *str, char character);
 
 /**
  * @brief   Zkopíruje obsah jednoho dynamického řetězce do druhého.
@@ -114,7 +114,7 @@ int string_append_char(DString *str, char character);
  * @return Pokud jeden z řetězců neexistuje nebo se nezdaří alokace vrátí @c STRING_COPY_FAIL.
  *         V opačném případě vrací @c STRING_SUCCESS.
  */
-int string_copy(DString *strCopied, DString *strTo);
+int DString_copy(DString *strCopied, DString *strTo);
 
 /**
  * @brief   Porovná dva dynamické řetězce.
@@ -128,7 +128,7 @@ int string_copy(DString *strCopied, DString *strTo);
  *         na jeden z řetězců prázdný, vrací @c STRING_NOT_EQUAL.
  *         Pokud jsou řetězce stejné, vrací @c STRING_EQUAL.
  */
-int string_compare(DString *str1, DString *str2);
+int DString_compare(DString *str1, DString *str2);
 
 /**
  * @brief Porovná dynamický řetězec s konstantním řetězcem.
@@ -143,7 +143,7 @@ int string_compare(DString *str1, DString *str2);
  *         na dynamické pole prázdný, vrací @c STRING_NOT_EQUAL.
  *         Pokud jsou řetězce stejné, vrací @c STRING_EQUAL.
 */
-int string_compare_const_str(DString *str, const char *strConst);
+int DString_compareWithConstChar(DString *str, const char *strConst);
 
 /**
  * @brief   Zvětší dynamický řetězec na požadovanou délku.
@@ -161,7 +161,7 @@ int string_compare_const_str(DString *str, const char *strConst);
  *         vrací @c NULL.
  *         V případě, že se vše povedlo, vrátí nově zvětšený řetězec.
  */
-DString *string_resize(DString *str, size_t size);
+DString *DString_resize(DString *str, size_t size);
 
 /**
  * @brief Převede řetězec obsažený v DString na konstantní řetězec typu char.
@@ -177,7 +177,7 @@ DString *string_resize(DString *str, size_t size);
  *         vrací @c NULL.
  *         V případě, že se vše povedlo, vrátí ukazatel na nový konstantní řetězec.
  */
-char *string_toConstChar(DString *str);
+char *DString_DStringtoConstChar(DString *str);
 
 /**
  * @brief Vytvoří nový dynamický řetězec z konstantního řetězce
@@ -192,7 +192,7 @@ char *string_toConstChar(DString *str);
  *         nebo nemá hodnotu vrací @c NULL.
  *         V případě, že se vše povedlo, vrátí ukazatel na nový dynamický řetězec.
  */
-DString *string_charToDString(const char *strConst);
+DString *DString_constCharToDString(const char *strConst);
 
 #endif  // DYNAMIC_STRING_H_
 

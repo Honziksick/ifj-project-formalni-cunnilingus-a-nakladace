@@ -41,7 +41,7 @@ void LLparser_parseProgram() {
     LLparser_initParserStructures();
 
     // Inicializujeme "currentTerminal" a "lookaheadToken" prvním voláním scanneru
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vyhledáme pravidlo v LL tabulce
     LLRuleSet rule = RULE_UNDEFINED;
@@ -54,18 +54,18 @@ void LLparser_parseProgram() {
         ASTroot->importedFile = LLparser_parsePrologue();
 
         // Kontrolujeme, že při parsování <PROLOGUE> nedošlo k chybě
-        if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+        if(parser_errorWatcher(IS_PARSING_ERROR)) {
             goto parseProgram_handleError;  // skok na řešení chyb na konci funkce
         }
 
         // Žádáme o další token
-        Parser_getNextToken(POKE_SCANNER);
+        parser_getNextToken(POKE_SCANNER);
 
         // Parsujeme <FUN_DEF_LIST>
         AST_FunDefNode *funDefNode = LLparser_parseFunDefList();
 
         // Kontrolujeme, že při parsování <FUN_DEF_LIST> nedošlo k chybě
-        if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+        if(parser_errorWatcher(IS_PARSING_ERROR)) {
             goto parseProgram_handleError;  // skok na řešení chyb na konci funkce
         }
 
@@ -83,15 +83,15 @@ void LLparser_parseProgram() {
     }
 
     // Program byl syntakticky správný a ukončujeme parsování
-    Parser_freeCurrentTerminalValue();
+    parser_freeCurrentTerminalValue();
     return;
 
     /***                                                                    ***/
     /*              ZPRACOVÁNÍ CHYB A UVOLNĚNÍ ZDROJŮ TÉTO FUNKCE             */
     /***                                                                    ***/
     parseProgram_handleError:
-        Parser_freeCurrentTerminalValue();
-        Parser_errorWatcher(CALL_ERROR_HANDLE);
+        parser_freeCurrentTerminalValue();
+        parser_errorWatcher(CALL_ERROR_HANDLE);
 } // LLparser_parseProgram()
 
 
@@ -108,14 +108,14 @@ AST_VarNode *LLparser_parsePrologue() {
     bool errorLevel_2 = false;
 
     // Definujeme název importované proměnné (scanner ji zpracovává jako keyword)
-    DString *importVar = string_charToDString("ifj");
+    DString *importVar = DString_constCharToDString("ifj");
 
     // Definujeme název očekávané cesty k importovanému souboru
-    DString *path = string_charToDString("ifj24.zig");
+    DString *path = DString_constCharToDString("ifj24.zig");
 
     // Kontrolujeme, že byla paměť stringům úspěšně přidělena
     if(importVar == NULL || path == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         errorLevel_1 = true;
         goto parsePrologue_handleError;  // skok na řešení chyb na konci funkce
     }
@@ -127,7 +127,7 @@ AST_VarNode *LLparser_parsePrologue() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme "ifj"
     if(LLparser_isNotExpectedTerminal(T_IFJ)) {
@@ -136,7 +136,7 @@ AST_VarNode *LLparser_parsePrologue() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme `=`
     if(LLparser_isNotExpectedTerminal(T_ASSIGNMENT)) {
@@ -145,7 +145,7 @@ AST_VarNode *LLparser_parsePrologue() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme `@import`
     if(LLparser_isNotExpectedTerminal(T_IMPORT)) {
@@ -154,7 +154,7 @@ AST_VarNode *LLparser_parsePrologue() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme `(`
     if(LLparser_isNotExpectedTerminal(T_LEFT_BRACKET)) {
@@ -163,24 +163,24 @@ AST_VarNode *LLparser_parsePrologue() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme `"ifj24.zig"`
     if(currentTerminal.PrecTerminal != T_PREC_STRING_LITERAL) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);
+        parser_errorWatcher(SET_ERROR_SYNTAX);
         errorLevel_1 = true;
         goto parsePrologue_handleError;  // skok na řešení chyb na konci funkce
     }
 
     // Kontrolujeme přijetí očekávaného souboru k importování
-    if(string_compare_const_str(currentTerminal.value, path->str) != STRING_EQUAL) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);
+    if(DString_compareWithConstChar(currentTerminal.value, path->str) != STRING_EQUAL) {
+        parser_errorWatcher(SET_ERROR_SYNTAX);
         errorLevel_1 = true;
         goto parsePrologue_handleError;  // skok na řešení chyb na konci funkce
     }
 
     // Uvolníme obsah aktuálního tokenu
-    Parser_freeCurrentTerminalValue();
+    parser_freeCurrentTerminalValue();
 
     // Přidáme proměnnou prologu do tabulky symbolů a zkontrolujeme úspěšnost přidání
     frame_stack_result result = frameStack_addItemExpress(importVar, SYMTABLE_SYMBOL_VARIABLE_STRING, \
@@ -188,14 +188,14 @@ AST_VarNode *LLparser_parsePrologue() {
 
     // Kontrola úspěšného vložení do tabulky symbolů
     if(result != FRAME_STACK_SUCCESS) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         errorLevel_1 = true;
         goto parsePrologue_handleError;  // skok na řešení chyb na konci funkce
     }
 
     // Vytvoříme AST uzel pro proměnnou s cestou k importovanému souboru
     AST_VarNode *importedFile = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         errorLevel_1 = true;
         goto parsePrologue_handleError;  // skok na řešení chyb na konci funkce
     }
@@ -205,7 +205,7 @@ AST_VarNode *LLparser_parsePrologue() {
                        frameStack.top->frameID, AST_LITERAL_STRING, path);
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme `)`
     if(LLparser_isNotExpectedTerminal(T_RIGHT_BRACKET)) {
@@ -214,7 +214,7 @@ AST_VarNode *LLparser_parsePrologue() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme `;`
     if(LLparser_isNotExpectedTerminal(T_SEMICOLON)) {
@@ -233,13 +233,13 @@ AST_VarNode *LLparser_parsePrologue() {
         if(errorLevel_1) {
             // Uvolnění paměti pro importVar, pokud není NULL
             if (importVar != NULL && importVar != currentTerminal.value) {
-                string_free(importVar);
+                DString_free(importVar);
                 importVar = NULL;
             }
 
             // Uvolnění paměti pro path, pokud není NULL
             if (path != NULL && path != currentTerminal.value) {
-                string_free(path);
+                DString_free(path);
                 path = NULL;
             }
         }
@@ -249,7 +249,7 @@ AST_VarNode *LLparser_parsePrologue() {
         }
 
         // Uvolnění hodnoty currentTerminal
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
 
         // Návrat s chybovým kódem
         return PARSING_ERROR;
@@ -273,7 +273,7 @@ AST_FunDefNode *LLparser_parseFunDefList() {
             funDef = LLparser_parseFunDef();
 
             // Kontrola úspěchu parsování <FUN_DEF>
-            if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+            if(parser_errorWatcher(IS_PARSING_ERROR)) {
                 goto parseFunDefList_errorLevel_0;  // skok na řešení chyb na konci funkce
             }
 
@@ -281,7 +281,7 @@ AST_FunDefNode *LLparser_parseFunDefList() {
             funDefList = LLparser_parseFunDefList();
 
             // Kontrola úspěchu parsování <FUN_DEF_LIST>
-            if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+            if(parser_errorWatcher(IS_PARSING_ERROR)) {
                 goto parseFunDefList_errorLevel_1;  // skok na řešení chyb na konci funkce
             }
 
@@ -310,7 +310,7 @@ AST_FunDefNode *LLparser_parseFunDefList() {
             AST_destroyFunDefNode(funDef);
     parseFunDefList_errorLevel_0:
         // Uvolnění hodnoty currentTerminal
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
 
         // Návrat s chybovým kódem
         return PARSING_ERROR;
@@ -324,7 +324,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme "fn"
     if(LLparser_isNotExpectedTerminal(T_FN)) {
@@ -332,7 +332,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme "id"
     if(LLparser_isNotExpectedTerminal(T_ID)) {
@@ -347,10 +347,10 @@ AST_FunDefNode *LLparser_parseFunDef() {
     frame_stack_result result = frameStack_addItemExpress(functionName, SYMTABLE_SYMBOL_FUNCTION, IS_VAR, NULL, &functionItem);
     if(result != FRAME_STACK_SUCCESS) {
         if(result == FRAME_STACK_ITEM_ALREADY_EXISTS) {
-            Parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
+            parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
         }
         else {
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
         }
 
         goto parseFunDef_errorLevel_0;  // skok na řešení chyb na konci funkce
@@ -358,7 +358,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
 
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme "("
     if(LLparser_isNotExpectedTerminal(T_LEFT_BRACKET)) {
@@ -366,7 +366,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Pushneme nový rámce příslušící parsované funkci
     frameStack_push(true);
@@ -381,7 +381,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
     AST_ArgOrParamNode *parameters = LLparser_parseParameters(&paramCount);
 
     // Kontrola úspěchu parsování <PARAMETERS>
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseFunDef_errorLevel_2;  // skok na řešení chyb na konci funkce
     }
 
@@ -391,13 +391,13 @@ AST_FunDefNode *LLparser_parseFunDef() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme <RETURN_TYPE>
     AST_DataType returnType = LLparser_parseReturnType();
 
     // Kontrola úspěchu parsování <RETURN_TYPE>
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseFunDef_errorLevel_2;  // skok na řešení chyb na konci funkce
     }
 
@@ -405,7 +405,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
     AST_StatementNode *sequence = LLparser_parseSequence(false);
 
     // Kontrola úspěchu parsování <SEQUENCE>
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseFunDef_errorLevel_3;  // skok na řešení chyb na konci funkce
     }
 
@@ -413,7 +413,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
     AST_FunDefNode *funDefNode = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
 
     // Kontrola úspěchu vytvoření AST uzlu
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseFunDef_errorLevel_3;  // skok na řešení chyb na konci funkce
     }
 
@@ -436,13 +436,13 @@ AST_FunDefNode *LLparser_parseFunDef() {
             goto parseFunDef_errorLevel_4;  // skok na řešení chyb na konci funkce
         }
         AST_VarNode *variable = (AST_VarNode *)(paramNode->expression->expression);
-        Parser_mapASTDataTypeToFunReturnType(paramNode->dataType, &funType);
+        parser_mapASTDataTypeToFunReturnType(paramNode->dataType, &funType);
         functionData->params[i].id = variable->identifier;
         functionData->params[i].type = funType;
         paramNode = paramNode->next;
     }
 
-    Parser_mapASTDataTypeToFunReturnType(returnType, &funType);
+    parser_mapASTDataTypeToFunReturnType(returnType, &funType);
     functionData->bodyFrameID = function_frameID;
     functionData->returnType = funType;
 
@@ -451,7 +451,7 @@ AST_FunDefNode *LLparser_parseFunDef() {
 
     // Popneme rámce parsované funkce po dokončení jejího parsování
     if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
     }
 
     return funDefNode;
@@ -467,16 +467,16 @@ AST_FunDefNode *LLparser_parseFunDef() {
     parseFunDef_errorLevel_2:
         AST_destroyArgOrParamList(parameters);
         if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
         }
     parseFunDef_errorLevel_1:
         if(functionName != NULL && functionName != currentTerminal.value) {
-            string_free(functionName);
+            DString_free(functionName);
             functionName = NULL;
         }
     parseFunDef_errorLevel_0:
         // Uvolnění hodnoty currentTerminal
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
 
         // Návrat s chybovým kódem
         return PARSING_ERROR;
@@ -501,7 +501,7 @@ AST_ArgOrParamNode *LLparser_parseParameters(size_t *paramCount) {
 
         // Jinak došlo k syntaktické chybě
         default:
-            Parser_freeCurrentTerminalValue();
+            parser_freeCurrentTerminalValue();
             return PARSING_ERROR;
     }
 } // LLparser_parseParameters()
@@ -512,7 +512,7 @@ AST_ArgOrParamNode *LLparser_parseParamList(size_t *paramCount) {
     AST_ArgOrParamNode *paramList = LLparser_parseParam();
 
     // Kontrola úspěchu parsování <PARAM>
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseParamList_errorLevel_0;
     }
 
@@ -523,7 +523,7 @@ AST_ArgOrParamNode *LLparser_parseParamList(size_t *paramCount) {
     AST_ArgOrParamNode *paramListRest = LLparser_parseParamListRest(paramCount);
 
     // Kontrola úspěchu parsování <PARAM_LIST_REST>
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseParamList_errorLevel_1;
     }
 
@@ -541,7 +541,7 @@ AST_ArgOrParamNode *LLparser_parseParamList(size_t *paramCount) {
     parseParamList_errorLevel_1:
         AST_destroyArgOrParamList(paramList);
     parseParamList_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseParamList()
 
@@ -560,13 +560,13 @@ AST_ArgOrParamNode *LLparser_parseParamListRest(size_t *paramCount) {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Parsujeme <PARAM_LIST>
             AST_ArgOrParamNode *paramList = LLparser_parseParamList(paramCount);
 
             // Kontrola úspěchu parsování <PARAM_LIST>
-            if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+            if(parser_errorWatcher(IS_PARSING_ERROR)) {
                 return PARSING_ERROR;
             }
 
@@ -596,7 +596,7 @@ AST_ArgOrParamNode *LLparser_parseParam() {
     DString *paramId = currentTerminal.value;
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme ":"
     if(LLparser_isNotExpectedTerminal(T_COLON)) {
@@ -604,19 +604,19 @@ AST_ArgOrParamNode *LLparser_parseParam() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme "<DATA_TYPE>"
     AST_DataType dataType = LLparser_parseDataType();
 
     // Kontrola validity získaného návratového typu
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseParam_errorLevel_1;
     }
 
     // Vytvoříme AST uzel pro parametr
     AST_VarNode *varNode = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseParam_errorLevel_1;
     }
 
@@ -625,16 +625,16 @@ AST_ArgOrParamNode *LLparser_parseParam() {
 
     // Mapujeme AST datový typ na Symtable SymbolState
     symtable_symbolState state = SYMTABLE_SYMBOL_UNKNOWN;
-    Parser_mapASTDataTypeToSymtableState(dataType, &state);
+    parser_mapASTDataTypeToSymtableState(dataType, &state);
 
     // Přidáme parametr do tabulky symbolů jako lokální proměnnou
     frame_stack_result result = frameStack_addItemExpress(paramId, state, IS_CONST, NULL, NULL);
     if(result != FRAME_STACK_SUCCESS) {
         if(result == FRAME_STACK_ITEM_ALREADY_EXISTS) {
-            Parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
+            parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
         }
         else {
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
         }
         AST_destroyNode(AST_VAR_NODE, varNode);
         goto parseParam_errorLevel_0;
@@ -642,7 +642,7 @@ AST_ArgOrParamNode *LLparser_parseParam() {
 
     // Vytvoříme uzel pro výraz parametru
     AST_ExprNode *paramExpr = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         AST_destroyNode(AST_VAR_NODE, varNode);
         goto parseParam_errorLevel_0;
     }
@@ -651,7 +651,7 @@ AST_ArgOrParamNode *LLparser_parseParam() {
     AST_initNewExprNode(paramExpr, AST_EXPR_VARIABLE, varNode);
 
     AST_ArgOrParamNode *paramNode = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         AST_destroyNode(AST_EXPR_NODE, paramExpr);
         goto parseParam_errorLevel_0;
     }
@@ -666,11 +666,11 @@ AST_ArgOrParamNode *LLparser_parseParam() {
     /***                                                                    ***/
     parseParam_errorLevel_1:
         if(paramId != NULL && paramId != currentTerminal.value) {
-            string_free(paramId);
+            DString_free(paramId);
             paramId = NULL;
         }
     parseParam_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseParam()
 
@@ -694,7 +694,7 @@ AST_DataType LLparser_parseReturnType() {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Vracíme typ "void"
             return AST_DATA_TYPE_VOID;
@@ -709,7 +709,7 @@ AST_DataType LLparser_parseReturnType() {
     /*              ZPRACOVÁNÍ CHYB A UVOLNĚNÍ ZDROJŮ TÉTO FUNKCE             */
     /***                                                                    ***/
     parseReturnType_errorHandle:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return AST_DATA_TYPE_NOT_DEFINED;
 } // LLparser_parseReturnType()
 
@@ -728,7 +728,7 @@ AST_DataType LLparser_parseDataType() {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Vracíme typ "i32"
             return AST_DATA_TYPE_INT;
@@ -740,7 +740,7 @@ AST_DataType LLparser_parseDataType() {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Vracíme typ "?i32"
             return AST_DATA_TYPE_INT_OR_NULL;
@@ -752,7 +752,7 @@ AST_DataType LLparser_parseDataType() {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Vracíme typ "f64"
             return AST_DATA_TYPE_FLOAT;
@@ -764,7 +764,7 @@ AST_DataType LLparser_parseDataType() {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Vracíme typ "?f64"
             return AST_DATA_TYPE_FLOAT_OR_NULL;
@@ -776,7 +776,7 @@ AST_DataType LLparser_parseDataType() {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Vracíme typ "[]u8"
             return AST_DATA_TYPE_STRING;
@@ -788,7 +788,7 @@ AST_DataType LLparser_parseDataType() {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Vracíme typ "?[]u8"
             return AST_DATA_TYPE_STRING_OR_NULL;
@@ -802,7 +802,7 @@ AST_DataType LLparser_parseDataType() {
     /*              ZPRACOVÁNÍ CHYB A UVOLNĚNÍ ZDROJŮ TÉTO FUNKCE             */
     /***                                                                    ***/
     parseDataType_errorHandle:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return AST_DATA_TYPE_NOT_DEFINED;
 } // LLparser_parseDataType()
 
@@ -820,7 +820,7 @@ AST_StatementNode *LLparser_parseStatementList() {
             AST_StatementNode *statement = LLparser_parseStatement();
 
             // Kontrola úspěšnosti parsování <STATEMENT>
-            if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+            if(parser_errorWatcher(IS_PARSING_ERROR)) {
                 AST_destroyStatementList(statement);
                 goto parseStatementList_errorHandle;
             }
@@ -850,7 +850,7 @@ AST_StatementNode *LLparser_parseStatementList() {
     /*              ZPRACOVÁNÍ CHYB A UVOLNĚNÍ ZDROJŮ TÉTO FUNKCE             */
     /***                                                                    ***/
     parseStatementList_errorHandle:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLaprser_parseStatementList()
 
@@ -892,7 +892,7 @@ AST_StatementNode *LLparser_parseStatement() {
 
         // Jinak došlo k syntaktické chybě
         default:
-            Parser_freeCurrentTerminalValue();
+            parser_freeCurrentTerminalValue();
             return PARSING_ERROR;
     }
 } // LLparser_parseStatement()
@@ -905,7 +905,7 @@ AST_StatementNode *LLparser_parseVarDef() {
     LLparser_parseModifiable(&isConstant);
 
     // Kontrolujeme úspěch parsování <MODIFIABLE>
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseVarDef_errorLevel_0;
     }
 
@@ -918,10 +918,10 @@ AST_StatementNode *LLparser_parseVarDef() {
     frame_stack_result shadowing = frameStack_findItem(currentTerminal.value, NULL);
     if(shadowing != FRAME_STACK_ITEM_DOESNT_EXIST) {
         if (shadowing == FRAME_STACK_SUCCESS) {
-            Parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
+            parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
         }
         else {
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
         }
         goto parseVarDef_errorLevel_0;
     }
@@ -930,13 +930,13 @@ AST_StatementNode *LLparser_parseVarDef() {
     DString *varName = currentTerminal.value;
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme <POSSIBLE_TYPE>
     AST_DataType dataType = LLparser_parsePossibleType();
 
     // Kontrolujeme úspěch parsování <POSSIBLE_TYPE>
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseVarDef_errorLevel_1;
     }
 
@@ -946,48 +946,48 @@ AST_StatementNode *LLparser_parseVarDef() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme [precedence_expression]
     AST_ExprNode *rightOperand = PrecParser_parse(NT_VAR_DEF);
 
     // Kontrolujeme úspěch parsování
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseVarDef_errorLevel_1;
     }
 
     // Přidáme proměnnou do tabulky symbolů
     SymtableItem *varItem = NULL;
     symtable_symbolState state = SYMTABLE_SYMBOL_UNKNOWN;
-    Parser_mapASTDataTypeToSymtableState(dataType, &state);
+    parser_mapASTDataTypeToSymtableState(dataType, &state);
 
     frame_stack_result result = frameStack_addItemExpress(varName, state, isConstant, NULL, &varItem);
 
     if(result != FRAME_STACK_SUCCESS) {
         if(result == FRAME_STACK_ITEM_ALREADY_EXISTS) {
-            Parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
+            parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
         }
         else {
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
         }
         goto parseVarDef_errorLevel_2;
     }
 
     // Vytvoříme uzel pro proměnnou
     AST_VarNode *varNode = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseVarDef_errorLevel_2;
     }
 
     // Vytvoříme uzel binární operace pro přiřazení "="
     AST_BinOpNode *assignOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseVarDef_errorLevel_3;
     }
 
     // Vytvoříme uzel výrazu pro cíl přiřazení
     AST_ExprNode *leftOperand = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseVarDef_errorLevel_4;
     }
 
@@ -1003,7 +1003,7 @@ AST_StatementNode *LLparser_parseVarDef() {
 
     // Vytvoříme uzel výrazu pro přiřazení  "="
     AST_ExprNode *assignExprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         AST_destroyNode(AST_BIN_OP_NODE, assignOpNode);
         goto parseVarDef_errorLevel_0;
     }
@@ -1013,7 +1013,7 @@ AST_StatementNode *LLparser_parseVarDef() {
 
     // Vytvoříme uzel příkazu pro definici proměnné
     AST_StatementNode *varDefNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         AST_destroyNode(AST_EXPR_NODE, assignExprNode);
         goto parseVarDef_errorLevel_0;
     }
@@ -1041,18 +1041,18 @@ AST_StatementNode *LLparser_parseVarDef() {
 
     parseVarDef_errorLevel_1:
         if(varName != NULL && varName != currentTerminal.value) {
-            string_free(varName);
+            DString_free(varName);
             varName = NULL;
         }
     parseVarDef_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseVarDef
 
 // <MODIFIABLE> -> var | const
 void LLparser_parseModifiable(bool *isConstant) {
     if(isConstant == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
@@ -1070,7 +1070,7 @@ void LLparser_parseModifiable(bool *isConstant) {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Vracíme false, jelikož "var" je modifikovatelná
             *isConstant = false;
@@ -1084,7 +1084,7 @@ void LLparser_parseModifiable(bool *isConstant) {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Vracíme true, jelikož "const" není modifikovatelná
             *isConstant = true;
@@ -1100,7 +1100,7 @@ void LLparser_parseModifiable(bool *isConstant) {
     /*              ZPRACOVÁNÍ CHYB A UVOLNĚNÍ ZDROJŮ TÉTO FUNKCE             */
     /***                                                                    ***/
     parseModifiable_errorHandle:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return;
 } // LLparser_parseModifiable()
 
@@ -1120,7 +1120,7 @@ AST_DataType LLparser_parsePossibleType() {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Parsujeme a vracíme datový typ proměnné
             return LLparser_parseDataType();
@@ -1139,7 +1139,7 @@ AST_DataType LLparser_parsePossibleType() {
     /*              ZPRACOVÁNÍ CHYB A UVOLNĚNÍ ZDROJŮ TÉTO FUNKCE             */
     /***                                                                    ***/
     parsePossibleType_errorHandle:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return AST_DATA_TYPE_NOT_DEFINED;
 } // LLparser_parsePossibleType()
 
@@ -1162,10 +1162,10 @@ AST_StatementNode *LLparser_parseStatementRest(DString **identifier) {
         // Jinak došlo k syntaktické chybě
         default:
             if(*identifier != NULL && *identifier != currentTerminal.value) {
-                string_free(*identifier);
+                DString_free(*identifier);
                 *identifier = NULL;
             }
-            Parser_freeCurrentTerminalValue();
+            parser_freeCurrentTerminalValue();
             return PARSING_ERROR;
     }
 } // LLparser_parseStatementRest
@@ -1179,7 +1179,7 @@ AST_IfNode *LLparser_parseIf() {
     if (LLparser_isNotExpectedTerminal(T_IF)) {
         goto parseIf_errorLevel_0;
     }
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme "("
     if (LLparser_isNotExpectedTerminal(T_LEFT_BRACKET)) {
@@ -1187,11 +1187,11 @@ AST_IfNode *LLparser_parseIf() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vytváříme uzel výrazu a parsujeme [precedence_expression] (čili podmínku if)
     AST_ExprNode *condition = PrecParser_parse(NT_IF);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseIf_errorLevel_0;
     }
 
@@ -1201,26 +1201,26 @@ AST_IfNode *LLparser_parseIf() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme <NULL_COND>
     AST_VarNode *nullCond = LLparser_parseNullCond();
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if (parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseIf_errorLevel_1;
     }
 
     // Vytváříme uzel pro seznam příkazů a parsujeme <SEQUENCE>
     AST_StatementNode *thenBranch = LLparser_parseSequence(nullCond == NULL);
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if (parser_errorWatcher(IS_PARSING_ERROR)) {
         if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
         }
         goto parseIf_errorLevel_2;
     }
 
     // Popneme rámec pro "if" blok
     if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         goto parseIf_errorLevel_2;
     }
 
@@ -1230,26 +1230,26 @@ AST_IfNode *LLparser_parseIf() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vytváříme uzel pro seznam příkazů a parsujeme <SEQUENCE>
     AST_StatementNode *elseBranch = LLparser_parseSequence(true);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
         }
         goto parseIf_errorLevel_4;
     }
 
     // Popneme rámec pro "else" blok
     if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         goto parseIf_errorLevel_4;
     }
 
     // Vytvoříme uzel pro "if" příkaz
     AST_IfNode *ifNode = (AST_IfNode *)AST_createNode(AST_IF_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseIf_errorLevel_4;
     }
 
@@ -1276,7 +1276,7 @@ AST_IfNode *LLparser_parseIf() {
         AST_destroyNode(AST_EXPR_NODE, condition);
 
     parseIf_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseIf()
 
@@ -1299,7 +1299,7 @@ AST_VarNode *LLparser_parseNullCond() {
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Parsujeme "id"
             if(LLparser_isNotExpectedTerminal(T_ID)) {
@@ -1319,16 +1319,16 @@ AST_VarNode *LLparser_parseNullCond() {
             // Kontrola úspěšného vložení do tabulky symbolů
             if(addResult != FRAME_STACK_SUCCESS) {
                 if(addResult == FRAME_STACK_ITEM_ALREADY_EXISTS) {
-                    Parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
+                    parser_errorWatcher(SET_ERROR_SEM_REDEF_OR_CONSTDEF);
                 }
                 else {
-                    Parser_errorWatcher(SET_ERROR_INTERNAL);
+                    parser_errorWatcher(SET_ERROR_INTERNAL);
                 }
                 goto parseNullCond_errorLevel_1;
             }
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Parsujeme "|"
             if (LLparser_isNotExpectedTerminal(T_PIPE)) {
@@ -1346,7 +1346,7 @@ AST_VarNode *LLparser_parseNullCond() {
                                AST_LITERAL_NOT_DEFINED, AST_VAL_UNDEFINED);
 
             // Žádáme o další token
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
 
             // Vracíme uzel pro NULL podmínku
             return nullCond;
@@ -1367,11 +1367,11 @@ AST_VarNode *LLparser_parseNullCond() {
 
     parseNullCond_errorLevel_1:
         if(identifier != NULL && identifier != currentTerminal.value) {
-            string_free(identifier);
+            DString_free(identifier);
             identifier = NULL;
         }
     parseNullCond_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseNullCond()
 
@@ -1383,7 +1383,7 @@ AST_StatementNode *LLparser_parseSequence(bool createFrame) {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Pushneme nový rámec na zásobník rámců
     if(createFrame) {
@@ -1394,7 +1394,7 @@ AST_StatementNode *LLparser_parseSequence(bool createFrame) {
     AST_StatementNode *statementList = LLparser_parseStatementList();
 
     // Zkontrolujeme úspěšnost parsování <STATEMENT_LIST>
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseSequence_errorLevel_1;
     }
 
@@ -1404,7 +1404,7 @@ AST_StatementNode *LLparser_parseSequence(bool createFrame) {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vracíme sekvenci příkazů
     return statementList;
@@ -1418,7 +1418,7 @@ AST_StatementNode *LLparser_parseSequence(bool createFrame) {
         AST_destroyStatementList(statementList);
 
     parseSequence_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseSequence()
 
@@ -1429,7 +1429,7 @@ AST_WhileNode *LLparser_parseWhile() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme "("
     if (LLparser_isNotExpectedTerminal(T_LEFT_BRACKET)) {
@@ -1437,11 +1437,11 @@ AST_WhileNode *LLparser_parseWhile() {
     }
 
     // Žádáme od další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme [precedence_expression]
     AST_ExprNode *condition = PrecParser_parse(NT_WHILE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseWhile_errorLevel_0;
     }
 
@@ -1451,26 +1451,26 @@ AST_WhileNode *LLparser_parseWhile() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme <NULL_COND>
     AST_VarNode *nullCond = LLparser_parseNullCond();
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if (parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseWhile_errorLevel_1;
     }
 
     // Parsujeme <SEQUENCE>
     AST_StatementNode *body = LLparser_parseSequence(nullCond == NULL);
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if (parser_errorWatcher(IS_PARSING_ERROR)) {
         if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
         }
         goto parseWhile_errorLevel_2;
     }
 
     // Popneme rámec pro 'while' blok
     if(frameStack_pop() == FRAME_STACK_POP_GLOBAL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         goto parseWhile_errorLevel_3;
     }
 
@@ -1499,7 +1499,7 @@ AST_WhileNode *LLparser_parseWhile() {
         AST_destroyNode(AST_EXPR_NODE, condition);
 
     parseWhile_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseWhile()
 
@@ -1511,14 +1511,14 @@ AST_ArgOrParamNode *LLparser_parseArguments() {
     AST_ExprNode *arg = NULL;
     do {
         arg = PrecParser_parse(NT_ARGUMENTS);
-        if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+        if(parser_errorWatcher(IS_PARSING_ERROR)) {
             goto parseArguments_errorHandle;
         }
 
         if (arg != NULL) {
             // Vytvoření nového uzlu pro argument/parametr
             AST_ArgOrParamNode *newArg = (AST_ArgOrParamNode *)AST_createNode(AST_ARG_OR_PARAM_NODE);
-            if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+            if(parser_errorWatcher(IS_PARSING_ERROR)) {
                 goto parseArguments_errorHandle;
             }
 
@@ -1536,7 +1536,7 @@ AST_ArgOrParamNode *LLparser_parseArguments() {
 
         // Žádáme o další token
         if(currentTerminal.LLterminal == T_COMMA) {
-            Parser_getNextToken(POKE_SCANNER);
+            parser_getNextToken(POKE_SCANNER);
         }
 
     } while(currentTerminal.LLterminal != T_RIGHT_BRACKET);
@@ -1551,7 +1551,7 @@ AST_ArgOrParamNode *LLparser_parseArguments() {
         // Uvolnění již alokovaných uzlů v případě chyby
         AST_destroyArgOrParamList(argList);
 
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseArguments()
 
@@ -1580,7 +1580,7 @@ AST_StatementNode *LLparser_parseRuleStatement1() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vracíme příkaz typu definice funkce
     return varDef;
@@ -1590,7 +1590,7 @@ AST_StatementNode *LLparser_parseRuleStatement1() {
     /*              ZPRACOVÁNÍ CHYB A UVOLNĚNÍ ZDROJŮ TÉTO FUNKCE             */
     /***                                                                    ***/
     parseRuleStatement1_handleError:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 }  // LLparser_parseRuleStatement1()
 
@@ -1605,14 +1605,14 @@ AST_StatementNode *LLparser_parseRuleStatement2() {
     DString *identifier = currentTerminal.value;
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vytvoříme uzel pro tento výraz a parsujeme <STATEMENT_REST>
     AST_StatementNode *statementRest = LLparser_parseStatementRest(&identifier);
 
     // Kontrola úspěcho parsování <STATEMENT_REST>
     // string je v případě chyby uvolněn v LLparser_parseStatementRest
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement2_errorLevel_1;
     }
 
@@ -1622,7 +1622,7 @@ AST_StatementNode *LLparser_parseRuleStatement2() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vracíme kompletní příkaz (id + zbytek)
     return statementRest;
@@ -1633,7 +1633,7 @@ AST_StatementNode *LLparser_parseRuleStatement2() {
     parseRuleStatement2_errorLevel_1:
         AST_destroyStatementList(statementRest);
     parseRuleStatement2_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseRuleStatement2()
 
@@ -1646,19 +1646,19 @@ AST_StatementNode *LLparser_parseRuleStatement3() {
 
     // Vytvoříme uzel pro proměnnou
     AST_VarNode *dumpVar = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement3_errorLevel_0;
     }
 
     // Vytvoříme identifikátor pro pseudoproměnnou "_"
-    DString *underscore = string_charToDString("_");
+    DString *underscore = DString_constCharToDString("_");
 
     // Inicializujeme uzel pro proměnnou
     AST_initNewVarNode(dumpVar, AST_VAR_NODE, underscore, frameStack.top->frameID, \
                        AST_LITERAL_NOT_DEFINED, NULL);
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme "="
     if (LLparser_isNotExpectedTerminal(T_ASSIGNMENT)) {
@@ -1667,7 +1667,7 @@ AST_StatementNode *LLparser_parseRuleStatement3() {
 
     // Vytvoříme uzel výrazu pro cíl přiřazení
     AST_ExprNode *leftOperand = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement3_errorLevel_1;
     }
 
@@ -1675,17 +1675,17 @@ AST_StatementNode *LLparser_parseRuleStatement3() {
     AST_initNewExprNode(leftOperand, AST_EXPR_VARIABLE, dumpVar);
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vytváříme uzel pro výraz a parsujeme <THROW_AWAY>
     AST_ExprNode *rightOperand = LLparser_parseThrowAway();
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement3_errorLevel_2;
     }
 
     // Vytvoříme uzel binární operace pro přiřazení "="
     AST_BinOpNode *assignBinOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement3_errorLevel_3;
     }
 
@@ -1694,7 +1694,7 @@ AST_StatementNode *LLparser_parseRuleStatement3() {
 
     // Vložíme uzel pro výraz přířazení
     AST_ExprNode *assignExprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement3_errorLevel_4;
     }
 
@@ -1703,7 +1703,7 @@ AST_StatementNode *LLparser_parseRuleStatement3() {
 
     // Vytvoříme uzel příkazu pro definici proměnné
     AST_StatementNode *dumpStatement = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement3_errorLevel_4;
     }
 
@@ -1717,7 +1717,7 @@ AST_StatementNode *LLparser_parseRuleStatement3() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vracíme příkaz pro zahození výsledku
     return dumpStatement;
@@ -1742,7 +1742,7 @@ AST_StatementNode *LLparser_parseRuleStatement3() {
     parseRuleStatement3_errorLevel_1:
         AST_destroyNode(AST_VAR_NODE, dumpVar);
     parseRuleStatement3_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseRuleStatement3()
 
@@ -1752,13 +1752,13 @@ AST_StatementNode *LLparser_parseRuleStatement4() {
     AST_IfNode *ifNode = LLparser_parseIf();
 
     // Kontrolujeme úspěšnost parsování <IF>
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement4_errorHandle;
     }
 
     // Vytvoříme uzel pro příkaz a zkontrolujeme úspěšnost alokace
     AST_StatementNode *statementNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         AST_destroyNode(AST_IF_NODE, ifNode);
         goto parseRuleStatement4_errorHandle;
     }
@@ -1776,7 +1776,7 @@ AST_StatementNode *LLparser_parseRuleStatement4() {
     /*              ZPRACOVÁNÍ CHYB A UVOLNĚNÍ ZDROJŮ TÉTO FUNKCE             */
     /***                                                                    ***/
     parseRuleStatement4_errorHandle:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseRuleStatement4()
 
@@ -1786,13 +1786,13 @@ AST_StatementNode *LLparser_parseRuleStatement5() {
     AST_WhileNode *whileNode = LLparser_parseWhile();
 
     // Kontrolujeme úspěšnost parsování <WHILE>
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement5_errorLevel_1;
     }
 
     // Vytvoříme uzel pro příkaz a zkontrolujeme úspěšnost alokace
     AST_StatementNode *statementNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement5_errorLevel_2;
     }
 
@@ -1814,7 +1814,7 @@ AST_StatementNode *LLparser_parseRuleStatement5() {
         AST_destroyNode(AST_WHILE_NODE, whileNode);
 
     // parseRuleStatement5_errorLevel_0
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseRuleStatement5()
 
@@ -1826,11 +1826,11 @@ AST_StatementNode *LLparser_parseRuleStatement6() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vytvoříme uzel pro příkaz a parsujeme [precedence_expression]
     AST_ExprNode *returnExpr = PrecParser_parse(NT_STATEMENT);
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if (parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement6_errorLevel_0;
     }
 
@@ -1840,11 +1840,11 @@ AST_StatementNode *LLparser_parseRuleStatement6() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vytvoříme uzel pro příkaz a zkontrolujeme úspěšnost alokace
     AST_StatementNode *statementNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if (parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement6_errorLevel_1;
     }
 
@@ -1862,7 +1862,7 @@ AST_StatementNode *LLparser_parseRuleStatement6() {
     parseRuleStatement6_errorLevel_1:
         AST_destroyNode(AST_EXPR_NODE, returnExpr);
     parseRuleStatement6_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseRuleStatement6()
 
@@ -1874,7 +1874,7 @@ AST_StatementNode *LLparser_parseRuleStatement7() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme "."
     if (LLparser_isNotExpectedTerminal(T_DOT)) {
@@ -1882,7 +1882,7 @@ AST_StatementNode *LLparser_parseRuleStatement7() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme "id"
     if (LLparser_isNotExpectedTerminal(T_ID)) {
@@ -1893,7 +1893,7 @@ AST_StatementNode *LLparser_parseRuleStatement7() {
     DString *identifier = currentTerminal.value;
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme "("
     if (LLparser_isNotExpectedTerminal(T_LEFT_BRACKET)) {
@@ -1901,16 +1901,16 @@ AST_StatementNode *LLparser_parseRuleStatement7() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme <ARGUMENTS>
     AST_ArgOrParamNode *arguments = LLparser_parseArguments();
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if (parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement7_errorLevel_1;
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme ";"
     if (LLparser_isNotExpectedTerminal(T_SEMICOLON)) {
@@ -1918,11 +1918,11 @@ AST_StatementNode *LLparser_parseRuleStatement7() {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Vytvoříme uzal pro volání funkce a zkontrolujeme úspěch alokace paměti
     AST_FunCallNode *funCallNode = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if (parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatement7_errorLevel_2;
     }
 
@@ -1951,11 +1951,11 @@ AST_StatementNode *LLparser_parseRuleStatement7() {
         AST_destroyArgOrParamList(arguments);
     parseRuleStatement7_errorLevel_1:
         if(identifier != NULL && identifier != currentTerminal.value) {
-            string_free(identifier);
+            DString_free(identifier);
             identifier = NULL;
         }
     parseRuleStatement7_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseRuleStatement7()
 
@@ -1967,11 +1967,11 @@ AST_StatementNode *LLparser_parseRuleStatementRest1(DString **identifier) {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
     // Parsujeme [precedence_expression]
     AST_ExprNode *expr = PrecParser_parse(NT_STATEMENT_REST);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatementRest1_errorLevel_1;
     }
 
@@ -1981,10 +1981,10 @@ AST_StatementNode *LLparser_parseRuleStatementRest1(DString **identifier) {
 
     if(result != FRAME_STACK_SUCCESS) {
         if(result == FRAME_STACK_ITEM_DOESNT_EXIST) {
-            Parser_errorWatcher(SET_ERROR_SEM_UNDEF);
+            parser_errorWatcher(SET_ERROR_SEM_UNDEF);
         }
         else {
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
         }
         goto parseRuleStatementRest1_errorLevel_1;
     }
@@ -1995,19 +1995,19 @@ AST_StatementNode *LLparser_parseRuleStatementRest1(DString **identifier) {
 
     // Vytvoříme uzel pro proměnnou
     AST_VarNode *varNode = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatementRest1_errorLevel_2;
     }
 
     // Vytvoříme uzel operaci přiřazení
     AST_BinOpNode *assignOpNode = (AST_BinOpNode *)AST_createNode(AST_BIN_OP_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatementRest1_errorLevel_3;
     }
 
     // Vytvoříme uzel výrazu pro cíl přiřazení
     AST_ExprNode *leftOperand = (AST_ExprNode *)AST_createNode(AST_BIN_OP_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatementRest1_errorLevel_3;
     }
 
@@ -2022,7 +2022,7 @@ AST_StatementNode *LLparser_parseRuleStatementRest1(DString **identifier) {
 
     // Vytvoříme uzel výrazu pro přiřazení
     AST_ExprNode *assignExprNode = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         AST_destroyNode(AST_BIN_OP_NODE, assignOpNode);
         goto parseRuleStatementRest1_errorLevel_0;
     }
@@ -2032,7 +2032,7 @@ AST_StatementNode *LLparser_parseRuleStatementRest1(DString **identifier) {
 
     // Vytvoříme uzel příkazu
     AST_StatementNode *statementNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         AST_destroyNode(AST_EXPR_NODE, assignExprNode);
         goto parseRuleStatementRest1_errorLevel_0;
     }
@@ -2056,11 +2056,11 @@ AST_StatementNode *LLparser_parseRuleStatementRest1(DString **identifier) {
 
     parseRuleStatementRest1_errorLevel_1:
         if(*identifier != NULL && *identifier != currentTerminal.value) {
-            string_free(*identifier);
+            DString_free(*identifier);
             *identifier = NULL;
         }
     parseRuleStatementRest1_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseRuleStatementRest1()
 
@@ -2072,21 +2072,21 @@ AST_StatementNode *LLparser_parseRuleStatementRest2(DString **identifier) {
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
 
     // Parsujeme <ARGUMENTS>
     AST_ArgOrParamNode *arguments = LLparser_parseArguments();
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if (parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatementRest2_errorLevel_1;
     }
 
     // Žádáme o další token
-    Parser_getNextToken(POKE_SCANNER);
+    parser_getNextToken(POKE_SCANNER);
 
    // Vytvoříme uzel pro volání funkce
     AST_FunCallNode *funCallNode = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
-    if (Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if (parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatementRest2_errorLevel_1;
     }
 
@@ -2095,7 +2095,7 @@ AST_StatementNode *LLparser_parseRuleStatementRest2(DString **identifier) {
 
     // Vytvoříme uzel příkazu
     AST_StatementNode *statementNode = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         goto parseRuleStatementRest2_errorLevel_2;
     }
 
@@ -2116,11 +2116,11 @@ AST_StatementNode *LLparser_parseRuleStatementRest2(DString **identifier) {
 
     parseRuleStatementRest2_errorLevel_1:
         if(*identifier != NULL && *identifier != currentTerminal.value) {
-            string_free(*identifier);
+            DString_free(*identifier);
             *identifier = NULL;
         }
     parseRuleStatementRest2_errorLevel_0:
-        Parser_freeCurrentTerminalValue();
+        parser_freeCurrentTerminalValue();
         return PARSING_ERROR;
 } // LLparser_parseRuleStatementRest2()
 
@@ -2134,25 +2134,25 @@ AST_StatementNode *LLparser_parseRuleStatementRest2(DString **identifier) {
 void LLparser_initParserStructures() {
     // Pro jistotu vyresetujeme statické proměnné
     // (pozn. nevyresetování způsobuje problémy při opakovaném spouštění)
-    Parser_getNextToken(RESET_LOOKAHEAD);
-    Parser_errorWatcher(RESET_ERROR_FLAGS);
+    parser_getNextToken(RESET_LOOKAHEAD);
+    parser_errorWatcher(RESET_ERROR_FLAGS);
 
     // Alokujeme kořen AST a kontrolujeme úspěšnost alokace
     AST_initTree();
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         return;
     }
 
     // Alokujeme zásobník rámců (resp. globální rámec) a kontrolujeme úspěšnost alokace
     frameStack_init();
     if(frameStack.bottom == NULL || frameStack.top == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
     // Vytváříme zásobník precedenčním zásobníků a kontrolujeme úspěšnost alokace
     PrecStackList_create();
-    if(Parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         return;
     }
 }
@@ -2160,7 +2160,7 @@ void LLparser_initParserStructures() {
 inline bool LLparser_isNotExpectedTerminal(LLTerminals expectedTerminal) {
     // Pokud se typ aktualního teminálu neshoduje s očekávaným => syntaktická chyba
     if(currentTerminal.LLterminal != expectedTerminal) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);
+        parser_errorWatcher(SET_ERROR_SYNTAX);
         return true;
     }
     // Pokud se shodují vracíme false (pozn. logika funkce je IS NOT)

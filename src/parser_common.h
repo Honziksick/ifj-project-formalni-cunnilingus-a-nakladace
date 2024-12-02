@@ -63,7 +63,7 @@
  *                                                                             *
  ******************************************************************************/
 
-// Deklarace coverů pro true/false předávaných funkce 'Parser_getNextToken()'
+// Deklarace coverů pro true/false předávaných funkce 'parser_getNextToken()'
 #define RESET_LOOKAHEAD false       /**<  Funkce Parser_getNextToken() vyresetuje statickou proměnnou pro lookahead token.     */
 #define POKE_SCANNER    true        /**<  Funkce Parser_getNextToken() zavolá scanner a nastaví nový globální aktuální token.  */
 
@@ -90,8 +90,8 @@
  *
  * @return Výsledek funkce @c Parser_watchSyntaxErrorInternal().
  */
-#define Parser_errorWatcher(state) \
-        Parser_errorWatcherInternal(state, __FILE__, __LINE__, __func__)
+#define parser_errorWatcher(state) \
+        parser_errorWatcherInternal(state, __FILE__, __LINE__, __func__)
 
 
 /**
@@ -113,7 +113,12 @@
             fprintf(stderr, "\033[35mIn file: %s:%d (%s)\033[0m\n", fileName, line, func); \
         } while(false)
 #else
-    #define LOG_ERROR(file, line, func) do {} while(false)
+    #define LOG_ERROR(file, line, func) \
+        do { \
+            (void)(file); \
+            (void)(line); \
+            (void)(func); \
+        } while(false)
 #endif
 
 
@@ -232,7 +237,7 @@ extern struct PrecStackList *precStackList;
 /**
  * @brief Získá další token ze scanneru a aktualizuje globální současný token.
  *
- * @details Funkce @c Parser_getNextToken() spravuje načítání tokenů ze scanneru
+ * @details Funkce @c parser_getNextToken() spravuje načítání tokenů ze scanneru
  *          pro parser. Chování funkce je řízeno parametrem @c state:
  *          - Pokud je @c state rovno @c POKE_SCANNER, funkce zavolá scanner a
  *            načte nový token, který aktualizuje globální proměnnou @c currentToken.
@@ -248,7 +253,7 @@ extern struct PrecStackList *precStackList;
  *                   použít makro @c POKE_SCANNER nebo pro druhý
  *                   use-case @c RESET_LOOKAHEAD.
  */
-void Parser_getNextToken(bool state);
+void parser_getNextToken(bool state);
 
 /**
  * @brief Nastaví nebo zkontroluje stav chyb během parsování.
@@ -272,7 +277,7 @@ void Parser_getNextToken(bool state);
  *
  * @return @c true, pokud je aktuálně nastavena chyba parsování, jinak @c false.
  */
-bool Parser_errorWatcherInternal(ParserErrorState state, const char *file, \
+bool parser_errorWatcherInternal(ParserErrorState state, const char *file, \
                                  int line, const char *func);
 
 /**
@@ -281,7 +286,7 @@ bool Parser_errorWatcherInternal(ParserErrorState state, const char *file, \
  * @details Tato funkce uvolní paměť pro hodnotu aktuálního terminálu, pokud není NULL,
  *          a nastaví ukazatel na NULL.
  */
-void Parser_freeCurrentTerminalValue();
+void parser_freeCurrentTerminalValue();
 
 
 /*******************************************************************************
@@ -303,20 +308,20 @@ void Parser_freeCurrentTerminalValue();
  *                   zaznamenána žádná chyba.
  * @param [out] error Ukazatel na proměnnou, která uchovává první zaznamenanou chybu.
  */
-void Parser_updateFirstError(ParserErrorState state, ErrorType *error);
+void parser_updateFirstError(ParserErrorState state, ErrorType *error);
 
 /**
  * @brief Získá další token ze scanneru a namapuje ho na typ LL a precedenčního
  *        terminálu.
  *
- * @details Funkce @c Parser_pokeScanner() získá další token ze scanneru pomocí
+ * @details Funkce @c parser_pokeScanner() získá další token ze scanneru pomocí
  *          @c scanner_getNextToken() a poté namapuje jeho typ na odpovídající
  *          typ LL terminálu a precedenčního terminálu. Výsledný terminál je
  *          uložen do struktury @c Terminal, která obsahuje také hodnotu tokenu.
  *
  * @return Struktura @c Terminal obsahující typy terminálů a hodnotu tokenu.
  */
-Terminal Parser_pokeScanner();
+Terminal parser_pokeScanner();
 
 /*******************************************************************************
  *                                                                             *
@@ -327,20 +332,20 @@ Terminal Parser_pokeScanner();
 /**
  * @brief Namapuje typ tokenu na typ LL terminálu.
  *
- * @details Funkce @c Parser_mapTokenToLLTerminal() převede typ tokenu získaného
+ * @details Funkce @c parser_mapTokenToLLTerminal() převede typ tokenu získaného
  *          ze scanneru na odpovídající typ LL terminálu, který je použit v
  *          LL parseru. Pokud je ukazatel @c terminalType @c NULL.
  *
  * @param [in] tokenType Typ tokenu získaný ze scanneru (`TokenType`).
- * @param [outin] terminalType Ukazatel na proměnnou typu @c LLTerminals,
- *                             kam bude uložen výsledek.
+ * @param [out] terminalType Ukazatel na proměnnou typu @c LLTerminals,
+ *                           kam bude uložen výsledek.
  */
-void Parser_mapTokenToLLTerminal(TokenType tokenType, LLTerminals *terminalType);
+void parser_mapTokenToLLTerminal(TokenType tokenType, LLTerminals *terminalType);
 
 /**
  * @brief Namapuje typ tokenu na typ precedenčního terminálu.
  *
- * @details Funkce @c Parser_mapTokenToPrecTerminal() převede typ tokenu na typ
+ * @details Funkce @c parser_mapTokenToPrecTerminal() převede typ tokenu na typ
  *          precedenčního terminálu pro použití v precedenčním parseru.
  *          Pokud je ukazatel @c terminalType @c NULL.
  *
@@ -348,12 +353,12 @@ void Parser_mapTokenToLLTerminal(TokenType tokenType, LLTerminals *terminalType)
  * @param [out] terminalType Ukazatel na proměnnou typu @c PrecTerminals,
  *                           kam bude uložen výsledek.
  */
-void Parser_mapTokenToPrecTerminal(TokenType tokenType, PrecTerminals *terminalType);
+void parser_mapTokenToPrecTerminal(TokenType tokenType, PrecTerminals *terminalType);
 
 /**
  * @brief Namapuje typ datového typu AST na typ návratového typu tabulky symbolů.
  *
- * @details Funkce @c Parser_mapASTDataTypeToFunReturnType() převede datový typ
+ * @details Funkce @c parser_mapASTDataTypeToFunReturnType() převede datový typ
  *          z AST na odpovídající typ návratové hodnoty funkce v tabulce symbolů.
  *          To je nezbytné pro správnou sémantickou analýzu a kontrolu typů při
  *          volání funkcí.
@@ -362,13 +367,13 @@ void Parser_mapTokenToPrecTerminal(TokenType tokenType, PrecTerminals *terminalT
  * @param [out] symtableType Ukazatel na proměnnou typu @c symtable_functionReturnType,
  *                           kam bude uložen výsledek.
  */
-void Parser_mapASTDataTypeToFunReturnType(AST_DataType astDataType, \
+void parser_mapASTDataTypeToFunReturnType(AST_DataType astDataType, \
                                           symtable_functionReturnType *symtableType);
 
 /**
  * @brief Namapuje typ datového typu AST na stav symbolu v tabulce symbolů.
  *
- * @details Funkce @c Parser_mapASTDataTypeToSymtableState() převede datový typ
+ * @details Funkce @c parser_mapASTDataTypeToSymtableState() převede datový typ
  *          z AST na odpovídající stav symbolu v tabulce symbolů. To je důležité
  *          při deklaraci proměnných a jejich správné registraci v tabulkách
  *          symbolů rámců.
@@ -377,7 +382,7 @@ void Parser_mapASTDataTypeToFunReturnType(AST_DataType astDataType, \
  * @param [out] symtableState Ukazatel na proměnnou typu @c symtable_symbolState,
  *                           kam bude uložen výsledek.
  */
-void Parser_mapASTDataTypeToSymtableState(AST_DataType astDataType, \
+void parser_mapASTDataTypeToSymtableState(AST_DataType astDataType, \
                                           symtable_symbolState *symtableState);
 
 #endif  // PARSER_COMMON_H_

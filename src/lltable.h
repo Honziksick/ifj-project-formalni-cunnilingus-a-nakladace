@@ -227,7 +227,7 @@ struct LLtable {
  *          Pokud pravidlo neexistuje nebo terminál není nalezen v tabulce, funkce
  *          vrací přes parametr nedefinované pravidlo @c RULE_UNDEFINED typu
  *          @c LLRuleSet. V případě nalezení pravidla @c SYNTAX_ERROR zaznamenává
- *          syntaktickou chybu do funkce @c Parser_errorWatcher() nebo v případě
+ *          syntaktickou chybu do funkce @c parser_errorWatcher() nebo v případě
  *          interní chyby zaznamenává výskyt interní chyby.
  *
  * @param [in] tokenType Typ aktuálního terminálu.

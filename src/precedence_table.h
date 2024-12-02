@@ -181,7 +181,7 @@ typedef struct PrecedenceTable {
  *          v tabulce, funkce vrací přes parametr nedefinované pravidlo
  *          @c RULE_UNDEFINED typu @c Precedence. V případě nalezení pravidla
  *          @c P_SYNTAX_ERROR zaznamenává syntaktickou chybu do funkce
- *          @c Parser_errorWatcher() nebo v případě interní chyby zaznamenává
+ *          @c parser_errorWatcher() nebo v případě interní chyby zaznamenává
  *          výskyt interní chyby.
  *
  * @param [in] stackTopTerminal Terminál na vrcholu precedenčního zásobníku.

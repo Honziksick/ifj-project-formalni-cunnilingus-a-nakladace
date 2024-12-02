@@ -429,7 +429,7 @@ void frameStack_addEmbeddedFunctions() {
         return;
     }
     data->returnType = SYMTABLE_TYPE_VOID;
-    data->params[0].id = string_charToDString("term");
+    data->params[0].id = DString_constCharToDString("term");
     if(frameStack_addFunction("ifj.write", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
@@ -441,7 +441,7 @@ void frameStack_addEmbeddedFunctions() {
     }
     data->returnType = SYMTABLE_TYPE_DOUBLE;
     data->params[0].type = SYMTABLE_TYPE_INT;
-    data->params[0].id = string_charToDString("term");
+    data->params[0].id = DString_constCharToDString("term");
     if(frameStack_addFunction("ifj.i2f", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
@@ -452,7 +452,7 @@ void frameStack_addEmbeddedFunctions() {
     }
     data->returnType = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_DOUBLE;
-    data->params[0].id = string_charToDString("term");
+    data->params[0].id = DString_constCharToDString("term");
     if(frameStack_addFunction("ifj.f2i", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
@@ -464,7 +464,7 @@ void frameStack_addEmbeddedFunctions() {
         return;
     }
     data->returnType = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("term");
+    data->params[0].id = DString_constCharToDString("term");
     if(frameStack_addFunction("ifj.string", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
@@ -475,7 +475,7 @@ void frameStack_addEmbeddedFunctions() {
     }
     data->returnType = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("s");
+    data->params[0].id = DString_constCharToDString("s");
     if(frameStack_addFunction("ifj.length", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
@@ -486,9 +486,9 @@ void frameStack_addEmbeddedFunctions() {
     }
     data->returnType = SYMTABLE_TYPE_STRING;
     data->params[0].type = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("s1");
+    data->params[0].id = DString_constCharToDString("s1");
     data->params[1].type = SYMTABLE_TYPE_STRING;
-    data->params[1].id = string_charToDString("s2");
+    data->params[1].id = DString_constCharToDString("s2");
     if(frameStack_addFunction("ifj.concat", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
@@ -499,11 +499,11 @@ void frameStack_addEmbeddedFunctions() {
     }
     data->returnType = SYMTABLE_TYPE_STRING_OR_NULL;
     data->params[0].type = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("s");
+    data->params[0].id = DString_constCharToDString("s");
     data->params[1].type = SYMTABLE_TYPE_INT;
-    data->params[1].id = string_charToDString("i");
+    data->params[1].id = DString_constCharToDString("i");
     data->params[2].type = SYMTABLE_TYPE_INT;
-    data->params[2].id = string_charToDString("j");
+    data->params[2].id = DString_constCharToDString("j");
     if(frameStack_addFunction("ifj.substring", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
@@ -514,9 +514,9 @@ void frameStack_addEmbeddedFunctions() {
     }
     data->returnType = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("s1");
+    data->params[0].id = DString_constCharToDString("s1");
     data->params[1].type = SYMTABLE_TYPE_STRING;
-    data->params[1].id = string_charToDString("s2");
+    data->params[1].id = DString_constCharToDString("s2");
     if(frameStack_addFunction("ifj.strcmp", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
@@ -527,9 +527,9 @@ void frameStack_addEmbeddedFunctions() {
     }
     data->returnType = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("s");
+    data->params[0].id = DString_constCharToDString("s");
     data->params[1].type = SYMTABLE_TYPE_INT;
-    data->params[1].id = string_charToDString("i");
+    data->params[1].id = DString_constCharToDString("i");
     if(frameStack_addFunction("ifj.ord", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
@@ -540,7 +540,7 @@ void frameStack_addEmbeddedFunctions() {
     }
     data->returnType = SYMTABLE_TYPE_STRING;
     data->params[0].type = SYMTABLE_TYPE_INT;
-    data->params[0].id = string_charToDString("i");
+    data->params[0].id = DString_constCharToDString("i");
     if(frameStack_addFunction("ifj.chr", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
@@ -549,19 +549,19 @@ void frameStack_addEmbeddedFunctions() {
 
 frame_stack_result frameStack_addFunction(const char* key, void* data) {
     // Funkce pro načítání hodnot
-    DString *sKey = string_charToDString(key);
+    DString *sKey = DString_constCharToDString(key);
     if(key == NULL) {
         return FRAME_STACK_ALLOCATION_FAIL;
     }
     SymtableItemPtr item;
     frame_stack_result result = frameStack_addItem(sKey, &item);
     if(result != FRAME_STACK_SUCCESS) {
-        string_free(sKey);
+        DString_free(sKey);
         return result;
     }
     item->symbolState = SYMTABLE_SYMBOL_FUNCTION;
     item->data = data;
-    string_free(sKey);
+    DString_free(sKey);
     return FRAME_STACK_SUCCESS;
 }
 

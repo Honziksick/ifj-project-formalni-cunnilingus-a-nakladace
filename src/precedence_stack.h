@@ -403,7 +403,7 @@ PrecStackNode *PrecStack_createStackNode();
  * @details Tato funkce přijímá precedenční terminál a mapuje jej na odpovídající
  *          zásobníkový symbol. Pokud je předán neplatný ukazatel, funkce
  *          hlásí interní chybu. Pokud je předán neterminál nebo handle, funkce
- *          zavolá @c Parser_errorWatcher() a nastavuje chybu typu @c ERROR_INTERNAL
+ *          zavolá @c parser_errorWatcher() a nastavuje chybu typu @c ERROR_INTERNAL
  *
  * @param [in] terminal Precedenční terminál, který se má namapovat.
  * @param [out] stackSymbol Ukazatel na zásobníkový symbol, který bude nastaven.
@@ -416,7 +416,7 @@ void PrecStack_mapPrecTerminalToStackSymbol(PrecTerminals terminal, PrecStackSym
  * @details Tato funkce přijímá zásobníkový symbol a mapuje jej na odpovídající
  *          precedenční terminál. Pokud je předán neplatný ukazatel, funkce
  *          hlásí interní chybu. Pokud je předán neterminál nebo handle, funkce
- *          zavolá @c Parser_errorWatcher() a nastavuje chybu typu @c ERROR_INTERNAL.
+ *          zavolá @c parser_errorWatcher() a nastavuje chybu typu @c ERROR_INTERNAL.
  *
  * @param [in] stackSymbol Zásobníkový symbol, který se má namapovat.
  * @param [out] terminal Ukazatel na precedenční terminál, který bude nastaven.
@@ -428,7 +428,7 @@ void PrecStack_mapStackSymbolToPrecTerminal(PrecStackSymbol stackSymbol, PrecTer
  *
  * @details Tato funkce mapuje typ zásobníkového neterminálu na odpovídající typ
  *          zásobníkového symbolu. Pokud je předán neplatný ukazatel, funkce
- *          hlásí interní chybu. zavolá @c Parser_errorWatcher() a nastavuje
+ *          hlásí interní chybu. zavolá @c parser_errorWatcher() a nastavuje
  *          chybu typu @c ERROR_INTERNAL
  *
  * @param [in] stackNonTerminal Zásobníkový neterminál, který má být namapován.

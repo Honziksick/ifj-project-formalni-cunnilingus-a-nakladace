@@ -106,13 +106,13 @@ TEST(FrameStack, Pop) {
 TEST(FrameStack, General){
     frameStack_init();
 
-    DString* key = string_init();
+    DString* key = DString_init();
     ASSERT_NE(key, nullptr);
 
     const char *horse = "horse";
 
     for(size_t i = 0; i < strlen(horse); i++) {
-        ASSERT_EQ(string_append_char(key, horse[i]), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(key, horse[i]), STRING_SUCCESS);
     }
 
     // Přidáme nový rámec
@@ -124,7 +124,7 @@ TEST(FrameStack, General){
 
     // Ověříme, že položka byla přidána
     ASSERT_NE(item, nullptr);
-    ASSERT_EQ(string_compare(item->key, key), STRING_EQUAL);
+    ASSERT_EQ(DString_compare(item->key, key), STRING_EQUAL);
     item->symbolState = SYMTABLE_SYMBOL_VARIABLE_INT;
 
     // Přidáme nový rámec
@@ -168,7 +168,7 @@ TEST(FrameStack, General){
 
     // Uvolníme zásobník
     frameStack_destroyAll();
-    string_free(key);
+    DString_free(key);
 }
 
 /**
@@ -177,13 +177,13 @@ TEST(FrameStack, General){
 TEST(FrameStack, GlobalFind){
     frameStack_init();
 
-    DString* key = string_init();
+    DString* key = DString_init();
     ASSERT_NE(key, nullptr);
 
     const char *horse = "horse";
 
     for(size_t i = 0; i < strlen(horse); i++) {
-        ASSERT_EQ(string_append_char(key, horse[i]), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(key, horse[i]), STRING_SUCCESS);
     }
 
     // Přidáme položku do globálního rámce
@@ -199,7 +199,7 @@ TEST(FrameStack, GlobalFind){
 
     // Uvolníme zásobník
     frameStack_destroyAll();
-    string_free(key);
+    DString_free(key);
 }
 
 TEST(FrameStack, Many){
@@ -254,8 +254,8 @@ TEST(FrameStack, Many){
     ASSERT_EQ(frameStack_findItem(key2, NULL), FRAME_STACK_ITEM_DOESNT_EXIST);
 
     frameStack_destroyAll();
-    string_free(key1);
-    string_free(key2);
+    DString_free(key1);
+    DString_free(key2);
 }
 
 TEST(FrameStack, print){
@@ -378,25 +378,25 @@ TEST(FrameStack, print){
 
     // Vše uvolníme
     frameStack_destroyAll();
-    string_free(key1);
-    string_free(key2);
-    string_free(key3);
-    string_free(key4);
-    string_free(key5);
-    string_free(key6);
-    string_free(key7);
-    string_free(key8);
-    string_free(key9);
-    string_free(key10);
-    string_free(key11);
-    string_free(key12);
-    string_free(key13);
-    string_free(key14);
-    string_free(key15);
-    string_free(key16);
-    string_free(key17);
-    string_free(key18);
-    string_free(key19);
-    string_free(key20);
+    DString_free(key1);
+    DString_free(key2);
+    DString_free(key3);
+    DString_free(key4);
+    DString_free(key5);
+    DString_free(key6);
+    DString_free(key7);
+    DString_free(key8);
+    DString_free(key9);
+    DString_free(key10);
+    DString_free(key11);
+    DString_free(key12);
+    DString_free(key13);
+    DString_free(key14);
+    DString_free(key15);
+    DString_free(key16);
+    DString_free(key17);
+    DString_free(key18);
+    DString_free(key19);
+    DString_free(key20);
 
 }
