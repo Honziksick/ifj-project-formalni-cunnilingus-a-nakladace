@@ -41,10 +41,10 @@
  *                              v rámci vyšších stavů FSM. Je jednotná pro všechny
  *                              vyšší stavy (funkce).
  */
-int lexChar;
+//int lexChar;
 bool lexStopFSM;
 bool lexKeyflag;
-StateFSM lexState;
+//StateFSM lexState;
 
 /**
  * @brief Získá znak ze vstupu programu.
@@ -216,7 +216,6 @@ Token scanner_stringlessTokenCreate(TokenType type) {
  */
 Token scanner_init() {
     // Inicializace FSM po jednom volání Syntaktického analyzátoru
-    lexChar = 0;
     lexStopFSM = false;
     lexKeyflag = false;
     Token lexToken = scanner_tokenCreate(TOKEN_UNINITIALIZED, NULL);
@@ -228,6 +227,10 @@ Token scanner_init() {
  * @brief Funkce scanneru pro zpracování stringů vyvolaných znakem \.
  */
 Token scanner_stateComplexBackslash(Token lexToken, DString *str) {
+    // Inicializuj lexChar
+    int lexChar;
+    // Inicializuj lexState
+    StateFSM lexState = STATE20_BACKSLASH;
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         // Abstraktně: vybírej stav, podle pomocné proměnné lexState
@@ -315,6 +318,10 @@ Token scanner_stateComplexBackslash(Token lexToken, DString *str) {
  * @brief Funkce scanneru pro zpracování stringů vyvolaných znakem ".
  */
 Token scanner_stateComplexQuotation(Token lexToken, DString *str) {
+    // Inicializuj lexChar
+    int lexChar;
+    // Inicializuj lexState
+    StateFSM lexState = STATE17_DOUBLE_QUOTATION_MARKS;
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         // Abstraktně: vybírej stav, podle pomocné proměnné lexState
@@ -456,6 +463,10 @@ Token scanner_stateComplexQuotation(Token lexToken, DString *str) {
  * @brief Funkce scanneru pro zpracování klíčových slov ?i32, ?f64 a ?[]u8.
  */
 Token scanner_stateComplexQuestion(Token lexToken) {
+    // Inicializuj lexChar
+    int lexChar;
+    // Inicializuj lexState
+    StateFSM lexState = STATE9_QMARK;
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         // Abstraktně: vybírej stav, podle pomocné proměnné lexState
@@ -640,6 +651,10 @@ Token scanner_stateComplexQuestion(Token lexToken) {
  * @brief Funkce scanneru pro zpracování klíčového slova []u8.
  */
 Token scanner_stateComplexLeftSqrBr(Token lexToken) {
+    // Inicializuj lexChar
+    int lexChar;
+    // Inicializuj lexState
+    StateFSM lexState = STATE6_u8_A;
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         // Abstraktně: vybírej stav, podle pomocné proměnné lexState
@@ -726,6 +741,8 @@ Token scanner_stateComplexLeftSqrBr(Token lexToken) {
  * @brief Funkce scanneru pro zpracování klíčového slova @import.
  */
 Token scanner_stateComplexAtSign(Token lexToken, DString *value) {
+    // Inicializuj lexChar
+    int lexChar;
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
 
@@ -779,6 +796,8 @@ Token scanner_stateComplexAtSign(Token lexToken, DString *value) {
  * @brief Funkce scanneru pro zpracování komentářů //.
  */
 void scanner_stateComplexDoubleSlash() {
+    // Inicializuj lexChar
+    int lexChar;
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
 
@@ -809,6 +828,8 @@ void scanner_stateComplexDoubleSlash() {
  * @brief Funkce scanneru pro zpracování složitého operátoru /.
  */
 Token scanner_stateComplexSlash(Token lexToken) {
+    // Inicializuj lexChar
+    int lexChar;
     lexChar = scanner_getNextChar();  // Vstup jednoho znaku z STDIN
     // Abstraktně: vybírej podle typu znaku
     switch (scanner_charIdentity(lexChar)) {  // Identifikace znaku
@@ -849,6 +870,8 @@ Token scanner_stateComplexSlash(Token lexToken) {
  * @brief Funkce scanneru pro zpracování složitých operátorů = a ==.
  */
 Token scanner_stateComplexEqual(Token lexToken) {
+    // Inicializuj lexChar
+    int lexChar;
     lexChar = scanner_getNextChar();  // Vstup jednoho znaku z STDIN
     // Pokud lexChar je =
     if(lexChar == '=') {
@@ -869,6 +892,8 @@ Token scanner_stateComplexEqual(Token lexToken) {
  * @brief Funkce scanneru pro zpracování složitých operátorů > a >=.
  */
 Token scanner_stateComplexGreater(Token lexToken) {
+    // Inicializuj lexChar
+    int lexChar;
     lexChar = scanner_getNextChar();  // Vstup jednoho znaku z STDIN
     // Pokud lexChar je =
     if(lexChar == '=') {
@@ -889,6 +914,8 @@ Token scanner_stateComplexGreater(Token lexToken) {
  * @brief Funkce scanneru pro zpracování složitých operátorů < a <=.
  */
 Token scanner_stateComplexLess(Token lexToken) {
+    // Inicializuj lexChar
+    int lexChar;
     lexChar = scanner_getNextChar();  // Vstup jednoho znaku z STDIN
     // Pokud lexChar je =
     if(lexChar == '=') {
@@ -909,6 +936,8 @@ Token scanner_stateComplexLess(Token lexToken) {
  * @brief Funkce scanneru pro zpracování složitého operátoru !=.
  */
 Token scanner_stateComplexExclamation(Token lexToken) {
+    // Inicializuj lexChar
+    int lexChar;
     lexChar = scanner_getNextChar();  // Vstup jednoho znaku z STDIN
     // Pokud lexChar je =
     if(lexChar == '=') {
@@ -928,9 +957,9 @@ Token scanner_stateComplexExclamation(Token lexToken) {
 /**
  * @brief Funkce scanneru pro zpracování a řízení zpracování složitých operátorů.
  */
-Token scanner_stateComplexControl(Token lexToken, int lexLocChar, DString *str) {
+Token scanner_stateComplexControl(Token lexToken, int lexChar, DString *str) {
     // Vybirej podle konrétního znaku v lexLocChar
-    switch(lexLocChar) {
+    switch(lexChar) {
         // Pokud znak je .
         case '.':
             lexToken = scanner_stringlessTokenCreate(TOKEN_PERIOD);
@@ -962,7 +991,6 @@ Token scanner_stateComplexControl(Token lexToken, int lexLocChar, DString *str) 
             break;
         // Pokud znak je [
         case '[':
-            lexState = STATE6_u8_A;
             lexToken = scanner_stateComplexLeftSqrBr(lexToken);
             break;
         // Pokud znak je ]
@@ -973,17 +1001,14 @@ Token scanner_stateComplexControl(Token lexToken, int lexLocChar, DString *str) 
             break;
         // Pokud znak je ?
         case '?':
-            lexState = STATE9_QMARK;
             lexToken = scanner_stateComplexQuestion(lexToken);
             break;
         // Pokud znak je "
         case '"':
-            lexState = STATE17_DOUBLE_QUOTATION_MARKS;
             lexToken = scanner_stateComplexQuotation(lexToken, str);
             break;
         // Pokud znak je backslash
         case ABS:
-            lexState = STATE20_BACKSLASH;
             lexToken = scanner_stateComplexBackslash(lexToken, str);
             break;
         // Jinak
@@ -1063,6 +1088,10 @@ Token scanner_stateSimple(Token lexToken, int lexLocChar) {
  * @brief Funkce scanneru pro zpracování řetězce s číslicemi.
  */
 Token scanner_stateNumbers(Token lexToken, DString *str) {
+    // Inicializuj lexChar
+    int lexChar;
+    // Inicializuj lexState
+    StateFSM lexState = STATE1_NUMBERS;
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         // Abstraktně: vybírej stav, podle pomocné proměnné lexState
@@ -1289,6 +1318,8 @@ Token scanner_stateNumbers(Token lexToken, DString *str) {
  * @brief Funkce scanneru pro zpracování řetězce s písmeny.
  */
 Token scanner_stateLetters(Token lexToken, DString *str) {
+    // Inicializuj lexChar
+    int lexChar;
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         lexChar = scanner_getNextChar();  // Vstup jednoho znaku z STDIN
@@ -1328,6 +1359,8 @@ Token scanner_stateLetters(Token lexToken, DString *str) {
  * @brief Hlavní řídící funkce scanneru.
  */
 Token scanner_FSM() {
+    // Inicializuj lexChar
+    int lexChar;
     // Inicializuj string
     DString *str = DString_init();
     // Inicializuj token
@@ -1345,7 +1378,6 @@ Token scanner_FSM() {
             // Pokud znak je číslo
             case NUMBER:
                 DString_appendChar(str, (char)lexChar);
-                lexState = STATE1_NUMBERS;
                 lexToken = scanner_stateNumbers(lexToken, str);
                 break;
             // Pokud znak je bílý znak
