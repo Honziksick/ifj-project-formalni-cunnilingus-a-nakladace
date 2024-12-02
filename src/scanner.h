@@ -42,6 +42,9 @@
 #define ABS 92                  /**< ASCII hodnota znaku BACLSLASH \*/
 #define ADL 127                 /**< ASCII hodnota znaku DELETE*/
 
+#define LOWEST_KEYWORD 26       /**< Hodnota Tokenu nejnižšího klíčového slova*/
+#define HIGHEST_KEYWORD 44      /**< Hodnota Tokenu nejvyššího klíčového slova*/
+
 #define HEXADECIMAL_SEQ_SIZE 3  /**< Velikost bufferu pro hexadecimálně zadaný znak
                                     "\xdd -> {d, d, '\0'}" */
 #define HEXA_BASE 16            /**< Základem hexadecimální číslicové soustavy
@@ -106,7 +109,8 @@ typedef enum {
     TOKEN_K_underscore = 43,        /**<  Token klíčového slova "_"          */
     TOKEN_K_ifj = 44,               /**<  Token klíčového slova "ifj"        */
     //Neinicializováno (1)
-    TOKEN_UNINITIALIZED = 45        /**<  Token, který je neinicializován    */
+    TOKEN_UNINITIALIZED = 45,       /**<  Token, který je neinicializován    */
+    TOKEN_COMMENT = 46              /**<  Pomocný Token pro komentáře        */
 } TokenType;
 
 
