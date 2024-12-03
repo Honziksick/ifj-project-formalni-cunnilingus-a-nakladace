@@ -182,8 +182,8 @@ typedef enum {
  *          Většina Tokenů mívá value nastavený na NULL.
  */
 typedef struct {
-    TokenType type;
-    DString* value;
+    TokenType type;     /**<  Enum typu tokenu                                                          */
+    DString* value;     /**<  Hodnota tokenu reprezentována jako ukazatel na dynamický řetězec DString  */
 } Token;
 
 
