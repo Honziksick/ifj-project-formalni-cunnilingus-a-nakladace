@@ -116,14 +116,17 @@ TEST_FILES = $(wildcard $(TEST_DIR)/*.cpp)
 
 # Seznam všech objektových souborů přeložených pro testování
 EXCLUDED_TEST_SRC_FILES = $(SRC_DIR)/ifj24_compiler.c
-TEST_INCLUDES = $(filter-out $(EXCLUDED_TEST_SRC_FILES), $(SRC_FILES))
 TEST_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(TEST_BUILD_DIR)/%.o,$(TEST_INCLUDES)) \
 $(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o $(TEST_BUILD_DIR)/gtest_main.a $(TEST_BUILD_DIR)/gtest.a
 
+# Vyčlenění souborů pro testování
+TEST_INCLUDES = $(filter-out $(EXCLUDED_TEST_SRC_FILES), $(SRC_FILES))
+
 # Seznam všech objektových souborů přeložených pro code coverage
 COV_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(COVERAGE_BUILD_DIR)/%.o,$(SRC_FILES))
-COV_TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.cpp,$(COVERAGE_BUILD_DIR)/%.o,$(TEST_FILES))
-COV_SRC_OBJ_FILES := $(filter-out $(COVERAGE_BUILD_DIR)/ifj24compiler.o, $(COV_SRC_OBJ_FILES))
+
+# Vyčlenění souborů z coverage
+COV_SRC_OBJ_FILES := $(filter-out $(COVERAGE_BUILD_DIR)/ifj24_compiler.o, $(COV_SRC_OBJ_FILES))
 
 
 ################################################################################
@@ -807,9 +810,9 @@ gen-run-code: $(BUILD_DIR)/$(EXECUTABLE)
 ###                                                                          ###
 
 ### CC # build-coverage: # Sestaví všechny zdrojové soubory a testy s přepínači pro pokrytí kódu
-build-coverage: $(COV_SRC_OBJ_FILES) $(COV_TEST_OBJ_FILES) $(COVERAGE_BUILD_DIR)/gtest_main.a $(COVERAGE_BUILD_DIR)/gtest.a
+build-coverage: $(COV_SRC_OBJ_FILES) $(COVERAGE_BUILD_DIR)/$(INTEGRATE).o $(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o $(COVERAGE_BUILD_DIR)/gtest_main.a $(COVERAGE_BUILD_DIR)/gtest.a
 	@mkdir -p $(COVERAGE_BUILD_DIR)
-	$(CXX) $(CFLAGS_COV) $(CXXFLAGS_COV) $(COV_SRC_OBJ_FILES) $(COV_TEST_OBJ_FILES) \
+	$(CXX) $(CFLAGS_COV) $(CXXFLAGS_COV) $(COV_SRC_OBJ_FILES) $(COVERAGE_BUILD_DIR)/$(INTEGRATE).o $(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o \
 		$(COVERAGE_BUILD_DIR)/gtest_main.a -o $(COVERAGE_BUILD_DIR)/$(EXECUTABLE)_coverage
 
 ### CC # run-test-coverage: # Spustí všechny testy generující pokrytí kódu
@@ -825,7 +828,9 @@ process-coverage:
 	@lcov --quiet --remove $(COVERAGE_BUILD_DIR)/filtered_coverage.info \
 	'*/googletest-src/*' --output-file $(COVERAGE_BUILD_DIR)/filtered_coverage.info
 	@lcov --quiet --remove $(COVERAGE_BUILD_DIR)/filtered_coverage.info \
-	'*/profiler/*' --output-file $(COVERAGE_BUILD_DIR)/filtered_coverage.info
+	'*/test/*' --output-file $(COVERAGE_BUILD_DIR)/filtered_coverage.info
+	@lcov --quiet --remove $(COVERAGE_BUILD_DIR)/filtered_coverage.info \
+	'*/tac_generator.c' --output-file $(COVERAGE_BUILD_DIR)/filtered_coverage.info
 	genhtml $(COVERAGE_BUILD_DIR)/filtered_coverage.info \
 	--output-directory $(COVERAGE_BUILD_DIR)
 	@mkdir -p $(COVERAGE_BUILD_DIR)/coverage_data
@@ -834,9 +839,7 @@ process-coverage:
 	@find $(COVERAGE_BUILD_DIR) -maxdepth 1 -type d ! -name \
 	'coverage_data' ! -path '$(COVERAGE_BUILD_DIR)' -exec mv {} \
 	$(COVERAGE_BUILD_DIR)/coverage_data/ \;
-	@echo '<html><head><meta http-equiv="refresh" content="0; \
-	url=coverage_data/index.html"></head></html>' > $(COVERAGE_BUILD_DIR)/code_coverage_web_result.html
-
+	@echo '<html><head><meta http-equiv="refresh" content="0; url=coverage_data/index.html"></head></html>' > $(COVERAGE_BUILD_DIR)/code_coverage_web_result.html
 
 ###                                                                          ###
 #                KOMPILACE souborů potřebných pro CODE COVERAGE                #
@@ -847,7 +850,7 @@ $(COVERAGE_BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(COVERAGE_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_COV) -c $< -o $@
 
-$(COVERAGE_BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp
+$(COVERAGE_BUILD_DIR)/$(INTEGRATE).o: $(TEST_DIR)/$(INTEGRATE).cpp
 	@mkdir -p $(COVERAGE_BUILD_DIR)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_COV) -c $< -o $@
 

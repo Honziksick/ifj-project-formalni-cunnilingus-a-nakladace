@@ -125,21 +125,6 @@ void AST_destroyTree();
  ******************************************************************************/
 
 /**
- * @brief Inicializuje kořenový uzel programu @c AST_ProgramNode.
- *
- * @details Tato funkce inicializuje kořenový uzel programu poskytnutými
- *          parametry. Pokud je uzel již inicializován nebo pokud je předán
- *          neplatný ukazatel, funkce hlásí interní chybu.
- *
- * @param [in] node Ukazatel na uzel, který má být inicializován.
- * @param [in] importedFile Ukazatel na dynamický řetězec s cestou k
- *                          importovanému modulu.
- * @param [in] functionList Ukazatel na seznam definic funkcí.
- */
-void AST_initNewProgramNode(AST_ProgramNode *node, AST_VarNode *importedFile, \
-                            AST_FunDefNode *functionList);
-
-/**
  * @brief Inicializuje uzel @c AST_FunDefNode pro definici funkce.
  *
  * @details Tato funkce inicializuje uzel pro definici funkce poskytnutými

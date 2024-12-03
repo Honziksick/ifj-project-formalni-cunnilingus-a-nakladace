@@ -112,6 +112,7 @@ bool parser_errorWatcherInternal(ParserErrorState state, const char *file, \
             semUndefError = false;
             semRedefError = false;
             internalError = false;
+            firstError = SUCCESS;
             break;
 
         // Nic speciálního neprovádíme, zajímá nás čistě návratová hodnota funkce

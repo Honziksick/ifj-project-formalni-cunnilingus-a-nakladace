@@ -201,28 +201,6 @@ void AST_destroyTree() {
  ******************************************************************************/
 
 /**
- * @brief Inicializuje kořenový uzel programu @c AST_ProgramNode.
- */
-void AST_initNewProgramNode(AST_ProgramNode *node, AST_VarNode *importedFile, \
-                            AST_FunDefNode *functionList) {
-    // Ověření platnosti předaného uzlu
-    if(node == NULL) {
-        parser_errorWatcher(SET_ERROR_INTERNAL);
-        return;
-    }
-
-    // Pokud se nejdná o nový uzel beze zdrojů, dojde k interní chybě
-    if(node->importedFile != NULL || node->functionList != NULL) {
-        parser_errorWatcher(SET_ERROR_INTERNAL);
-        return;
-    }
-
-    // Přiřadíme uzlu předané zdroje
-    node->importedFile = importedFile;
-    node->functionList = functionList;
-} // AST_initNewProgramNode()
-
-/**
  * @brief Inicializuje uzel @c AST_FunDefNode pro definici funkce.
  */
 void AST_initNewFunDefNode(AST_FunDefNode *node, DString *identifier, \
