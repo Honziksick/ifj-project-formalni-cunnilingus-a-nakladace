@@ -32,14 +32,14 @@
 
 // Budeme tisknout strom i obsah zásobníku rámců
 #define PRINT_AST_OUT 1
-#define PRINT_FRAME_STACK_OUT 1
+//#define PRINT_FRAME_STACK_OUT 1
 
 // Definice názvu specifického testu, pro který se má provádět tisk
 /* Pozn. Pokud není definováno, tisk se provádí pro všechny testy */
-//#define SPECIFIC_TEST_NAME "CorrectReturn"
+#define SPECIFIC_TEST_NAME "CorrectReturn"
 
 // Kompletně vypneme výpis
-#define DISABLE_PRINT
+//#define DISABLE_PRINT
 
 #include "ifj24_compiler_test_utils.h"
 extern "C" {

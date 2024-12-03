@@ -260,7 +260,7 @@ symtable_result symtable_deleteItem(Symtable *table, DString *key);
  *
  * @param [in] table Ukazatel na tabulku symbolů
  * @param [in] keep_data Pokud je `true`, data položek nebudou uvolněna (true při resize)
- *                  
+ *
  */
 void symtable_deleteAll(Symtable *table, bool keep_data);
 
@@ -275,21 +275,16 @@ void symtable_destroyTable(Symtable *table);
 
 /**
  * @brief Inicializuje novou strukturu pro data funkce
- * 
+ *
  * @details Alokuje místo pro data pro funkci s daným počtem parametrů
- * 
+ *
  * @param [in] paramCount Počet parametrů funkce
  */
 SymtableFunctionData *symtable_initFunctionData(size_t paramCount);
 
 /**
- * @brief Alokuje paměť pro data literálu
- */
-void *symtable_createLiteralData(symtable_symbolState state);
-
-/**
  * @brief Vytiskne obsah tabulky symbolů
- * 
+ *
  * @details Tato funkce vytiskne obsah tabulky symbolů do souboru.
  * @param [in] table Ukazatel na tabulku symbolů
  * @param [in] file Ukazatel na soubor, kam se má tisknout
