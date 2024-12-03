@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            10.11.2024                                                *
- * Poslední změna:   23.11.2024                                                *
+ * Poslední změna:   03.12.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -28,6 +28,7 @@
  *          další zpracování během překladu.
  */
 
+// Import submodulů parseru
 #include "precedence_parser.h"
 
 
@@ -39,11 +40,6 @@
 
 /**
  * @brief Spustí precedenční syntaktickou analýzu.
- *
- * @details Tato funkce spustí precedenční syntaktickou analýzu na základě
- *          aktuálního stavu zásobníku a vstupního tokenu.
- *
- * @param fromNonTerminal Neterminál předávající řízení precedenčnímu syntaktickému analyzátoru.
  */
 AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     // Zkontrolujeme, že v kontextu NEterminálu neparsujeme prázdný výraz
@@ -54,7 +50,6 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     // Namapujeme aktuální "dollar" terminál
     DollarTerminals currentDollar = CURRENT_DOLLAR_UNDEFINED;
     PrecTable_getDollarTerminalFromContext(fromNonTerminal, &currentDollar);
-
 
     // Inicializujeme sledovač úrovně zanoření závorek
     int bracketDepth = 0;
@@ -79,7 +74,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
 
         // Aktualizace úrovně zanoření na zákaldě vstupního terminálu
         // Pokud na vrcholu není ID a přišla levá závorka, vstupujeme do nové úrovně
-        if (inTerminal == T_PREC_LEFT_BRACKET && !PrecStack_isIdOnTop()) {
+        if(inTerminal == T_PREC_LEFT_BRACKET && !PrecStack_isIdOnTop()) {
             bracketDepth++;
         }
 
@@ -135,7 +130,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
         } // switch()
 
         // Pokud je splněná (částečně kontextově daná) podmínka, ukončujeme cyklus
-        if (PrecParser_shouldStopParsingLoop(inTerminal, topTerminal, greaterStopFlag))
+        if(PrecParser_shouldStopParsingLoop(inTerminal, topTerminal, greaterStopFlag))
         {
             break;
         }
@@ -145,7 +140,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
     PrecStack_getTopPrecTerminal(&topTerminal);
 
     // Aplikujeme zbývající redukce
-    if (!PrecParser_applyRemainingReductions(&topTerminal)) {
+    if(!PrecParser_applyRemainingReductions(&topTerminal)) {
         goto precedenceParser_handleError;  // skok na řešení chyb na konci funkce
     }
 
@@ -187,15 +182,7 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal) {
  ******************************************************************************/
 
 /**
- * @brief Zpracuje terminál s precedencí P_EQUAL.
- *
- * @details Tato funkce pushne inicializovaný uzel na zásobník a čte další
- *          symbol ze vstupu.
- *
- * @param inTerminal Typ aktuálního terminálu.
- * @param bracketDepth Hloubka zanoření závorek.
- * @param topTerminal Ukazatel na proměnnou, do které bude uložen terminál na
- *                    vrcholu zásobníku.
+ * @brief Zpracuje terminál s precedencí @c P_EQUAL.
  */
 void PrecParser_applyEqualPrecedence(int bracketDepth, DollarTerminals dollarContext, \
                                      PrecTerminals *inTerminal, PrecTerminals *topTerminal)
@@ -212,30 +199,22 @@ void PrecParser_applyEqualPrecedence(int bracketDepth, DollarTerminals dollarCon
 } // PrecParser_applyEqualPrecedence()
 
 /**
- * @brief Zpracuje terminál s precedencí P_LESS.
- *
- * @details Tato funkce pushne handle za první terminál na zásobníku a čte
- *          další symbol ze vstupu.
- *
- * @param inTerminal Typ aktuálního terminálu.
- * @param bracketDepth Hloubka zanoření závorek.
- * @param topTerminal Ukazatel na proměnnou, do které bude uložen terminál
- *                    na vrcholu zásobníku.
+ * @brief Zpracuje terminál s precedencí @c P_LESS.
  */
 void PrecParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarContext, \
                                     PrecTerminals *inTerminal, PrecTerminals *topTerminal)
 {
     /* KONTEXT: Zpracovávání argumentů funkce */
     // Pokud je na vrcholu zásobníku identifikátor a vstpním symbolem je "("
-    if (PrecStack_isIdOnTop() && (*inTerminal == T_PREC_LEFT_BRACKET)) {
+    if(PrecStack_isIdOnTop() && (*inTerminal == T_PREC_LEFT_BRACKET)) {
         // Žádáme scanner o další token
         parser_getNextToken(POKE_SCANNER);
 
-        // Dočasně předáváme řízení LL parseru a parsujeme neterminál <ARGUMNETS>
+        // Dočasně předáváme řízení LL analyzátoru a parsujeme neterminál <ARGUMNETS>
         AST_ArgOrParamNode *argList = LLparser_parseArguments();
 
-        // Získali jsme kombinovanou rekurzi LL a precedenčního parseru seznam
-        // argumentů funkce, který pushneme na precedenční zásobník
+        // Získali jsme kombinovanou rekurzi LL a precedenčního analyzátoru
+        // seznam argumentů funkce, který pushneme na precedenční zásobník
         PrecStack_pushPrecNonTerminal(PREC_STACK_NT_ARG_LIST, AST_ARG_OR_PARAM_NODE, argList);
 
         // Žádáme scanner o další token
@@ -262,7 +241,7 @@ void PrecParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarCont
 } // PrecParser_applyLessPrecedence()
 
 /**
- * @brief Zpracuje terminál s precedencí P_GREATER.
+ * @brief Zpracuje terminál s precedencí @c P_GREATER.
  */
 bool PrecParser_applyGreaterPrecedence(int *bracketDepth, LLNonTerminals fromNonTerminal, \
                                        DollarTerminals dollarContext, PrecTerminals *inTerminal, \
@@ -281,13 +260,13 @@ bool PrecParser_applyGreaterPrecedence(int *bracketDepth, LLNonTerminals fromNon
     PrecParser_reduce(rule);
 
     // Pokud na vrcholu není NEterminál a přišla pravá závorka, vystupujeme z úrovně
-    if (rule == REDUCE_E_INTO_BRACKETS) {
+    if(rule == REDUCE_E_INTO_BRACKETS) {
         (*bracketDepth)--;
 
         /* Navíc, pokud je hloubka zanoření nula a pravá závorka je kontextovým
          * "dollar" terminálem, ukončujeme cyklus precednčeního parsování
          */
-        if (*bracketDepth == 0 && dollarContext ==  DOLLAR_T_RIGHT_BRACKET) {
+        if(*bracketDepth == 0 && dollarContext ==  DOLLAR_T_RIGHT_BRACKET) {
             if(fromNonTerminal != NT_IF && fromNonTerminal != NT_WHILE) {
                 return true;
             }
@@ -299,7 +278,7 @@ bool PrecParser_applyGreaterPrecedence(int *bracketDepth, LLNonTerminals fromNon
 
     // Pokud je vrcholovým terminálem "dollar" a na vstupu pravá závorka,
     // aktualizujeme také vstupní terminál
-    if (*topTerminal == T_PREC_DOLLAR && *inTerminal == T_PREC_RIGHT_BRACKET) {
+    if(*topTerminal == T_PREC_DOLLAR && *inTerminal == T_PREC_RIGHT_BRACKET) {
         PrecParser_mapInTerminalToDollar(*bracketDepth, dollarContext, inTerminal);
     }
 
@@ -372,6 +351,9 @@ void PrecParser_chooseReductionRule(ReductionRule *rule) {
     }
 } // PrecParser_chooseReductionRule()
 
+/**
+ * @brief Vyhledá redukční pravidlo odpovídající dané sekvenci symbolů.
+ */
 void PrecParser_findReductionRule(PrecStackSymbol symbolsToReduce[], ReductionRule *rule) {
     // Ověření platnosti předaného ukazatele - interní chyba
     if(rule == NULL) {
@@ -408,12 +390,12 @@ void PrecParser_findReductionRule(PrecStackSymbol symbolsToReduce[], ReductionRu
     }; // ReductionRuleSet reductionRuleSet[];
 
     // Sekvenční vyhledávání v seznamu redukčních pravidel
-    for (int i = 0; i < NUM_OF_REDUCTION_RULES; i++) {
+    for(int i = 0; i < NUM_OF_REDUCTION_RULES; i++) {
         // Porovnání získané sekvence symbolů s příslušnými sekvencemi pro pravidla
         int cmp = memcmp(symbolsToReduce, reductionRuleSet[i].symbolArr, MAX_SYMBOLS_TO_REDUCE * sizeof(PrecStackSymbol));
 
         // Pokud najdeme stejnou sekvenci symbolů, vrátíme odpovídající pravidlo
-        if (cmp == 0) {
+        if(cmp == 0) {
             *rule = reductionRuleSet[i].key;
             return;
         }
@@ -424,9 +406,7 @@ void PrecParser_findReductionRule(PrecStackSymbol symbolsToReduce[], ReductionRu
 } // PrecTable_findPrecedence()
 
 /**
- * @brief Zavolá specializovanou redukční funkci an základě zvoleného pravidla.
- *
- * @param rule Redukční pravidlo, které se má aplikovat.
+ * @brief Aplikuje redukci na zásobníku podle zvoleného redukčního pravidla.
  */
 void PrecParser_reduce(ReductionRule rule) {
     // Výběr specializované redukční funkce podle zvoleného pravidla
@@ -527,7 +507,7 @@ bool PrecParser_applyRemainingReductions(PrecTerminals *topTerminal) {
         PrecParser_chooseReductionRule(&rule);
 
         // Pokud došlo při výběru pravidla k chybě, končíme cyklus
-        if (parser_errorWatcher(IS_PARSING_ERROR)) {
+        if(parser_errorWatcher(IS_PARSING_ERROR)) {
             return false;
         }
 
@@ -535,7 +515,7 @@ bool PrecParser_applyRemainingReductions(PrecTerminals *topTerminal) {
         PrecParser_reduce(rule);
 
         // Pokud došlo při redukci k chybě, končíme cyklus
-        if (parser_errorWatcher(IS_PARSING_ERROR)) {
+        if(parser_errorWatcher(IS_PARSING_ERROR)) {
             return false;
         }
 
@@ -543,7 +523,7 @@ bool PrecParser_applyRemainingReductions(PrecTerminals *topTerminal) {
         PrecStack_getTopPrecTerminal(topTerminal);
 
         // Pokud došlo při mapování k chybě, končíme cyklus
-        if (parser_errorWatcher(IS_PARSING_ERROR)) {
+        if(parser_errorWatcher(IS_PARSING_ERROR)) {
             return false;
         }
     }
@@ -560,7 +540,7 @@ bool PrecParser_applyRemainingReductions(PrecTerminals *topTerminal) {
  ******************************************************************************/
 
 /**
- * @brief Redukce podle pravidla E -> id nebo E -> literal.
+ * @brief Aplikuje redukci pro pravidla `E -> id` nebo `E -> literal`.
  */
 void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
     // Popnutí uzlu s proměnnou/literálem ze zásobníku
@@ -634,7 +614,7 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType) {
 } // PrecParser_reduceVarOrLit()
 
 /**
- * @brief Redukce pro binární operaci E -> E op E.
+ * @brief Aplikuje redukci pro binární operace `E -> E op E`.
  */
 void PrecParser_reduceBinOp(AST_BinOpType binOp) {
     // Popnutí pravého operandu E
@@ -685,7 +665,7 @@ void PrecParser_reduceBinOp(AST_BinOpType binOp) {
 } // PrecParser_reduceBinOp()
 
 /**
- * @brief Redukce pro výraz v závorkách E -> ( E ).
+ * @brief Aplikuje redukci pro výraz v závorkách `E -> ( E )`.
  */
 void PrecParser_reduceIntoBrackets() {
     // Popnutí a uvolnění ')'
@@ -711,7 +691,8 @@ void PrecParser_reduceIntoBrackets() {
 } // PrecParser_reduceIntoBrackets()
 
 /**
- * @brief Redukce pro volání funkce E -> id <ARG_LIST>  NEBO  E -> ifj . id <ARG_LIST>,
+ * @brief Aplikuje redukci pro volání funkce `E -> id \<ARG_LIST>` nebo
+ *        `E -> ifj . id \<ARG_LIST>`.
  */
 void PrecParser_reduceFunCall(bool isBuiltIn) {
     // Popnutí '<ARG_LIST>'
@@ -778,11 +759,18 @@ void PrecParser_reduceFunCall(bool isBuiltIn) {
  *                                                                             *
  ******************************************************************************/
 
+/**
+ * @brief Určuje, zda se v daném kontextu nechystáme analyzvat prázdný výraz.
+ */
 inline bool PrecParser_parsingEmptyExpression(LLNonTerminals fromNonTerminal) {
     return (fromNonTerminal == NT_ARGUMENTS && currentTerminal.LLterminal == T_RIGHT_BRACKET) || \
            (fromNonTerminal == NT_STATEMENT && currentTerminal.LLterminal == T_SEMICOLON);
 } // PrecParser_parsingEmptyExpression()
 
+/**
+ * @brief Určuje, zda by měla funkce pro výběr redukčního pravidla ukončit
+ *        procházení zásobníku.
+ */
 inline bool PrecParser_shouldEndRuleSelecetion(unsigned char distanceFromTop, \
                                                PrecStackNode *stackNode)
 {
@@ -792,131 +780,30 @@ inline bool PrecParser_shouldEndRuleSelecetion(unsigned char distanceFromTop, \
 } // PrecParser_shouldEndRuleSelecetion()
 
 /**
- * @brief Zkontroluje podmínky pro ukončení hlavní smyčky precedenční syntaktické analýzy.
+ * @brief Zkontroluje podmínky pro ukončení hlavní smyčky precedenční
+ *        syntaktické analýzy.
  */
 inline bool PrecParser_shouldStopParsingLoop(PrecTerminals inTerminal, \
                                              PrecTerminals topTerminal, \
                                              bool greaterStopFlag)
 {
     // Pokud došlo k chybě během parsování, ukončujeme smyčku
-    if (parser_errorWatcher(IS_PARSING_ERROR)) {
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
         return true;
     }
 
     // Kontrola flagu pro speciální ukončení po aplikaci 'P_GREATER'
-    if (greaterStopFlag) {
+    if(greaterStopFlag) {
         return true;
     }
 
     // Kontrola ukončení: pokud 'inTerminal' i 'topTerminal' jsou rovny '$'
-    if (inTerminal == T_PREC_DOLLAR && topTerminal == T_PREC_DOLLAR) {
+    if(inTerminal == T_PREC_DOLLAR && topTerminal == T_PREC_DOLLAR) {
         return true;
     }
 
     // Pokud žádná z podmínek není splněna, smyčka pokračuje
     return false;
 } // PrecParser_shouldStopParsingLoop
-
-/**
- * @brief Mapuje neterminál na redukční pravidlo.
- */
-void PrecParser_mapNonTerminalToRule(PrecStackSymbol symbol, ReductionRule *rule) {
-    // Ověření platnosti předaného ukazatele
-    if (rule == NULL) {
-        parser_errorWatcher(SET_ERROR_INTERNAL);
-    }
-
-    switch (symbol) {
-        // Mapování: PREC_STACK_SYM_ID -> REDUCE_E_ID
-        case PREC_STACK_SYM_ID:
-            *rule = REDUCE_E_ID;
-            break;
-
-        // Mapování: PREC_STACK_SYM_INT_LITERAL -> REDUCE_E_INT_LITERAL
-        case PREC_STACK_SYM_INT_LITERAL:
-            *rule = REDUCE_E_INT_LITERAL;
-            break;
-
-        // Mapování: PREC_STACK_SYM_FLOAT_LITERAL -> REDUCE_E_FLOAT_LITERAL
-        case PREC_STACK_SYM_FLOAT_LITERAL:
-            *rule = REDUCE_E_FLOAT_LITERAL;
-            break;
-
-        // Mapování: PREC_STACK_SYM_STRING_LITERAL -> REDUCE_E_STRING_LITERAL
-        case PREC_STACK_SYM_STRING_LITERAL:
-            *rule = REDUCE_E_STRING_LITERAL;
-            break;
-
-        // Mapování: PREC_STACK_SYM_NULL_LITERAL -> REDUCE_E_NULL_LITERAL
-        case PREC_STACK_SYM_NULL_LITERAL:
-            *rule = REDUCE_E_NULL_LITERAL;
-            break;
-
-        // Mapování: PREC_STACK_SYM_PLUS -> REDUCE_E_PLUS_E
-        case PREC_STACK_SYM_PLUS:
-            *rule = REDUCE_E_PLUS_E;
-            break;
-
-        // Mapování: PREC_STACK_SYM_MINUS -> REDUCE_E_MINUS_E
-        case PREC_STACK_SYM_MINUS:
-            *rule = REDUCE_E_MINUS_E;
-            break;
-
-        // Mapování: PREC_STACK_SYM_MULTIPLICATION -> REDUCE_E_MULT_E
-        case PREC_STACK_SYM_MULTIPLICATION:
-            *rule = REDUCE_E_MULT_E;
-            break;
-
-        // Mapování: PREC_STACK_SYM_DIVISION -> REDUCE_E_DIV_E
-        case PREC_STACK_SYM_DIVISION:
-            *rule = REDUCE_E_DIV_E;
-            break;
-
-        // Mapování: PREC_STACK_SYM_IDENTITY -> REDUCE_E_IDENTITY_E
-        case PREC_STACK_SYM_IDENTITY:
-            *rule = REDUCE_E_IDENTITY_E;
-            break;
-
-        // Mapování: PREC_STACK_SYM_NOT_EQUAL -> REDUCE_E_NOT_EQUAL_E
-        case PREC_STACK_SYM_NOT_EQUAL:
-            *rule = REDUCE_E_NOT_EQUAL_E;
-            break;
-
-        // Mapování: PREC_STACK_SYM_LESS_THAN -> REDUCE_E_LESS_THAN_E
-        case PREC_STACK_SYM_LESS_THAN:
-            *rule = REDUCE_E_LESS_THAN_E;
-            break;
-
-        // Mapování: PREC_STACK_SYM_GREATER_THAN -> REDUCE_E_GREATER_THAN_E
-        case PREC_STACK_SYM_GREATER_THAN:
-            *rule = REDUCE_E_GREATER_THAN_E;
-            break;
-
-        // Mapování: PREC_STACK_SYM_LESS_THAN_OR_EQUAL -> REDUCE_E_LESS_EQUAL_E
-        case PREC_STACK_SYM_LESS_THAN_OR_EQUAL:
-            *rule = REDUCE_E_LESS_EQUAL_E;
-            break;
-
-        // Mapování: PREC_STACK_SYM_GREATER_THAN_OR_EQUAL -> REDUCE_E_GREATER_EQUAL_E
-        case PREC_STACK_SYM_GREATER_THAN_OR_EQUAL:
-            *rule = REDUCE_E_GREATER_EQUAL_E;
-            break;
-
-        // Mapování: PREC_STACK_SYM_LEFT_BRACKET -> REDUCE_E_INTO_BRACKETS
-        case PREC_STACK_SYM_LEFT_BRACKET:
-            *rule = REDUCE_E_INTO_BRACKETS;
-            break;
-
-        // Mapování: PREC_STACK_SYM_DOT -> REDUCE_E_IFJ_CALL
-        case PREC_STACK_SYM_DOT:
-            *rule = REDUCE_E_IFJ_CALL;
-            break;
-
-        // Defaultní případ: interní chyba
-        default:
-            parser_errorWatcher(SET_ERROR_INTERNAL);
-            break;
-    } // switch()
-} // PrecParser_mapNonTerminalToRule()
 
 /*** Konec souboru precedence_parser.c ***/
