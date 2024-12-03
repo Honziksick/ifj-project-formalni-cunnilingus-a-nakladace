@@ -6,7 +6,7 @@
  * Autor:            Krejčí David   <xkrejcd00>                                *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   30.11.2024                                                *
+ * Poslední změna:   03.12.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -32,17 +32,17 @@
  */
 void semantic_analyseProgram() {
     ErrorType error = semantic_analyseProgramStructure();
-    if(error != SEMANTIC_OK) {
+    if(error != SUCCESS) {
         error_handle(error);
     }
 
     error = semantic_analyseFunctionDefinitions();
-    if(error != SEMANTIC_OK) {
+    if(error != SUCCESS) {
         error_handle(error);
     }
 
     error = semantic_analyseVariables();
-    if(error != SEMANTIC_OK) {
+    if(error != SUCCESS) {
         error_handle(error);
     }
 }  // semantic_analyseProgram
@@ -100,7 +100,7 @@ ErrorType semantic_analyseProgramStructure() {
     }
 
     // Vše je v pořádku
-    return SEMANTIC_OK;
+    return SUCCESS;
 
 }  // semantic_analyseProgramStructure
 
@@ -112,13 +112,13 @@ ErrorType semantic_analyseFunctionDefinitions() {
     // Pro každou definici funkce
     while(node != NULL) {
         ErrorType error = semantic_probeFunction(node);
-        if(error != SEMANTIC_OK) {
+        if(error != SUCCESS) {
             return error;
         }
         node = node->next;
     }
 
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_analyseFunctionDefinitions
 
 /**
@@ -187,7 +187,7 @@ ErrorType semantic_analyseVariables() {
     DString_free(key);
 
     // Pokud jsme prošli všechny rámce bez vrácení, tak je vše v pořádku
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_analyseVariables
 
 /**
@@ -201,7 +201,7 @@ ErrorType semantic_probeFunction(AST_FunDefNode *FunDefNode) {
     ErrorType probeResult = semantic_probeBlock(returnType, FunDefNode->body, &reachedReturn);
 
     // Pokud jsme našli sémantickou chybu, tak ji vrátíme
-    if(probeResult != SEMANTIC_OK) {
+    if(probeResult != SUCCESS) {
         return probeResult;
     }
 
@@ -216,7 +216,7 @@ ErrorType semantic_probeFunction(AST_FunDefNode *FunDefNode) {
     }
 
     // Vše proběhlo v pořádku
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_probeFunction
 
 /**
@@ -224,7 +224,7 @@ ErrorType semantic_probeFunction(AST_FunDefNode *FunDefNode) {
  */
 ErrorType semantic_probeBlock(Semantic_Data fun_return,      \
                               AST_StatementNode *statement, bool* returned) {
-    ErrorType result = SEMANTIC_OK;
+    ErrorType result = SUCCESS;
     Semantic_Data type;
 
     AST_ExprNode *expr;     /**< Pouze pro přiřazení */
@@ -288,7 +288,7 @@ ErrorType semantic_probeBlock(Semantic_Data fun_return,      \
         }
 
         // Pokud návratováý kód není v pořádku, tak ho pošleme dál
-        if(result != SEMANTIC_OK) {
+        if(result != SUCCESS) {
             return result;
         }
 
@@ -297,14 +297,14 @@ ErrorType semantic_probeBlock(Semantic_Data fun_return,      \
             if(statement->next != NULL) {
                 return ERROR_SEM_OTHER;
             }
-            return SEMANTIC_OK;
+            return SUCCESS;
         }
 
         statement = statement->next;
     }
 
     // Pokud jsme prošli celý blok, tak končíme úspěšně
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_probeBlock
 
 /**
@@ -324,7 +324,7 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
         result = semantic_analyseRelationBinOp(binNode, type, value);
     }
 
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
 
@@ -345,7 +345,7 @@ ErrorType semantic_analyseBinOp(AST_ExprNode *node, Semantic_Data *type, void** 
         }
     }
 
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_analyseBinOp
 
 ErrorType semantic_analyseAssignmentBinOp(AST_BinOpNode *binNode,
@@ -396,7 +396,7 @@ ErrorType semantic_analyseAssignmentBinOp(AST_BinOpNode *binNode,
 
     item->changed = true;
     item->knownValue = false;
-    return SEMANTIC_OK;
+    return SUCCESS;
 
 }  // semantic_analyseAssignmentBinOp
 
@@ -413,12 +413,12 @@ ErrorType semantic_analyseArithmeticBinOp(AST_BinOpNode *binNode,
 
     // Zjistíme typy a hodnoty operandů
     ErrorType result = semantic_analyseExpr(binNode->left, &leftType, &leftValue);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
 
     result = semantic_analyseExpr(binNode->right, &rightType, &rightValue);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
 
@@ -505,12 +505,12 @@ ErrorType semantic_analyseRelationBinOp(AST_BinOpNode *binNode,
 
     // Zjistíme typy a hodnoty operandů
     ErrorType result = semantic_analyseExpr(binNode->left, &leftType, &leftValue);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
 
     result = semantic_analyseExpr(binNode->right, &rightType, &rightValue);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
 
@@ -641,7 +641,7 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
     Semantic_Data r_type;
     void *value;
     ErrorType result = semantic_analyseExpr(assignNode.right, &r_type, &value);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
 
@@ -680,19 +680,19 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
     else {
         // Zkontrolujeme, že typy jsou kompatibilní
         result = semantic_compatibleAssign(l_type, r_type);
-        if(result != SEMANTIC_OK) {
+        if(result != SUCCESS) {
             // Podíváme se, jestli můžeme provést konverzi
             if( (l_type == SEM_DATA_FLOAT || l_type == SEM_DATA_FLOAT_OR_NULL)  \
                 && r_type == SEM_DATA_INT && value != NULL) {
                 result = semantic_toFloat(assignNode.right);
-                if(result != SEMANTIC_OK) {
+                if(result != SUCCESS) {
                     return result;
                 }
             }
             else if( (l_type == SEM_DATA_INT || l_type == SEM_DATA_INT_OR_NULL)
                       && r_type == SEM_DATA_FLOAT && value != NULL) {
                 result = semantic_toInt(assignNode.right);
-                if(result != SEMANTIC_OK) {
+                if(result != SUCCESS) {
                     return result;
                 }
             }
@@ -716,7 +716,7 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
         }
     }
 
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_analyseVarDef
 
 /**
@@ -738,7 +738,7 @@ ErrorType semantic_analyseExpr(AST_ExprNode *exprNode, Semantic_Data *type, void
                 *value = node->value;
             }
 
-            return SEMANTIC_OK;
+            return SUCCESS;
 
         case AST_EXPR_VARIABLE:
             // Hledáme proměnnou v tabulce symbolů
@@ -772,7 +772,7 @@ ErrorType semantic_analyseExpr(AST_ExprNode *exprNode, Semantic_Data *type, void
             // Pokud známe hodnotu, tak nahradíme uzel literálem
             if(value != NULL && item->knownValue == true) {
                 AST_LiteralType litType = semantic_semToLiteral(*type);
-                // Pokud se nepodaří převést typ, tak končíme funkci
+                // Pokud to lze, tak vytvoříme nová data a nakopírujeme hodnotu
                 if(litType == AST_LITERAL_INT) {
                     int *val = malloc(sizeof(int));
                     if(val == NULL) {
@@ -790,8 +790,12 @@ ErrorType semantic_analyseExpr(AST_ExprNode *exprNode, Semantic_Data *type, void
                     *value = val;
                 }
                 else {
-                    return 0;
+                    // Pokud se konverze nepodařila, tak se vracíme
+                    // Úspěšně, protože můžeme dál pokračovat i bez převodu
+                    return SUCCESS;
                 }
+
+                // Uvolníme identifikátor a nastavíme hodnoty
                 DString_free(node->identifier);
                 node->identifier = NULL;
                 node->literalType = litType;
@@ -801,14 +805,15 @@ ErrorType semantic_analyseExpr(AST_ExprNode *exprNode, Semantic_Data *type, void
             }
 
             // Není co dále kontrolovat, v pořádku se vracíme
-            return SEMANTIC_OK;
+            return SUCCESS;
 
         case AST_EXPR_FUN_CALL:
             result = semantic_analyseFunCall(exprNode->expression, type);
-            if(result != SEMANTIC_OK) {
+            if(result != SUCCESS) {
                 return result;
             }
 
+            // Funkce nemá známou návratovou hodnotu
             if(value != NULL) {
                 *value = NULL;
             }
@@ -816,7 +821,7 @@ ErrorType semantic_analyseExpr(AST_ExprNode *exprNode, Semantic_Data *type, void
 
         case AST_EXPR_BINARY_OP:
             result = semantic_analyseBinOp(exprNode, type, value);
-            if(result != SEMANTIC_OK) {
+            if(result != SUCCESS) {
                 return result;
             }
             break;
@@ -826,7 +831,7 @@ ErrorType semantic_analyseExpr(AST_ExprNode *exprNode, Semantic_Data *type, void
             return ERROR_INTERNAL;
     };
 
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_analyseExpr
 
 /**
@@ -892,7 +897,7 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *funNode, Semantic_Data *retur
         // Analýza výrazu argumentu
         Semantic_Data actualType = SEM_DATA_UNKNOWN;
         ErrorType result = semantic_analyseExpr(arg->expression, &actualType, NULL);
-        if(result != SEMANTIC_OK) {
+        if(result != SUCCESS) {
             DString_free(key);
             return result;
         }
@@ -902,7 +907,7 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *funNode, Semantic_Data *retur
 
         result = semantic_compatibleAssign(defined_type, actualType);
 
-        if(result != SEMANTIC_OK) {
+        if(result != SUCCESS) {
             DString_free(key);
             return result;
         }
@@ -922,7 +927,7 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *funNode, Semantic_Data *retur
         *returnType = semantic_returnToSemType(data->returnType);
     }
 
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_analyseFunCall
 
 
@@ -937,17 +942,17 @@ ErrorType semantic_analyseIf(Semantic_Data fun_return,       \
     // Analyzujeme podmínku
     ErrorType result;
     result = semantic_analyseCondition(ifNode);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
 
     // Projdeme bloky if a else
     result = semantic_probeBlock(fun_return, ifNode->thenBranch, &then_returned);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
     result = semantic_probeBlock(fun_return, ifNode->elseBranch, &else_returned);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
 
@@ -955,7 +960,7 @@ ErrorType semantic_analyseIf(Semantic_Data fun_return,       \
     if(then_returned == true && else_returned == true) {
         *returned = true;
     }
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_analyseIf
 
 /**
@@ -969,16 +974,16 @@ ErrorType semantic_analyseWhile(Semantic_Data fun_return,       \
     // Analyzujeme podmínku
     // Přetypovaní na AST_IfNode, protože má stejnou strukturu pro podmínku
     result = semantic_analyseCondition((AST_IfNode*)whileNode);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
 
     // Projdeme tělo while
     result = semantic_probeBlock(fun_return, whileNode->body, returned);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_analyseWhile
 
 /**
@@ -989,7 +994,7 @@ ErrorType semantic_analyseReturn(Semantic_Data fun_return, AST_ExprNode *node) {
     if(node == NULL) {
         // Pokud je funkce void, tak je vše v pořádku
         if(fun_return == SEM_DATA_VOID) {
-            return SEMANTIC_OK;
+            return SUCCESS;
         }
 
         // Jinak vracíme error
@@ -999,7 +1004,7 @@ ErrorType semantic_analyseReturn(Semantic_Data fun_return, AST_ExprNode *node) {
     // Return má výraz, tak získáme jeho typ
     Semantic_Data type;
     ErrorType result = semantic_analyseExpr(node, &type, NULL);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
 
@@ -1011,7 +1016,7 @@ ErrorType semantic_analyseCondition(AST_IfNode *ifWhileNode) {
     Semantic_Data type;
     void *conditionValue;
     ErrorType result = semantic_analyseExpr(ifWhileNode->condition, &type, &conditionValue);
-    if(result != SEMANTIC_OK) {
+    if(result != SUCCESS) {
         return result;
     }
 
@@ -1093,7 +1098,7 @@ ErrorType semantic_analyseCondition(AST_IfNode *ifWhileNode) {
             // Známe hodnotu a není NULL, takže se nedostaneme do then větve
         }
     }
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_analyseCondition
 
 
@@ -1160,7 +1165,7 @@ ErrorType semantic_getArithmeticValue(Semantic_Data type, void *leftValue,
         }
         *value = result;
     }
-    return SEMANTIC_OK;
+    return SUCCESS;
 }
 
 ErrorType semantic_getRelationValue(Semantic_Data type, void *leftValue, void *rightValue,
@@ -1226,7 +1231,7 @@ ErrorType semantic_getRelationValue(Semantic_Data type, void *leftValue, void *r
     }
 
     *value = result;
-    return SEMANTIC_OK;
+    return SUCCESS;
 }
 
 /**
@@ -1288,7 +1293,7 @@ ErrorType semantic_compatibleArithmetic(Semantic_Data type1, Semantic_Data type2
     if(type2 != SEM_DATA_INT && type2 != SEM_DATA_FLOAT) {
         return ERROR_SEM_TYPE_COMPATIBILITY;
     }
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_compatibleArithmetic
 
 /**
@@ -1299,31 +1304,31 @@ ErrorType semantic_compatibleEqual(Semantic_Data type1, Semantic_Data type2) {
         case SEM_DATA_INT:
             if(type2 == SEM_DATA_INT || type2 == SEM_DATA_FLOAT ||
                 type2 == SEM_DATA_INT_OR_NULL) {
-                return SEMANTIC_OK;
+                return SUCCESS;
             }
             break;
         case SEM_DATA_FLOAT:
             if(type2 == SEM_DATA_INT || type2 == SEM_DATA_FLOAT ||
                 type2 == SEM_DATA_FLOAT_OR_NULL) {
-                return SEMANTIC_OK;
+                return SUCCESS;
             }
             break;
         case SEM_DATA_INT_OR_NULL:
             if(type2 == SEM_DATA_INT || type2 == SEM_DATA_FLOAT_OR_NULL ||
                 type2 == SEM_DATA_INT_OR_NULL) {
-                return SEMANTIC_OK;
+                return SUCCESS;
             }
             break;
         case SEM_DATA_FLOAT_OR_NULL:
             if(type2 == SEM_DATA_INT_OR_NULL || type2 == SEM_DATA_FLOAT ||
                 type2 == SEM_DATA_FLOAT_OR_NULL) {
-                return SEMANTIC_OK;
+                return SUCCESS;
             }
             break;
         case SEM_DATA_NULL:
             if(type2 == SEM_DATA_NULL || type2 == SEM_DATA_INT_OR_NULL ||
                 type2 == SEM_DATA_FLOAT_OR_NULL) {
-                return SEMANTIC_OK;
+                return SUCCESS;
             }
             break;
         default:
@@ -1339,12 +1344,12 @@ ErrorType semantic_compatibleRelation(Semantic_Data type1, Semantic_Data type2) 
     switch(type1) {
         case SEM_DATA_INT:
             if(type2 == SEM_DATA_INT || type2 == SEM_DATA_FLOAT) {
-                return SEMANTIC_OK;
+                return SUCCESS;
             }
             break;
         case SEM_DATA_FLOAT:
             if(type2 == SEM_DATA_INT || type2 == SEM_DATA_FLOAT) {
-                return SEMANTIC_OK;
+                return SUCCESS;
             }
             break;
         default:
@@ -1460,7 +1465,7 @@ ErrorType semantic_toFloat(AST_ExprNode *node) {
     varNode->value = result;
     varNode->literalType = AST_LITERAL_FLOAT;
 
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_toFloat
 
 /**
@@ -1487,7 +1492,7 @@ ErrorType semantic_toInt(AST_ExprNode *node) {
     varNode->value = result;
     varNode->literalType = AST_LITERAL_INT;
 
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_toInt
 
 /**
@@ -1586,7 +1591,7 @@ ErrorType semantic_checkIFJString(AST_FunCallNode *funNode) {
         }
         item->used = true;
     }
-    return SEMANTIC_OK;
+    return SUCCESS;
 }  // semantic_checkIFJString
 
 
