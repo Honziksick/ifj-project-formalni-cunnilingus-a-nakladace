@@ -7,7 +7,7 @@
  *                   David Krejčí        <xkrejcd00>                           *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   29.11.2024                                                *
+ * Poslední změna:   01.12.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -225,6 +225,19 @@ DString *TAC_convertSpecialSymbols(DString *origin);
  */
 void TAC_resetStatic();
 
+/**
+ * @brief Přidá instrukci do bufferu
+ * 
+ * @details Buffer ukládá až jednu instrukci. Při přijetí druhé je analyzuje
+ *          a v případě, že uložená instrukce je PUSHS a přijatá POPS,
+ *          tak je nahradí jednou instrukcí MOVE. V případě, že by argument
+ *          obou instrukcí byl stejný, tak je vymaže (jsou zbytečné).
+ *          Pokud nelze optimalizaci provést, tak vypíše uloženou instrukci
+ *          a nahradí ji přijatou.
+ * 
+ * @param [in] newinstruction Nová instrukce pro zpracování
+ * @param [in] NULL Pro vypsání uložené hodnoty bufferu
+ */
 void TAC_bufferPrint(char (*newInstruction)[OPTIMIZE_BUFFER_SIZE]);
 
 #endif // TAC_H_

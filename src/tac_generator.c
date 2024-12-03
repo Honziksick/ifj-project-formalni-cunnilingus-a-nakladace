@@ -7,7 +7,7 @@
  *                   David Krejčí        <xkrejcd00>                           *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   29.11.2024                                                *
+ * Poslední změna:   01.12.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -170,12 +170,10 @@ void TAC_generateBinaryOperator(AST_BinOpNode *binNode) {
             var = (AST_VarNode *)binNode->left->expression;
             if(DString_compareWithConstChar(var->identifier, "_" ) == STRING_EQUAL) {
                 // Přiřazujeme do pseudoproměnné - zahodíme hodnotu
-                //printf("POPS GF@?tempDEST\n");
                 snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS GF@?tempSRC1\n");
                 TAC_bufferPrint(&buffer);
             } else {
                 // Nahrajeme hodnotu výrazu do proměnné
-                //printf("POPS LF@%s$%lu$\n", var->identifier->str, var->frameID);
                 writtenSize = snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS LF@%s$%lu$\n", var->identifier->str, var->frameID);
                 // Pokud nám nestačí velikost bufferu
                 if(writtenSize >= OPTIMIZE_BUFFER_SIZE) {
@@ -273,11 +271,11 @@ void TAC_generateVarDef(AST_ExprNode *exprNode, TAC_MODE mode) {
     if(mode != TAC_VAR_DEF_ONLY) {
         // Na vrchol zásobníku vložíme hodnotu výrazu vpravo
         TAC_generateExpression(binNode->right);
-        // Nahrajeme hodnotu výrazu do proměnné
-        //printf("POPS LF@%s$%lu$ \n", var->identifier->str, var->frameID);
+        
         // Vytvoříme buffer pro instrukce
         char buffer[OPTIMIZE_BUFFER_SIZE] = {0};
         int writtenSize = 0;
+        // Nahrajeme hodnotu výrazu do proměnné
         writtenSize = snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS LF@%s$%lu$ \n", var->identifier->str, var->frameID);
         if(writtenSize >= OPTIMIZE_BUFFER_SIZE) {
             // Vypíšeme buffer
@@ -310,7 +308,6 @@ void TAC_generateExpression(AST_ExprNode *expr) {
             break;
         case AST_EXPR_VARIABLE:
             // Pokud je proměnná, tak se její hodnota rovnou nahraje na vrchol zásobníku
-            //printf("PUSHS LF@%s$%lu$\n", var->identifier->str, var->frameID);
             writtenSize = snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS LF@%s$%lu$\n", var->identifier->str, var->frameID);
             if(writtenSize >= OPTIMIZE_BUFFER_SIZE) {
                 // Vypíšeme buffer
@@ -347,30 +344,24 @@ void TAC_generateLiteral(AST_VarNode *literal) {
     // Podle typu literálu na vrchol zásobníku dáme hodnotu
     switch (literal->literalType) {
         case AST_LITERAL_INT:
-            //printf("PUSHS int@%d\n", *(int*)literal->value);
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS int@%d \n", *(int*)literal->value);
             break;
         case AST_LITERAL_FLOAT:
-            //printf("PUSHS float@%a\n", *(double*)literal->value);
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS float@%a \n", *(double*)literal->value);
             break;
         case AST_LITERAL_STRING:
             value = (DString*)literal->value;
             value = TAC_convertSpecialSymbols(value);
-            //printf("PUSHS string@%s\n", value->str);
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS string@%s \n", value->str);
             DString_free(value);
             break;
         case AST_LITERAL_NULL:
-            //printf("PUSHS nil@nil\n");
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS nil@nil \n");
             break;
         case AST_LITERAL_BOOL:
             if(*(bool*)literal->value) {
-                //printf("PUSHS bool@true\n");
                 snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS bool@true \n");
             } else {
-                //printf("PUSHS bool@false\n");
                 snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS bool@false \n");
             }
             break;
@@ -425,12 +416,12 @@ void TAC_generateIf(AST_IfNode *ifNode, TAC_MODE mode) {
         printf("JUMPIFNEQS if_else$%d\n", id);
     }
     else {
-        // Výsledek podmínky dáme do proměnné
+        // Výsledek podmínky vložíme do proměnné
         char buffer[OPTIMIZE_BUFFER_SIZE] = "POPS GF@?tempSRC1\n";
         TAC_bufferPrint(&buffer);
         TAC_bufferPrint(NULL);
         printf("JUMPIFEQ if_else$%d GF@?tempSRC1 nil@nil\n", id);
-        // Definujeme idWithoutNull
+        // Definujeme id_bez_null
         DString *idWithoutNull = ifNode->nullCondition->identifier;
         if(mode != TAC_EXCEPT_VAR_DEF) {
             printf("DEFVAR LF@%s$%lu$\n", idWithoutNull->str, ifNode->nullCondition->frameID);
@@ -479,7 +470,7 @@ void TAC_generateWhile(AST_WhileNode *whileNode, TAC_MODE mode) {
         TAC_generateStatementBlock(whileNode->body, TAC_VAR_DEF_ONLY);
         return;
     }
-    // Pokud máme NULL podmínku, tak nejdříve definujeme idWithoutNull
+    // Pokud máme NULL podmínku, tak nejdříve definujeme id_bez_null
     DString *idWithoutNull = NULL;
     if(whileNode->nullCondition != NULL && mode != TAC_EXCEPT_VAR_DEF) {
         idWithoutNull = whileNode->nullCondition->identifier;
@@ -501,7 +492,7 @@ void TAC_generateWhile(AST_WhileNode *whileNode, TAC_MODE mode) {
         printf("JUMPIFNEQS while_end$%d\n", id);
     }
     else {
-        // Výsledek podmínky dáme do proměnné
+        // Výsledek podmínky uložíme do proměnné
         char buffer[OPTIMIZE_BUFFER_SIZE] = "POPS GF@?tempSRC1\n";
         TAC_bufferPrint(&buffer);
         TAC_bufferPrint(NULL);
@@ -538,11 +529,11 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
     char buffer[OPTIMIZE_BUFFER_SIZE] = {0};
     int writtenSize = 0;
 
+    // Pokud je funkce vestavěná, tak se podíváme, zda ji můžeme nahradit instrukcemi
     if(funCallNode->isBuiltIn) {
         if(DString_compareWithConstChar(funCallNode->identifier, "readstr") == STRING_EQUAL) {
             // Načteme řetězec a výsledek nahrajeme na zásobník
             printf("READ GF@?tempSRC1 string\n");
-            //printf("PUSHS GF@?tempSRC1\n");
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS GF@?tempSRC1\n");
             TAC_bufferPrint(&buffer);
             return;
@@ -550,7 +541,6 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         else if(DString_compareWithConstChar(funCallNode->identifier, "readi32") == STRING_EQUAL) {
             // Načteme číslo a výsledek nahrajeme na zásobník
             printf("READ GF@?tempSRC1 int\n");
-            //printf("PUSHS GF@?tempSRC1\n");
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS GF@?tempSRC1\n");
             TAC_bufferPrint(&buffer);
             return;
@@ -558,7 +548,6 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         else if(DString_compareWithConstChar(funCallNode->identifier, "readf64") == STRING_EQUAL) {
             // Načteme číslo a výsledek nahrajeme na zásobník
             printf("READ GF@?tempSRC1 float\n");
-            //printf("PUSHS GF@?tempSRC1\n");
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS GF@?tempSRC1\n");
             TAC_bufferPrint(&buffer);
             return;
@@ -567,7 +556,6 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argument volání funkce */
             // Vyhodnotíme parametr
             TAC_generateExpression(arg->expression);
-            //printf("POPS GF@?tempSRC1\n");
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS GF@?tempSRC1\n");
             TAC_bufferPrint(&buffer);
             TAC_bufferPrint(NULL);
@@ -595,7 +583,6 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         else if(DString_compareWithConstChar(funCallNode->identifier, "length") == STRING_EQUAL) {
             // Vyhodnotíme parametr a nahrajeme do pomocné proměnné
             TAC_generateExpression(funCallNode->arguments->expression);
-            //printf("POPS GF@?tempSRC1\n");
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS GF@?tempSRC1\n");
             TAC_bufferPrint(&buffer);
             TAC_bufferPrint(NULL);
@@ -608,10 +595,8 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             // Vyhodnotíme oba parametry a nahrajeme do pomocných proměnných
             TAC_generateExpression(funCallNode->arguments->expression);
             TAC_generateExpression(funCallNode->arguments->next->expression);
-            //printf("POPS GF@?tempSRC2\n");
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS GF@?tempSRC2\n");
             TAC_bufferPrint(&buffer);
-            //printf("POPS GF@?tempSRC1\n");
             snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS GF@?tempSRC1\n");
             TAC_bufferPrint(&buffer);
             TAC_bufferPrint(NULL);
@@ -628,8 +613,9 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             return;
         }
     }
+    // Jinak budeme funkci volat
 
-    // Vytvoříme temporary frame pro parametry funkce
+    // Vytvoříme dočasný rámec pro parametry funkce
     printf("CREATEFRAME\n");
 
     // Najdeme definici funkce
@@ -678,10 +664,9 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
         // Na zásobník vyhodnotíme hodnotu parametru
         TAC_generateExpression(arg->expression);
         // Vytvoříme instrukci DEFVAR pro parametr
-        // Pokud je funkce built-in, tak se nepřidává frameID do názvu
+        // Pokud je funkce vestavěná, tak se nepřidává frameID do názvu
         if(funCallNode->isBuiltIn) {
-            // Built-in funkce nemají rámcový suffix
-            //printf("POPS TF@%s\n", functionData->params[i].id->str);
+            // Vstavěné funkce nemají rámcový suffix
             writtenSize = snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS TF@%s\n", paramId);
             if(writtenSize >= OPTIMIZE_BUFFER_SIZE) {
                 // Vypíšeme buffer
@@ -691,7 +676,6 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
             }
         }
         else {
-            //printf("POPS TF@%s$%lu$\n", functionData->params[i].id->str, functionData->bodyFrameID);
             writtenSize = snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS TF@%s$%lu$\n", paramId, functionData->bodyFrameID);
             if(writtenSize >= OPTIMIZE_BUFFER_SIZE) {
                 // Vypíšeme buffer
@@ -700,8 +684,10 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
                 printf("POPS TF@%s$%lu$\n", paramId, functionData->bodyFrameID);
             }
         }
+        // Vypíšeme buffer
         TAC_bufferPrint(&buffer);
         TAC_bufferPrint(NULL);
+        // Přesuneme se na další parametr
         arg = arg->next;
     }
 
@@ -764,7 +750,6 @@ void TAC_bufferPrint(char (*newInstruction)[OPTIMIZE_BUFFER_SIZE]) {
     // Pokud jsme dostali NULL, tak vypíšeme buffer
     if(newInstruction == NULL) {
         if(*buffered != '\0') {
-            //printf("#buf flush\n");
             printf("%s", buffered);
             *buffered = '\0';
         }
@@ -777,7 +762,7 @@ void TAC_bufferPrint(char (*newInstruction)[OPTIMIZE_BUFFER_SIZE]) {
         return;
     }
     // Pokud jsme dostali nový řetězec, tak se podíváme, zda jde optimalizovat
-    //První intrukce je push a druhá pop
+    // První intrukce je push a druhá pop
     if(strncmp(buffered, "PUSHS", 5) == 0 && strncmp(*newInstruction, "POPS", 4) == 0) {
         // Zjistíme, zda se jedná o stejnou proměnnou
         if(strcmp(buffered + 6, *newInstruction + 5) == 0) {
@@ -788,12 +773,14 @@ void TAC_bufferPrint(char (*newInstruction)[OPTIMIZE_BUFFER_SIZE]) {
 
         // Pokud se nejedná o stejnou proměnnou, tak nahradíme instukcí move
         printf("MOVE ");
+        // Vypíšeme cíl
         char *ptr = *newInstruction + 5;
         while(*ptr != '\0' && *ptr != '\n') {
             putchar(*ptr);
             ptr++;
         }
         putchar(' ');
+        // Vypíšeme zdroj
         ptr = buffered + 6;
         while(*ptr != '\0' && *ptr != '\n') {
             putchar(*ptr);
@@ -803,7 +790,7 @@ void TAC_bufferPrint(char (*newInstruction)[OPTIMIZE_BUFFER_SIZE]) {
         *buffered = '\0';
     }
     else {
-        // Pokud se nejedná o push a pop, tak vypíšeme buffer
+        // Pokud se nejedná o push a pop, tak vypíšeme buffer a uložíme novou instrukci
         printf("%s", buffered);
         strcpy(buffered, *newInstruction);
     }
