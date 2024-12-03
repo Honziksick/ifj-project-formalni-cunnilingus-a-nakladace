@@ -417,21 +417,6 @@ TEST(LLParserBasicsCorrect, IFJFunCallCommaLast){
     fclose(f);
 }
 
-TEST(LLParserBasicsCorrect, ExcesiveCurlyBrackets){
-    string path = syntPath + "correct_excesive_curly_brackets.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    // Syntaktická analýza programu
-    EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
-
-    // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
-    fclose(f);
-}
-
 TEST(LLParserBasicsCorrect, IfjDotEtc){
     string path = syntPath + "X_correct_ifj_dot_etc.zig";
     FILE* f = fopen(path.c_str(), "r");

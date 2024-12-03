@@ -35,6 +35,7 @@
 #include "ifj24_compiler_test_utils.h"
 
 void TestSemantic(){
+    parser_errorWatcher(RESET_ERROR_FLAGS);
     LLparser_parseProgram();
     semantic_analyseProgram();
     exit(0);
