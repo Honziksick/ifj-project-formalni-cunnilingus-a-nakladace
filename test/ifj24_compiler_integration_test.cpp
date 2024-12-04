@@ -1797,3 +1797,49 @@ TEST(Parser, Boundries) {
         fclose(f);
     }
 }
+
+TEST(Lex, Error) {
+    for (int i = 1; i <= 6; i++) {
+        string filename = "lex_error_"  + to_string(i) + ".zig";
+        string path = lexPath + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(mock_main(), ExitedWithCode(1), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+       // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+TEST(Lex, Correct) {
+    for (int i = 1; i <= 2; i++) {
+        string filename = "lex_correct_"  + to_string(i) + ".zig";
+        string path = lexPath + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+       // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
