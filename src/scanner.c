@@ -835,7 +835,7 @@ Token scanner_stateComplexLeftSqrBr(Token lexToken) {
 }  // scanner_stateComplexLeftSqrBr
 
 /**
- * @brief Funkce scanneru pro zpracování klíčového slova @import.
+ * @brief Funkce scanneru pro zpracování klíčového slova `@import`.
  */
 Token scanner_stateComplexAtSign(Token lexToken, DString *value) {
     // Inicializuj lexChar

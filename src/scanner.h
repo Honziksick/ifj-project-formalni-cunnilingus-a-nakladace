@@ -50,18 +50,18 @@
  *                                                                             *
  ******************************************************************************/
 
-#define ALF 10                  /**< ASCII hodnota znaku NEW LINE LF*/
-#define ASQ 39                  /**< ASCII hodnota znaku SINGLE QUOTE '*/
-#define ABS 92                  /**< ASCII hodnota znaku BACLSLASH \*/
-#define ADL 127                 /**< ASCII hodnota znaku DELETE*/
+#define ALF 10                  /**< ASCII hodnota znaku NEW LINE `LF`    */
+#define ASQ 39                  /**< ASCII hodnota znaku SINGLE QUOTE `'` */
+#define ABS 92                  /**< ASCII hodnota znaku BACLSLASH `\`    */
+#define ADL 127                 /**< ASCII hodnota znaku DELETE           */
 
 #define LOWEST_KEYWORD 26       /**< Hodnota Tokenu nejnižšího klíčového slova*/
 #define HIGHEST_KEYWORD 44      /**< Hodnota Tokenu nejvyššího klíčového slova*/
 
 #define HEXADECIMAL_SEQ_SIZE 3  /**< Velikost bufferu pro hexadecimálně zadaný znak
-                                    "\xdd -> {d, d, '\0'}" */
+                                    `"\xdd -> {d, d, '\0'}"` */
 #define HEXA_BASE 16            /**< Základem hexadecimální číslicové soustavy
-                                     je číslo "16" */
+                                     je číslo `16` */
 #define ASCII_VALUE_MAX 255     /**< Maximální ASCII hodnota */
 
 
@@ -103,8 +103,8 @@ typedef enum TokenType {
     TOKEN_SLASH = 18,               /**<  Token dělícího lomítka /           */
     TOKEN_EQUAL_TO = 19,            /**<  Token rovnosti ==                  */
     TOKEN_NOT_EQUAL_TO = 20,        /**<  Token nerovnosti !=                */
-    TOKEN_LESS_THAN = 21,           /**<  Token "menší než" <                */
-    TOKEN_LESS_EQUAL_THAN = 22,     /**<  Token "menší nebo rovno než" <=    */
+    TOKEN_LESS_THAN = 21,           /**<  Token "menší než" `<`              */
+    TOKEN_LESS_EQUAL_THAN = 22,     /**<  Token "menší nebo rovno než" `\<=` */
     TOKEN_GREATER_THAN = 23,        /**<  Token "větší než" >                */
     TOKEN_GREATER_EQUAL_THAN = 24,  /**<  Token "větší nebo rovno než" >=    */
     TOKEN_EOF = 25,                 /**<  Token konce souboru EOF            */
@@ -126,7 +126,7 @@ typedef enum TokenType {
     TOKEN_K_if = 39,                /**<  Token klíčového slova "if"         */
     TOKEN_K_else = 40,              /**<  Token klíčového slova "else"       */
     TOKEN_K_while = 41,             /**<  Token klíčového slova "while"      */
-    TOKEN_K_import = 42,            /**<  Token klíčového slova "@import"    */
+    TOKEN_K_import = 42,            /**<  Token klíčového slova "\@import"   */
     TOKEN_K_underscore = 43,        /**<  Token klíčového slova "_"          */
     TOKEN_K_ifj = 44,               /**<  Token klíčového slova "ifj"        */
 
@@ -176,9 +176,9 @@ typedef enum StateFSM {
     STATE10_QMARK_u8_B = 10,                /**<  Stav pro zpracování klíč. slova ?[]u8, podstav: ?[]   */
     STATE11_QMARK_u8_C = 11,                /**<  Stav pro zpracování klíč. slova ?[]u8, podstav: ?[]u  */
 
-    STATE12_DOUBLE_QUOTATION_MARKS = 12,    /**<  Stav pro úvodní zpracování stringu ""                 */
-    STATE13_ESCAPE_BACKSLASH = 13,          /**<  Stav pro zpracování escape sekvencí ""                */
-    STATE14_ESCAPE_BACKSLASH_X = 14,        /**<  Stav pro zpracování esc. sekv. \xdd ""                */
+    STATE12_DOUBLE_QUOTATION_MARKS = 12,    /**<  Stav pro úvodní zpracování stringu                    */
+    STATE13_ESCAPE_BACKSLASH = 13,          /**<  Stav pro zpracování escape sekvencí                   */
+    STATE14_ESCAPE_BACKSLASH_X = 14,        /**<  Stav pro zpracování esc. sekv. `\xdd`                 */
 
     STATE15_BACKSLASH = 15,                 /**<  Stav pro úvodní zpracování znaku \                    */
     STATE16_DOUBLE_BACKSLASH = 16,          /**<  Stav pro úvodní zpracování stringu \\                 */
@@ -377,14 +377,14 @@ Token scanner_stateComplexQuestion(Token lexToken);
 Token scanner_stateComplexLeftSqrBr(Token lexToken);
 
 /**
- * @brief Funkce scanneru pro zpracování klíčového slova @import.
+ * @brief Funkce scanneru pro zpracování klíčového slova `@import`.
  *
  * @details Do nekonečna načítá znaky, dokud nenarazí na něco, co není
  *          písmeno. Zjistí, zda je načteno "import" a podle toho vrací
  *          token nebo error.
  *
  * @param [in] lexToken Nehotový token.
- * @param [in,out] str Ukazatel na dynamický řetězec s načtenými znaky.
+ * @param [in,out] value Ukazatel na dynamický řetězec s načtenými znaky.
  *
  * @return Vrací Token do Complex.
  */
@@ -463,6 +463,7 @@ Token scanner_stateComplexExclamation(Token lexToken);
  *
  * @param [in] lexToken Nehotový token.
  * @param [in] lexChar Lexikální char.
+ * @param [in,out] str Ukazatel na dynamický řetězec s načtenými znaky.
  *
  * @return Vrací Token do FSM.
  */

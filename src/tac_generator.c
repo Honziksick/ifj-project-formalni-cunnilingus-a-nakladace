@@ -756,6 +756,9 @@ void TAC_resetStatic() {
     TAC_generateWhile(&whileNode, TAC_ALL);
 }  // TAC_resetStatic
 
+/**
+ * @brief Přidá instrukci do bufferu
+ */
 void TAC_bufferPrint(char (*newInstruction)[OPTIMIZE_BUFFER_SIZE]) {
 
     static char buffered[OPTIMIZE_BUFFER_SIZE] = {'\0'};

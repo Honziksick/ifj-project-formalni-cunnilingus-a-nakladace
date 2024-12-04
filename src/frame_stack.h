@@ -256,25 +256,25 @@ void frameStack_destroyAll();
  *
  * @details Tato funkce vytiskne obsah pole rámců podle parametrů
  * @param [in] file Ukazatel na soubor, kam se má tisknout
- * @param [in] print_data Pokud je `true`, vytisknou se i data položek jinak pouze klíče a indexy
- * @param [in] cut_data Pokud je `true`, data mohou být oříznuta aby se vešla do sloupců
+ * @param [in] printData Pokud je `true`, vytisknou se i data položek jinak pouze klíče a indexy
+ * @param [in] cutData Pokud je `true`, data mohou být oříznuta aby se vešla do sloupců
  */
-void frameStack_printArray(FILE *file, bool print_data, bool cut_data);
+void frameStack_printArray(FILE *file, bool printData, bool cutData);
 
 /**
  * @brief Vytiskne obsah zásobníku rámců
  *
  * @details Tato funkce vytiskne obsah zásobníku rámců podle parametrů
  * @param [in] file Ukazatel na soubor, kam se má tisknout
- * @param [in] print_data Pokud je `true`, vytisknou se i data položek jinak pouze klíče a indexy
- * @param [in] cut_data Pokud je `true`, data mohou být oříznuta aby se vešla do sloupců
+ * @param [in] printData Pokud je `true`, vytisknou se i data položek jinak pouze klíče a indexy
+ * @param [in] cutData Pokud je `true`, data mohou být oříznuta aby se vešla do sloupců
  */
-void frameStack_print(FILE *file, bool print_data, bool cut_data);
+void frameStack_print(FILE *file, bool printData, bool cutData);
 
 /**
  * @brief Vytiskne obsah zásobníku rámců
  *
- * @details Volá funkci frameStack_print s parametry stdout, print_data = false, cut_data = true
+ * @details Volá funkci frameStack_print s parametry stdout, printData = false, cutData = true
  *          Vytiskne obsah zásobníku rámců na stdout bez dat,
  *          a s ořezaním dat, aby byly krásně ve sloupcích.
  */

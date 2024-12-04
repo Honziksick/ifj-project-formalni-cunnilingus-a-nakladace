@@ -114,9 +114,6 @@ typedef enum ErrorType {
  *          chybovou hlášku pro píslušný chybový kód.
  *
  * @param [in] error Chybový kód typu @c ErrorType.
- * @param [in] file Název souboru, ve kterém došlo k chybě.
- * @param [in] line Číslo řádku, na kterém došlo k chybě.
- * @param [in] func Název funkce, ve které došlo k chybě.
  */
 #ifdef LOG_VERBOSE
     #define error_handle(error) error_internalHandle(error, __FILE__, __LINE__, __func__)

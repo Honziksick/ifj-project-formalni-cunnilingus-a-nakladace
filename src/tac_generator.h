@@ -199,7 +199,7 @@ void TAC_generateLiteral(AST_VarNode *literal);
  *                  - @c TAC_VAR_DEF_ONLY - generuje pouze definice proměnných
  *                  - @c TAC_EXCEPT_VAR_DEF - generuje všechny příkazy kromě definic proměnných
  */
-void TAC_generateIf(AST_IfNode *if_node, TAC_mode mode);
+void TAC_generateIf(AST_IfNode *ifNode, TAC_mode mode);
 
 /**
  * @brief Generuje cílový kód pro smyčku while
@@ -256,7 +256,6 @@ DString *TAC_convertSpecialSymbols(DString *origin);
  *
  * @details Resetuje statické proměnné count v if a while funkcích v případě
  *          více testů v jednom spuštění.
- *
  */
 void TAC_resetStatic();
 
@@ -270,8 +269,7 @@ void TAC_resetStatic();
  *          Pokud nelze optimalizaci provést, tak vypíše uloženou instrukci
  *          a nahradí ji přijatou.
  *
- * @param [in] newinstruction Nová instrukce pro zpracování
- * @param [in] NULL Pro vypsání uložené hodnoty bufferu
+ * @param [in] newInstruction Nová instrukce pro zpracování
  */
 void TAC_bufferPrint(char (*newInstruction)[OPTIMIZE_BUFFER_SIZE]);
 

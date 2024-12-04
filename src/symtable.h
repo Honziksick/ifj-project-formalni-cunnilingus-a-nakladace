@@ -322,11 +322,11 @@ size_t symtable_hashFunction(DString *key);
  *          Položky jsou naindexovány znovu podle nové velikosti tabulky.
  * @note Funkce se využívá při rozšiřování
  *
- * @param [in] tableOutArray Zdrojová tabulka
- * @param [in] tableInArray Cílová tabulka
+ * @param [in] outTable Zdrojová tabulka
+ * @param [in] inTable Cílová tabulka
  * @return @c TRUE, pokud byl přesun úspěšný, jinak @c FALSE.
  */
-bool symtable_transfer(Symtable *tableOutArray, Symtable *tableInArray);
+bool symtable_transfer(Symtable *outTable, Symtable *inTable);
 
 /**
  * @brief Zvětší tabulku symbolů na novou velikost
