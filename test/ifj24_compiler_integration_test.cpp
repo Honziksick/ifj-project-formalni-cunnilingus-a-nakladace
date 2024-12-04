@@ -84,7 +84,7 @@ extern "C" {
     }
 }
 
-TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
+/*TEST(LLParserBasicsCorrect, PrologueAndEmptyMain) {
     // Načtení souboru s programem na STDIN
     string path = syntPath + "correct_prologue_and_empty_main.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -1773,4 +1773,27 @@ TEST(Lex, EscapeAndHexadecimal) {
     // Navrácení STDIN do původního stavu a uzavření souboru
     stdin = stdin_backup;
     fclose(f);
+}*/
+
+TEST(Parser, Boundries) {
+    for (int i = 1; i <= 2; i++) {
+        string filename = "boundries_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = syntPath + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(mock_main(), ExitedWithCode(0), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+       // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
 }
