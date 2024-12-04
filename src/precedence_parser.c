@@ -611,6 +611,11 @@ void precParser_reduceVarOrLit(AST_NodeType nodeType) {
 
     // Pushnutí nového uzlu pro neterminál "E" na zásobník s AST uzlem pro výraz
     precStack_pushPrecNonTerminal(PREC_STACK_NT_EXPRESSION, AST_EXPR_NODE, exprNode);
+
+    // Kontrola, že nedošlo k chybě při inicializaci uzlu
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
+        parser_freeCurrentTerminalValue();
+    }
 } // precParser_reduceVarOrLit()
 
 /**
@@ -662,6 +667,11 @@ void precParser_reduceBinOp(AST_BinOpType binOp) {
 
     // Pushnutí nového neterminálu E na zásobník s AST uzlem
     precStack_pushPrecNonTerminal(PREC_STACK_NT_EXPRESSION, AST_EXPR_NODE, exprNode);
+
+    // Kontrola, že nedolo k chybě při inicializaci uzlu
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
+        parser_freeCurrentTerminalValue();
+    }
 } // precParser_reduceBinOp()
 
 /**
@@ -751,6 +761,11 @@ void precParser_reduceFunCall(bool isBuiltIn) {
 
     // Pushnutí nového neterminálu E na zásobník s AST uzlem
     precStack_pushPrecNonTerminal(PREC_STACK_NT_EXPRESSION, AST_EXPR_NODE, exprNode);
+
+    // Kontrola, že nedošlo k chybě při inicializaci uzlu
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
+        parser_freeCurrentTerminalValue();
+    }
 } // precParser_reduceFunCall()
 
 /*******************************************************************************

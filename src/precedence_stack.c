@@ -283,6 +283,10 @@ void precStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
         default:
             precStack_pushPrecTerminal(inTerminal, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
     } // switch()
+
+    if(parser_errorWatcher(IS_PARSING_ERROR)) {
+        parser_freeCurrentTerminalValue();
+    }
 } // precStack_pushBothStackAndASTNode()
 
 /**

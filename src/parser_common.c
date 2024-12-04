@@ -93,6 +93,7 @@ bool parser_errorWatcherInternal(ParserErrorState state, const char *file, \
     static bool syntaxError   = false;
     static bool semUndefError = false;
     static bool semRedefError = false;
+    static bool semOther      = false;
     static bool internalError = false;
 
     // Statická proměnná pro zaznamení první chyby
@@ -106,6 +107,7 @@ bool parser_errorWatcherInternal(ParserErrorState state, const char *file, \
             syntaxError   = false;
             semUndefError = false;
             semRedefError = false;
+            semOther      = false;
             internalError = false;
             firstError = SUCCESS;
             break;
@@ -142,6 +144,12 @@ bool parser_errorWatcherInternal(ParserErrorState state, const char *file, \
             LOG_ERROR(file, line, func);
             break;
 
+        case SET_ERROR_SEM_OTHER:
+            semOther = true;
+            parser_updateFirstError(state, &firstError);
+            LOG_ERROR(file, line, func);
+            break;
+
         // Nastavení stavu interní chyby překladače
         case SET_ERROR_INTERNAL:
             internalError = true;
@@ -160,7 +168,7 @@ bool parser_errorWatcherInternal(ParserErrorState state, const char *file, \
     } // switch()
 
     // Vracíme `true`, pokud došlo alespoň k jakékoliv jedné chybě
-    return (lexicalError || syntaxError || semUndefError || semRedefError || internalError);
+    return (lexicalError || syntaxError || semUndefError || semRedefError || semOther || internalError);
 } // Parser_watchSyntaxError()
 
 /**
@@ -207,6 +215,11 @@ inline void parser_updateFirstError(ParserErrorState state, ErrorType *error) {
             // Mapujeme: SET_ERROR_SEM_REDEF_OR_CONSTDEF -> ERROR_SEM_REDEF_OR_CONSTDEF
             case SET_ERROR_SEM_REDEF_OR_CONSTDEF:
                 *error = ERROR_SEM_REDEF_OR_CONSTDEF;
+                break;
+
+            // Mapujeme: SET_ERROR_SEM_OTHER -> ERROR_SEM_OTHER
+            case SET_ERROR_SEM_OTHER:
+                *error = ERROR_SEM_OTHER;
                 break;
 
             // Mapujeme: SET_ERROR_INTERNAL -> ERROR_INTERNAL

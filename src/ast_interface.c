@@ -426,7 +426,7 @@ void AST_initNewVarNode(AST_VarNode *node, AST_NodeType type, DString *identifie
             long intValue = strtol(value->str, &endptr, INT_CONVERTION_BASE);
 
             // Kontrola přetečení nebo podtečení - ostatní sémantická chyba (10)
-            if(intValue == INT_MIN || intValue == INT_MAX) {
+            if(intValue < INT_MIN || intValue > INT_MAX) {
                 parser_errorWatcher(SET_ERROR_SEM_OTHER);
                 break;
             }
