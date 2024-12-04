@@ -620,11 +620,17 @@ TEST(FSM, FSM_OPERATOR_ERROR_2){
     ASSERT_EQ(state.value, nullptr);
 }
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program hello.zig
- */
+// ----- Začátek souboru: hello.zig -----
+//        // Hello World example in IFJ24
+//        // run it on Merlin.fit.vutbr.cz by: zig run hello.zig
+//      const ifj = @import("ifj24.zig");
+//      pub fn main() void {
+//          const y : i32 = 24;
+//          ifj.write("Hello from IFJ"); // one-parameter function only
+//          ifj.write(y);
+//          ifj.write("\n");
+//      }
+// ----- Konec souboru: hello.zig -----
 TEST(Lex, Hello) {
     string path = exam_path + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -700,12 +706,30 @@ TEST(Lex, Hello) {
     fclose(f);
 }
 
-
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program fun.zig
- */
+// ----- Začátek souboru: fun.zig -----
+//      const ifj = @import("ifj24.zig");
+//      pub fn f (x : i32) i32    // seznam parametru
+//      { //deklarace funkce; v IFJ24 nejsou blokove komentare
+//        if(x<10){return x-1;}else{const y = x - 1; // cannot redefine x (shadowing is forbidden)
+//          ifj.write("calling g with "); ifj.write(y); ifj.write("\n");
+//          const res = g(y);
+//          return res;
+//        }
+//      }
+//      pub fn g(x:i32) i32 {
+//        if (x > 0) {
+//          ifj.write("calling f with "); ifj.write(x); ifj.write("\n"); 
+//          const y = f(x); // inicializace konstanty volanim funkce
+//          return y; 
+//        } else {
+//        return 200; 
+//        }
+//        }
+//      pub fn main() void {
+//        const res = g(10);
+//      ifj.write("res: "); ifj.write(res); ifj.write("\n");
+//    }
+// ----- Konec souboru: fun.zig -----
 TEST(Lex, Fun) {
     string path = exam_path + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -853,12 +877,37 @@ TEST(Lex, Fun) {
     fclose(f);
 }
 
-
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example1.zig
- */
+// ----- Začátek souboru: example1.zig -----
+//      //Program 1: Vypocet faktorialu (iterativne)
+//      //Hlavni telo programu
+//      const ifj = @import("ifj24.zig");
+//      pub fn main() void {
+//          ifj.write("Zadejte cislo pro vypocet faktorialu\n");
+//          const a = ifj.readi32();
+//          if (a) |val| {
+//              if (val < 0) {
+//                  ifj.write("Faktorial ");
+//                  ifj.write(val);
+//                  ifj.write(" nelze spocitat\n");
+//              } else {
+//                  var d: f64 = ifj.i2f(val);
+//                  var vysl: f64 = 1.0;
+//                  while (d > 0) {
+//                      vysl = vysl * d;
+//                      d = d - 1.0;
+//                  }
+//                  ifj.write("Vysledek: ");
+//                  ifj.write(vysl);
+//                  ifj.write(" = ");
+//                  const vysl_i32 = ifj.f2i(vysl);
+//                  ifj.write(vysl_i32);
+//                  ifj.write("\n");
+//              }
+//          } else { // a == null
+//              ifj.write("Faktorial pro null nelze spocitat\n");
+//          }
+//      }
+// ----- Konec souboru: example1.zig -----
 TEST(Lex, Example1){
     string path = exam_path + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -998,11 +1047,38 @@ TEST(Lex, Example1){
 }
 
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example2.zig
- */
+// ~~~~~ Začátek souboru: example2.zig ~~~~~
+//    const ifj = @import("ifj24.zig");
+//    pub fn main() void {
+//        ifj.write("Zadejte cislo pro vypocet faktorialu: ");
+//        const inp = ifj.readi32();
+//        if (inp) |INP| {
+//            if (INP < 0) {
+//                ifj.write("Faktorial nelze spocitat!\n");
+//            } else {
+//                const vysl = factorial(INP);
+//                ifj.write("Vysledek: ");
+//                ifj.write(vysl);
+//            }
+//        } else {
+//            ifj.write("Chyba pri nacitani celeho cisla!\n");
+//        }
+//    }
+//    pub fn decrement(n: i32, m: i32) i32 {
+//        return n - m;
+//    }
+//    pub fn factorial(n: i32) i32 {
+//        var result: i32 = 0 - 1;
+//        if (n < 2) {
+//            result = 1;
+//        } else {
+//            const decremented_n = decrement(n, 1);
+//            const temp_result = factorial(decremented_n);
+//            result = n * temp_result;
+//        }
+//        return result;
+//    }
+// ~~~~~ Konec souboru: example2.zig ~~~~~
 TEST(Lex, Example2) {
     string path = exam_path + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -1147,11 +1223,35 @@ TEST(Lex, Example2) {
     fclose(f);
 }
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example3.zig
- */
+// ~~~~~ Začátek souboru: example3.zig ~~~~~
+//    const ifj = @import("ifj24.zig");
+//    pub fn main() void {
+//        const str1 = ifj.string("Toto je nejaky text v programu jazyka IFJ24");
+//        var str2 = ifj.string(", ktery jeste trochu obohatime");
+//        str2 = ifj.concat(str1, str2);
+//        ifj
+//            .  write(str1);
+//        ifj.write("\n");
+//        ifj.write(str2);
+//        ifj.write("\n");
+//        ifj.write("Zadejte serazenou posloupnost vsech malych pismen a-h, ");
+//        var newInput = ifj.readstr();
+//        var all: []u8 = ifj.string("");
+//        while (newInput) |inpOK| {
+//            const abcdefgh = ifj.string("abcdefgh"); 
+//            const strcmpResult = ifj.strcmp(inpOK, abcdefgh);
+//            if (strcmpResult == 0) {
+//                ifj.write("Spravne zadano!\n");
+//                ifj.write(all); 
+//                newInput = null; 
+//            } else {
+//                ifj.write("Spatne zadana posloupnost, zkuste znovu:\n");
+//                all = ifj.concat(all, inpOK); 
+//                newInput = ifj.readstr();
+//            }
+//        }
+//    }
+// ~~~~~ Konec souboru: example3.zig ~~~~~
 TEST(Lex, Example3) {
     string path = exam_path + "example3.zig";
     FILE* f = fopen(path.c_str(), "r");
