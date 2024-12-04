@@ -8,7 +8,7 @@
  *                   David Krejčí <xkrejcd00> (tvorba množin)                  *
  *                                                                             *
  * Datum:            24.10.2024                                                *
- * Poslední změna:   24.11.2024                                                *
+ * Poslední změna:   03.12.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -39,26 +39,27 @@
  ******************************************************************************/
 
 /**
- * @brief Najde pravidlo v LL tabulce na základě neterminálu a kódu terminálu.
+ * @brief Najde pravidlo v LL tabulce na základě aktuálního neterminálu
+ *        a terminálu.
  */
 void LLtable_findRule(LLTerminals terminal, LLNonTerminals nonTerminal, LLRuleSet *rule) {
     // Ověření platnosti předaného ukazatele - interní chyba
     if(rule == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         *rule = RULE_UNDEFINED;
         return;
     }
 
     // Pokud byl předán neplatný (nedefinovaný) LL NEterminál - interní chyba
     if(nonTerminal == NT_UNDEFINED) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         *rule = RULE_UNDEFINED;
         return;
     }
 
     // Pokud byl předán neplatný (nedefinovaný) LL terminál - syntaktická chyba
     if(terminal == T_UNDEFINED) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);
+        parser_errorWatcher(SET_ERROR_SYNTAX);
         *rule = RULE_UNDEFINED;
         return;
     }
@@ -119,7 +120,7 @@ void LLtable_findRule(LLTerminals terminal, LLNonTerminals nonTerminal, LLRuleSe
         if(LLtable[mid].key == terminal) {
             // Pokud pravidlo neexistuje, došlo k syntaktické chybě
             if(LLtable[mid].value[nonTerminal] == SYNTAX_ERROR) {
-                Parser_errorWatcher(SET_ERROR_SYNTAX);
+                parser_errorWatcher(SET_ERROR_SYNTAX);
                 *rule = SYNTAX_ERROR;
                 return;
             }
@@ -141,7 +142,7 @@ void LLtable_findRule(LLTerminals terminal, LLNonTerminals nonTerminal, LLRuleSe
     }
 
     // Pokud terminál nebyl v LL tabulce nalezen nastavujeme syntaktickou chybu
-    Parser_errorWatcher(SET_ERROR_SYNTAX);
+    parser_errorWatcher(SET_ERROR_SYNTAX);
     *rule = SYNTAX_ERROR;
 } // LLtable_findRule()
 

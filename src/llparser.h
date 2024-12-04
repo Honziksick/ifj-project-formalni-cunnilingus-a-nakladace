@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            30.10.2024                                                *
- * Poslední změna:   25.11.2024                                                *
+ * Poslední změna:   04.12.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -19,11 +19,11 @@
  * @file llparser.h
  * @author Jan Kalina \<xkalinj00>
  *
- * @brief Deklarace funkcí pro LL syntaktický analyzátor.
- * @details Tento soubor obsahuje deklarace funkcí pro parsování neterminálů
- *          podle LL gramatiky. Umožňuje tvorbu uzlů abstraktního syntaktického
- *          stromu (AST) a zajišťuje přechody mezi stavy, aby byla zachována
- *          správná struktura kódu během syntaktické analýzy.
+ * @brief Hlavičkový soubor pro LL syntaktický analyzátor.
+ * @details Tento soubor obsahuje deklarace funkcí pro analýzu terminálů a
+ *          neterminálů podle LL gramatiky. Umožňuje tvorbu uzlů abstraktního
+ *          syntaktického stromu (AST) a zajišťuje přechody mezi stavy, aby byla
+ *          zachována správná struktura kódu během syntaktické analýzy.
  */
 
 #ifndef LLPARSER_H_
@@ -35,7 +35,6 @@
 #include "parser_common.h"
 #include "lltable.h"
 #include "precedence_parser.h"
-
 
 
 /*******************************************************************************
@@ -54,14 +53,14 @@
  ******************************************************************************/
 
 /**
- * @brief Spouští syntaktickou analýzu programu od neterminálu @c <PROGRAM>.
+ * @brief Spouští syntaktickou analýzu programu od neterminálu @c \<PROGRAM>.
  *
- * @details Tato funkce inicializuje všechny potřebné struktury, jako je AST strom,
- *          zásobník rámců a seznam precedenčních zásobníků. Poté začíná parsovat
- *          program podle LL gramatiky, počínaje neterminálem @c <PROGRAM>. Během
- *          parsování jsou vytvářeny uzly AST, které reprezentují strukturu programu.
- *          Na konci kontroluje, zda byl program korektně zpracován a zda bylo dosaženo
- *          konce vstupu (EOF).
+ * @details Tato funkce inicializuje všechny potřebné struktury, jako je AST,
+ *          zásobník rámců a seznam precedenčních zásobníků. Poté začíná
+ *          analyzovat program podle LL gramatiky, počínaje neterminálem
+ *          @c \<PROGRAM>. Během analýzy jsou vytvářeny uzly AST, které
+ *          reprezentují strukturu programu. Na konci kontroluje, zda byl
+ *          program korektně zpracován a zda bylo dosaženo dkonce vstupu (EOF).
  */
 void LLparser_parseProgram();
 
@@ -72,10 +71,10 @@ void LLparser_parseProgram();
  ******************************************************************************/
 
 /**
- * @brief Parsuje neterminál @c <PROLOGUE>, který reprezentuje úvod programu.
+ * @brief Analyzuje neterminál @c \<PROLOGUE>, který reprezentuje úvod programu.
  *
  * @details Funkce zpracovává začátek programu, kde očekává deklaraci konstanty
- *          s názvem @c ifj a importuje soubor @c "ifj24.zig". Během parsování
+ *          s názvem @c ifj a importuje soubor @c "ifj24.zig". Během analýzy
  *          kontroluje správnost syntaxe a pořadí očekávaných tokenů. Vytváří
  *          AST uzel pro importovaný soubor a přidává ho do tabulky symbolů
  *          jako konstantu. Pokud dojde k chybě, funkce zajišťuje uvolnění
@@ -90,12 +89,13 @@ void LLparser_parseProgram();
 AST_VarNode *LLparser_parsePrologue();
 
 /**
- * @brief Parsuje neterminál @c <FUN_DEF_LIST>, který reprezentuje seznam definic funkcí.
+ * @brief Analyzuje neterminál @c \<FUN_DEF_LIST>, který reprezentuje seznam
+ *        definic funkcí.
  *
  * @details Funkce rekurzivně parsuje jednotlivé definice funkcí pomocí volání
- *          @c LLparser_parseFunDef() a vytváří z nich propojený seznam uzlů typu
- *          @c `AST_FunDefNode. Každá definice funkce je připojena na začátek seznamu,
- *          což umožňuje efektivní sestavení kompletního seznamu definic.
+ *          @c LLparser_parseFunDef() a vytváří z nich lineární seznam uzlů typu
+ *          @c `AST_FunDefNode. Každá definice funkce je připojena na začátek
+ *          seznamu, což umožňuje efektivní sestavení kompletního seznamu definic.
  *          Pokud je seznam prázdný, funkce vrací @c NULL. V případě chyby zajišťuje
  *          uvolnění všech alokovaných zdrojů a nastavuje chybové příznaky.
  * @note
@@ -109,26 +109,27 @@ AST_VarNode *LLparser_parsePrologue();
 AST_FunDefNode *LLparser_parseFunDefList();
 
 /**
- * @brief Parsuje neterminál @c <FUN_DEF>, který reprezentuje definici jedné funkce.
+ * @brief Analyzuje neterminál @c \<FUN_DEF>, který reprezentuje definici jedné
+ *        funkce.
  *
- * @details Funkce zpracovává kompletní definici funkce, včetně klíčových slov `pub fn`,
- *          identifikátoru funkce, parametrů, návratového typu a těla funkce.
- *          Během parsování jsou parametry funkce přidávány do tabulky symbolů
- *          a je vytvářen nový rámec pro lokální proměnné. Po úspěšném parsování
- *          je funkce přidána do globální tabulky symbolů jako definovaná.
- *          V případě chyby jsou všechny alokované zdroje uvolněny a jsou nastaveny
- *          chybové příznaky pro následné ošetření.
+ * @details Funkce zpracovává kompletní definici funkce, včetně klíčových slov
+ *          `pub fn`, identifikátoru funkce, parametrů, návratového typu a těla
+ *          funkce. Během analýzy jsou parametry funkce přidávány do tabulky
+ *          symbolů a je vytvářen nový rámec pro lokální proměnné. Po úspěšném
+ *          analýzy je funkce přidána do globální tabulky symbolů jako definovaná.
+ *          V případě chyby jsou všechny alokované zdroje uvolněny a jsou
+ *          nastaveny chybové příznaky pro následné ošetření.
  * @note
  * Neterminál se může dále rozvíjet na:
  * - `<FUN_DEF> -> pub fn id ( <PARAMETERS> ) <RETURN_TYPE> <SEQUENCE>`
  *
- * @return Ukazatel na AST uzel typu @c AST_FunDefNode, který reprezentuje definici
- *         funkce, nebo @c PARSING_ERROR v případě chyby.
+ * @return Ukazatel na AST uzel typu @c AST_FunDefNode, který reprezentuje
+ *         definici funkce, nebo @c PARSING_ERROR v případě chyby.
  */
 AST_FunDefNode *LLparser_parseFunDef();
 
 /**
- * @brief Parsuje neterminál @c <PARAMETERS>, který reprezentuje seznam
+ * @brief Analyzuje neterminál @c \<PARAMETERS>, který reprezentuje seznam
  *        parametrů funkce.
  *
  * @details Funkce zpracovává seznam parametrů, který může být buď prázdný, nebo
@@ -150,12 +151,12 @@ AST_FunDefNode *LLparser_parseFunDef();
 AST_ArgOrParamNode *LLparser_parseParameters(size_t *paramCount);
 
 /**
- * @brief Parsuje neterminál @c <PARAM_LIST>, který reprezentuje neprázdný
+ * @brief Analyzuje neterminál @c \<PARAM_LIST>, který reprezentuje neprázdný
  *        seznam parametrů.
  *
  * @details Funkce zpracovává seznam parametrů oddělených čárkami. Rekurzivně
  *          volá sama sebe pro zpracování dalších parametrů v seznamu. Každý
- *          parametr je parsován pomocí @c LLparser_parseParam() a připojen
+ *          parametr je analyzován pomocí @c LLparser_parseParam() a připojen
  *          do seznamu. Počet parametrů je inkrementován pomocí
  *          ukazatele @c paramCount.
  * @note
@@ -170,8 +171,8 @@ AST_ArgOrParamNode *LLparser_parseParameters(size_t *paramCount);
 AST_ArgOrParamNode *LLparser_parseParamList(size_t *paramCount);
 
 /**
- * @brief Parsuje neterminál @c <PARAM_LIST_REST>, který reprezentuje pokračování
- *        seznamu parametrů.
+ * @brief Analyzuje neterminál @c \<PARAM_LIST_REST>, který reprezentuje
+ *        pokračování seznamu parametrů.
  *
  * @details Funkce zpracovává případné další parametry v seznamu po první čárce.
  *          Pokud je nalezena čárka, funkce volá @c LLparser_parseParamList()
@@ -190,7 +191,8 @@ AST_ArgOrParamNode *LLparser_parseParamList(size_t *paramCount);
 AST_ArgOrParamNode *LLparser_parseParamListRest(size_t *paramCount);
 
 /**
- * @brief Parsuje neterminál @c <PARAM>, který reprezentuje jeden parametr funkce.
+ * @brief Analyzuje neterminál @c \<PARAM>, který reprezentuje jeden parametr
+ *        funkce.
  *
  * @details Funkce zpracovává jeden parametr funkce, který obsahuje identifikátor
  *          a datový typ oddělený dvojtečkou. Identifikátor parametru je přidán do
@@ -206,7 +208,7 @@ AST_ArgOrParamNode *LLparser_parseParamListRest(size_t *paramCount);
 AST_ArgOrParamNode *LLparser_parseParam();
 
 /**
- * @brief Parsuje neterminál @c <RETURN_TYPE>, který reprezentuje návratový
+ * @brief Analyzuje neterminál @c \<RETURN_TYPE>, který reprezentuje návratový
  *        typ funkce.
  *
  * @details Funkce zpracovává návratový typ funkce, který může být buď konkrétní
@@ -224,7 +226,7 @@ AST_ArgOrParamNode *LLparser_parseParam();
 AST_DataType LLparser_parseReturnType();
 
 /**
- * @brief Parsuje neterminál @c <DATA_TYPE>, který reprezentuje podporované
+ * @brief Analyzuje neterminál @c \<DATA_TYPE>, který reprezentuje podporované
  *        datové typy.
  *
  * @details Funkce zpracovává různé datové typy podporované jazykem, včetně
@@ -247,11 +249,13 @@ AST_DataType LLparser_parseReturnType();
 AST_DataType LLparser_parseDataType();
 
 /**
- * @brief Parsuje neterminál @c <STATEMENT_LIST>, který reprezentuje seznam příkazů.
+ * @brief Analyzuje neterminál @c \<STATEMENT_LIST>, který reprezentuje
+ *        seznam příkazů.
  *
  * @details Funkce rekurzivně parsuje jednotlivé příkazy pomocí volání
- *          @c LLparser_parseStatement() a vytváří z nich propojený seznam uzlů
- *          typu @c AST_StatementNode. Pokud je seznam prázdný, funkce vrací @c NULL.
+ *          @c LLparser_parseStatement() a vytváří z nich propojený seznam
+ *          uzlů typu @c AST_StatementNode. Pokud je seznam prázdný, funkce
+ *          vrací @c NULL.
  * @note
  * Neterminál se může dále rozvíjet na:
  * - `<STATEMENT_LIST> -> <STATEMENT> <STATEMENT_LIST>`
@@ -263,13 +267,14 @@ AST_DataType LLparser_parseDataType();
 AST_StatementNode *LLparser_parseStatementList();
 
 /**
- * @brief Parsuje neterminál @c <STATEMENT>, který reprezentuje jeden příkaz programu.
+ * @brief Analyzuje neterminál @c \<STATEMENT>, který reprezentuje jeden příkaz
+ *        programu.
  *
  * @details Funkce zpracovává různé typy příkazů, jako je definice proměnné,
  *          přiřazení, volání funkce, podmíněný příkaz @c if, cyklus @c while,
  *          návratový příkaz @c return nebo volání vestavěných funkcí @c ifj.
  *          Na základě aktuálního tokenu a LL tabulky rozhoduje, které pravidlo
- *          aplikovat a volá příslušnou funkci pro parsování.
+ *          aplikovat a volá příslušnou funkci pro analýzy.
  * @note
  * Neterminál se může dále rozvíjet na:
  * - `<STATEMENT> -> <VAR_DEF> ;`
@@ -286,13 +291,14 @@ AST_StatementNode *LLparser_parseStatementList();
 AST_StatementNode *LLparser_parseStatement();
 
 /**
- * @brief Parsuje neterminál @c <VAR_DEF>, který reprezentuje definici proměnné.
+ * @brief Analyzuje neterminál @c \<VAR_DEF>, který reprezentuje definici
+ *        proměnné.
  *
- * @details Funkce zpracovává definici proměnné, která může být deklarována jako
- *          modifikovatelná (`var`) nebo konstantní (`const`). Následuje identifikátor
- *          proměnné, případně její datový typ a inicializační výraz. Proměnná je
- *          přidána do tabulky symbolů aktuálního rámce a je vytvořen odpovídající
- *          uzel AST pro příkaz definice proměnné.
+ * @details Funkce zpracovává definici proměnné, která může být deklarována
+ *          jako modifikovatelná (`var`) nebo konstantní (`const`). Následuje
+ *          identifikátor proměnné, případně její datový typ a inicializační
+ *          výraz. Proměnná je přidána do tabulky symbolů aktuálního rámce a
+ *          je vytvořen odpovídající uzel AST pro příkaz definice proměnné.
  * @note
  * Neterminál se může dále rozvíjet na:
  * - `<VAR_DEF> -> <MODIFIABLE> id <POSSIBLE_TYPE> = [precedence_expr]`
@@ -303,11 +309,12 @@ AST_StatementNode *LLparser_parseStatement();
 AST_StatementNode *LLparser_parseVarDef();
 
 /**
- * @brief Parsuje neterminál @c <MODIFIABLE>, který určuje modifikovatelnost proměnné.
+ * @brief Analyzuje neterminál @c \<MODIFIABLE>, který určuje modifikovatelnost
+ *        proměnné.
  *
  * @details Funkce zpracovává klíčová slova @c var a @c const, která určují,
- *          zda je proměnná modifikovatelná nebo konstantní. Na základě nalezeného
- *          klíčového slova nastavuje hodnotu proměnné @c isConstant.
+ *          zda je proměnná modifikovatelná nebo konstantní. Na základě
+ *          nalezeného klíčového slova nastavuje hodnotu proměnné @c isConstant.
  * @note
  * Neterminál se může dále rozvíjet na:
  * - `<MODIFIABLE> -> var`
@@ -320,7 +327,7 @@ AST_StatementNode *LLparser_parseVarDef();
 void LLparser_parseModifiable(bool *isConstant);
 
 /**
- * @brief Parsuje neterminál @c <POSSIBLE_TYPE>, který reprezentuje případný
+ * @brief Analyzuje neterminál @c \<POSSIBLE_TYPE>, který reprezentuje případný
  *        datový typ proměnné.
  *
  * @details Funkce zpracovává možnost, že proměnná má explicitně uvedený datový
@@ -338,7 +345,7 @@ void LLparser_parseModifiable(bool *isConstant);
 AST_DataType LLparser_parsePossibleType();
 
 /**
- * @brief Parsuje neterminál @c <STATEMENT_REST>, který reprezentuje zbytek
+ * @brief Analyzuje neterminál @c \<STATEMENT_REST>, který reprezentuje zbytek
  *        příkazu po identifikátoru.
  *
  * @details Funkce zpracovává dvě možnosti pokračování příkazu po identifikátoru:
@@ -352,7 +359,7 @@ AST_DataType LLparser_parsePossibleType();
  * - `<STATEMENT_REST> -> ( <ARGUMENTS> )`
  *
  * @param[in,out] identifier Ukazatel na identifikátor proměnné nebo funkce,
- *                           který byl parsován před voláním této funkce.
+ *                           který byl analyzován před voláním této funkce.
  *                           V případě chyby je identifikátor uvolněn a ukazatel
  *                           je nastaven na @c NULL.
  * @return Ukazatel na AST uzel příkazu typu @c AST_StatementNode,
@@ -361,7 +368,7 @@ AST_DataType LLparser_parsePossibleType();
 AST_StatementNode *LLparser_parseStatementRest(DString **identifier);
 
 /**
- * @brief Parsuje neterminál @c <THROW_AWAY>, který reprezentuje výraz s
+ * @brief Analyzuje neterminál @c \<THROW_AWAY>, který reprezentuje výraz s
  *        výsledkem k zahození.
  *
  * @details Funkce zpracovává výraz, jehož výsledek není dále využíván, typicky
@@ -377,7 +384,8 @@ AST_StatementNode *LLparser_parseStatementRest(DString **identifier);
 AST_ExprNode *LLparser_parseThrowAway();
 
 /**
- * @brief Parsuje neterminál @c <IF>, který reprezentuje podmíněný příkaz @c if.
+ * @brief Analyzuje neterminál @c \<IF>, který reprezentuje podmíněný
+ *        příkaz @c if.
  *
  * @details Funkce zpracovává konstrukci podmíněného příkazu @c if, včetně podmínky,
  *          případné null podmínky a těla příkazu. Podmínka je zpracována pomocí
@@ -393,7 +401,7 @@ AST_ExprNode *LLparser_parseThrowAway();
 AST_IfNode *LLparser_parseIf();
 
 /**
- * @brief Parsuje neterminál @c <NT_NULL_COND>, který reprezentuje případnou
+ * @brief Analyzuje neterminál @c \<NT_NULL_COND>, který reprezentuje případnou
  *        null podmínku.
  *
  * @details Funkce zpracovává možnost, že v konstrukci @c if nebo @c while je
@@ -413,19 +421,19 @@ AST_IfNode *LLparser_parseIf();
 AST_VarNode *LLparser_parseNullCond();
 
 /**
- * @brief Parsuje neterminál @c <SEQUENCE>, který reprezentuje blok kódu
+ * @brief Analyzuje neterminál @c \<SEQUENCE>, který reprezentuje blok kódu
  *        ohraničený složenými závorkami.
  *
  * @details Funkce zpracovává blok kódu, který může obsahovat seznam příkazů.
- *          Před parsováním příkazů může být vytvořen nový rámec pro proměnné,
+ *          Před analýzou příkazů může být vytvořen nový rámec pro proměnné,
  *          pokud je to vyžadováno parametrem @c createFrame. Po úspěšném
- *          parsování je vrácen seznam příkazů jako propojený seznam uzlů
+ *          analýzy je vrácen seznam příkazů jako propojený seznam uzlů
  *          typu @c AST_StatementNode.
  * @note
  * Neterminál se může dále rozvíjet na:
  * - `<SEQUENCE> -> { <STATEMENT_LIST> }`
  *
- * @param [in] createFrame Boolean hodnota určující, zda má být před parsováním
+ * @param [in] createFrame Boolean hodnota určující, zda má být před analýzou
  *                         vytvořen nový rámec.
  * @return Ukazatel na první uzel seznamu příkazů typu @c AST_StatementNode,
  *         nebo @c PARSING_ERROR při chybě.
@@ -433,12 +441,12 @@ AST_VarNode *LLparser_parseNullCond();
 AST_StatementNode *LLparser_parseSequence(bool createFrame);
 
 /**
- * @brief Parsuje neterminál @c <WHILE>, který reprezentuje cyklus @c while.
+ * @brief Analyzuje neterminál @c \<WHILE>, který reprezentuje cyklus @c while.
  *
  * @details Funkce zpracovává konstrukci cyklu @c while, včetně podmínky,
  *          případné null podmínky a těla cyklu. Podmínka je zpracována pomocí
- *          precedenčního parseru. Spravuje rámce pro tělo cyklu a vytváří AST uzel
- *          typu @c AST_WhileNode.
+ *          precedenčního parseru. Spravuje rámce pro tělo cyklu a vytváří AST
+ *          uzel typu @c AST_WhileNode.
  * @note
  * Neterminál se může dále rozvíjet na:
  * - `<WHILE> -> while ( [precedence_expr] ) <NULL_COND> <SEQUENCE>`
@@ -449,13 +457,13 @@ AST_StatementNode *LLparser_parseSequence(bool createFrame);
 AST_WhileNode *LLparser_parseWhile();
 
 /**
- * @brief Parsuje neterminál @c <ARGUMENTS>, který reprezentuje seznam
+ * @brief Analyzuje neterminál @c \<ARGUMENTS>, který reprezentuje seznam
  *        argumentů funkce.
  *
- * @details Funkce zpracovává seznam argumentů předávaných funkci. Každý argument je
- *          parsován pomocí precedenčního parseru a přidán do seznamu argumentů jako
- *          uzel typu @c AST_ArgOrParamNode. Pokud je seznam argumentů prázdný,
- *          funkce vrací @c NULL.
+ * @details Funkce zpracovává seznam argumentů předávaných funkci. Každý
+ *          argument je analyzován pomocí precedenčního parseru a přidán do
+ *          seznamu argumentů jako uzel typu @c AST_ArgOrParamNode. Pokud je
+ *          seznam argumentů prázdný, funkce vrací @c NULL.
  * @note
  * Neterminál se může dále rozvíjet na:
  * - `<ARGUMENTS> -> [precedence_expr]`
@@ -473,10 +481,10 @@ AST_ArgOrParamNode *LLparser_parseArguments();
  ******************************************************************************/
 
 /**
- * @brief Parsuje pravidlo `<STATEMENT> -> <VAR_DEF> ;`.
+ * @brief Analyzuje pravidlo `<STATEMENT> -> <VAR_DEF> ;`.
  *
  * @details Funkce zpracovává definici proměnné následovanou středníkem.
- *          Volá @c LLparser_parseVarDef() pro parsování definice proměnné
+ *          Volá @c LLparser_parseVarDef() pro analýzy definice proměnné
  *          a poté kontroluje přítomnost středníku. Vytváří AST uzel typu
  *          @c AST_StatementNode pro příkaz definice proměnné.
  *
@@ -486,10 +494,10 @@ AST_ArgOrParamNode *LLparser_parseArguments();
 AST_StatementNode *LLparser_parseRuleStatement1();
 
 /**
- * @brief Parsuje pravidlo `<STATEMENT> -> id <STATEMENT_REST> ;`.
+ * @brief Analyzuje pravidlo `<STATEMENT> -> id <STATEMENT_REST> ;`.
  *
  * @details Funkce zpracovává příkaz začínající identifikátorem, který může být
- *          přiřazením hodnoty do proměnné nebo voláním funkce. Po parsování
+ *          přiřazením hodnoty do proměnné nebo voláním funkce. Po analýzy
  *          identifikátoru volá @c LLparser_parseStatementRest() pro zpracování
  *          zbytku příkazu. Nakonec kontroluje přítomnost středníku.
  *
@@ -499,7 +507,7 @@ AST_StatementNode *LLparser_parseRuleStatement1();
 AST_StatementNode *LLparser_parseRuleStatement2();
 
 /**
- * @brief Parsuje pravidlo `<STATEMENT> -> _ = <THROW_AWAY> ;`.
+ * @brief Analyzuje pravidlo `<STATEMENT> -> _ = <THROW_AWAY> ;`.
  *
  * @details Funkce zpracovává příkaz, kde je výsledek výrazu zahozen, například
  *          při volání funkce, jejíž návratová hodnota není potřebná. Vytváří
@@ -512,7 +520,7 @@ AST_StatementNode *LLparser_parseRuleStatement2();
 AST_StatementNode *LLparser_parseRuleStatement3();
 
 /**
- * @brief Parsuje pravidlo `<STATEMENT> -> <IF>`.
+ * @brief Analyzuje pravidlo `<STATEMENT> -> <IF>`.
  *
  * @details Funkce zpracovává podmíněný příkaz @c if voláním @c LLparser_parseIf().
  *          Vytváří AST uzel typu @c AST_StatementNode pro příkaz obsahující
@@ -524,7 +532,7 @@ AST_StatementNode *LLparser_parseRuleStatement3();
 AST_StatementNode *LLparser_parseRuleStatement4();
 
 /**
- * @brief Parsuje pravidlo `<STATEMENT> -> <WHILE>`.
+ * @brief Analyzuje pravidlo `<STATEMENT> -> <WHILE>`.
  *
  * @details Funkce zpracovává cyklus @c while voláním @c LLparser_parseWhile().
  *          Vytváří AST uzel typu @c AST_StatementNode pro příkaz obsahující
@@ -536,7 +544,7 @@ AST_StatementNode *LLparser_parseRuleStatement4();
 AST_StatementNode *LLparser_parseRuleStatement5();
 
 /**
- * @brief Parsuje pravidlo `<STATEMENT> -> return [precedence_expression] ;`.
+ * @brief Analyzuje pravidlo `<STATEMENT> -> return [precedence_expression] ;`.
  *
  * @details Funkce zpracovává návratový příkaz @c return, který může obsahovat
  *          návratový výraz. Výraz je zpracován pomocí precedenčního parseru.
@@ -549,9 +557,9 @@ AST_StatementNode *LLparser_parseRuleStatement5();
 AST_StatementNode *LLparser_parseRuleStatement6();
 
 /**
- * @brief Parsuje pravidlo `<STATEMENT> -> ifj . id ( <ARGUMENTS> ) ;`.
+ * @brief Analyzuje pravidlo `<STATEMENT> -> ifj . id ( <ARGUMENTS> ) ;`.
  *
- * @details Funkce zpracovává volání vestavěné funkce z modulu @c ifj. Parsuje
+ * @details Funkce zpracovává volání vestavěné funkce z modulu @c ifj. Analyzuje
  *          identifikátor funkce, seznam argumentů a kontroluje přítomnost
  *          středníku. Vytváří AST uzel typu @c AST_StatementNode pro příkaz
  *          volání funkce.
@@ -562,11 +570,11 @@ AST_StatementNode *LLparser_parseRuleStatement6();
 AST_StatementNode *LLparser_parseRuleStatement7();
 
 /**
- * @brief Parsuje pravidlo `<STATEMENT_REST> -> = [precedence_expression]`.
+ * @brief Analyzuje pravidlo `<STATEMENT_REST> -> = [precedence_expression]`.
  *
  * @details Funkce zpracovává přiřazení hodnoty do proměnné po identifikátoru.
- *          Volá precedenční parser pro zpracování výrazu na pravé straně přiřazení.
- *          Vytváří AST uzly pro proměnnou, výraz a přiřazení.
+ *          Volá precedenční parser pro zpracování výrazu na pravé straně
+ *          přiřazení. Vytváří AST uzly pro proměnnou, výraz a přiřazení.
  *
  * @param [in,out] identifier Ukazatel na identifikátor proměnné.
  *                           V případě chyby je identifikátor uvolněn.
@@ -576,10 +584,10 @@ AST_StatementNode *LLparser_parseRuleStatement7();
 AST_StatementNode *LLparser_parseRuleStatementRest1(DString **identifier);
 
 /**
- * @brief Parsuje pravidlo `<STATEMENT_REST> -> ( <ARGUMENTS> )`.
+ * @brief Analyzuje pravidlo `<STATEMENT_REST> -> ( <ARGUMENTS> )`.
  *
  * @details Funkce zpracovává volání uživatelské funkce po identifikátoru.
- *          Parsuje seznam argumentů a vytváří AST uzel typu @c AST_StatementNode
+ *          Analyzuje seznam argumentů a vytváří AST uzel typu @c AST_StatementNode
  *          pro příkaz volání funkce.
  *
  * @param [in,out] identifier Ukazatel na identifikátor funkce. V případě chyby

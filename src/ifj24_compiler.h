@@ -4,7 +4,6 @@
  *                                                                             *
  * Soubor:           ifj24_compiler.h                                          *
  * Autor:            Jan Kalina   <xkalinj00>                                  *
- *                   David Krejčí <xkrejcd00>                                  *
  *                                                                             *
  * Datum:            06.11.2024                                                *
  * Poslední změna:   25.11.2024                                                *
@@ -19,7 +18,6 @@
 /**
  * @file ifj24_compiler.h
  * @author Jan Kalina \<xkalinj00>
- * @author David Krejčí \<xkrejcd00>
  *
  * @brief Hlavičkový soubor pro funkci `main()` překladače jazyka IFJ24.
  * @details Tento soubor obsahuje pouze deklaraci funkce main, která slouží jako
@@ -32,11 +30,13 @@
 #define MAIN_H_
 /** @endcond  */
 
-
-#include "error.h"
+// Import knihoven hlavních modolů
 #include "llparser.h"
 #include "semantic_analyser.h"
 #include "tac_generator.h"
+
+// Import sdílených knihoven překladače
+#include "error.h"
 
 
 /*******************************************************************************
@@ -58,3 +58,5 @@
 int main();
 
 #endif  // MAIN_H_
+
+/*** Konec souboru ifj24_compiler.h ***/

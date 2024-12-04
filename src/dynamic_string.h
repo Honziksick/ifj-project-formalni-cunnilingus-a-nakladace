@@ -30,15 +30,31 @@
 #define DYNAMIC_STRING_H_
 /** @endcond */
 
+// Import standardních knihoven jazyka C
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 
+// Import sdílených knihoven překladače
 #include "error.h"
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                              DEFINICE KONSTANT                              *
+ *                                                                             *
+ ******************************************************************************/
 
 #define STRING_INIT_SIZE 8    /**< Počáteční velikost dynamického řetězce při inicializaci */
 #define DEFAULT_RESIZE_SIZE 8  /**< Délka, o kterou budeme dynamický řetězec zvětšovat */
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                             VÝČTOVÉ DATOVÉ TYPY                             *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief   Výčet návratových hodnot funkcí v knihovně pro dynamický řetězec.
@@ -46,14 +62,21 @@
  *          ke kterým může dojít v určitých funkcích.
  */
 typedef enum {
-    STRING_SUCCESS,                 /**< Operace se zdařila */
-    STRING_ALLOCATION_FAIL,         /**< Selhání alokace paměti */
-    STRING_EQUAL,                   /**< Řetězce jsou stejné */
-    STRING_NOT_EQUAL,               /**< Řetězce nejsou stejné */
+    STRING_SUCCESS,                 /**< Operace se zdařila              */
+    STRING_ALLOCATION_FAIL,         /**< Selhání alokace paměti          */
+    STRING_EQUAL,                   /**< Řetězce jsou stejné             */
+    STRING_NOT_EQUAL,               /**< Řetězce nejsou stejné           */
     STRING_COPY_FAIL,               /**< Řetězec se nepovedlo zkopírovat */
-    STRING_APPEND_FAIL,             /**< Nepovedlo se přivěsit řetězec */
-    STRING_RESIZE_FAIL              /**< Nepovedlo se zvětšení řetězce */
+    STRING_APPEND_FAIL,             /**< Nepovedlo se přivěsit řetězec   */
+    STRING_RESIZE_FAIL              /**< Nepovedlo se zvětšení řetězce   */
 } string_result;
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                             DEKLARACE STRUKTUR                              *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief   Datový typ dynamického řetězce.
@@ -68,6 +91,13 @@ typedef struct {
     size_t length;                  /**< Skutečná délka řetězce */
 } DString;
 
+
+/*******************************************************************************
+ *                                                                             *
+ *                         DEKLARACE VEŘEJNÝCH FUNKCÍ                          *
+ *                                                                             *
+ ******************************************************************************/
+
 /**
  * @brief Inicializace dynamického řetězce s počáteční kapacitou.
  *
@@ -77,7 +107,7 @@ typedef struct {
  * @return Při selhání vrací @c NULL.
  *         V opačném případě vrací ukazatel na nově vytvořený datový typ.
 */
-DString *string_init();
+DString *DString_init();
 
 /**
  * @brief Uvolnění paměti dynamického řetězce.
@@ -86,7 +116,7 @@ DString *string_init();
  *
  * @param [in] str Ukazatel na datový typ @c DString
 */
-void string_free(DString *str);
+void DString_free(DString *str);
 
 /**
  * @brief   Přidání jednoho znaku na konec dynamického řetězce.
@@ -100,7 +130,7 @@ void string_free(DString *str);
  * @return Vrací @c STRING_SUCCESS, pokud se vyvedla operace.
  *         Vrací @c STRING_RESIZE_FAIL, pokud se nezdařilo nafouknout datový typ.
  */
-int string_append_char(DString *str, char character);
+int DString_appendChar(DString *str, char character);
 
 /**
  * @brief   Zkopíruje obsah jednoho dynamického řetězce do druhého.
@@ -114,7 +144,7 @@ int string_append_char(DString *str, char character);
  * @return Pokud jeden z řetězců neexistuje nebo se nezdaří alokace vrátí @c STRING_COPY_FAIL.
  *         V opačném případě vrací @c STRING_SUCCESS.
  */
-int string_copy(DString *strCopied, DString *strTo);
+int DString_copy(DString *strCopied, DString *strTo);
 
 /**
  * @brief   Porovná dva dynamické řetězce.
@@ -128,7 +158,7 @@ int string_copy(DString *strCopied, DString *strTo);
  *         na jeden z řetězců prázdný, vrací @c STRING_NOT_EQUAL.
  *         Pokud jsou řetězce stejné, vrací @c STRING_EQUAL.
  */
-int string_compare(DString *str1, DString *str2);
+int DString_compare(DString *str1, DString *str2);
 
 /**
  * @brief Porovná dynamický řetězec s konstantním řetězcem.
@@ -143,7 +173,45 @@ int string_compare(DString *str1, DString *str2);
  *         na dynamické pole prázdný, vrací @c STRING_NOT_EQUAL.
  *         Pokud jsou řetězce stejné, vrací @c STRING_EQUAL.
 */
-int string_compare_const_str(DString *str, const char *strConst);
+int DString_compareWithConstChar(DString *str, const char *strConst);
+
+/**
+ * @brief Převede řetězec obsažený v DString na konstantní řetězec typu char.
+ *
+ * @details Tato funkce převede dynamický řetězec typu DString na konstantní
+ *          řetězec typu char. Před samotným převedením řetězce dojde k alokaci paměti
+ *          pro nový konstantní řetězec a doplnění nulového znaku na konec
+ *          hodnoty DString.
+ *
+ * @param [in] str Ukazatel na DString, který chceme převést na char*.
+ *
+ * @return V případě, že požadovaný řetězec neexistuje nebo se špatně malokuje
+ *         vrací @c NULL.
+ *         V případě, že se vše povedlo, vrátí ukazatel na nový konstantní řetězec.
+ */
+char *DString_DStringtoConstChar(DString *str);
+
+/**
+ * @brief Vytvoří nový dynamický řetězec z konstantního řetězce
+ *
+ * @details Tato funkce vytvoří nový dynamický řetězec z konstantního řetězce.
+ *          Velikost a alokovaná paměť se nastaví na délku konstantního řetězce
+ *          BEZ ukončujícího znaku '\0'.
+ *
+ * @param [in] strConst Konstantní řetězec, ze kterého vytvoříme dynamický řetězec
+ *
+ * @return V případě, že se nepovede alokace paměti, nemáme řetězec
+ *         nebo nemá hodnotu vrací @c NULL.
+ *         V případě, že se vše povedlo, vrátí ukazatel na nový dynamický řetězec.
+ */
+DString *DString_constCharToDString(const char *strConst);
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                         DEKLARACE INTERNÍCH FUNKCÍ                          *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief   Zvětší dynamický řetězec na požadovanou délku.
@@ -161,38 +229,7 @@ int string_compare_const_str(DString *str, const char *strConst);
  *         vrací @c NULL.
  *         V případě, že se vše povedlo, vrátí nově zvětšený řetězec.
  */
-DString *string_resize(DString *str, size_t size);
-
-/**
- * @brief Převede řetězec obsažený v DString na konstantní řetězec typu char.
- *
- * @details Tato funkce převede dynamický řetězec typu DString na konstantní
- *          řetězec typu char. Před samotným převedením řetězce dojde k alokaci paměti
- *          pro nový konstantní řetězec a doplnění nulového znaku na konec
- *          hodnoty DString.
- *
- * @param [in] str Ukazatel na DString, který chceme převést na char*.
- *
- * @return V případě, že požadovaný řetězec neexistuje nebo se špatně malokuje
- *         vrací @c NULL.
- *         V případě, že se vše povedlo, vrátí ukazatel na nový konstantní řetězec.
- */
-char *string_toConstChar(DString *str);
-
-/**
- * @brief Vytvoří nový dynamický řetězec z konstantního řetězce
- *
- * @details Tato funkce vytvoří nový dynamický řetězec z konstantního řetězce.
- *          Velikost a alokovaná paměť se nastaví na délku konstantního řetězce
- *          BEZ ukončujícího znaku '\0'.
- *
- * @param [in] strConst Konstantní řetězec, ze kterého vytvoříme dynamický řetězec
- *
- * @return V případě, že se nepovede alokace paměti, nemáme řetězec
- *         nebo nemá hodnotu vrací @c NULL.
- *         V případě, že se vše povedlo, vrátí ukazatel na nový dynamický řetězec.
- */
-DString *string_charToDString(const char *strConst);
+DString *DString_resize(DString *str, size_t size);
 
 #endif  // DYNAMIC_STRING_H_
 

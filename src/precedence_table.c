@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            10.11.2024                                                *
- * Poslední změna:   23.11.2024                                                *
+ * Poslední změna:   03.12.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -19,13 +19,17 @@
  * @file precedence_table.c
  * @author Jan Kalina \<xkalinj00>
  *
- * @brief Implementace správy precedenční tabulky.
- * @details Obsahuje definice funkcí a struktury pro správu precedenční tabulky,
- *          která slouží k vyhodnocování precedencí a pravidel pro operátory
- *          v jazyce IFJ24. Tento modul zajišťuje, že výrazy jsou analyzovány
- *          podle stanovených pravidel precedenční syntaktické analýzy.
+ * @brief Implementace správy precedenční tabulky pro precedenční syntaktickou
+ *        analýzu výrazů.
+ * @details Tento soubor obsahuje definice funkcí potřebných pro práci s
+ *          precedenční tabulkou v syntaktické analýze. Tabulka definuje
+ *          precedence pro operace a rozhoduje o pořadí výpočtů a zpracování
+ *          výrazů v precedenční syntaktické analýze. Poskytuje základní
+ *          prostředky pro určení precedencí a asociativit mezi operátory
+ *          jazyka IFJ24.
  */
 
+// Import submodulů parseru
 #include "parser_common.h"
 
 
@@ -36,25 +40,26 @@
  ******************************************************************************/
 
 /**
- * @brief Najde pravidlo v precedenční tabulce na základě terminálů.
+ * @brief Najde pravidlo v precedenční tabulce na základě terminálu na vrcholu
+ *        precedenčního zásobníku a vstupního terminálu.
  */
-void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, Precedence *precedence) {
+void precTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, Precedence *precedence) {
     // Ověření platnosti předaného ukazatele - interní chyba
     if(precedence == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
     // Pokud byl předán neplatný (nedefinovaný) precedenční terminál na vrcholu zásobníku
     if(stackTopTerminal == T_PREC_UNDEFINED) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);    // interní chyba
+        parser_errorWatcher(SET_ERROR_INTERNAL);    // interní chyba
         *precedence = P_PRECEDENCE_UNDEFINED;
         return;
     }
 
     // Pokud byl předán neplatný (nedefinovaný) vstupní precedenční terminál
     if(inputTerminal == T_PREC_UNDEFINED) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);      // syntaktická chyba
+        parser_errorWatcher(SET_ERROR_SYNTAX);      // syntaktická chyba
         *precedence = P_PRECEDENCE_UNDEFINED;
         return;
     }
@@ -79,10 +84,10 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
         { T_PREC_DOT,                      {         P_EQUAL,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR } },
         { T_PREC_LEFT_BRACKET,             {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,         P_EQUAL,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR } },
         { T_PREC_RIGHT_BRACKET,            {  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,  P_SYNTAX_ERROR,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-        { T_PREC_PLUS,                     {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-        { T_PREC_MINUS,                    {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-        { T_PREC_MULTIPLICATION,           {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
-        { T_PREC_DIVISION,                 {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_PLUS,                     {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_MINUS,                    {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_MULTIPLICATION,           {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
+        { T_PREC_DIVISION,                 {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
         { T_PREC_IDENTITY,                 {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
         { T_PREC_NOT_EQUAL,                {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
         { T_PREC_LESS_THAN,                {          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,          P_LESS,  P_SYNTAX_ERROR,          P_LESS,       P_GREATER,          P_LESS,          P_LESS,          P_LESS,          P_LESS,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER,       P_GREATER } },
@@ -106,7 +111,7 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
         if(precedenceTable[mid].key == stackTopTerminal) {
             // Pokud precedence značí snytaktickou chybu, došlo k syntaktické chybě
             if(precedenceTable[mid].value[inputTerminal] == P_SYNTAX_ERROR) {
-                Parser_errorWatcher(SET_ERROR_SYNTAX);
+                parser_errorWatcher(SET_ERROR_SYNTAX);
                 *precedence = P_SYNTAX_ERROR;
                 return;
             }
@@ -127,19 +132,21 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
         }
     }
 
-    // Pokud precedence nebyla v precedenční tabulce nalezena nastavujeme syntaktickou chybu
-    Parser_errorWatcher(SET_ERROR_SYNTAX);
+    // Pokud precedence nebyla v tabulce nalezena nastavujeme syntaktickou chybu
+    parser_errorWatcher(SET_ERROR_SYNTAX);
     *precedence = P_SYNTAX_ERROR;
-} // PrecTable_findPrecedence()
+} // precTable_findPrecedence()
 
 /**
  * @brief Namapuje NEterminál, ze kterého bylo předáno řízení precedenčnímu
- *        parseru,  na odpovídající "dollar" terminál.
+ *        syntaktickému analyzátoru, na odpovídající "dollar" terminál.
  */
-void PrecTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, DollarTerminals *currentDollar) {
+void precTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, \
+                                            DollarTerminals *currentDollar)
+{
     // Ověření platnosti předaného ukazatele
-    if (currentDollar == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+    if(currentDollar == NULL) {
+        parser_errorWatcher(SET_ERROR_INTERNAL);
     }
 
     // Mapujeme typ LL NEterminálu na "dollar" terminál precedenčního parseru
@@ -149,51 +156,54 @@ void PrecTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, Doll
         case NT_STATEMENT:
         case NT_STATEMENT_REST:
         case NT_THROW_AWAY:
-            *currentDollar = DOLLAR_T_SEMICOLON;
+            *currentDollar = DOLLAR_T_SEMICOLON; // "dollar" terminálem je středník
             break;
 
         // Mapování: NT_IF, NT_WHILE -> DOLLAR_T_RIGHT_BRACKET
         case NT_IF:
         case NT_WHILE:
-            *currentDollar = DOLLAR_T_RIGHT_BRACKET;
+            *currentDollar = DOLLAR_T_RIGHT_BRACKET; // "dollar" terminálem pravá závorka
             break;
 
         // Mapování: NT_ARGUMENTS -> DOLLAR_T_COMMA
         case NT_ARGUMENTS:
-            *currentDollar = DOLLAR_T_COMMA;
+            *currentDollar = DOLLAR_T_COMMA; // "dollar" terminálem je čárka
             break;
 
         // Pro jakýkoliv jiný NEterminál není "dollar" terminál definován (nemělo by nastat)
         default:
-            Parser_errorWatcher(SET_ERROR_INTERNAL);
+            parser_errorWatcher(SET_ERROR_INTERNAL);
             *currentDollar = CURRENT_DOLLAR_UNDEFINED;  // značí syntaktickou chybu
             break;
     }
-} // PrecTable_getDollarTerminalFromContext()
+} // precTable_getDollarTerminalFromContext()
 
 /**
- * @brief Mapuje typ vstupní precedenční terminál na "dollar" terminál
+ * @brief Mapuje typ vstupního precedenčního terminálu na "dollar" terminál.
  */
-void PrecParser_mapInTerminalToDollar(int bracketDepth, DollarTerminals dollarContext, \
+void precParser_mapInTerminalToDollar(int bracketDepth, DollarTerminals dollarContext, \
                                       PrecTerminals *inTerminal)
 {
     // Ověření platnosti předaného ukazatele
     if(inTerminal == NULL) {
-        Parser_errorWatcher(SET_ERROR_INTERNAL);
+        parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
+    // Pokud je volána s nedefinovaným kontextovým terminálem, nastavujeme chybu
     if(dollarContext == CURRENT_DOLLAR_UNDEFINED) {
-        Parser_errorWatcher(SET_ERROR_SYNTAX);
+        parser_errorWatcher(SET_ERROR_SYNTAX);
         return;
     }
 
+    // Mapujeme typ vstupního precedenčního terminálu na "dollar" terminál
     switch(currentTerminal.PrecTerminal) {
         // Mapování: T_PREC_RIGHT_BRACKET -> T_PREC_RIGHT_BRACKET nebo T_PREC_DOLLAR
+        //         : U pravé závorky musíme brát v potaz aktuální úroveň zanoření
         case T_PREC_RIGHT_BRACKET:
-            if (dollarContext ==  DOLLAR_T_RIGHT_BRACKET && bracketDepth == 0) {
+            if(dollarContext ==  DOLLAR_T_RIGHT_BRACKET && bracketDepth == 0) {
                 *inTerminal = T_PREC_DOLLAR;
-            } else if (dollarContext ==  DOLLAR_T_COMMA && bracketDepth == 0) {
+            } else if(dollarContext ==  DOLLAR_T_COMMA && bracketDepth == 0) {
                 *inTerminal = T_PREC_DOLLAR;
             }
             else {
@@ -206,11 +216,11 @@ void PrecParser_mapInTerminalToDollar(int bracketDepth, DollarTerminals dollarCo
                 *inTerminal = T_PREC_DOLLAR;
             break;
 
-        // Defaultní případ: Nejedná se o dolar
+        // Výchozí případ: Nejedná se o "dollar" terminál
         default:
-            *inTerminal = currentTerminal.PrecTerminal;
+            *inTerminal = currentTerminal.PrecTerminal; // vrací nezměněný typ terminálu
             break;
     } // switch()
-} // PrecParser_mapInTerminalToDollar()
+} // precParser_mapInTerminalToDollar()
 
 /*** Konec souboru precedence_table.c ***/

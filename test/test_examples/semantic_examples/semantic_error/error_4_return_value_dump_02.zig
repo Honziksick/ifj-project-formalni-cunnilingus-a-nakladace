@@ -13,7 +13,7 @@ pub fn f (x : i32) i32    // seznam parametru // 2
     ifj.write("calling g with "); // 10
     ifj.write(y); // 11
     ifj.write("\n"); // 12
-    const res = g(y); // 13
+    const res = 3.14;
     return res; // 14
   } // 15
 } // 16
@@ -34,6 +34,6 @@ pub fn g(x:i32) i32 { // 17
 pub fn main() void { // 29
   const res = g(10); // 30
   ifj.write("res: "); // 31
-  const wrong : []u8 = ifj.write(res); // 32
+  ifj.write(res); // 32
   ifj.write("\n"); // 33
 } // 34

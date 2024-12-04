@@ -488,18 +488,4 @@ TEST(LLTable, FindRule_ARGUMENTS) {
     EXPECT_EQ(rule, SYNTAX_ERROR);
 }
 
-
-/**
- * @brief Testovací případ pro funkci `LLtable_findRule` pro přijetí neplatného kódu terminálu.
- */
-TEST(LLTable, FindRule_Index_Failure) {
-    // Deklarace proměnné pro uložení získaného pravidla
-    LLRuleSet rule = RULE_UNDEFINED;
-
-    // Test pro neexistující pravidlo
-    LLtable_findRule((LLTerminals)-8, NT_PROGRAM, &rule);
-    EXPECT_EQ(rule, SYNTAX_ERROR);
-    LLtable_findRule((LLTerminals)-1, NT_SEQUENCE, &rule);
-    EXPECT_EQ(rule, SYNTAX_ERROR);
-}
 /*** Konec souboru lltable_test.cpp ***/

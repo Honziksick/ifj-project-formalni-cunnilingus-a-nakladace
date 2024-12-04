@@ -7,7 +7,7 @@
  *                   Krejčí David       <xhyzapa00>                            *
  *                                                                             *
  * Datum:            9.10.2024                                                 *
- * Poslední změna:   22.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -36,7 +36,7 @@
 #define TEST_HASH_FUNCTION(keyword, expected_hash) \
     MAKE_STRING(str_##keyword, #keyword); \
     EXPECT_EQ(symtable_hashFunction(str_##keyword), expected_hash); \
-    string_free(str_##keyword);
+    DString_free(str_##keyword);
 
 /**
  * @brief Funkce na testování typu tokenů
@@ -45,7 +45,7 @@ void testTokenType(TokenType expected_type){
     Token token = scanner_FSM();
     EXPECT_EQ(token.type, expected_type);
     if(token.value != NULL) {
-        string_free(token.value);
+        DString_free(token.value);
     }
     if(token.type != expected_type){
         exit(2);
@@ -59,8 +59,8 @@ void testTokenString(const char* expected_string){
     Token token = scanner_FSM();
     EXPECT_EQ(token.type, TOKEN_STRING);
     if(token.value != NULL) {
-        if(string_compare_const_str(token.value, expected_string) != STRING_EQUAL){
-            char *actual_string = string_toConstChar(token.value);
+        if(DString_compareWithConstChar(token.value, expected_string) != STRING_EQUAL){
+            char *actual_string = DString_DStringtoConstChar(token.value);
 
             // Find the first mismatch position
             size_t mismatch_index = 0;
@@ -76,11 +76,11 @@ void testTokenString(const char* expected_string){
             cerr << "Got character at position:      '" << actual_string[mismatch_index] << "'\n\n";
 
             // Clean up and exit
-            string_free(token.value);
+            DString_free(token.value);
             free(actual_string);
             exit(2);
         }
-        string_free(token.value);
+        DString_free(token.value);
     }else{
         exit(2);
     }
@@ -108,27 +108,27 @@ void testTokenString(const char* expected_string){
 
     MAKE_STRING(import, "@import");
     EXPECT_EQ(symtable_hashFunction(import), KEYWORD_IMPORT_HASH);
-    string_free(import);
+    DString_free(import);
 
     MAKE_STRING(underscore, "_");
     EXPECT_EQ(symtable_hashFunction(underscore), KEYWORD_UNDERSCORE_HASH);
-    string_free(underscore);
+    DString_free(underscore);
 
     MAKE_STRING(i32N, "?i32");
     EXPECT_EQ(symtable_hashFunction(i32N), KEYWORD_QI32_HASH);
-    string_free(i32N);
+    DString_free(i32N);
 
     MAKE_STRING(f64N, "?f64");
     EXPECT_EQ(symtable_hashFunction(f64N), KEYWORD_QF64_HASH);
-    string_free(f64N);
+    DString_free(f64N);
 
     MAKE_STRING(u8N, "?[]u8");
     EXPECT_EQ(symtable_hashFunction(u8N), KEYWORD_QU8_HASH);
-    string_free(u8N);
+    DString_free(u8N);
 
     MAKE_STRING(u8, "[]u8");
     EXPECT_EQ(symtable_hashFunction(u8), KEYWORD_U8_HASH);
-    string_free(u8);
+    DString_free(u8);
 
 
 }*/
@@ -179,19 +179,19 @@ TEST(Identity, eof) {
 TEST(Identity, error) {
     // Unprintable znaky v ASCII nebo znaky mimo základní tabulku
     scanner_charIdentity(0);
-    bool result = Parser_errorWatcher(IS_PARSING_ERROR);
+    bool result = parser_errorWatcher(IS_PARSING_ERROR);
     EXPECT_TRUE(result);
-    Parser_errorWatcher(RESET_ERROR_FLAGS);
+    parser_errorWatcher(RESET_ERROR_FLAGS);
 
     scanner_charIdentity(16);
-    result = Parser_errorWatcher(IS_PARSING_ERROR);
+    result = parser_errorWatcher(IS_PARSING_ERROR);
     EXPECT_TRUE(result);
-    Parser_errorWatcher(RESET_ERROR_FLAGS);
+    parser_errorWatcher(RESET_ERROR_FLAGS);
 
     scanner_charIdentity(17);
-    result = Parser_errorWatcher(IS_PARSING_ERROR);
+    result = parser_errorWatcher(IS_PARSING_ERROR);
     EXPECT_TRUE(result);
-    Parser_errorWatcher(RESET_ERROR_FLAGS);
+    parser_errorWatcher(RESET_ERROR_FLAGS);
 }
 
 
@@ -224,7 +224,7 @@ TEST(FSM, FSM_Identifier){
     
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_IDENTIFIER);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /** TOTO JE BLBĚ NAPSANÉ
@@ -300,8 +300,8 @@ TEST(FSM, FSM_Identifier_ERROR_4){
     state = scanner_FSM();
     ASSERT_EQ(state.type, TOKEN_IDENTIFIER);
     ASSERT_NE(state.value, nullptr);
-    ASSERT_EQ(string_compare_const_str(state.value, "hello"), STRING_EQUAL);
-    string_free(state.value);
+    ASSERT_EQ(DString_compareWithConstChar(state.value, "hello"), STRING_EQUAL);
+    DString_free(state.value);
 
 
     // Načteme .
@@ -320,7 +320,7 @@ TEST(FSM, FSM_Number_INT_One_Number){
 
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_INT);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /**
@@ -336,7 +336,7 @@ TEST(FSM, FSM_Number_INT){
 
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_INT);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /**
@@ -368,7 +368,7 @@ TEST(FSM, FSM_Number_FLOAT){
 
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_FLOAT);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /**
@@ -632,7 +632,7 @@ TEST(FSM, FSM_OPERATOR_ERROR_2){
 //      }
 // ----- Konec souboru: hello.zig -----
 TEST(Lex, Hello) {
-    string path = exam_path + "hello.zig";
+    string path = examPath + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -731,7 +731,7 @@ TEST(Lex, Hello) {
 //    }
 // ----- Konec souboru: fun.zig -----
 TEST(Lex, Fun) {
-    string path = exam_path + "fun.zig";
+    string path = examPath + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -909,7 +909,7 @@ TEST(Lex, Fun) {
 //      }
 // ----- Konec souboru: example1.zig -----
 TEST(Lex, Example1){
-    string path = exam_path + "example1.zig";
+    string path = examPath + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1080,7 +1080,7 @@ TEST(Lex, Example1){
 //    }
 // ~~~~~ Konec souboru: example2.zig ~~~~~
 TEST(Lex, Example2) {
-    string path = exam_path + "example2.zig";
+    string path = examPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1253,7 +1253,7 @@ TEST(Lex, Example2) {
 //    }
 // ~~~~~ Konec souboru: example3.zig ~~~~~
 TEST(Lex, Example3) {
-    string path = exam_path + "example3.zig";
+    string path = examPath + "example3.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1511,7 +1511,7 @@ TEST(Lex, Multiline){
 //      }
 // ----- Konec souboru: lex_test_multi.zig -----
 TEST(Lex, lex_test_multi){
-    string path = lex_path + "lex_test_multi.zig";
+    string path = lexPath + "lex_test_multi.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1625,7 +1625,7 @@ TEST(Lex, lex_test_multi){
 //      );
 // ----- Konec souboru: lex_test_multi2.zig -----
 TEST(Lex, lex_test_multi2){
-    string path = lex_path + "lex_test_multi2.zig";
+    string path = lexPath + "lex_test_multi2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1730,7 +1730,7 @@ TEST(Lex, lex_test_multi2){
 //      );
 // ----- Konec souboru: lex_test_string_escapes.zig -----
 TEST(Lex, lex_test_string_escapes){
-    string path = lex_path + "lex_test_string_escapes.zig";
+    string path = lexPath + "lex_test_string_escapes.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1835,7 +1835,7 @@ TEST(Lex, lex_test_string_escapes){
 //      //jedna dva tři čtyři pět šest
 // ----- Konec souboru: lex_test_comment.zig -----
 TEST(Lex, Comment) {
-    string path = lex_path + "lex_test_comment.zig";
+    string path = lexPath + "lex_test_comment.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1904,7 +1904,7 @@ TEST(Lex, Comment) {
 //  );
 // ----- Konec souboru: lex_test_satanic.zig -----
 TEST(Lex, Satanic) {
-    string path = lex_path + "lex_test_satanic.zig";
+    string path = lexPath + "lex_test_satanic.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1996,7 +1996,7 @@ TEST(Lex, Satanic) {
 TEST(Lex, UnterminatedString){
     for (int i = 1; i <= 4; i++) {
         string filename = "lex_test_unterminated_string_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
-        string path = lex_path + filename;
+        string path = lexPath + filename;
 
         cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
 
@@ -2018,6 +2018,146 @@ TEST(Lex, UnterminatedString){
         stdin = stdin_backup;
         fclose(f);
     }
+}
+
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro vstupní program semen_test_2_undefined_fun.zig
+ */
+TEST(Lex, Semantic_2_Undefined_fun) {
+    string path = semPath + "semen_test_2_undefined_fun.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // Your corrected expected tokens
+        //const ifj = @import("ifj24.zig");
+        TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //7
+        //pub fn main() void {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET, //14
+        //ifj.write("ned ynkep ijerp\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //21
+        //const a: i32 = decrement(10, 5);
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_INT, TOKEN_COMMA, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,  //33
+        //const b: i32 = increment(20, 30); //Volani nedefinovane funkce 'increment'
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_INT, TOKEN_COMMA, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,  //45
+        //ifj.write(a);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //52
+        //ifj.write(b);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //59
+        //}
+        TOKEN_RIGHT_CURLY_BRACKET,  //60
+        //pub fn decrement(n: i32, m: i32) i32 {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_COMMA, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_i32, TOKEN_LEFT_CURLY_BRACKET,    //75
+        //return n - m;
+        TOKEN_K_return, TOKEN_IDENTIFIER, TOKEN_MINUS, TOKEN_IDENTIFIER, TOKEN_SEMICOLON,   //80
+        //}
+        TOKEN_RIGHT_CURLY_BRACKET, TOKEN_EOF //82
+    };
+
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
+        long int current_pos = ftell(stdin);
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
+            exit(0);
+        } else {
+            // Parent process waits for the child
+            int status;
+            waitpid(pid, &status, 0);
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Print the remaining input
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+
+                FAIL();
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro vstupní program semen_test_2_undefined_fun.zig
+ */
+TEST(Lex, Double_simple) {
+    string path = lexPath + "lex_test_double_simple.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // Your corrected expected tokens
+        //()
+        TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_EOF
+    };
+
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
+        long int current_pos = ftell(stdin);
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
+            exit(0);
+        } else {
+            // Parent process waits for the child
+            int status;
+            waitpid(pid, &status, 0);
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Print the remaining input
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+
+                FAIL();
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
 }
 
 

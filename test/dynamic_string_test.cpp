@@ -31,10 +31,10 @@
 #include "ifj24_compiler_test_utils.h"
 
 /**
- * @brief Testuje funkci `string_init` pro inicializaci řetězce
+ * @brief Testuje funkci `DString_init` pro inicializaci řetězce
  */
 TEST(StringInit, Init) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
 
     ASSERT_EQ(str->length, (size_t)0);
@@ -45,47 +45,47 @@ TEST(StringInit, Init) {
 }
 
 /**
- * @brief Testuje funkci `string_free` pro uvolnění řetězce
+ * @brief Testuje funkci `DString_free` pro uvolnění řetězce
  */
 TEST(StringFree, Free) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
 
-    string_free(str);
+    DString_free(str);
 }
 
 /**
- * @brief Testuje funkci `string_append_char` pro přidání jednoho znaku
+ * @brief Testuje funkci `DString_appendChar` pro přidání jednoho znaku
  */
 TEST(StringAppendChar, OneChar) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
 
-    ASSERT_EQ(string_append_char(str, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'a'), STRING_SUCCESS);
 
     ASSERT_EQ(str->length, (size_t)1);
     ASSERT_EQ(str->str[0], 'a');
 
-    string_free(str);
+    DString_free(str);
 }
 
 /**
- * @brief Testuje funkci `string_append_char` pro přidání do NULL
+ * @brief Testuje funkci `DString_appendChar` pro přidání do NULL
  */
 TEST(StringAppendChar, NullString) {
-    ASSERT_EQ(string_append_char(nullptr, 'a'), STRING_RESIZE_FAIL);
+    ASSERT_EQ(DString_appendChar(nullptr, 'a'), STRING_RESIZE_FAIL);
 }
 
 /**
- * @brief Testuje funkci `string_append_char` pro přidání více znaků
+ * @brief Testuje funkci `DString_appendChar` pro přidání více znaků
  */
 TEST(StringAppendChar, MoreChars) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
     const char *strConst = "abc";
 
     for(size_t i = 0; i < strlen(strConst); i++) {
-        ASSERT_EQ(string_append_char(str, strConst[i]), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(str, strConst[i]), STRING_SUCCESS);
     }
 
     ASSERT_EQ(str->length, (size_t)strlen(strConst));
@@ -94,18 +94,18 @@ TEST(StringAppendChar, MoreChars) {
         ASSERT_EQ(str->str[i], strConst[i]);
     }
 
-    string_free(str);
+    DString_free(str);
 }
 
 /**
- * @brief Testuje funkci `string_append_char` pro přidání všech znaků ASCII
+ * @brief Testuje funkci `DString_appendChar` pro přidání všech znaků ASCII
  */
 TEST(StringAppendChar, AllChars) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
 
     for (int i = 0; i < 128; i++) {
-        ASSERT_EQ(string_append_char(str, (char)i), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(str, (char)i), STRING_SUCCESS);
     }
 
     ASSERT_EQ(str->length, (size_t)128);
@@ -114,346 +114,346 @@ TEST(StringAppendChar, AllChars) {
         ASSERT_EQ(str->str[i], (char)i);
     }
 
-    string_free(str);
+    DString_free(str);
 }
 
 /**
- * @brief Testuje funkci `string_append_char` pro přidání 4000 znaků
+ * @brief Testuje funkci `DString_appendChar` pro přidání 4000 znaků
  */
 TEST(StringAppendChar, ManyChars) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
 
     for (int i = 0; i < 4000; i++) {
-        ASSERT_EQ(string_append_char(str, 'a'), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(str, 'a'), STRING_SUCCESS);
     }
 
     ASSERT_EQ(str->length, (size_t)4000);
     ASSERT_EQ(str->str[3999], 'a');
 
-    string_free(str);
+    DString_free(str);
 }
 
 /**
- * @brief Testuje funkci `string_copy` pro kopírování řetězce
+ * @brief Testuje funkci `DString_copy` pro kopírování řetězce
  */
 TEST(StringCopy, BasicCopy) {
-    DString *str1 = string_init();
+    DString *str1 = DString_init();
     ASSERT_NE(str1, nullptr);
-    DString *str2 = string_init();
+    DString *str2 = DString_init();
     ASSERT_NE(str2, nullptr);
 
-    ASSERT_EQ(string_append_char(str1, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str1, 'b'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str1, 'c'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'c'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_copy(str1, str2), STRING_SUCCESS);
+    ASSERT_EQ(DString_copy(str1, str2), STRING_SUCCESS);
 
     ASSERT_EQ(str1->length, str2->length);
     for(size_t i = 0; i < str1->length; i++) {
         ASSERT_EQ(str1->str[i], str2->str[i]);
     }
 
-    string_free(str1);
-    string_free(str2);
+    DString_free(str1);
+    DString_free(str2);
 }
 
 /**
- * @brief Testuje funkci `string_copy` pro z NULL ukazatele
+ * @brief Testuje funkci `DString_copy` pro z NULL ukazatele
  */
 TEST(StringCopy, NullCopiedString) {
-    DString *strTo = string_init();
+    DString *strTo = DString_init();
     ASSERT_NE(strTo, nullptr);
 
-    ASSERT_EQ(string_copy(nullptr, strTo), STRING_COPY_FAIL);
+    ASSERT_EQ(DString_copy(nullptr, strTo), STRING_COPY_FAIL);
 
-    string_free(strTo);
+    DString_free(strTo);
 }
 
 /**
- * @brief Testuje funkci `string_copy` pro do NULL ukazatele
+ * @brief Testuje funkci `DString_copy` pro do NULL ukazatele
  */
 TEST(StringCopy, NullToString) {
-    DString *strCopied = string_init();
+    DString *strCopied = DString_init();
     ASSERT_NE(strCopied, nullptr);
 
-    ASSERT_EQ(string_copy(strCopied, nullptr), STRING_COPY_FAIL);
+    ASSERT_EQ(DString_copy(strCopied, nullptr), STRING_COPY_FAIL);
 
-    string_free(strCopied);
+    DString_free(strCopied);
 }
 
 /**
- * @brief Testuje funkci `string_copy` pro kopírování prázdného řetězce
+ * @brief Testuje funkci `DString_copy` pro kopírování prázdného řetězce
  */
 TEST(StringCopy, EmptyString) {
-    DString *str1 = string_init();
+    DString *str1 = DString_init();
     ASSERT_NE(str1, nullptr);
-    DString *str2 = string_init();
+    DString *str2 = DString_init();
     ASSERT_NE(str2, nullptr);
 
-    ASSERT_EQ(string_copy(str1, str2), STRING_SUCCESS);
+    ASSERT_EQ(DString_copy(str1, str2), STRING_SUCCESS);
 
     ASSERT_EQ(str1->length, str2->length);
 
-    string_free(str1);
-    string_free(str2);
+    DString_free(str1);
+    DString_free(str2);
 }
 
 /**
- * @brief Testuje funkci `string_copy` pro kopírování řetězce 2000 znaků
+ * @brief Testuje funkci `DString_copy` pro kopírování řetězce 2000 znaků
  */
 TEST(StringCopy, ManyChars) {
-    DString *str1 = string_init();
+    DString *str1 = DString_init();
     ASSERT_NE(str1, nullptr);
-    DString *str2 = string_init();
+    DString *str2 = DString_init();
     ASSERT_NE(str2, nullptr);
 
     for (int i = 0; i < 1000; i++) {
-        ASSERT_EQ(string_append_char(str1, 'a'), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(str1, 'a'), STRING_SUCCESS);
     }
     for (int i = 0; i < 1000; i++) {
-        ASSERT_EQ(string_append_char(str1, 'b'), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(str1, 'b'), STRING_SUCCESS);
     }
     
 
-    ASSERT_EQ(string_copy(str1, str2), STRING_SUCCESS);
+    ASSERT_EQ(DString_copy(str1, str2), STRING_SUCCESS);
 
     ASSERT_EQ(str1->length, str2->length);
     for(size_t i = 0; i < str1->length; i++) {
         ASSERT_EQ(str1->str[i], str2->str[i]);
     }
 
-    string_free(str1);
-    string_free(str2);
+    DString_free(str1);
+    DString_free(str2);
 }
 
 /**
- * @brief Testuje funkci `string_copy` pro kopírování do neprázdného řetězce
+ * @brief Testuje funkci `DString_copy` pro kopírování do neprázdného řetězce
  */
 TEST(StringCopy, NotEmptyString) {
-    DString *str1 = string_init();
+    DString *str1 = DString_init();
     ASSERT_NE(str1, nullptr);
-    DString *str2 = string_init();
+    DString *str2 = DString_init();
     ASSERT_NE(str2, nullptr);
 
-    ASSERT_EQ(string_append_char(str1, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str1, 'b'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str1, 'c'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'c'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_append_char(str2, 'd'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str2, 'e'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str2, 'f'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str2, 'h'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str2, 'd'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str2, 'e'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str2, 'f'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str2, 'h'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_copy(str1, str2), STRING_SUCCESS);
+    ASSERT_EQ(DString_copy(str1, str2), STRING_SUCCESS);
 
     ASSERT_EQ(str1->length, str2->length);
     for(size_t i = 0; i < str1->length; i++) {
         ASSERT_EQ(str1->str[i], str2->str[i]);
     }
 
-    string_free(str1);
-    string_free(str2);
+    DString_free(str1);
+    DString_free(str2);
 }
 
 /**
- * @brief Testuje funkci `string_compare` pro porovnání dvou stejných řetězců
+ * @brief Testuje funkci `DString_compare` pro porovnání dvou stejných řetězců
  */
 TEST(StringCompare, EqualStrings) {
-    DString *str1 = string_init();
+    DString *str1 = DString_init();
     ASSERT_NE(str1, nullptr);
-    DString *str2 = string_init();
+    DString *str2 = DString_init();
     ASSERT_NE(str2, nullptr);
 
-    ASSERT_EQ(string_append_char(str1, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str1, 'b'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str1, 'c'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'c'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_append_char(str2, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str2, 'b'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str2, 'c'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str2, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str2, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str2, 'c'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_compare(str1, str2), STRING_EQUAL);
+    ASSERT_EQ(DString_compare(str1, str2), STRING_EQUAL);
 
-    string_free(str1);
-    string_free(str2);
+    DString_free(str1);
+    DString_free(str2);
 }
 
 /**
- * @brief Testuje funkci `string_compare` pro porovnání jednoho řetězce se sebou
+ * @brief Testuje funkci `DString_compare` pro porovnání jednoho řetězce se sebou
  */
 TEST(StringCompare, SameString) {
-    DString *str1 = string_init();
+    DString *str1 = DString_init();
     ASSERT_NE(str1, nullptr);
 
-    ASSERT_EQ(string_append_char(str1, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str1, 'b'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str1, 'c'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'c'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_compare(str1, str1), STRING_EQUAL);
+    ASSERT_EQ(DString_compare(str1, str1), STRING_EQUAL);
 
-    string_free(str1);
+    DString_free(str1);
 }
 
 /**
- * @brief Testuje funkci `string_compare` pro porovnání dvou různých řetězců
+ * @brief Testuje funkci `DString_compare` pro porovnání dvou různých řetězců
  */
 TEST(StringCompare, DifferentStrings) {
-    DString *str1 = string_init();
+    DString *str1 = DString_init();
     ASSERT_NE(str1, nullptr);
-    DString *str2 = string_init();
+    DString *str2 = DString_init();
     ASSERT_NE(str2, nullptr);
 
-    ASSERT_EQ(string_append_char(str1, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'a'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_append_char(str2, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str2, 'b'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str2, 'd'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str2, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str2, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str2, 'd'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_compare(str1, str2), STRING_NOT_EQUAL);
+    ASSERT_EQ(DString_compare(str1, str2), STRING_NOT_EQUAL);
 
-    string_free(str1);
-    string_free(str2);
+    DString_free(str1);
+    DString_free(str2);
 }
 
 /**
- * @brief Testuje funkci `string_compare` pro porovnání prázdného řetězce
+ * @brief Testuje funkci `DString_compare` pro porovnání prázdného řetězce
  */
 TEST(StringCompare, EmptyString) {
-    DString *str1 = string_init();
+    DString *str1 = DString_init();
     ASSERT_NE(str1, nullptr);
-    DString *str2 = string_init();
+    DString *str2 = DString_init();
     ASSERT_NE(str2, nullptr);
 
-    ASSERT_EQ(string_compare(str1, str2), STRING_EQUAL);
+    ASSERT_EQ(DString_compare(str1, str2), STRING_EQUAL);
 
-    string_free(str1);
-    string_free(str2);
+    DString_free(str1);
+    DString_free(str2);
 }
 
 /**
- * @brief Testuje funkci `string_compare` pro porovnání NULL řetězce
+ * @brief Testuje funkci `DString_compare` pro porovnání NULL řetězce
  */
 TEST(StringCompare, NullString) {
-    DString *str1 = string_init();
+    DString *str1 = DString_init();
     ASSERT_NE(str1, nullptr);
 
-    ASSERT_EQ(string_append_char(str1, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str1, 'a'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_compare(str1, nullptr), STRING_NOT_EQUAL);
+    ASSERT_EQ(DString_compare(str1, nullptr), STRING_NOT_EQUAL);
 
-    string_free(str1);
+    DString_free(str1);
 }
 
 /**
- * @brief Testuje funkci `string_compare` pro porovnání dlouhých stejných řetězců
+ * @brief Testuje funkci `DString_compare` pro porovnání dlouhých stejných řetězců
  */
 TEST(StringCompare, LongEqualStrings) {
-    DString *str1 = string_init();
+    DString *str1 = DString_init();
     ASSERT_NE(str1, nullptr);
-    DString *str2 = string_init();
+    DString *str2 = DString_init();
     ASSERT_NE(str2, nullptr);
 
     for (int i = 0; i < 1000; i++) {
-        ASSERT_EQ(string_append_char(str1, 'a'), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(str1, 'a'), STRING_SUCCESS);
     }
     for (int i = 0; i < 1000; i++) {
-        ASSERT_EQ(string_append_char(str2, 'a'), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(str2, 'a'), STRING_SUCCESS);
     }
 
-    ASSERT_EQ(string_compare(str1, str2), STRING_EQUAL);
+    ASSERT_EQ(DString_compare(str1, str2), STRING_EQUAL);
 
-    string_free(str1);
-    string_free(str2);
+    DString_free(str1);
+    DString_free(str2);
 }
 
 /**
- * @brief Testuje funkci `string_compare` pro porovnání dlouhých různých řetězců
+ * @brief Testuje funkci `DString_compare` pro porovnání dlouhých různých řetězců
  */
 TEST(StringCompare, LongDifferentStrings) {
-    DString *str1 = string_init();
+    DString *str1 = DString_init();
     ASSERT_NE(str1, nullptr);
-    DString *str2 = string_init();
+    DString *str2 = DString_init();
     ASSERT_NE(str2, nullptr);
 
     for (int i = 0; i < 1000; i++) {
-        ASSERT_EQ(string_append_char(str1, 'a'), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(str1, 'a'), STRING_SUCCESS);
     }
     for (int i = 0; i < 999; i++) {
-        ASSERT_EQ(string_append_char(str2, 'a'), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(str2, 'a'), STRING_SUCCESS);
     }
-    ASSERT_EQ(string_append_char(str2, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str2, 'b'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_compare(str1, str2), STRING_NOT_EQUAL);
+    ASSERT_EQ(DString_compare(str1, str2), STRING_NOT_EQUAL);
 
-    string_free(str1);
-    string_free(str2);
+    DString_free(str1);
+    DString_free(str2);
 }
 
 /**
- * @brief Testuje funkci `string_compare_const_str` pro porovnání řetězce s ekvivalentím konstantním řetězcem
+ * @brief Testuje funkci `DString_compareWithConstChar` pro porovnání řetězce s ekvivalentím konstantním řetězcem
  */
 TEST(StringCompareConstStr, EqualStrings) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
 
-    ASSERT_EQ(string_append_char(str, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'b'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'c'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'c'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_compare_const_str(str, "abc"), STRING_EQUAL);
+    ASSERT_EQ(DString_compareWithConstChar(str, "abc"), STRING_EQUAL);
 
-    string_free(str);
+    DString_free(str);
 }
 
 /**
- * @brief Testuje funkci `string_compare_const_str` pro porovnání řetězce s jiným konstantním řetězcem
+ * @brief Testuje funkci `DString_compareWithConstChar` pro porovnání řetězce s jiným konstantním řetězcem
  */
 TEST(StringCompareConstStr, DifferentStrings) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
 
-    ASSERT_EQ(string_append_char(str, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'b'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'c'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'c'), STRING_SUCCESS);
 
-    ASSERT_EQ(string_compare_const_str(str, "ab"), STRING_NOT_EQUAL);
+    ASSERT_EQ(DString_compareWithConstChar(str, "ab"), STRING_NOT_EQUAL);
 
-    string_free(str);
+    DString_free(str);
 }
 
 /**
- * @brief Testuje funkci `string_compare_const_str` pro porovnání prázdného řetězce
+ * @brief Testuje funkci `DString_compareWithConstChar` pro porovnání prázdného řetězce
  */
 TEST(StringCompareConstStr, EmptyString) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
 
-    ASSERT_EQ(string_compare_const_str(str, ""), STRING_EQUAL);
+    ASSERT_EQ(DString_compareWithConstChar(str, ""), STRING_EQUAL);
 
-    string_free(str);
+    DString_free(str);
 }
 
 /**
- * @brief Testuje funkci `string_compare_const_str` pro porovnání NULL řetězce
+ * @brief Testuje funkci `DString_compareWithConstChar` pro porovnání NULL řetězce
  */
 TEST(StringCompareConstStr, NullString) {
 
-    ASSERT_EQ(string_compare_const_str(nullptr, "abc"), STRING_NOT_EQUAL);
+    ASSERT_EQ(DString_compareWithConstChar(nullptr, "abc"), STRING_NOT_EQUAL);
 }
 
 /**
- * @brief Testuje funkci `string_compare_const_str` pro porovnání řetězce s konstantním řetězcem o délce 2000 znaků
+ * @brief Testuje funkci `DString_compareWithConstChar` pro porovnání řetězce s konstantním řetězcem o délce 2000 znaků
  */
 TEST(StringCompareConstStr, LongEqualStrings) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
 
     for (int i = 0; i < 1000; i++) {
-        ASSERT_EQ(string_append_char(str, 'a'), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(str, 'a'), STRING_SUCCESS);
     }
     for (int i = 0; i < 1000; i++) {
-        ASSERT_EQ(string_append_char(str, 'b'), STRING_SUCCESS);
+        ASSERT_EQ(DString_appendChar(str, 'b'), STRING_SUCCESS);
     }
 
     char *str2 = (char *)malloc(2001*sizeof(char));
@@ -466,9 +466,9 @@ TEST(StringCompareConstStr, LongEqualStrings) {
     }
     const char *strConst = (const char *)str2;
 
-    ASSERT_EQ(string_compare_const_str(str, strConst), STRING_EQUAL);
+    ASSERT_EQ(DString_compareWithConstChar(str, strConst), STRING_EQUAL);
 
-    string_free(str);
+    DString_free(str);
     free(str2);
 }
 
@@ -476,13 +476,13 @@ TEST(StringCompareConstStr, LongEqualStrings) {
  * @brief Testuje funkci `string_toConstStr` pro prázdný řetězec
  */
 TEST(StringToConstStr, EmptyString) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
 
-    char *strConst = string_toConstChar(str);
+    char *strConst = DString_DStringtoConstChar(str);
     EXPECT_EQ(strConst, nullptr);
 
-    string_free(str);
+    DString_free(str);
     free(strConst);
 }
 
@@ -490,16 +490,16 @@ TEST(StringToConstStr, EmptyString) {
  * @brief Testuje funkci `string_toConstStr` pro řetězec jednoho znaku
  */
 TEST(StringToConstStr, OneCharString) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
-    ASSERT_EQ(string_append_char(str, 'x'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'x'), STRING_SUCCESS);
 
-    char *strConst = string_toConstChar(str);
+    char *strConst = DString_DStringtoConstChar(str);
     ASSERT_NE(strConst, nullptr);
     ASSERT_STREQ("x", strConst);
     ASSERT_EQ(strlen(str->str), strlen(strConst));
 
-    string_free(str);
+    DString_free(str);
     free(strConst);
 }
 
@@ -507,56 +507,56 @@ TEST(StringToConstStr, OneCharString) {
  * @brief Testuje funkci `string_toConstStr` pro dlouhý řetězec , který se rozšířil
  */
 TEST(StringToConstStr, LongString) {
-    DString *str = string_init();
+    DString *str = DString_init();
     ASSERT_NE(str, nullptr);
-    ASSERT_EQ(string_append_char(str, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'b'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'c'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'd'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'e'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'f'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'g'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'h'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'i'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'j'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'k'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'm'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'n'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'o'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'p'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'q'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'r'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 's'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 't'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'u'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'v'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'w'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'x'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'y'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(str, 'z'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'c'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'd'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'e'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'f'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'g'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'h'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'i'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'j'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'k'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'm'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'n'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'o'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'p'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'q'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'r'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 's'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 't'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'u'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'v'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'w'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'x'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'y'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'z'), STRING_SUCCESS);
 
-    char *strConst = string_toConstChar(str);
+    char *strConst = DString_DStringtoConstChar(str);
     ASSERT_NE(strConst, nullptr);
     ASSERT_STREQ("abcdefghijklmnopqrstuvwxyz", strConst);
     ASSERT_EQ(strlen(str->str), strlen(strConst));
 
-    string_free(str);
+    DString_free(str);
     free(strConst);
 }
 
 TEST(ConstStrToDString, ShortString){
-    DString *str = string_charToDString("abc");
+    DString *str = DString_constCharToDString("abc");
     ASSERT_NE(str, nullptr);
 
     ASSERT_EQ(str->length, 3ULL);
     ASSERT_EQ(str->allocatedSize, 4ULL);
-    ASSERT_EQ(string_append_char(str, 'd'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(str, 'd'), STRING_SUCCESS);
 
     ASSERT_EQ(str->length, 4ULL);
     ASSERT_GT(str->allocatedSize, 4ULL);
 
-    string_free(str);
+    DString_free(str);
 }
 
 /*** Konec souboru dynamic_string_test.cpp ***/

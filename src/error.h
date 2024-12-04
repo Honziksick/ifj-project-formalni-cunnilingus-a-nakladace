@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 
 /*******************************************************************************
@@ -44,9 +45,25 @@
  *                                                                             *
  ******************************************************************************/
 
-#define RED_COLOR    "\033[91m"     /**< ANSI escape sekvence pro červenou barvu */
-#define YELLOW_COLOR "\033[33m"     /**< ANSI escape sekvence pro žlutou barvu */
-#define RESET_COLOR  "\033[0m"      /**< ANSI escape sekvence pro resetování barvy */
+#define RED_COLOR    "\033[91m"     /**< ANSI escape sekvence pro červenou barvu.   */
+#define YELLOW_COLOR "\033[33m"     /**< ANSI escape sekvence pro žlutou barvu.     */
+#define RESET_COLOR  "\033[0m"      /**< ANSI escape sekvence pro resetování barvy. */
+
+/**
+ * @brief Povolení rozšířeného výpisu chybových hlášení.
+ *
+ * @details Pokud je definováno @c LOG_VERBOSE, makro @c error_handle na řízení
+ *          chybových stavů a @c LOG_ERROR k záznamenávání chyb, ke kterým došlo,
+ *          při syntaktické analýze, vypíší název souboru, číslo řádku a název
+ *          funkce, kde došlo k chybě. Pokud @c LOG_VERBOSE není definováno,
+ *          funkce @c error_internalHandle() vypíše pouze chybovou hlášku pro
+ *          příslušný chybový kód a makro @c LOG_ERROR neprovádí žádnou akci.
+ *
+ * @note Používejte pouze následující hodnoty
+ * - @c true pro aktivaci rozšířeného výpisu.
+ * - @c false pro vypnutí rozšířeného výpisu
+ */
+#define LOG_VERBOSE false
 
 
 /*******************************************************************************
@@ -88,20 +105,30 @@ typedef enum ErrorType {
 /**
  * @brief Makro pro automatické předání informací o souboru, řádku a funkci.
  *
- * @details Toto makro volá funkci `error_internalHandle` a automaticky předává
+ * @details Toto makro volá funkci @c error_internalHandle a automaticky předává
  *          informace o souboru, řádku a funkci, odkud byla chyba volána. Používá
- *          předdefinované makro konstanty `__FILE__`, `__LINE__` a `__func__`.
+ *          předdefinované konstanty @c __FILE__, @c __LINE__ a @c __func__.
+ *          Pokud je definováno @c LOG_VERBOSE, makro vypíše název souboru,
+ *          číslo řádku a název funkce, kde došlo k chybě. Pokud @c LOG_VERBOSE
+ *          není definováno, funkce @c error_internalHandle() vypíše pouze
+ *          chybovou hlášku pro píslušný chybový kód.
  *
- * @param [in] error Chybový kód typu ErrorType.
+ * @param [in] error Chybový kód typu @c ErrorType.
  */
-#define error_handle(error) error_internalHandle(error, __FILE__, __LINE__, __func__)
+#ifdef LOG_VERBOSE
+    #define error_handle(error) error_internalHandle(error, __FILE__, __LINE__, __func__)
+#else
+    #define error_handle(error) error_internalHandle(error, NULL, 0, NULL)
+#endif
 
 /**
  * @brief Funkce pro uvolnění alokovaných dat z haldy před ukončením programu
  *
- * @details Tato funkce uvolní všechna do dané chvíle alokovaná data na základě zadaného chybového kódu.
- *          Uvolnění paměti je důležité pro zabránění únikům paměti a zajištění správného fungování
- *          programu. Funkce může uvolňovat různé typy dat v závislosti na tom, kde došlo k chybě.
+ * @details Tato funkce volá @c error_freeAll() na konci funkce @c main().
+ *
+ * @note V podstatě se jedná pouze změnu názvu funkce @c error_freeAll(),
+ *       jelikož by bylo matoucí na konci funkce @c main() po úspěšném ukončení
+ *       překladu volat funkci, která má v názvu "error" (čili chybu).
  */
 void IFJ24Compiler_freeAllAllocatedMemory();
 
@@ -138,6 +165,15 @@ void error_internalHandle(ErrorType error, const char *file, int line, const cha
 void error_printMessage(ErrorType error);
 
 /**
+ * @brief Funkce pro uvolnění alokovaných dat z haldy před ukončením programu
+ *
+ * @details Tato funkce uvolní všechna do dané chvíle alokovaná data na základě
+ *          zadaného chybového kódu. Uvolnění paměti je důležité pro zabránění
+ *          únikům paměti.
+ */
+void error_freeAll();
+
+/**
  * @brief Funkce pro ukončení programu s příslušným chybovým kódem.
  *
  * @details Tato funkce ukončí program s daným chybovým kódem. Funkce provádí
@@ -164,13 +200,6 @@ void error_killMePlease(ErrorType error);
  *       řetězce.
  */
 const char *error_getFileName(const char *path);
-
-
-void PrecStackList_destroy();
-void frameStack_destroyAll();
-void AST_destroyTree();
-void TAC_destroyInstructionList();
-
 
 #endif  // ERROR_H_
 

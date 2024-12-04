@@ -70,6 +70,7 @@ zig-out/
 **/.history/
 **/*.vsix
 **/test/test_examples/ifj24code_examples/ifj24code_output/*
+**/test/tests_by_fifixsandy/out
 
 # Build system
 **/build/*
@@ -81,6 +82,7 @@ zig-out/
 **/sandbox/*
 **/backup/*
 **/raw/*
+**/out/*
 *.doc
 *.docx
 **/pack/*

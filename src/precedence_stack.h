@@ -7,7 +7,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            11.11.2024                                                *
- * Poslední změna:   23.11.2024                                                *
+ * Poslední změna:   03.12.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -22,10 +22,11 @@
  *
  * @brief Hlavičkový soubor pro správu precedenčního zásobníku.
  * @details Tento soubor deklaruje funkce a datové struktury pro práci s
- *          precedenčním zásobníkem, který je používán při syntaktické analýze.
- *          Zásobník umožňuje manipulaci s terminály, neterminály a speciálními
- *          symboly (např. `<HANDLE>`). Obsahuje také funkce pro správu paměti,
- *          přidávání a odebírání uzlů a operace pro přechody mezi stavy parseru.
+ *          precedenčním zásobníkem, který je používán při precedenční
+ *          syntaktické analýze. Zásobník umožňuje manipulaci s terminály,
+ *          neterminály a speciálními symboly (např. `<HANDLE>`). Obsahuje také
+ *          funkce pro správu paměti, přidávání a odebírání uzlů a operace pro
+ *          zjišťování vrcolu zásbníku nebo nejvrchnějšího terminálu.
  */
 
 #ifndef PRECEDENCE_STACK_H
@@ -43,8 +44,9 @@
  *                                                                             *
  ******************************************************************************/
 
-#define SN_WITHOUT_AST_PTR  NULL                    /**< Uzel "PrecStackNode" neobsahuje ukazatel na AST uzel */
-#define SN_WITHOUT_AST_TYPE AST_NODE_UNDEFINED      /**< Uzel "PrecStackNode" nemá definovaný typ AST uzlu */
+#define SN_WITHOUT_AST_PTR  NULL                    /**<  Uzel `PrecStackNode` neobsahuje ukazatel na AST uzel.  */
+#define SN_WITHOUT_AST_TYPE AST_NODE_UNDEFINED      /**<  Uzel `PrecStackNode` nemá definovaný typ AST uzlu.     */
+
 
 /*******************************************************************************
  *                                                                             *
@@ -53,10 +55,12 @@
  ******************************************************************************/
 
 /**
- * @brief Výčet terminálů používaných v precedenční syntaktické analýze.
+ * @brief Výčet terminálů a speciálních symbolů pro precedenční zásobník.
  *
  * @details Tento výčet definuje všechny terminály a speciální symboly, které
  *          mohou být uloženy v precedenčním zásobníku během syntaktické analýzy.
+ *          Tyto symboly zahrnují identifikátory, literály, operátory a speciální
+ *          symboly používané při syntaktické analýze výrazů v jazyce IFJ24.
  */
 typedef enum PrecStackSymbol {
     PREC_STACK_SYM_UNEDFINED             = -1,       /**<  Typ "PrecStack" symbolu zatím není známý         */
@@ -95,10 +99,10 @@ typedef enum PrecStackSymbol {
  *          reprezentuje specifický typ neterminálu nebo speciální symbol pro handle.
  */
 typedef enum PrecStackNonTerminals {
-    PREC_STACK_NT_UNEDFINED  = -1,      /**<  Typ "stack" neterminálu zatím není známý */
-    PREC_STACK_NT_EXPRESSION = 0,       /**<  NEterminál pro výraz  */
-    PREC_STACK_NT_ARG_LIST   = 1,       /**<  NEterminál pro seznam argumentů  */
-    PREC_STACK_NT_HANDLE     = 2,       /**<  Speciální symbol "<" pro handle  */
+    PREC_STACK_NT_UNEDFINED  = -1,      /**<  Typ zásobníkového neterminálu zatím není známý  */
+    PREC_STACK_NT_EXPRESSION = 0,       /**<  NEterminál pro výraz                            */
+    PREC_STACK_NT_ARG_LIST   = 1,       /**<  NEterminál pro seznam argumentů                 */
+    PREC_STACK_NT_HANDLE     = 2,       /**<  Speciální symbol "<" pro handle                 */
 } PrecStackNonTerminals;
 
 /**
@@ -109,10 +113,10 @@ typedef enum PrecStackNonTerminals {
  *          reprezentuje buď terminál, neterminál, nebo speciální symbol pro handle.
  */
 typedef enum PrecStackNodeType {
-    STACK_NODE_TYPE_UNDEFINED    = -1,       /**< Typ "stack" uzlu zatím není známý */
-    STACK_NODE_TYPE_TERMINAL     = 1,        /**< Uzel reprezentující terminál */
-    STACK_NODE_TYPE_NONTERMINAL  = 2,        /**< Uzel reprezentující neterminál */
-    STACK_NODE_TYPE_HANDLE       = 3,        /**< Speciální symbol pro handle */
+    STACK_NODE_TYPE_UNDEFINED    = -1,       /**<  Typ zásobníkového uzlu zatím není známý  */
+    STACK_NODE_TYPE_TERMINAL     = 1,        /**<  Uzel reprezentující terminál             */
+    STACK_NODE_TYPE_NONTERMINAL  = 2,        /**<  Uzel reprezentující neterminál           */
+    STACK_NODE_TYPE_HANDLE       = 3,        /**<  Speciální symbol pro handle              */
 } PrecStackNodeType;
 
 
@@ -123,21 +127,23 @@ typedef enum PrecStackNodeType {
  ******************************************************************************/
 
 /**
- * @brief Struktura reprezentující uzel precedenčního zásobníku.
+ * @brief Struktura reprezentující uzel (položku) precedenčního zásobníku.
  *
- * @details Tato struktura reprezentuje jednotlivý uzel v precedenčním zásobníku.
+ * @details Tato struktura reprezentuje jeden uzel na precedenčním zásobníku.
  *          Každý uzel obsahuje informace o typu symbolu (terminál/neterminál/handle),
  *          samotný symbol, typ uzlu v AST, ukazatel na uzel AST spojený s tímto
- *          symbolem a ukazatel na další uzel ve stacku. AST uzly obsahují
+ *          symbolem a ukazatel na další uzel na zásobníku. AST uzly obsahují
  *          pouze zásobníkové uzly obsahující identifikátor, literál nebo
- *          neterminál pro výraz či seznam argumentů funkce
+ *          neterminál pro výraz či seznam argumentů funkce.
+ *
+ * @note - AST = abstraktní syntaktický strom
  */
 typedef struct PrecStackNode {
-    PrecStackNodeType    symbolType;       /**< Typ symbolu (terminál nebo neterminál nebo handle) */
-    PrecStackSymbol      symbol;           /**< Terminál nebo neterminál uložený v uzlu */
-    AST_NodeType         nodeType;         /**< Typ AST uzlu */
+    PrecStackNodeType    symbolType;       /**< Typ symbolu (terminál nebo neterminál nebo handle)          */
+    PrecStackSymbol      symbol;           /**< Terminál nebo neterminál uložený v uzlu                     */
+    AST_NodeType         nodeType;         /**< Typ AST uzlu                                                */
     void                 *node;            /**< Ukazatel na uzel AST spojený s terminálem nebo neterminálem */
-    struct PrecStackNode *next;            /**< Ukazatel na další uzel ve stacku */
+    struct PrecStackNode *next;            /**< Ukazatel na další uzel na zásobníku                         */
 } PrecStackNode;
 
 /**
@@ -148,7 +154,7 @@ typedef struct PrecStackNode {
  *          operací push, pop a top.
  */
 typedef struct PrecStack {
-    PrecStackNode *top;             /**< Ukazatel na vrchol zásobníku */
+    PrecStackNode *top;             /**< Ukazatel na vrchol zásobníku         */
     struct PrecStack *next;         /**< Ukazatel na další zásobník v seznamu */
 } PrecStack;
 
@@ -158,12 +164,12 @@ typedef struct PrecStack {
  * @details Obsahuje ukazatel na aktuální zásobník používaný během analýzy.
  *
  * @note Nejedná se ani tolik o seznam precedenčních zásobníků než spíše
- *       o zásobník všech aktuálně využívaných precedenčních zásobníků.
+ *       o zásobník všech aktuálně alokovaných precedenčních zásobníků.
  *       Pojem "seznam" jsem zvolil s cílem lépe rozlišit jednotlivé struktury
  *       a příslušné funkce.
  */
 typedef struct PrecStackList {
-    PrecStack *stack;               /**< Ukazatel na aktuální zásobník */
+    PrecStack *stack;               /**< Ukazatel na aktuální (nejvrchnější) zásobník v seznamu */
 } PrecStackList;
 
 /*******************************************************************************
@@ -176,8 +182,8 @@ typedef struct PrecStackList {
  * @brief Globální proměnná pro seznam precedenčních zásobníků.
  *
  * @details Tato proměnná uchovává ukazatel na aktuální precedenční zásobník,
- *          který je používán během syntaktické analýzy. Zásobník je inicializován
- *          na začátku analýzy a uvolněn po jejím dokončení.
+ *          který je používán během syntaktické analýzy. Seznam zásobníků je
+ *          alokován na začátku syntaktické analýzy a uvolněn po jejím skončení.
  */
 extern struct PrecStackList *precStackList;
 
@@ -194,7 +200,7 @@ extern struct PrecStackList *precStackList;
  * @details Tato funkce alokuje paměť pro globální seznam precedenčních zásobníků
  *          a inicializuje jej. Pokud se alokace nezdaří, hlásí interní chybu.
  */
-void PrecStackList_create();
+void precStackList_create();
 
 /**
  * @brief Uvolní globální strukturu seznamu zásobníků.
@@ -202,7 +208,7 @@ void PrecStackList_create();
  * @details Tato funkce uvolní paměť alokovanou pro globální seznam zásobníků.
  *          Pokud je seznam prázdný, funkce neprovádí žádnou akci.
  */
-void PrecStackList_destroy();
+void precStackList_destroy();
 
 /**
  * @brief Přidá nový precedenční zásobník na vrchol seznamu a inicializuje jej.
@@ -211,57 +217,57 @@ void PrecStackList_destroy();
  *          přidá jej na vrchol globálního seznamu zásobníků. Pokud se alokace
  *          nezdaří, hlásí interní chybu.
  */
-void PrecStackList_push();
+void precStackList_push();
 
 /**
  * @brief Odebere a uvolní vrcholový zásobník ze seznamu (bez uvolnění AST uzlů).
  *
  * @details Tato funkce odebere vrcholový zásobník ze seznamu a uvolní jeho paměť,
- *          aniž by uvolnila paměť pro uzly AST. Pokud je seznam prázdný, funkce
- *          neprovádí žádnou akci.
+ *          aniž by uvolnila paměť pro uzly abstraktního syntaktického stromu (AST).
+ *          Pokud je seznam prázdný, funkce neprovádí žádnou akci.
  */
-void PrecStackList_pop();
+void precStackList_pop();
 
 /**
  * @brief Uvolní všechny zásobníky a jejich obsah ze seznamu
- *        pomocí @c PrecStack_purge() (včetně uvolnění AST uzlů).
+ *        pomocí @c precStack_purge() (včetně uvolnění AST uzlů).
  *
  * @details Tato funkce uvolní všechny zásobníky ze seznamu pomocí funkce
- *          @c PrecStack_purge(). Pokud je seznam prázdný, funkce neprovádí
+ *          @c precStack_purge(). Pokud je seznam prázdný, funkce neprovádí
  *          žádnou akci.
  */
-void PrecStackList_purge();
+void precStackList_purge();
 
 /**
- * @brief Pushne precedenční terminál na aktuální precedenční zásobník.
+ * @brief Vloží precedenční terminál na aktuální precedenční zásobník.
  *
  * @details Tato funkce přidá nový terminál na vrchol precedenčního zásobníku.
  *          Pokud není zásobník alokovaný, funkce neprovádí žádnou akci.
  *
- * @param [in] symbol Terminál k pushnutí.
+ * @param [in] symbol Terminál k vložení na precedenční zásobník.
  * @param [in] type Typ AST uzlu spojeného s terminálem.
  *                  (typ `AST_NodeType' nebo `SN_WITHOUT_AST_TYPE`)
  * @param [in] node Ukazatel na AST uzel spojený s terminálem.
  *                  (ukazatel na uzel AST nebo `SN_WITHOUT_AST_PTR`)
  */
-void PrecStack_pushPrecTerminal(PrecTerminals symbol, AST_NodeType type, void *node);
+void precStack_pushPrecTerminal(PrecTerminals symbol, AST_NodeType type, void *node);
 
 /**
- * @brief Pushne NEterminál na globální precedenční zásobník.
+ * @brief Vloží NEterminál na globální precedenční zásobník.
  *
  * @details Tato funkce přidá nový NEterminál na vrchol precedenčního zásobníku.
  *          Pokud není zásobník alokovaný, funkce neprovádí žádnou akci.
  *
- * @param [in] symbol NEterminál k pushnutí.
+ * @param [in] symbol NEterminál k vložení na precedenční zásobník.
  * @param [in] type Typ AST uzlu spojeného s NEterminálem
  *                  (typ `AST_NodeType' nebo `SN_WITHOUT_AST_TYPE`)
  * @param [in] node Ukazatel na AST uzel spojený s NEterminálem.
  *                  (ukazatel na uzel AST nebo `SN_WITHOUT_AST_PTR`)
  */
-void PrecStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType type, void *node);
+void precStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType type, void *node);
 
 /**
- * @brief Pushne inicializovaný Stack uzel na zásobník, popř. i s AST uzlem.
+ * @brief Vloží inicializovaný Stack uzel na zásobník, popř. i s AST uzlem.
  *
  * @details Tato funkce vytváří a inicializuje uzly AST na základě typu terminálu
  *          a pushuje je na zásobník. Pokud je terminál typu identifikátor nebo
@@ -269,39 +275,40 @@ void PrecStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType ty
  *          uzel pushne na zásobník. Pokud je terminál jiného typu, pushne se na
  *          zásobník bez vytvoření AST uzlu.
  *
- * @param [in] inTerminal Typ terminálu, který má být pushnut na zásobník.
+ * @param [in] inTerminal Typ terminálu, který má být vložen na zásobník.
  */
-void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal);
+void precStack_pushBothStackAndASTNode(PrecTerminals inTerminal);
 
 /**
- * @brief Pushne handle za první terminál na zásobníku.
+ * @brief Vloží handle za první terminál na zásobníku.
  *
  * @details Tato funkce najde první terminál na zásobníku a vloží za něj handle.
  *          Pokud není zásobník alokovaný nebo neobsahuje žádný terminál, hlásí
  *          interní chybu.
  */
-void PrecStack_pushHandleAfterFirstTerminal();
+void precStack_pushHandleAfterFirstTerminal();
 
 /**
- * @brief Popne uzel AST z globálního precedenčního zásobníku.
+ * @brief Odebere uzel AST z globálního precedenčního zásobníku.
  *
- * @details Tato funkce odstraní vrcholový element ze stacku a vrátí
+ * @details Tato funkce odstraní vrcholový element ze zásobníku a vrátí
  *          ukazatel na tento uzel. Pokud je zásobník prázdný, vrátí @c NULL.
  *
- * @return Ukazatel na popnutý uzel, nebo @c NULL pokud je stack prázdný.
+ * @return Ukazatel na odebraný uzel, nebo @c NULL pokud je zásobník prázdný.
  */
-PrecStackNode *PrecStack_pop();
+PrecStackNode *precStack_pop();
 
 /**
  * @brief Získá ukazatel na uzel na vrcholu globálního precedenčního zásobníku
- *        bez jeho popnutí.
+ *        bez jeho odebrání ze zásobníku.
  *
- * @details Tato funkce vrátí ukazatel na vrcholový element stacku bez jeho
+ * @details Tato funkce vrátí ukazatel na vrcholový element zásobníku bez jeho
  *          odstranění. Pokud je zásobník prázdný, hlásí interní chybu.
  *
- * @return Ukazatel na vrcholový uzel stacku, nebo @c NULL pokud je stack prázdný.
+ * @return Ukazatel na vrcholový uzel zásobníku, nebo @c NULL pokud je zásobník
+ *         prázdný.
  */
-PrecStackNode *PrecStack_top();
+PrecStackNode *precStack_top();
 
 /**
  * @brief Uvolní všechny zdroje spojené s uzlem @c PrecStackNode.
@@ -309,9 +316,9 @@ PrecStackNode *PrecStack_top();
  * @details Tato funkce uvolní všechny zdroje spojené s uzlem @c PrecStackNode,
  *          včetně volání funkce @c AST_destroyNode() pro uvolnění `void *node`.
  *
- * @param [in] node Ukazatel na uzel @c PrecStackNode, který má být uvolněn.
+ * @param [in] stackNode Ukazatel na uzel @c PrecStackNode, který má být uvolněn.
  */
-void PrecStack_freeNode(PrecStackNode *stackNode);
+void precStack_freeNode(PrecStackNode *stackNode);
 
 /**
  * @brief Získá terminál na vrcholu zásobníku, který je nejblíže vrcholu.
@@ -320,10 +327,10 @@ void PrecStack_freeNode(PrecStackNode *stackNode);
  *          první terminál. Pokud na zásobníku není žádný terminál, hlásí
  *          interní chybu.
  *
- * @param [out] terminal Ukazatel na proměnnou, do které bude uložen nalezený
+ * @param [out] topTerminal Ukazatel na proměnnou, do které bude uložen nalezený
  *              terminál.
  */
-void PrecStack_getTopPrecTerminal(PrecTerminals *topTerminal);
+void precStack_getTopPrecTerminal(PrecTerminals *topTerminal);
 
 /**
  * @brief Zkontroluje, zda je na vrcholu zásobníku symbol ID.
@@ -332,7 +339,7 @@ void PrecStack_getTopPrecTerminal(PrecTerminals *topTerminal);
  *
  * @return @c true, pokud je na vrcholu zásobníku symbol ID, jinak @c false.
  */
-bool PrecStack_isIdOnTop();
+bool precStack_isIdOnTop();
 
 /**
  * @brief Získá výsledný AST uzel výrazu z precedenčního zásobníku.
@@ -343,7 +350,7 @@ bool PrecStack_isIdOnTop();
  *
  * @param [out] result Ukazatel na proměnnou, kam bude uložen výsledný `AST_ExprNode *`.
  */
-void PrecStack_getResult(AST_ExprNode **result);
+void precStack_getResult(AST_ExprNode **result);
 
 
 /*******************************************************************************
@@ -355,25 +362,25 @@ void PrecStack_getResult(AST_ExprNode **result);
 /**
  * @brief Uvolní všechny uzly z globálního precedenčního zásobníku.
  *
- * @details Tato funkce uvolní veškerou paměť alokovanou pro uzly stacku, ale
- *          obsažené uzly AST nechává alokované.
+ * @details Tato funkce uvolní veškerou paměť alokovanou pro uzly zásobníku,
+ *          ale obsažené uzly AST nechává alokované.
  *
  * @param stack Ukazatel na zásobník, který má být uvolněn.
  */
-void PrecStack_dispose(PrecStack *stack);
+void precStack_dispose(PrecStack *stack);
 
 
 /**
  * @brief Uvolní všechny uzly z globálního precedenčního zásobníku pomocí
- *        funkce @c PrecStack_freeNode().
+ *        funkce @c precStack_freeNode().
  *
  * @details Tato funkce uvolní všechny uzly z globálního precedenčního zásobníku
- *          pomocí funkce @c PrecStack_freeNode(). Uvolňuje tedy  zásobníkové
+ *          pomocí funkce @c precStack_freeNode(). Uvolňuje tedy zásobníkové
  *          uzly včetně případných AST uzlů uvnitř nich.
  *
  * @param stack Ukazatel na zásobník, který má být uvolněn.
  */
-void PrecStack_purge(PrecStack *stack);
+void precStack_purge(PrecStack *stack);
 
 /**
  * @brief Zkontroluje, zda je aktuální precedenční zásobník prázdný.
@@ -383,7 +390,7 @@ void PrecStack_purge(PrecStack *stack);
  *
  * @return @c true, pokud je zásobník prázdný, jinak @c false.
  */
-bool PrecStack_isEmpty();
+bool precStack_isEmpty();
 
 /**
  * @brief Vytvoří nový zásobníkový uzel typu typu @c PrecStackNode.
@@ -395,20 +402,21 @@ bool PrecStack_isEmpty();
  * @return Ukazatel na nově vytvořený uzel typu @c PrecStackNode,
  *         nebo @c NULL v případě chyby alokace.
  */
-PrecStackNode *PrecStack_createStackNode();
+PrecStackNode *precStack_createStackNode();
 
 /**
  * @brief Namapuje typ precedenčního terminálu na typ zásobníkového symbolu.
  *
- * @details Tato funkce přijímá precedenční terminál a mapuje jej na odpovídající
- *          zásobníkový symbol. Pokud je předán neplatný ukazatel, funkce
- *          hlásí interní chybu. Pokud je předán neterminál nebo handle, funkce
- *          zavolá @c Parser_errorWatcher() a nastavuje chybu typu @c ERROR_INTERNAL
+ * @details Tato funkce přijímá precedenční terminál a mapuje jej na
+ *          odpovídajícízásobníkový symbol. Pokud je předán neplatný ukazatel,
+ *          funkce hlásí interní chybu. Pokud je předán neterminál nebo handle,
+ *          funkce zavolá @c parser_errorWatcher() a nastavuje chybu typu
+ *          @c ERROR_INTERNAL.
  *
  * @param [in] terminal Precedenční terminál, který se má namapovat.
  * @param [out] stackSymbol Ukazatel na zásobníkový symbol, který bude nastaven.
  */
-void PrecStack_mapPrecTerminalToStackSymbol(PrecTerminals terminal, PrecStackSymbol *stackSymbol);
+void precStack_mapPrecTerminalToStackSymbol(PrecTerminals terminal, PrecStackSymbol *stackSymbol);
 
 /**
  * @brief Namapuje typ zásobníkového symbolu na typ precedenčního terminálu.
@@ -416,26 +424,26 @@ void PrecStack_mapPrecTerminalToStackSymbol(PrecTerminals terminal, PrecStackSym
  * @details Tato funkce přijímá zásobníkový symbol a mapuje jej na odpovídající
  *          precedenční terminál. Pokud je předán neplatný ukazatel, funkce
  *          hlásí interní chybu. Pokud je předán neterminál nebo handle, funkce
- *          zavolá @c Parser_errorWatcher() a nastavuje chybu typu @c ERROR_INTERNAL.
+ *          zavolá @c parser_errorWatcher() a nastavuje chybu typu @c ERROR_INTERNAL.
  *
  * @param [in] stackSymbol Zásobníkový symbol, který se má namapovat.
  * @param [out] terminal Ukazatel na precedenční terminál, který bude nastaven.
  */
-void PrecStack_mapStackSymbolToPrecTerminal(PrecStackSymbol stackSymbol, PrecTerminals *terminal);
+void precStack_mapStackSymbolToPrecTerminal(PrecStackSymbol stackSymbol, PrecTerminals *terminal);
 
 /**
  * @brief Namapuje typ zásobníkového neterminálu na typ zásobníkového symbolu.
  *
  * @details Tato funkce mapuje typ zásobníkového neterminálu na odpovídající typ
  *          zásobníkového symbolu. Pokud je předán neplatný ukazatel, funkce
- *          hlásí interní chybu. zavolá @c Parser_errorWatcher() a nastavuje
+ *          hlásí interní chybu. zavolá @c parser_errorWatcher() a nastavuje
  *          chybu typu @c ERROR_INTERNAL
  *
  * @param [in] stackNonTerminal Zásobníkový neterminál, který má být namapován.
  * @param [out] symbol Ukazatel na zásobníkový symbol, do kterého bude uložena
  *                     namapovaná hodnota.
  */
-void PrecStack_mapStackNonTerminalToStackSymbol(PrecStackNonTerminals stackNonTerminal, \
+void precStack_mapStackNonTerminalToStackSymbol(PrecStackNonTerminals stackNonTerminal, \
                                                 PrecStackSymbol *symbol);
 
 #endif // PRECEDENCE_STACK_H

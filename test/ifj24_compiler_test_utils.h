@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            08.11.2024                                                *
- * Poslední změna:   09.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -63,13 +63,14 @@ using namespace std;
 using namespace testing;
 using namespace internal;
 
-extern string exam_path;
-extern string lex_path;
-extern string synt_path;
-extern string synt_error_path;
-extern string sem_path;
-extern string sem_error_path;
+extern string examPath;
+extern string lexPath;
+extern string syntPath;
+extern string syntErrorPath;
+extern string semPath;
+extern string semErrorPath;
 
+extern vector<bool> levels;
 
 /*******************************************************************************
  *                                                                             *
@@ -77,11 +78,11 @@ extern string sem_error_path;
  *                                                                             *
  ******************************************************************************/
 
-#define COLOR_RESET   "\033[0m"         /**< ANSI escape sekvence pro resetovvání barvy */
-#define COLOR_GOLD    "\033[38;5;220m"  /**< ANSI escape sekvence pro zlatou barvu */
-#define COLOR_BLUE    "\033[34m"        /**< ANSI escape sekvence pro modrou barvu */
-#define COLOR_PINK    "\033[35m"        /**< ANSI escape sekvence pro růžovou barvu */
-#define COLOR_RED     "\033[91m"        /**< ANSI escape sekvence pro červenou barvu */
+#define COLOR_RESET "\033[0m"         /**< ANSI escape sekvence pro resetovvání barvy */
+#define COLOR_GOLD  "\033[38;5;220m"  /**< ANSI escape sekvence pro zlatou barvu */
+#define COLOR_BLUE  "\033[34m"        /**< ANSI escape sekvence pro modrou barvu */
+#define COLOR_PINK  "\033[35m"        /**< ANSI escape sekvence pro růžovou barvu */
+#define COLOR_RED   "\033[91m"        /**< ANSI escape sekvence pro červenou barvu */
 
 
 /*******************************************************************************
@@ -91,12 +92,12 @@ extern string sem_error_path;
  ******************************************************************************/
 
 #define MAKE_STRING(id, str) \
-    DString* id = string_init(); \
+    DString* id = DString_init(); \
     do { \
         ASSERT_NE(id, nullptr); \
         const char *tmp_str = str; \
         for(size_t i = 0; i < strlen(tmp_str); i++) { \
-            ASSERT_EQ(string_append_char(id, tmp_str[i]), STRING_SUCCESS); \
+            ASSERT_EQ(DString_appendChar(id, tmp_str[i]), STRING_SUCCESS); \
         } \
     } while(false);
 
@@ -186,9 +187,8 @@ void ASTutils_printDiff(string output, string reference, ostream &out = cerr);
  * @param [in] out Výstupní proud, do kterého se bude tisknout. Výchozí je `cout`.
  * @param [in] indent Úroveň odsazení. Výchozí je 0.
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  */
-void ASTutils_printProgramNode(AST_ProgramNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild);
+void ASTutils_printProgramNode(AST_ProgramNode *node, ostream &out, int indent, bool useColors, bool isLastChild);
 
 /**
  * @brief Vytiskne uzel AST_NODE_FUN_DEF.
@@ -199,10 +199,9 @@ void ASTutils_printProgramNode(AST_ProgramNode *node, ostream &out, int indent, 
  * @param [in] out Výstupní proud, do kterého se bude tisknout.
  * @param [in] indent Úroveň odsazení.
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  * @param [in] isLastChild Příznak pro určení poslední funkce v seznamu uzlů funkcí.
  */
-void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild);
+void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bool useColors, bool isLastChild);
 
 /**
  * @brief Vytiskne uzel AST_NODE_ARG_OR_PARAM.
@@ -213,9 +212,8 @@ void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bo
  * @param [in] out Výstupní proud, do kterého se bude tisknout.
  * @param [in] indent Úroveň odsazení.
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  */
-void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels);
+void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int indent, bool useColors);
 
 /**
  * @brief Vytiskne uzel AST_NODE_STATEMENT.
@@ -226,9 +224,8 @@ void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int in
  * @param [in] out Výstupní proud, do kterého se bude tisknout.
  * @param [in] indent Úroveň odsazení.
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  */
-void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels);
+void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int indent, bool useColors);
 
 /**
  * @brief Vytiskne uzel AST_NODE_FUN_CALL.
@@ -239,10 +236,9 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
  * @param [in] out Výstupní proud, do kterého se bude tisknout.
  * @param [in] indent Úroveň odsazení.
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  * @param [in] isLastChild Příznak pro určení poslední funkce v seznamu uzlů funkcí.
  */
-void ASTutils_printFunCallNode(AST_FunCallNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild);
+void ASTutils_printFunCallNode(AST_FunCallNode *node, ostream &out, int indent, bool useColors, bool isLastChild);
 
 /**
  * @brief Vytiskne uzel AST_NODE_IF.
@@ -253,10 +249,9 @@ void ASTutils_printFunCallNode(AST_FunCallNode *node, ostream &out, int indent, 
  * @param [in] out Výstupní proud, do kterého se bude tisknout.
  * @param [in] indent Úroveň odsazení.
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  * @param [in] isLastChild Příznak pro určení poslední funkce v seznamu uzlů funkcí.
  */
-void ASTutils_printIfNode(AST_IfNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild);
+void ASTutils_printIfNode(AST_IfNode *node, ostream &out, int indent, bool useColors, bool isLastChild);
 
 /**
  * @brief Vytiskne uzel AST_NODE_WHILE.
@@ -267,10 +262,9 @@ void ASTutils_printIfNode(AST_IfNode *node, ostream &out, int indent, bool useCo
  * @param [in] out Výstupní proud, do kterého se bude tisknout.
  * @param [in] indent Úroveň odsazení.
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  * @param [in] isLastChild Příznak pro určení poslední funkce v seznamu uzlů funkcí.
  */
-void ASTutils_printWhileNode(AST_WhileNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild);
+void ASTutils_printWhileNode(AST_WhileNode *node, ostream &out, int indent, bool useColors, bool isLastChild);
 
 /**
  * @brief Vytiskne uzel AST_NODE_EXPR.
@@ -281,10 +275,9 @@ void ASTutils_printWhileNode(AST_WhileNode *node, ostream &out, int indent, bool
  * @param [in] out Výstupní proud, do kterého se bude tisknout.
  * @param [in] indent Úroveň odsazení.
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  * @param [in] isLastChild Příznak pro určení poslední funkce v seznamu uzlů funkcí.
  */
-void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild);
+void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool useColors, bool isLastChild);
 
 /**
  * @brief Vytiskne uzel AST_NODE_BIN_OP.
@@ -295,10 +288,9 @@ void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool u
  * @param [in] out Výstupní proud, do kterého se bude tisknout.
  * @param [in] indent Úroveň odsazení.
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  * @param [in] isLastChild Příznak pro určení poslední funkce v seznamu uzlů funkcí.
  */
-void ASTutils_printBinOpNode(AST_BinOpNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild);
+void ASTutils_printBinOpNode(AST_BinOpNode *node, ostream &out, int indent, bool useColors, bool isLastChild);
 
 /**
  * @brief Vytiskne uzel AST_NODE_LITERAL.
@@ -309,10 +301,9 @@ void ASTutils_printBinOpNode(AST_BinOpNode *node, ostream &out, int indent, bool
  * @param [in] out Výstupní proud, do kterého se bude tisknout.
  * @param [in] indent Úroveň odsazení.
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  * @param [in] isLastChild Příznak pro určení poslední funkce v seznamu uzlů funkcí.
  */
-void ASTutils_printLiteralNode(AST_VarNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild);
+void ASTutils_printLiteralNode(AST_VarNode *node, ostream &out, int indent, bool useColors, bool isLastChild);
 
 /**
  * @brief Vytiskne uzel AST_NODE_VAR_DEF.
@@ -323,10 +314,9 @@ void ASTutils_printLiteralNode(AST_VarNode *node, ostream &out, int indent, bool
  * @param [in] out Výstupní proud, do kterého se bude tisknout.
  * @param [in] indent Úroveň odsazení.
  * @param [in] useColors Příznak pro použití barevného výstupu (výchozí hodnota je false)
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  * @param [in] isLastChild Příznak pro určení poslední funkce v seznamu uzlů funkcí.
  */
-void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild);
+void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool useColors, bool isLastChild);
 
 /**
  * @brief Pomocná funkce pro výpis odsazení.
@@ -336,10 +326,9 @@ void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool use
  *
  * @param[in] indent Počet odsazení (mezer), které se mají vytisknout.
  * @param[in] out Výstupní proud, do kterého se budou odsazení tisknout.
- * @param [in] levels Vektor sledující úroveň zanoření pro správné formátování.
  * @param[in] isLastChild Určuje typ propojení uzlů.
  */
-void ASTutils_printIndent(int indent, std::ostream &out, const vector<bool> &levels, bool isLastChild);
+void ASTutils_printIndent(int indent, std::ostream &out, bool isLastChild);
 
 #endif // AST_TEST_UTILS_H_
 

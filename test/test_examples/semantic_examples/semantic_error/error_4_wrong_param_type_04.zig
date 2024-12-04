@@ -1,8 +1,8 @@
-// Semantic error: Wrong parameter type on line 2
+// Semantic error: Wrong parameter type of function "ifj.concat()" on line 14.1
 
 const ifj = @import("ifj24.zig"); // 1
 
-pub fn f (x : ?f64) i32    // seznam parametru // 2
+pub fn f (x : f64) i32    // seznam parametru // 2
 { // 3
   // deklarace funkce; v IFJ24 nejsou blokove komentare // 4
   if(x<10) { // 5
@@ -10,11 +10,13 @@ pub fn f (x : ?f64) i32    // seznam parametru // 2
   } // 7
   else { // 8
     const y = x - 1; // cannot redefine x (shadowing is forbidden) // 9
-    ifj.write("calling g with "); // 10
+    ifj.write("calling g with "); // 10s
     ifj.write(y); // 11
     ifj.write("\n"); // 12
     const res = g(y); // 13
-    return res; // 14
+    var convert = ifj.concat(52.8, "hello"); // 14.1
+    convert = convert + 1; // 14.2
+    return res; // 14.2
   } // 15
 } // 16
 

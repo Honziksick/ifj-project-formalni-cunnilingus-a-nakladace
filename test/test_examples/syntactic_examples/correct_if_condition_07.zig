@@ -1,15 +1,16 @@
 const ifj = @import("ifj24.zig");
 
 pub fn main() void {
-    var x: i32 = 32;
-    const y : i32 = 89;
+    const float = 3.14;
+    const x: i32 = 32;
+    const y : i32 = float*89;
 
-    if(is_BIGGER(0-is_LOWER(0)))
+    if(ifj.i2f(0-ifj.i2f(0)))
     {
-        processItem(1458242);
+        ifj.write(1458242);
     }
     else
     {
-        _ = handleOddItem(53878);
+        ifj.write(53878);
     }
 }

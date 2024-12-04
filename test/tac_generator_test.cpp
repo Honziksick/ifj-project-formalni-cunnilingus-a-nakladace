@@ -6,7 +6,7 @@
  * Autor:            Farkašovský Lukáš  <xfarkal00> (hlavní testy)             *
  *                                                                             *
  * Datum:            16.11.2024                                                *
- * Poslední změna:   25.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -41,77 +41,12 @@ using namespace std;
 using namespace testing;
 using namespace internal;
 
-TEST(TAC, generate_example1_statement){
-    string path = exam_path + "example1.zig";
+
+TEST(TAC, generate_example1_funDef) {
+    string path = examPath + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-
-    semantic_analyseProgram();
-
-    // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
-
-    AST_FunDefNode *nodeFun = ASTroot->functionList;
-
-    AST_StatementNode *nodeStat = nodeFun->body;
-
-    PRINT_AST(AST_PROGRAM_NODE, ASTroot);
-
-    TAC_generateStatementBlock(nodeStat);
-
-    // Uvolnění alokovaných zdrojů
-    IFJ24Compiler_freeAllAllocatedMemory();
-
-    // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
-    fclose(f);
-}
-
-/*TEST(TAC, generate_example1_expression){
-    string path = exam_path + "example1.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-
-    // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
-
-    AST_FunDefNode *nodeFun = ASTroot->functionList;
-    AST_StatementNode *nodeStat = nodeFun->body;
-    AST_StatementNode *statement = (AST_StatementNode *)(nodeStat->statement);
-    // Padá na to, že toto není AST_ExprNode, ale AST_FunCallNode
-    AST_ExprNode *nodeExpr = (AST_ExprNode *)(statement->statement);
-
-    TAC_generateExpression(nodeExpr);
-
-    // Uvolnění alokovaných zdrojů
-    IFJ24Compiler_freeAllAllocatedMemory();
-
-    // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
-    fclose(f);
-}*/
-
-TEST(TAC, generate_example1_funDef){
-    string path = exam_path + "example1.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
     
     // Inicializace zásobníku rámců
@@ -131,15 +66,15 @@ TEST(TAC, generate_example1_funDef){
     IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
 }
 
-TEST(TAC, generate_example1_binary){
-    string path = exam_path + "example1.zig";
+TEST(TAC, generate_example1_binary) {
+    string path = examPath + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
     
     // Inicializace zásobníku rámců
@@ -172,60 +107,15 @@ TEST(TAC, generate_example1_binary){
     IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
 }
 
-TEST(TAC, generate_example1_if){
-    string path = exam_path + "example1.zig";
+TEST(TAC, generate_example1) {
+    string path = examPath + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
-    stdin = f;
-    
-    // Inicializace zásobníku rámců
-    frameStack_init();
-
-    // Syntaktická analýza programu
-    LLparser_parseProgram();
-
-    // Kořen je inicializován
-    EXPECT_NE(ASTroot, nullptr);
-
-    // Ukazatel na funkci main
-    AST_FunDefNode *nodeFun = ASTroot->functionList;
-
-    // Ukazatel na tělo funkce main --> volání funkce
-    AST_StatementNode *nodeStat = nodeFun->body;
-    EXPECT_EQ(nodeStat->statementType, AST_STATEMENT_FUN_CALL);
-
-    // Ukazatel na další příkaz v těle funkce main --> definice proměnné
-    AST_StatementNode *statement = (AST_StatementNode *)(nodeStat->next);
-    EXPECT_EQ(statement->statementType, AST_STATEMENT_VAR_DEF);
-
-    // Další statement v těle funkce main --> if
-    statement = (AST_StatementNode *)(statement->next);
-    EXPECT_EQ(statement->statementType, AST_STATEMENT_IF);
-
-    AST_IfNode *ifNode = (AST_IfNode *)statement->statement;
-    EXPECT_EQ(ifNode->type, AST_IF_NODE);
-    EXPECT_NE(ifNode->condition, nullptr);
-
-    TAC_generateIf(ifNode);
-
-    // Uvolnění alokovaných zdrojů
-    IFJ24Compiler_freeAllAllocatedMemory();
-
-    // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
-    fclose(f);
-}
-
-TEST(TAC, generate_example1){
-    string path = exam_path + "example1.zig";
-    FILE* f = fopen(path.c_str(), "r");
-    ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
     
     // Inicializace zásobníku rámců
@@ -243,16 +133,16 @@ TEST(TAC, generate_example1){
     IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
 }
 
 
-TEST(TAC, generate_example2){
-    string path = exam_path + "example2.zig";
+TEST(TAC, generate_example2) {
+    string path = examPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
-    FILE* stdin_backup = stdin;
+    FILE* stdinBackup = stdin;
     stdin = f;
     
     // Inicializace zásobníku rámců
@@ -270,6 +160,6 @@ TEST(TAC, generate_example2){
     IFJ24Compiler_freeAllAllocatedMemory();
 
     // Navrácení STDIN do původního stavu a uzavření souboru
-    stdin = stdin_backup;
+    stdin = stdinBackup;
     fclose(f);
 }

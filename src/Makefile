@@ -116,14 +116,17 @@ TEST_FILES = $(wildcard $(TEST_DIR)/*.cpp)
 
 # Seznam všech objektových souborů přeložených pro testování
 EXCLUDED_TEST_SRC_FILES = $(SRC_DIR)/ifj24_compiler.c
-TEST_INCLUDES = $(filter-out $(EXCLUDED_TEST_SRC_FILES), $(SRC_FILES))
 TEST_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(TEST_BUILD_DIR)/%.o,$(TEST_INCLUDES)) \
 $(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o $(TEST_BUILD_DIR)/gtest_main.a $(TEST_BUILD_DIR)/gtest.a
 
+# Vyčlenění souborů pro testování
+TEST_INCLUDES = $(filter-out $(EXCLUDED_TEST_SRC_FILES), $(SRC_FILES))
+
 # Seznam všech objektových souborů přeložených pro code coverage
 COV_SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(COVERAGE_BUILD_DIR)/%.o,$(SRC_FILES))
-COV_TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.cpp,$(COVERAGE_BUILD_DIR)/%.o,$(TEST_FILES))
-COV_SRC_OBJ_FILES := $(filter-out $(COVERAGE_BUILD_DIR)/ifj24compiler.o, $(COV_SRC_OBJ_FILES))
+
+# Vyčlenění souborů z coverage
+COV_SRC_OBJ_FILES := $(filter-out $(COVERAGE_BUILD_DIR)/ifj24_compiler.o, $(COV_SRC_OBJ_FILES))
 
 
 ################################################################################
@@ -767,31 +770,31 @@ BASE_PATH = ../test/test_examples/ifj24code_examples
 
 ### G # run-script: Spustí All-In-One testovací skript na kompilátor.
 run-script: build
-	$(TEST_DIR)/ifj24compiler_test_script.sh
+	$(TEST_DIR)/test.sh
 
 ### G # run-code: # Spustí interpret jazyk IFJ24 s IFJ24code assembler souborem: \nUSAGE: "make run-code F=<FILE>" \n(očekává soubor bez přípony '.zig' a ve složce: \n'../test/test_examples/ifj24code_examples/pregenerated_ifj24code/<FILE>.zig')
 run-code:
 	@echo "\033[35mLaunching 'ic24int' interpreter with:\033[0m \033[33m$(F).ifj24code\033[0m"
-	@echo "\033[35mRUNNING:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m"
-	@$(TEST_DIR)/ic24int $(BASE_PATH)/ifj24code_output/$(F).ifj24code
+	@echo "\033[35mRUNNING:\033[0m \033[33m$(BASE_PATH)/out/$(F).ifj24code\033[0m"
+	@$(TEST_DIR)/ic24int $(BASE_PATH)/out/$(F).ifj24code
 	@echo "\n\033[35mINTERPRETATION DONE\033[0m"
 
 ### G # gen-code: # Spustí týmový překladač jazyka IFJ24 a vygeneruje pomocí něj IFJ24code \npro zvolený program: \nUSAGE: "make gen-code F=<FILE>" \n(očekává soubor bez přípony '.zig' a ve složce: \n'../test/test_examples/ifj24code_examples/programs/<FILE>.zig')
 gen-code: $(BUILD_DIR)/$(EXECUTABLE)
-	@mkdir -p $(BASE_PATH)/ifj24code_output
+	@mkdir -p $(BASE_PATH)/out
 	@echo "\033[35mLaunching 'ifj24compiler' with:\033[0m \033[33m$(F).zig\033[0m"
-	@$(BUILD_DIR)/$(EXECUTABLE) < $(BASE_PATH)/programs/$(F).zig > $(BASE_PATH)/ifj24code_output/$(F).ifj24code
-	@echo "\033[35mCOMPILATION DONE:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m"
+	@$(BUILD_DIR)/$(EXECUTABLE) < $(BASE_PATH)/in/$(F).zig > $(BASE_PATH)/out/$(F).ifj24code
+	@echo "\033[35mCOMPILATION DONE:\033[0m \033[33m$(BASE_PATH)/out/$(F).ifj24code\033[0m"
 
 ### G # gen-run-code: # Spustí týmový překladač jazyka IFJ24 a vygeneruje pomocí něj IFJ24code \npro zvolený program. Následně spustí vygenerovaný IFJ24code soubor: \nUSAGE: "make gen-run-code F=<FILE>" \n(očekává soubor bez přípony '.zig' a ve složce: \n'../test/test_examples/ifj24code_examples/programs/<FILE>.zig')
 gen-run-code: $(BUILD_DIR)/$(EXECUTABLE)
-	@mkdir -p $(BASE_PATH)/ifj24code_output
+	@mkdir -p $(BASE_PATH)/out
 	@echo "\033[35mLaunching 'ifj24compiler' with:\033[0m \033[33m$(F).zig\033[0m"
-	@$(BUILD_DIR)/$(EXECUTABLE) < $(BASE_PATH)/programs/$(F).zig > $(BASE_PATH)/ifj24code_output/$(F).ifj24code
-	@echo "\033[35mCOMPILATION DONE:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m\n"
+	@$(BUILD_DIR)/$(EXECUTABLE) < $(BASE_PATH)/in/$(F).zig > $(BASE_PATH)/out/$(F).ifj24code
+	@echo "\033[35mCOMPILATION DONE:\033[0m \033[33m$(BASE_PATH)/out/$(F).ifj24code\033[0m\n"
 	@echo "\033[35mLaunching 'ic24int' interpreter with:\033[0m \033[33m$(F).ifj24code\033[0m"
-	@echo "\033[35mRUNNING:\033[0m \033[33m$(BASE_PATH)/ifj24code_output/$(F).ifj24code\033[0m"
-	@$(TEST_DIR)/ic24int $(BASE_PATH)/ifj24code_output/$(F).ifj24code
+	@echo "\033[35mRUNNING:\033[0m \033[33m$(BASE_PATH)/out/$(F).ifj24code\033[0m"
+	@$(TEST_DIR)/ic24int $(BASE_PATH)/out/$(F).ifj24code
 	@echo "\n\033[35mINTERPRETATION DONE\033[0m"
 
 
@@ -807,9 +810,9 @@ gen-run-code: $(BUILD_DIR)/$(EXECUTABLE)
 ###                                                                          ###
 
 ### CC # build-coverage: # Sestaví všechny zdrojové soubory a testy s přepínači pro pokrytí kódu
-build-coverage: $(COV_SRC_OBJ_FILES) $(COV_TEST_OBJ_FILES) $(COVERAGE_BUILD_DIR)/gtest_main.a $(COVERAGE_BUILD_DIR)/gtest.a
+build-coverage: $(COV_SRC_OBJ_FILES) $(COVERAGE_BUILD_DIR)/$(INTEGRATE).o $(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o $(COVERAGE_BUILD_DIR)/gtest_main.a $(COVERAGE_BUILD_DIR)/gtest.a
 	@mkdir -p $(COVERAGE_BUILD_DIR)
-	$(CXX) $(CFLAGS_COV) $(CXXFLAGS_COV) $(COV_SRC_OBJ_FILES) $(COV_TEST_OBJ_FILES) \
+	$(CXX) $(CFLAGS_COV) $(CXXFLAGS_COV) $(COV_SRC_OBJ_FILES) $(COVERAGE_BUILD_DIR)/$(INTEGRATE).o $(TEST_BUILD_DIR)/ifj24_compiler_test_utils.o \
 		$(COVERAGE_BUILD_DIR)/gtest_main.a -o $(COVERAGE_BUILD_DIR)/$(EXECUTABLE)_coverage
 
 ### CC # run-test-coverage: # Spustí všechny testy generující pokrytí kódu
@@ -825,7 +828,9 @@ process-coverage:
 	@lcov --quiet --remove $(COVERAGE_BUILD_DIR)/filtered_coverage.info \
 	'*/googletest-src/*' --output-file $(COVERAGE_BUILD_DIR)/filtered_coverage.info
 	@lcov --quiet --remove $(COVERAGE_BUILD_DIR)/filtered_coverage.info \
-	'*/profiler/*' --output-file $(COVERAGE_BUILD_DIR)/filtered_coverage.info
+	'*/test/*' --output-file $(COVERAGE_BUILD_DIR)/filtered_coverage.info
+	@lcov --quiet --remove $(COVERAGE_BUILD_DIR)/filtered_coverage.info \
+	'*/tac_generator.c' --output-file $(COVERAGE_BUILD_DIR)/filtered_coverage.info
 	genhtml $(COVERAGE_BUILD_DIR)/filtered_coverage.info \
 	--output-directory $(COVERAGE_BUILD_DIR)
 	@mkdir -p $(COVERAGE_BUILD_DIR)/coverage_data
@@ -834,9 +839,7 @@ process-coverage:
 	@find $(COVERAGE_BUILD_DIR) -maxdepth 1 -type d ! -name \
 	'coverage_data' ! -path '$(COVERAGE_BUILD_DIR)' -exec mv {} \
 	$(COVERAGE_BUILD_DIR)/coverage_data/ \;
-	@echo '<html><head><meta http-equiv="refresh" content="0; \
-	url=coverage_data/index.html"></head></html>' > $(COVERAGE_BUILD_DIR)/code_coverage_web_result.html
-
+	@echo '<html><head><meta http-equiv="refresh" content="0; url=coverage_data/index.html"></head></html>' > $(COVERAGE_BUILD_DIR)/code_coverage_web_result.html
 
 ###                                                                          ###
 #                KOMPILACE souborů potřebných pro CODE COVERAGE                #
@@ -847,7 +850,7 @@ $(COVERAGE_BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(COVERAGE_BUILD_DIR)
 	$(CC) $(CFLAGS) $(CFLAGS_COV) -c $< -o $@
 
-$(COVERAGE_BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp
+$(COVERAGE_BUILD_DIR)/$(INTEGRATE).o: $(TEST_DIR)/$(INTEGRATE).cpp
 	@mkdir -p $(COVERAGE_BUILD_DIR)
 	$(CXX) $(CFLAGS) $(CXXFLAGS_COV) -c $< -o $@
 

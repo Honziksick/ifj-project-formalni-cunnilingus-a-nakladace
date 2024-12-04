@@ -1,5 +1,6 @@
 const ifj = @import("ifj24.zig");
 pub fn main() void {
-    ifj.foo("Hello, World!");
-    const greeting : ?[]u8 = ifj.foo("Hello, World!");
+    ifj.write("Hello, World!");
+    const greeting : ?[]u8 = null;
+    ifj.write(greeting);
 }
