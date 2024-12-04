@@ -59,7 +59,7 @@ ErrorType semantic_analyseProgramStructure() {
 
     SymtableItemPtr itemMain;
     // Podíváme se na globální rámec, kde jsou definice funkcí
-    symtable_result result = symtable_findItem(frameStack.bottom->frame, str, &itemMain);
+    Symtable_result result = symtable_findItem(frameStack.bottom->frame, str, &itemMain);
 
     // Uvolníme string pro hledání
     DString_free(str);
@@ -374,7 +374,7 @@ ErrorType semantic_analyseAssignmentBinOp(AST_BinOpNode *binNode,
     // Zjistíme typ proměnné vlevo
     SymtablePtr table = frameArray.array[leftNode->frameID]->frame;
     SymtableItemPtr item;
-    symtable_result sym_res = symtable_findItem(table, leftNode->identifier, &item);
+    Symtable_result sym_res = symtable_findItem(table, leftNode->identifier, &item);
 
     if(sym_res != SYMTABLE_SUCCESS) {
         return ERROR_INTERNAL;
@@ -655,7 +655,7 @@ ErrorType semantic_analyseVarDef(AST_StatementNode *statement) {
     SymtablePtr table = frameArray.array[leftNode->frameID]->frame;
     SymtableItemPtr item;
     DString *identifier = leftNode->identifier;
-    symtable_result sym_res = symtable_findItem(table, identifier, &item);
+    Symtable_result sym_res = symtable_findItem(table, identifier, &item);
 
     if(sym_res != SYMTABLE_SUCCESS) {
         return ERROR_INTERNAL;
@@ -745,7 +745,7 @@ ErrorType semantic_analyseExpr(AST_ExprNode *exprNode, Semantic_Data *type, void
             node = exprNode->expression;
             SymtablePtr table = frameArray.array[node->frameID]->frame;
             SymtableItemPtr item;
-            symtable_result sym_res = symtable_findItem(table, node->identifier, &item);
+            Symtable_result sym_res = symtable_findItem(table, node->identifier, &item);
 
             if(sym_res != SYMTABLE_SUCCESS) {
                 // Pokud proměnná není v rámci, tak je chyba v implementaci
@@ -876,7 +876,7 @@ ErrorType semantic_analyseFunCall(AST_FunCallNode *funNode, Semantic_Data *retur
     }
 
     // Zjistíme, zda je funkce definována
-    symtable_result sym_result = symtable_findItem(frameStack.bottom->frame,
+    Symtable_result sym_result = symtable_findItem(frameStack.bottom->frame,
                                                key, &item);
     if(sym_result != SYMTABLE_SUCCESS) {
         DString_free(key);
@@ -1359,9 +1359,9 @@ ErrorType semantic_compatibleRelation(Semantic_Data type1, Semantic_Data type2) 
 }  // semantic_compatibleRelation
 
 /**
- * @brief Převede hodnotu enum symtable_symbolState na typ Semantic_Data
+ * @brief Převede hodnotu enum Symtable_symbolState na typ Semantic_Data
  */
-Semantic_Data semantic_stateToSemType(symtable_symbolState state) {
+Semantic_Data semantic_stateToSemType(Symtable_symbolState state) {
     switch(state) {
         case SYMTABLE_SYMBOL_VARIABLE_DOUBLE:
             return SEM_DATA_FLOAT;
@@ -1381,9 +1381,9 @@ Semantic_Data semantic_stateToSemType(symtable_symbolState state) {
 }  // semantic_stateToSemType
 
 /**
- * @brief Převede hodnotu enum symtable_functionReturnType na typ Semantic_Data
+ * @brief Převede hodnotu enum Symtable_functionReturnType na typ Semantic_Data
  */
-Semantic_Data semantic_returnToSemType(symtable_functionReturnType type) {
+Semantic_Data semantic_returnToSemType(Symtable_functionReturnType type) {
     switch(type) {
         case SYMTABLE_TYPE_DOUBLE:
             return SEM_DATA_FLOAT;
@@ -1496,9 +1496,9 @@ ErrorType semantic_toInt(AST_ExprNode *node) {
 }  // semantic_toInt
 
 /**
- * @brief Převede hodnotu typu Semantic_Data na enum symtable_symbolState
+ * @brief Převede hodnotu typu Semantic_Data na enum Symtable_symbolState
  */
-symtable_symbolState semantic_semTypeToState(Semantic_Data type) {
+Symtable_symbolState semantic_semTypeToState(Semantic_Data type) {
     switch(type) {
         case SEM_DATA_FLOAT:
             return SYMTABLE_SYMBOL_VARIABLE_DOUBLE;

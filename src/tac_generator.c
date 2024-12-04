@@ -21,18 +21,24 @@
  * @author Krejčí David \<xkrejcd00> (hlavní)
  * @author Farkašovský Lukáš \<xfarkal00> (edit)
  *
- * @brief Implementace funkcí pro generátor vnitřního kódu (3AK + Cílový jazyk).
- * @details Knihovna pro generování cílového kódu z AST.
+ * @brief Implementace generátoru tříadresného kódu (3AK) a cílového kódu.
+ * @details Tento soubor obsahuje implementaci funkcí pro generování tříadresného
+ *          kódu (3AK) a cílového kódu z abstraktního syntaktického stromu (AST).
+ *          Implementace zahrnuje funkce pro generování kódu pro různé typy uzlů
+ *          AST, jako jsou definice funkcí, výrazy, podmínky a smyčky.
  */
 
+// Import knihoven překladače
 #include "tac_generator.h"
 #include "semantic_analyser.h"
 #include "built_in_functions.h"
 
-/**
- * @brief Typ pro reset statických proměnných
- */
-#define RESET_STATIC (AST_NodeType)123
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Generuje cílový kód programu ze stromu AST.
@@ -76,6 +82,13 @@ void TAC_generateProgram() {
 
 }  // TAC_generateProgram
 
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE INTERNÍCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
+
 /**
  * @brief Generuje cílový kód definice funkce
  */
@@ -99,7 +112,7 @@ void TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode) {
 /**
  * @brief Generuje cílový kód pro blok příkazů
  */
-void TAC_generateStatementBlock(AST_StatementNode* statement, TAC_MODE mode) {
+void TAC_generateStatementBlock(AST_StatementNode* statement, TAC_mode mode) {
     // Projdeme všechny příkazy v bloku
     while(statement != NULL) {
         // Pro každý voláme funkci podle typu příkazu
@@ -248,7 +261,7 @@ void TAC_generateBinaryOperator(AST_BinOpNode *binNode) {
 /**
  * @brief Generuje cílový kód pro definici proměnné
  */
-void TAC_generateVarDef(AST_ExprNode *exprNode, TAC_MODE mode) {
+void TAC_generateVarDef(AST_ExprNode *exprNode, TAC_mode mode) {
     // Kontrola NULL
     if(exprNode == NULL || exprNode->expression == NULL) {
         return;
@@ -271,7 +284,7 @@ void TAC_generateVarDef(AST_ExprNode *exprNode, TAC_MODE mode) {
     if(mode != TAC_VAR_DEF_ONLY) {
         // Na vrchol zásobníku vložíme hodnotu výrazu vpravo
         TAC_generateExpression(binNode->right);
-        
+
         // Vytvoříme buffer pro instrukce
         char buffer[OPTIMIZE_BUFFER_SIZE] = {0};
         int writtenSize = 0;
@@ -374,7 +387,7 @@ void TAC_generateLiteral(AST_VarNode *literal) {
 /**
  * @brief Generuje cílový kód pro podmíněný příkaz if
  */
-void TAC_generateIf(AST_IfNode *ifNode, TAC_MODE mode) {
+void TAC_generateIf(AST_IfNode *ifNode, TAC_mode mode) {
     // Kontrola NULL
     if(ifNode == NULL) {
         return;
@@ -445,7 +458,7 @@ void TAC_generateIf(AST_IfNode *ifNode, TAC_MODE mode) {
 /**
  * @brief Generuje cílový kód pro smyčku while
  */
-void TAC_generateWhile(AST_WhileNode *whileNode, TAC_MODE mode) {
+void TAC_generateWhile(AST_WhileNode *whileNode, TAC_mode mode) {
     // Unikátní identifikátor pro while
     static unsigned int count = 0;
     unsigned int id = count;
@@ -794,5 +807,6 @@ void TAC_bufferPrint(char (*newInstruction)[OPTIMIZE_BUFFER_SIZE]) {
         printf("%s", buffered);
         strcpy(buffered, *newInstruction);
     }
-
 }  // TAC_bufferPrint
+
+/*** Konec souboru tac_generator.c ***/

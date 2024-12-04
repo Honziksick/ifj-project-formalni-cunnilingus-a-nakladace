@@ -158,7 +158,7 @@ void frameStack_push(bool isFunction) {
 /**
  * @brief Odstraní vrchní rámec ze zásobníku.
  */
-frame_stack_result frameStack_pop() {
+FrameStack_result frameStack_pop() {
     if(frameStack.top == NULL) {
         return FRAME_STACK_NOT_INITIALIZED;
     }
@@ -175,7 +175,7 @@ frame_stack_result frameStack_pop() {
 /**
  * @brief Vyhledá položku v zásobníku rámců podle klíče.
  */
-frame_stack_result frameStack_findItem(DString *key, SymtableItem **outItem) {
+FrameStack_result frameStack_findItem(DString *key, SymtableItem **outItem) {
     // Pokud je klíč NULL, vrátíme chybu
     if(key == NULL) {
         return FRAME_STACK_KEY_NULL;
@@ -192,7 +192,7 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **outItem) {
     // Cyklus prohledávání rámců
     while(true) {
         // Prohledáme rámec
-        symtable_result result = symtable_findItem(frame->frame, key, outItem);
+        Symtable_result result = symtable_findItem(frame->frame, key, outItem);
         if(result == SYMTABLE_SUCCESS) {
             // Pokud byla položka nalezena, vrátíme úspěch
             return FRAME_STACK_SUCCESS;
@@ -214,7 +214,7 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **outItem) {
     }
 
     // Projdeme ještě globální rámec
-    symtable_result result = symtable_findItem(frameArray.array[0]->frame, key, outItem);
+    Symtable_result result = symtable_findItem(frameArray.array[0]->frame, key, outItem);
     if(result == SYMTABLE_SUCCESS) {
         return FRAME_STACK_SUCCESS;
     }
@@ -226,11 +226,11 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **outItem) {
 /**
  * @brief Přidá novou položku do vrchního rámce zásobníku.
  */
-frame_stack_result frameStack_addItem(DString *key, SymtableItem **outItem) {
+FrameStack_result frameStack_addItem(DString *key, SymtableItem **outItem) {
     // Voláme findItem, abychom zjistili, zda položka již existuje
     // Zároveň získáme ukazatel na položku, pokud existuje
     // Funkce se zároveň postará o chybové stavy
-    frame_stack_result result = frameStack_findItem(key, outItem);
+    FrameStack_result result = frameStack_findItem(key, outItem);
 
     // Pokud položka již existuje, vracíme tuto informaci
     if(result == FRAME_STACK_SUCCESS) {
@@ -239,7 +239,7 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **outItem) {
 
     // Pokud položka neexistuje, přidáme ji
     if(result == FRAME_STACK_ITEM_DOESNT_EXIST) {
-        symtable_result sym_result = symtable_addItem(frameStack.top->frame, key, outItem);
+        Symtable_result sym_result = symtable_addItem(frameStack.top->frame, key, outItem);
 
         // Pokud se položka podařilo přidat, vrátíme úspěch
         if(sym_result == SYMTABLE_SUCCESS) {
@@ -258,10 +258,10 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **outItem) {
 /**
  * @brief Přidá novou položku s daty do vrchního rámce zásobníku.
  */
-frame_stack_result frameStack_addItemExpress(DString *key,
-                    symtable_symbolState state, bool constant, void* data, SymtableItem **outItem) {
+FrameStack_result frameStack_addItemExpress(DString *key,
+                    Symtable_symbolState state, bool constant, void* data, SymtableItem **outItem) {
     SymtableItemPtr item;
-    frame_stack_result result = frameStack_addItem(key, &item);
+    FrameStack_result result = frameStack_addItem(key, &item);
     if(result != FRAME_STACK_SUCCESS) {
         return result;
     }
@@ -297,7 +297,7 @@ size_t frameStack_getId(DString *key) {
     // Cyklus prohledávání rámců
     while(true) {
         // Prohledáme rámec
-        symtable_result result = symtable_findItem(frame->frame, key, NULL);
+        Symtable_result result = symtable_findItem(frame->frame, key, NULL);
         if(result == SYMTABLE_SUCCESS) {
             // Pokud byla položka nalezena, vrátíme úspěch
             return frame->frameID;
@@ -544,17 +544,16 @@ void frameStack_addEmbeddedFunctions() {
     if(frameStack_addFunction("ifj.chr", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
+} // frameStack_addEmbeddedFunctions()
 
-}
-
-frame_stack_result frameStack_addFunction(const char* key, void* data) {
+FrameStack_result frameStack_addFunction(const char* key, void* data) {
     // Funkce pro načítání hodnot
     DString *sKey = DString_constCharToDString(key);
     if(key == NULL) {
         return FRAME_STACK_ALLOCATION_FAIL;
     }
     SymtableItemPtr item;
-    frame_stack_result result = frameStack_addItem(sKey, &item);
+    FrameStack_result result = frameStack_addItem(sKey, &item);
     if(result != FRAME_STACK_SUCCESS) {
         DString_free(sKey);
         return result;
@@ -563,6 +562,6 @@ frame_stack_result frameStack_addFunction(const char* key, void* data) {
     item->data = data;
     DString_free(sKey);
     return FRAME_STACK_SUCCESS;
-}
+} // frameStack_addFunction()
 
-/*** Konec souboru frame_stack.h ***/
+/*** Konec souboru frame_stack.c ***/

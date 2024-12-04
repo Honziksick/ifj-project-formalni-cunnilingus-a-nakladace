@@ -30,10 +30,15 @@
 #define SYMTABLE_H_
 /** @endcond */
 
+// Import standardních knihoven jazyka C
 #include <stdbool.h>
 #include <stdlib.h>
-#include "dynamic_string.h"
+
+// Import knihoven pro lexikální analyzátor
 #include "scanner.h"
+
+// Import sdílených knihoven překladače
+#include "dynamic_string.h"
 
 
 /**
@@ -70,7 +75,7 @@ typedef enum {
     SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL,    /**< Proměnná typu string nebo NULL */
     SYMTABLE_SYMBOL_FUNCTION,                   /**< Funkce */
     SYMTABLE_SYMBOL_UNKNOWN                     /**< Neznámý typ symbolu */
-} symtable_symbolState;
+} Symtable_symbolState;
 
 /**
  * @brief   Výčet návratových hodnot funkcí tabulky symbolů
@@ -86,7 +91,7 @@ typedef enum {
     SYMTABLE_TABLE_NULL,             /**< Předaná tabulka je NULL */
     SYMTABLE_RESIZE_FAIL,            /**< Chyba při zvětšení tabulky */
     SYMTABLE_KEY_NULL                /**< Předaný klíč je NULL */
-} symtable_result;
+} Symtable_result;
 
 
 typedef enum {
@@ -98,7 +103,7 @@ typedef enum {
     SYMTABLE_TYPE_DOUBLE_OR_NULL,   /**< Proměnná typu double nebo NULL */
     SYMTABLE_TYPE_STRING_OR_NULL,   /**< Proměnná typu string nebo NULL */
     SYMTABLE_TYPE_VOID              /**< Funkce nic nevrací */
-} symtable_functionReturnType;
+} Symtable_functionReturnType;
 
 
 /*******************************************************************************
@@ -115,9 +120,9 @@ typedef enum {
  */
 typedef struct {
     DString *key;                       /**< Klíč položky (identifikátor) */
-    symtable_symbolState symbolState;  /**< Stav symbolu dle výčtu `symtable_symbolState` */
+    Symtable_symbolState symbolState;   /**< Stav symbolu dle výčtu `Symtable_symbolState` */
     bool used;                          /**< Příznak, zda je položka použita */
-    bool knownValue;                   /**< Příznak, zda má položka hodnotu známou při překladu */
+    bool knownValue;                    /**< Příznak, zda má položka hodnotu známou při překladu */
     bool constant;                      /**< Příznak, zda je položka konstantní */
     bool changed;                       /**< Příznak, zda byla hodnota položky změněna */
     void *data;                         /**< Ukazatel na data asociovaná s položkou */
@@ -128,7 +133,7 @@ typedef struct {
  */
 typedef struct {
     DString *id;                        /**< Identifikátor parametru */
-    symtable_functionReturnType type;   /**< Typ parametru */
+    Symtable_functionReturnType type;   /**< Typ parametru */
 } SymtableParamPair;
 
 /**
@@ -137,7 +142,7 @@ typedef struct {
  *          a pole s jednotlivými parametry.
  */
 typedef struct {
-    symtable_functionReturnType returnType;    /**< Návratový typ funkce */
+    Symtable_functionReturnType returnType;    /**< Návratový typ funkce */
     size_t bodyFrameID;                        /**< ID rámce pro tělo funkce */
     size_t paramCount;                         /**< Počet parametrů funkce */
     SymtableParamPair *params;                  /**< Pole parametrů funkce */
@@ -196,7 +201,7 @@ Symtable *symtable_init();
  *         - @c SYMTABLE_ALLOCATION_FAIL, pokud selhala alokace paměti pro nový prvek.
  *         - @c SYMTABLE_KEY_NULL, pokud byl předán klíč NULL.
  */
-symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **outItem);
+Symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **outItem);
 
 /**
  * @brief Přidá novou položku do tabulky symbolů z tokenu
@@ -216,7 +221,7 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **o
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL.
  *         - @c SYMTABLE_RESIZE_FAIL, pokud selhalo rozšíření tabulky.
  */
-symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem **outItem);
+Symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem **outItem);
 
 /**
  * @brief Vyhledá položku v tabulce symbolů
@@ -235,7 +240,7 @@ symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem **o
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL
  *         - @c SYMTABLE_KEY_NULL, pokud byl předán klíč NULL
  */
-symtable_result symtable_findItem(Symtable *table, DString *key, SymtableItem **outItem);
+Symtable_result symtable_findItem(Symtable *table, DString *key, SymtableItem **outItem);
 
 /**
  * @brief Odstraní položku z tabulky symbolů
@@ -251,7 +256,7 @@ symtable_result symtable_findItem(Symtable *table, DString *key, SymtableItem **
  *         - @c SYMTABLE_NULL, pokud byla předaná tabulka NULL
  *         - @c SYMTABLE_KEY_NULL, pokud byl předán klíč NULL
  */
-symtable_result symtable_deleteItem(Symtable *table, DString *key);
+Symtable_result symtable_deleteItem(Symtable *table, DString *key);
 
 /**
  * @brief Vymaže všechny položky z tabulky symbolů

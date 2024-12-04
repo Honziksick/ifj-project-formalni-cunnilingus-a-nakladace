@@ -30,6 +30,24 @@
 
 #include "error.h"
 
+#include "precedence_stack.h"
+#include "frame_stack.h"
+#include "ast_interface.h"
+#include "tac_generator.h"
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Funkce pro uvolnění alokovaných dat z haldy před ukončením programu.
+ */
+inline void IFJ24Compiler_freeAllAllocatedMemory() {
+    error_freeAll();
+} // IFJ24Compiler_freeAllAllocatedMemory()
+
 
 /*******************************************************************************
  *                                                                             *
@@ -41,14 +59,17 @@
  * @brief Funkce pro zpracování chybového kódu.
  */
 void error_internalHandle(ErrorType error, const char *file, int line, const char *func) {
-    // Extrahujeme název souboru z cesty
-    const char* fileName = error_getFileName(file);
-
     // Vytiskneme chybovou zprávu s kódem chyby
     error_printMessage(error);
 
     // Vytiskneme informace o souboru, řádku a funkci, kde chyba nastala
-    fprintf(stderr, YELLOW_COLOR "In file: %s:%d (%s)\n" RESET_COLOR, fileName, line, func);
+    if(LOG_VERBOSE) {
+        // Extrahujeme název souboru z cesty
+        const char* fileName = error_getFileName(file);
+
+        // Tisk informací
+        fprintf(stderr, YELLOW_COLOR "In file: %s:%d (%s)\n" RESET_COLOR, fileName, line, func);
+    }
 
     // Uvolníme alokovaná data (je-li to potřeba)
     IFJ24Compiler_freeAllAllocatedMemory();
@@ -56,7 +77,6 @@ void error_internalHandle(ErrorType error, const char *file, int line, const cha
     // Ukončíme program s chybovým kódem odpovídajícím kódu zahlášené chyby
     error_killMePlease(error);
 } // error_internalHandle()
-
 
 /**
  * @brief Funkce pro tisk příslušné chybové zprávy na `STDERR`.
@@ -142,13 +162,13 @@ void error_printMessage(ErrorType error) {
 } // error_printMessage()
 
 /**
- * @brief Funkce pro uvolnění alokovaných dat z haldy před ukončením programu
+ * @brief Funkce pro uvolnění alokovaných dat z haldy před ukončením programu.
  */
-inline void IFJ24Compiler_freeAllAllocatedMemory() {
-    PrecStackList_destroy();
+inline void error_freeAll() {
+    precStackList_destroy();
     frameStack_destroyAll();
     AST_destroyTree();
-} // IFJ24Compiler_freeAllAllocatedMemory()
+} // error_freeAll()
 
 /**
  * @brief Funkce pro ukončení programu s příslušným chybovým kódem.

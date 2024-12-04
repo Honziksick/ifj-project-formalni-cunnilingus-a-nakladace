@@ -30,15 +30,31 @@
 #define DYNAMIC_STRING_H_
 /** @endcond */
 
+// Import standardních knihoven jazyka C
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 
+// Import sdílených knihoven překladače
 #include "error.h"
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                              DEFINICE KONSTANT                              *
+ *                                                                             *
+ ******************************************************************************/
 
 #define STRING_INIT_SIZE 8    /**< Počáteční velikost dynamického řetězce při inicializaci */
 #define DEFAULT_RESIZE_SIZE 8  /**< Délka, o kterou budeme dynamický řetězec zvětšovat */
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                             VÝČTOVÉ DATOVÉ TYPY                             *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief   Výčet návratových hodnot funkcí v knihovně pro dynamický řetězec.
@@ -46,14 +62,21 @@
  *          ke kterým může dojít v určitých funkcích.
  */
 typedef enum {
-    STRING_SUCCESS,                 /**< Operace se zdařila */
-    STRING_ALLOCATION_FAIL,         /**< Selhání alokace paměti */
-    STRING_EQUAL,                   /**< Řetězce jsou stejné */
-    STRING_NOT_EQUAL,               /**< Řetězce nejsou stejné */
+    STRING_SUCCESS,                 /**< Operace se zdařila              */
+    STRING_ALLOCATION_FAIL,         /**< Selhání alokace paměti          */
+    STRING_EQUAL,                   /**< Řetězce jsou stejné             */
+    STRING_NOT_EQUAL,               /**< Řetězce nejsou stejné           */
     STRING_COPY_FAIL,               /**< Řetězec se nepovedlo zkopírovat */
-    STRING_APPEND_FAIL,             /**< Nepovedlo se přivěsit řetězec */
-    STRING_RESIZE_FAIL              /**< Nepovedlo se zvětšení řetězce */
+    STRING_APPEND_FAIL,             /**< Nepovedlo se přivěsit řetězec   */
+    STRING_RESIZE_FAIL              /**< Nepovedlo se zvětšení řetězce   */
 } string_result;
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                             DEKLARACE STRUKTUR                              *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief   Datový typ dynamického řetězce.
@@ -67,6 +90,13 @@ typedef struct {
     size_t allocatedSize;           /**< Velikost alokované paměti (kapacita řetězce včetně volných míst) */
     size_t length;                  /**< Skutečná délka řetězce */
 } DString;
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                         DEKLARACE VEŘEJNÝCH FUNKCÍ                          *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Inicializace dynamického řetězce s počáteční kapacitou.
@@ -146,24 +176,6 @@ int DString_compare(DString *str1, DString *str2);
 int DString_compareWithConstChar(DString *str, const char *strConst);
 
 /**
- * @brief   Zvětší dynamický řetězec na požadovanou délku.
- *
- * @details Pokud nastane situace, kdy budeme potřebovat zvětšit řetězec,
- *          je volána tato funkce. Používá se, aby se předešlo k možným
- *          segfaultům. Vytvoříme nový řetězec, do kterého potom zkopírujeme
- *          předešlý řetězec. Obecně se volá s velikostí @c DEFAULT_RESIZE_SIZE == 8.
- *
- * @param [in,out] str Ukazatel na datový typ DString, který chceme zvětšit.
- * @param [in] size Délka, o kterou chceme řetězec zvětšit
- *
- * @return V případě, že požadovaný řetězec neexistuje, špatně se malokuje
- *         nebo se špatně zkopírovalo z původního řetězce
- *         vrací @c NULL.
- *         V případě, že se vše povedlo, vrátí nově zvětšený řetězec.
- */
-DString *DString_resize(DString *str, size_t size);
-
-/**
  * @brief Převede řetězec obsažený v DString na konstantní řetězec typu char.
  *
  * @details Tato funkce převede dynamický řetězec typu DString na konstantní
@@ -193,6 +205,31 @@ char *DString_DStringtoConstChar(DString *str);
  *         V případě, že se vše povedlo, vrátí ukazatel na nový dynamický řetězec.
  */
 DString *DString_constCharToDString(const char *strConst);
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                         DEKLARACE INTERNÍCH FUNKCÍ                          *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief   Zvětší dynamický řetězec na požadovanou délku.
+ *
+ * @details Pokud nastane situace, kdy budeme potřebovat zvětšit řetězec,
+ *          je volána tato funkce. Používá se, aby se předešlo k možným
+ *          segfaultům. Vytvoříme nový řetězec, do kterého potom zkopírujeme
+ *          předešlý řetězec. Obecně se volá s velikostí @c DEFAULT_RESIZE_SIZE == 8.
+ *
+ * @param [in,out] str Ukazatel na datový typ DString, který chceme zvětšit.
+ * @param [in] size Délka, o kterou chceme řetězec zvětšit
+ *
+ * @return V případě, že požadovaný řetězec neexistuje, špatně se malokuje
+ *         nebo se špatně zkopírovalo z původního řetězce
+ *         vrací @c NULL.
+ *         V případě, že se vše povedlo, vrátí nově zvětšený řetězec.
+ */
+DString *DString_resize(DString *str, size_t size);
 
 #endif  // DYNAMIC_STRING_H_
 

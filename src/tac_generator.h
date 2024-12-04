@@ -21,8 +21,12 @@
  * @author Krejčí David \<xkrejcd00> (hlavní)
  * @author Farkašovský Lukáš \<xfarkal00> (edit)
  *
- * @brief Hlavičkový soubor pro generátor vnitřního kódu (3AK).
- * @details Knihovna pro generování cílového kódu z AST.
+ * @brief Hlavičkový soubor pro generování tříadresného kódu (3AK) a cílového kódu.
+ * @details Tento soubor obsahuje deklarace funkcí pro generování tříadresného
+ *          kódu (3AK) a cílového kódu z abstraktního syntaktického stromu (AST).
+ *          Deklarace zahrnují funkce pro generování kódu pro různé typy uzlů
+ *          AST, jako jsou definice funkcí, výrazy, podmínky a smyčky. Obsažen
+ *          je také výčtový typ pro režim generování kódu.
  */
 
 #ifndef TAC_H_
@@ -30,46 +34,77 @@
 #define TAC_H_
 /** @endcond  */
 
+// Import standardních knihoven jazyka C
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
+
+// Import knihoven pro abstraktní syntaktický strom (AST)
 #include "ast_nodes.h"
 #include "ast_interface.h"
+
+// Import knihoven pro práci s tabulkou symbolů
 #include "frame_stack.h"
+
+// Import sdílených knihoven překladače
 #include "error.h"
 
-/**
- * @details Maximální velikost bufferu pro zpracování speciálních znaků
- *          ve funkci TAC_convertSpecialSymbols.
- */
-#define MAX_BUFFER_SIZE 5
 
-/**
- * @details Velikost bufferu pro optimalizaci
- */
-#define OPTIMIZE_BUFFER_SIZE 2048
+/*******************************************************************************
+ *                                                                             *
+ *                              DEFINICE KONSTANT                              *
+ *                                                                             *
+ ******************************************************************************/
+
+#define RESET_STATIC (AST_NodeType)123 /**< Typ pro reset statických proměnných */
+
+#define MAX_BUFFER_SIZE 5           /**< Maximální velikost bufferu pro zpracování speciálních
+                                         znaků ve funkci TAC_convertSpecialSymbols. */
+
+#define OPTIMIZE_BUFFER_SIZE 2048   /**< Velikost bufferu pro optimalizaci */
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                             VÝČTOVÉ DATOVÉ TYPY                             *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Režim generování kódu
- * 
- * @details Kvůli definicím proměnných v cyklech je nutné nejdříve všechny 
+ *
+ * @details Kvůli definicím proměnných v cyklech je nutné nejdříve všechny
  *          proměnné definovat a až poté generovat příkazy bez definic.
  *          Pokud nejsem v cyklu, tak generuji všechny příkazy.
  */
-typedef enum {
-    TAC_ALL,
-    TAC_VAR_DEF_ONLY,
-    TAC_EXCEPT_VAR_DEF
-} TAC_MODE;
+typedef enum TAC_mode {
+    TAC_ALL,             /**< Generovat vše                       */
+    TAC_VAR_DEF_ONLY,    /**< Generovat pouze definice proměnných */
+    TAC_EXCEPT_VAR_DEF   /**< Generovat kromě definic proměnných  */
+} TAC_mode;
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                         DEKLARACE VEŘEJNÝCH FUNKCÍ                          *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Generuje cílový kód programu ze stromu AST.
  *
  * @details Funkce prochází strom AST a rekurzivně volá funkci
- *          TAC_generateFunctionDefinition pro každou definici funkce.
+ *          @c TAC_generateFunctionDefinition pro každou definici funkce.
  *          Pracuje s globálním kořenem stromu ASTroot.
  */
 void TAC_generateProgram();
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                         DEKLARACE INTERNÍCH FUNKCÍ                          *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Generuje cílový kód definice funkce
@@ -86,21 +121,21 @@ void TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode);
  *
  * @details Prochází všechny příkazy v bloku a volá další funkce pro generování
  *          podle typu příkazu:
- *          - TAC_generateVarDef
- *          - TAC_generateExpression
- *          - TAC_generateFunctionCall
- *          - TAC_generateIf
- *          - TAC_generateWhile
- *          - TAC_generateReturn
+ *          - @c TAC_generateVarDef
+ *          - @c TAC_generateExpression
+ *          - @c TAC_generateFunctionCall
+ *          - @c TAC_generateIf
+ *          - @c TAC_generateWhile
+ *          - @c TAC_generateReturn
  *          Pokud narazí na return, tak přestává generovat mrtvý kód
  *
  * @param [in] statement Ukazatel na uzel bloku příkazů
  * @param [in] mode Režim generování kódu (nutné pro definice proměnných v cyklech)
- *                  - TAC_ALL - generuje všechny příkazy
- *                  - TAC_VAR_DEF_ONLY - generuje pouze definice proměnných
- *                  - TAC_EXCEPT_VAR_DEF - generuje všechny příkazy kromě definic proměnných
+ *                  - @c TAC_ALL - generuje všechny příkazy
+ *                  - @c TAC_VAR_DEF_ONLY - generuje pouze definice proměnných
+ *                  - @c TAC_EXCEPT_VAR_DEF - generuje všechny příkazy kromě definic proměnných
  */
-void TAC_generateStatementBlock(AST_StatementNode* statement, TAC_MODE mode);
+void TAC_generateStatementBlock(AST_StatementNode* statement, TAC_mode mode);
 
 /**
  * @brief Generuje cílový kód pro binární operace
@@ -121,20 +156,20 @@ void TAC_generateBinaryOperator(AST_BinOpNode *binNode);
  *
  * @param [in] exprNode Ukazatel na výraz obsahující binarní operaci přiřazení
  * @param [in] mode Režim generování kódu (nutné pro definice proměnných v cyklech)
- *                  - TAC_ALL - definuje proměnnou a vloží hodnotu
- *                  - TAC_VAR_DEF_ONLY - pouze definuje proměnnou
- *                  - TAC_EXCEPT_VAR_DEF - pouze vloží hodnotu do proměnné
+ *                  - @c TAC_ALL - definuje proměnnou a vloží hodnotu
+ *                  - @c TAC_VAR_DEF_ONLY - pouze definuje proměnnou
+ *                  - @c TAC_EXCEPT_VAR_DEF - pouze vloží hodnotu do proměnné
  */
-void TAC_generateVarDef(AST_ExprNode *exprNode, TAC_MODE mode);
+void TAC_generateVarDef(AST_ExprNode *exprNode, TAC_mode mode);
 
 /**
  * @brief Generuje cílový kód pro výraz
  *
  * @details Vyhodnotí výraz a výsledek uloží na vrchol datového zásobníku
  *          Může volat další funkce:
- *          - TAC_generateLiteral
- *          - TAC_generateBinaryOperator
- *          - TAC_generateFunctionCall
+ *          - @c TAC_generateLiteral
+ *          - @c TAC_generateBinaryOperator
+ *          - @c TAC_generateFunctionCall
  *
  * @param [in] expr Ukazatel na uzel výrazu
  */
@@ -153,38 +188,38 @@ void TAC_generateLiteral(AST_VarNode *literal);
  * @brief Generuje cílový kód pro podmíněný příkaz if
  *
  * @details Vyhodnotí typ podmínky, vygeneruje if a else větve pomocí
- *          TAC_generateStatementBlock a přidá skok na else větev v případě
+ *          @c TAC_generateStatementBlock a přidá skok na else větev v případě
  *          že podmínka není splněna. V případě null podmínky přidá definici
- *          id_bez_null.
- *          Každý if má svůj unikátní číselný identifikátor a návěští.
+ *          @c id_bez_null. Každý if má svůj unikátní číselný identifikátor a
+ *          návěští.
  *
  * @param [in] ifNode Ukazatel na uzel podmíněného příkazu if
  * @param [in] mode Režim generování kódu (nutné pro definice proměnných v cyklech)
- *                  - TAC_ALL - generuje všechny příkazy
- *                  - TAC_VAR_DEF_ONLY - generuje pouze definice proměnných
- *                  - TAC_EXCEPT_VAR_DEF - generuje všechny příkazy kromě definic proměnných
+ *                  - @c TAC_ALL - generuje všechny příkazy
+ *                  - @c TAC_VAR_DEF_ONLY - generuje pouze definice proměnných
+ *                  - @c TAC_EXCEPT_VAR_DEF - generuje všechny příkazy kromě definic proměnných
  */
-void TAC_generateIf(AST_IfNode *if_node, TAC_MODE mode);
+void TAC_generateIf(AST_IfNode *if_node, TAC_mode mode);
 
 /**
  * @brief Generuje cílový kód pro smyčku while
  *
  * @details Vyhodnotí podmínku a vygeneruje tělo cyklu pomocí
- *          TAC_generateStatementBlock. V případě null podmínky přidá definici
- *          id_bez_null. Po vykonání těla cyklu přidá skok na začátek cyklu,
+ *          @c TAC_generateStatementBlock. V případě null podmínky přidá definici
+ *          @c id_bez_null. Po vykonání těla cyklu přidá skok na začátek cyklu,
  *          kde se opět vyhodnotí podmínka. Pokud podmínka není splněna, skočí
- *          na konec cyklu.
- *          Každý cyklus má svůj unikátní číselný identifikátor a návěští.
+ *          na konec cyklu. Každý cyklus má svůj unikátní číselný identifikátor
+ *          a návěští.
  *
  * @param [in] whileNode Ukazatel na uzel smyčky while
  * @param [in] mode Režim generování kódu (nutné pro definice proměnných v cyklech)
- *                  - TAC_ALL - Nejdříve definuje proměnné v podmínce a těle cyklu
- *                  a následně generuje příkazy bez definic
- *                  - TAC_VAR_DEF_ONLY - Definuje proměnné v podmínce a těle cyklu
- *                  - TAC_EXCEPT_VAR_DEF - Generuje příkazy bez definic
- * 
+ *                  - @c TAC_ALL - Nejdříve definuje proměnné v podmínce a těle cyklu
+ *                                 a následně generuje příkazy bez definic
+ *                  - @c TAC_VAR_DEF_ONLY - Definuje proměnné v podmínce a těle cyklu
+ *                  - @c TAC_EXCEPT_VAR_DEF - Generuje příkazy bez definic
+ *
  */
-void TAC_generateWhile(AST_WhileNode *whileNode, TAC_MODE mode);
+void TAC_generateWhile(AST_WhileNode *whileNode, TAC_mode mode);
 
 /**
  * @brief Generuje cílový kód pro návrat z funkce
@@ -209,32 +244,32 @@ void TAC_generateFunctionCall(AST_FunCallNode *funCallNode);
 
 /**
  * @brief Převede speciální znaky na escape sekvence
- * 
+ *
  * @details Převede speciální znaky na escape sekvence pro výpis do cílového kódu
- * 
+ *
  * @param [in] origin Ukazatel na řetězec, který chceme převést
  */
 DString *TAC_convertSpecialSymbols(DString *origin);
 
 /**
  * @brief Resetuje statické proměnné v generátoru
- * 
+ *
  * @details Resetuje statické proměnné count v if a while funkcích v případě
  *          více testů v jednom spuštění.
- * 
+ *
  */
 void TAC_resetStatic();
 
 /**
  * @brief Přidá instrukci do bufferu
- * 
+ *
  * @details Buffer ukládá až jednu instrukci. Při přijetí druhé je analyzuje
  *          a v případě, že uložená instrukce je PUSHS a přijatá POPS,
- *          tak je nahradí jednou instrukcí MOVE. V případě, že by argument
+ *          tak je nahradí jednou instrukcí @c MOVE. V případě, že by argument
  *          obou instrukcí byl stejný, tak je vymaže (jsou zbytečné).
  *          Pokud nelze optimalizaci provést, tak vypíše uloženou instrukci
  *          a nahradí ji přijatou.
- * 
+ *
  * @param [in] newinstruction Nová instrukce pro zpracování
  * @param [in] NULL Pro vypsání uložené hodnoty bufferu
  */

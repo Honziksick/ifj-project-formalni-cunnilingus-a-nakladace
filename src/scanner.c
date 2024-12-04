@@ -3,7 +3,7 @@
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
  * Soubor:           scanner.c                                                 *
- * Autor:            Hýža Pavel         <xhyzapa00>                            *
+ * Autor:            Pavel Hýža   <xhyzapa00>                                  *
  *                                                                             *
  * Datum:            06.10.2024                                                *
  * Poslední změna:   03.12.2024                                                *
@@ -17,32 +17,130 @@
  ******************************************************************************/
 /**
  * @file scanner.c
- * @author Hýža Pavel \<xhyzapa00>
+ * @author Pavel Hýža \<xhyzapa00>
  *
- * @brief Definice a implementace funkcí modulu scanner.
+ * @brief Implementace lexikálního analyzátoru pro jazyk IFJ24.
  * @details Tento soubor obsahuje implementaci funkcí a datových typů modulu
- *          scannner, které jsou deklarovány v souboru scanner.h.
+ *          scanner, které jsou deklarovány v souboru scanner.h. Lexikální
+ *          analyzátor zpracovává vstupní zdrojový kód a převádí jej na sekvenci
+ *          tokenů, které jsou následně předávány syntaktickému analyzátoru.
+ *          Implementace zahrnuje funkce pro zpracování různých typů tokenů,
+ *          jako jsou klíčová slova, identifikátory, čísla, operátory a další
+ *          speciální znaky. Dále obsahuje funkce pro práci s dynamickými řetězci
+ *          a řízení stavu konečného automatu (FSM) pro lexikální analýzu.
  */
 
 
 #include "scanner.h"
 #include "parser_common.h"
 
-
-
-/**
- * @brief Získá znak ze vstupu programu.
- */
-inline int scanner_getNextChar() {
-    return getchar();
-}
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
- * @brief Vrátí potřebný znak zpět na vstup programu.
+ * @brief Získá jeden Token.
  */
-inline void scanner_ungetChar(int c) {
-    ungetc(c, stdin);
-}
+inline Token scanner_getNextToken() {
+    return scanner_FSM();
+}  // scanner_getNextToken()
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE INTERNÍCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Hlavní řídící funkce scanneru.
+ */
+Token scanner_FSM() {
+    // Definice pomocných proměnných
+    int lexChar = -1;                   // ordinální hodnota znaku
+    bool lexStopFSM = false;            // vlajka pro zastavení konečného automatu (FSM)
+    Token lexToken = scanner_init();    // struktura pro token
+    DString *str = DString_init();      // dynamický řetězec typu DString
+
+    if(str == NULL) {
+        parser_errorWatcher(SET_ERROR_INTERNAL);
+        lexStopFSM = true;
+    }
+
+    // Abstraktně: cykli, dokud nepřijde příkaz k zastavení FSM
+    while(lexStopFSM == false) {
+        lexChar = scanner_getNextChar();  // načtení jednoho znaku z STDIN
+
+        // Abstraktně: vybírej podle typu znaku
+        switch (scanner_charIdentity(lexChar)) {  // Iudentifikace znaku
+            // Pokud znak je písmeno
+            case LETTER:
+                DString_appendChar(str, (char)lexChar);
+                lexToken = scanner_stateLetters(lexToken, str);
+                lexStopFSM = true;
+                break;
+
+            // Pokud znak je číslo
+            case NUMBER:
+                DString_appendChar(str, (char)lexChar);
+                lexToken = scanner_stateNumbers(lexToken, str);
+                lexStopFSM = true;
+                break;
+
+            // Pokud znak je bílý znak
+            case WHITESPACE:
+                break;
+
+            // Pokud znak není v jazyce
+            case NOT_IN_LANGUAGE:
+                lexStopFSM = true;
+                // ERROR - načtený znak nepatří mezi znaky jazyka
+                parser_errorWatcher(SET_ERROR_LEXICAL);
+                break;
+
+            // Pokud znak je jednoduchý operátor
+            case SIMPLE:
+                lexToken = scanner_stateSimple(lexToken, lexChar);
+                lexStopFSM = true;
+                break;
+
+            // Pokud znak je složitý operátor
+            case COMPLEX:
+                lexToken = scanner_stateComplexControl(lexToken, lexChar, str);
+                lexStopFSM = true;
+                if(lexToken.type == TOKEN_COMMENT) {
+                    lexStopFSM = false;
+                }
+                break;
+
+            // Pokud znak je znak konce souboru (EOF)
+            case CHAR_EOF:
+                lexToken = scanner_stringlessTokenCreate(TOKEN_EOF);
+                scanner_ungetChar(lexChar);
+                lexStopFSM = true;
+                break;
+
+            // Jinak
+            default:
+                lexStopFSM = true;
+                // ERROR - charIdentity vrací default
+                parser_errorWatcher(SET_ERROR_LEXICAL);
+                break;
+            }
+        }
+
+    // Pokud je hodnota value tokenu rovna NULL nebo došlo k vytvoření tokenu s klíčovým slovem
+    if(lexToken.value == NULL ||
+      (lexToken.type >= LOWEST_KEYWORD && lexToken.type <= HIGHEST_KEYWORD))
+    {
+        // Uvolní string
+        DString_free(str);
+    }
+
+    return lexToken;
+}  // scanner_FSM()
 
 /**
  * @brief Rozhodne o identitě znaku.
@@ -52,48 +150,55 @@ CharType scanner_charIdentity(int c) {
     if(isalpha(c) || c == '_') {
         return LETTER;
     }
+
     // Pokud je c číslice
     else if(isdigit(c)) {
         return NUMBER;
     }
+
     // Pokud je c bílý znak
     else if(isspace(c)) {
         return WHITESPACE;
     }
+
     // Pokud je c znak, který nepatří do jazyka
     else if(c == '#' || c == '$' || c == '%' ||
             c == '&' || c == ASQ || c == '^' ||
             c == '`' || c == '~' || c >= ADL) {
         return NOT_IN_LANGUAGE;
     }
+
     // Pokud je c jednouduchý operátor
     else if(c == '(' || c == ')' || c == '*' ||
             c == '+' || c == ',' || c == '-' ||
             c == ':' || c == ';' || c == '{' ||
-            c == '|' || c == '}') { //c je speciální jednoduchý symbol
-                                    //(special SIMPLE)
+            c == '|' || c == '}') { // c je speciální jednoduchý symbol
+                                    // (special SIMPLE)
         return SIMPLE;
     }
+
     // Pokud je c složitý operátor
     else if(c == '!' || c == '"' || c == '.' ||
             c == '/' || c == '<' || c == '=' ||
             c == '>' || c == '?' || c == '@' ||
-            c == '[' || c == ABS || c == ']') { //c je specialní složitý symbol
-                                                //(special COMPLEX)
+            c == '[' || c == ABS || c == ']') { // c je specialní složitý symbol
+                                                // (special COMPLEX)
         return COMPLEX;
     }
+
     // Pokud je c EOF
-    else if(c == EOF) {  //c je konec souboru
+    else if(c == EOF) {  // c je konec souboru
         return CHAR_EOF;
     }
+
     // Pokud je c není ani jedno z výše uvedených
     else {
         // c nespadá do žádné ze skupin znaků, jedná se o chybu
         parser_errorWatcher(SET_ERROR_LEXICAL);
-        return CHAR_EOF;    //V případě erroru dává smysl sem vložit návratovou
-                            //hodnotu EOF
+        return CHAR_EOF;    // V případě erroru dává smysl sem vložit návratovou
+                            // hodnotu EOF
     }
-}   // scanner_charIdentity
+}  // scanner_charIdentity()
 
 /**
  * @brief V rámci FSM rozhodne o tom, zda je načtený řetězec znaků klíčovým slovem.
@@ -103,63 +208,77 @@ Token scanner_isKeyword(DString *value) {
     if     (strcmp(value->str, "const") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_const);
     }
+
     // Pokud je ve stringu value "var"
     else if(strcmp(value->str, "var") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_var);
     }
+
     // Pokud je ve stringu value "i32"
     else if(strcmp(value->str, "i32") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_i32);
     }
+
     // Pokud je ve stringu value "f64"
     else if(strcmp(value->str, "f64") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_f64);
     }
+
     // Pokud je ve stringu value "pub"
     else if(strcmp(value->str, "pub") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_pub);
     }
+
     // Pokud je ve stringu value "fn"
     else if(strcmp(value->str, "fn") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_fn);
     }
+
     // Pokud je ve stringu value "void"
     else if(strcmp(value->str, "void") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_void);
     }
+
     // Pokud je ve stringu value "return"
     else if(strcmp(value->str, "return") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_return);
     }
+
     // Pokud je ve stringu value "null"
     else if(strcmp(value->str, "null") == 0) {
+
         return scanner_stringlessTokenCreate(TOKEN_K_null);
     }
     // Pokud je ve stringu value "if"
     else if(strcmp(value->str, "if") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_if);
     }
+
     // Pokud je ve stringu value "else"
     else if(strcmp(value->str, "else") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_else);
     }
+
     // Pokud je ve stringu value "while"
     else if(strcmp(value->str, "while") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_while);
     }
+
     // Pokud je ve stringu value "_"
     else if(strcmp(value->str, "_") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_underscore);
     }
+
     // Pokud je ve stringu value "ifj"
     else if(strcmp(value->str, "ifj") == 0) {
         return scanner_stringlessTokenCreate(TOKEN_K_ifj);
     }
+
     // Pokud je ve stringu value jiný řetězec znaků
     else {
         return scanner_tokenCreate(TOKEN_IDENTIFIER, value);
     }
-}   // scanner_isKeyword
+}  // scanner_isKeyword()
 
 /**
  * @brief Vytvoří nový token.
@@ -169,7 +288,7 @@ Token scanner_tokenCreate(TokenType type, DString *value) {
     token.type = type;
     token.value = value;
     return token;
-}   // scanner_tokenCreate
+}  // scanner_tokenCreate()
 
 /**
  * @brief Vytvoří nový token BEZ STRINGu.
@@ -179,7 +298,7 @@ Token scanner_stringlessTokenCreate(TokenType type) {
     token.type = type;
     token.value = NULL;
     return token;
-}   // scanner_stringlessTokenCreate
+}  // scanner_stringlessTokenCreate()
 
 /**
  * @brief Inicializace scanneru.
@@ -189,7 +308,7 @@ Token scanner_init() {
     Token lexToken = scanner_tokenCreate(TOKEN_UNINITIALIZED, NULL);
 
     return lexToken;
-}   // scanner_init
+}  // scanner_init()
 
 /**
  * @brief Funkce scanneru pro zpracování stringů vyvolaných znakem \.
@@ -201,6 +320,7 @@ Token scanner_stateComplexBackslash(Token lexToken, DString *str) {
     bool lexStopFSM = false;
     // Inicializuj lexState
     StateFSM lexState = STATE15_BACKSLASH;
+
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         // Abstraktně: vybírej stav, podle pomocné proměnné lexState
@@ -278,11 +398,10 @@ Token scanner_stateComplexBackslash(Token lexToken, DString *str) {
                 parser_errorWatcher(SET_ERROR_LEXICAL);
                 break;
         }
-
     }
 
     return lexToken;
-}   // scanner_stateComplexBackslash
+}  // scanner_stateComplexBackslash()
 
 /**
  * @brief Funkce scanneru pro zpracování stringů vyvolaných znakem ".
@@ -294,6 +413,7 @@ Token scanner_stateComplexQuotation(Token lexToken, DString *str) {
     bool lexStopFSM = false;
     // Inicializuj lexState
     StateFSM lexState = STATE12_DOUBLE_QUOTATION_MARKS;
+
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         // Abstraktně: vybírej stav, podle pomocné proměnné lexState
@@ -429,7 +549,7 @@ Token scanner_stateComplexQuotation(Token lexToken, DString *str) {
     }
 
     return lexToken;
-}   // scanner_stateComplexQuotation
+}  // scanner_stateComplexQuotation
 
 /**
  * @brief Funkce scanneru pro zpracování klíčových slov ?i32, ?f64 a ?[]u8.
@@ -441,6 +561,7 @@ Token scanner_stateComplexQuestion(Token lexToken) {
     bool lexStopFSM = false;
     // Inicializuj lexState
     StateFSM lexState = STATE4_QMARK;
+
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         // Abstraktně: vybírej stav, podle pomocné proměnné lexState
@@ -619,7 +740,7 @@ Token scanner_stateComplexQuestion(Token lexToken) {
     }
 
     return lexToken;
-}   // scanner_stateComplexQuestion
+}  // scanner_stateComplexQuestion
 
 /**
  * @brief Funkce scanneru pro zpracování klíčového slova []u8.
@@ -711,7 +832,7 @@ Token scanner_stateComplexLeftSqrBr(Token lexToken) {
     }
 
     return lexToken;
-}   // scanner_stateComplexLeftSqrBr
+}  // scanner_stateComplexLeftSqrBr
 
 /**
  * @brief Funkce scanneru pro zpracování klíčového slova @import.
@@ -766,7 +887,7 @@ Token scanner_stateComplexAtSign(Token lexToken, DString *value) {
     }
 
     return lexToken;
-}   // scanner_stateComplexAtSign
+}  // scanner_stateComplexAtSign
 
 /**
  * @brief Funkce scanneru pro zpracování komentářů //.
@@ -800,7 +921,7 @@ void scanner_stateComplexDoubleSlash() {
     }
 
     return;
-}   // scanner_stateComplexDoubleSlash
+}  // scanner_stateComplexDoubleSlash
 
 /**
  * @brief Funkce scanneru pro zpracování složitého operátoru /.
@@ -838,7 +959,7 @@ Token scanner_stateComplexSlash(Token lexToken) {
     }
 
     return lexToken;
-}   // scanner_stateComplexSlash
+}  // scanner_stateComplexSlash
 
 /**
  * @brief Funkce scanneru pro zpracování složitých operátorů = a ==.
@@ -858,7 +979,7 @@ Token scanner_stateComplexEqual(Token lexToken) {
     }
 
     return lexToken;
-}   // scanner_stateComplexEqual
+}  // scanner_stateComplexEqual
 
 /**
  * @brief Funkce scanneru pro zpracování složitých operátorů > a >=.
@@ -878,7 +999,7 @@ Token scanner_stateComplexGreater(Token lexToken) {
     }
 
     return lexToken;
-}   // scanner_stateComplexGreater
+}  // scanner_stateComplexGreater
 
 /**
  * @brief Funkce scanneru pro zpracování složitých operátorů < a <=.
@@ -898,7 +1019,7 @@ Token scanner_stateComplexLess(Token lexToken) {
     }
 
     return lexToken;
-}   // scanner_stateComplexLess
+}  // scanner_stateComplexLess
 
 /**
  * @brief Funkce scanneru pro zpracování složitého operátoru !=.
@@ -918,7 +1039,7 @@ Token scanner_stateComplexExclamation(Token lexToken) {
     }
 
     return lexToken;
-}   // scanner_stateComplexExclamation
+}  // scanner_stateComplexExclamation
 
 /**
  * @brief Funkce scanneru pro zpracování a řízení zpracování složitých operátorů.
@@ -930,51 +1051,63 @@ Token scanner_stateComplexControl(Token lexToken, int lexChar, DString *str) {
         case '.':
             lexToken = scanner_stringlessTokenCreate(TOKEN_PERIOD);
             break;
+
         // Pokud znak je !
         case '!':
             lexToken = scanner_stateComplexExclamation(lexToken);
             break;
+
         // Pokud znak je <
         case '<':
             lexToken = scanner_stateComplexLess(lexToken);
             break;
+
         // Pokud znak je >
         case '>':
             lexToken = scanner_stateComplexGreater(lexToken);
             break;
+
         // Pokud znak je =
         case '=':
             lexToken = scanner_stateComplexEqual(lexToken);
             break;
+
         // Pokud znak je /
         case '/':
             lexToken = scanner_stateComplexSlash(lexToken);
             break;
+
         // Pokud znak je @
         case '@':
             lexToken = scanner_stateComplexAtSign(lexToken, str);
             break;
+
         // Pokud znak je [
         case '[':
             lexToken = scanner_stateComplexLeftSqrBr(lexToken);
             break;
+
         // Pokud znak je ]
         case ']':
             // ERROR - načtený znak ] bez [ před ním
             parser_errorWatcher(SET_ERROR_LEXICAL);
             break;
+
         // Pokud znak je ?
         case '?':
             lexToken = scanner_stateComplexQuestion(lexToken);
             break;
+
         // Pokud znak je "
         case '"':
             lexToken = scanner_stateComplexQuotation(lexToken, str);
             break;
+
         // Pokud znak je backslash
         case ABS:
             lexToken = scanner_stateComplexBackslash(lexToken, str);
             break;
+
         // Jinak
         default:
             // ERROR - načtený COMPLEX není validní
@@ -983,7 +1116,7 @@ Token scanner_stateComplexControl(Token lexToken, int lexChar, DString *str) {
     }
 
     return lexToken;
-}   // scanner_stateComplexControl
+}  // scanner_stateComplexControl()
 
 /**
  * @brief Funkce scanneru pro zpracování jednoduchých operátorů.
@@ -995,46 +1128,57 @@ Token scanner_stateSimple(Token lexToken, int lexChar) {
         case '(':
             lexToken = scanner_stringlessTokenCreate(TOKEN_LEFT_PARENTHESIS);
             break;
+
         // Pokud znak je )
         case ')':
             lexToken = scanner_stringlessTokenCreate(TOKEN_RIGHT_PARENTHESIS);
             break;
+
         // Pokud znak je *
         case '*':
             lexToken = scanner_stringlessTokenCreate(TOKEN_ASTERISK);
             break;
+
         // Pokud znak je +
         case '+':
             lexToken = scanner_stringlessTokenCreate(TOKEN_PLUS);
             break;
+
         // Pokud znak je ,
         case ',':
             lexToken = scanner_stringlessTokenCreate(TOKEN_COMMA);
             break;
+
         // Pokud znak je -
         case '-':
             lexToken = scanner_stringlessTokenCreate(TOKEN_MINUS);
             break;
+
         // Pokud znak je :
         case ':':
             lexToken = scanner_stringlessTokenCreate(TOKEN_COLON);
             break;
+
         // Pokud znak je ;
         case ';':
             lexToken = scanner_stringlessTokenCreate(TOKEN_SEMICOLON);
             break;
+
         // Pokud znak je {
         case '{':
             lexToken = scanner_stringlessTokenCreate(TOKEN_LEFT_CURLY_BRACKET);
             break;
+
         // Pokud znak je |
         case '|':
             lexToken = scanner_stringlessTokenCreate(TOKEN_VERTICAL_BAR);
             break;
+
         // Pokud znak je }
         case '}':
             lexToken = scanner_stringlessTokenCreate(TOKEN_RIGHT_CURLY_BRACKET);
             break;
+
         // Jinak
         default:
             // ERROR - načtený SIMPLE není validní
@@ -1043,7 +1187,7 @@ Token scanner_stateSimple(Token lexToken, int lexChar) {
     }
 
     return lexToken;
-}   // scanner_stateSimple
+}  // scanner_stateSimple
 
 /**
  * @brief Funkce scanneru pro zpracování řetězce s číslicemi PO přijetí exponenciálního znaku.
@@ -1053,6 +1197,7 @@ Token scanner_stateNumbersFloat(Token lexToken, DString *str) {
     int lexChar;
     // Inicializuj lexStopFSM
     bool lexStopFSM = false;
+
     // Abstraktně: cykluj, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         // Vstup jednoho znaku z STDIN
@@ -1065,21 +1210,25 @@ Token scanner_stateNumbersFloat(Token lexToken, DString *str) {
                 parser_errorWatcher(SET_ERROR_LEXICAL);
                 lexStopFSM = true;
                 break;
+
             // Pokud znak je číslo
             case NUMBER:
                 DString_appendChar(str, (char)lexChar);
                 break;
+
             // Pokud znak je bílý znak
             case WHITESPACE:
                 lexToken = scanner_tokenCreate(TOKEN_FLOAT, str);
                 lexStopFSM = true;
                 break;
+
             // Pokud znak není v jazyce
             case NOT_IN_LANGUAGE:
                 // ERROR - načtený znak nepatří mezi znaky jazyka
                 parser_errorWatcher(SET_ERROR_LEXICAL);
                 lexStopFSM = true;
                 break;
+
             // Jinak
             default:    // SIMPLE + COMPLEX + CHAR_EOF
                 lexToken = scanner_tokenCreate(TOKEN_FLOAT, str);
@@ -1090,13 +1239,14 @@ Token scanner_stateNumbersFloat(Token lexToken, DString *str) {
     }
 
     return lexToken;
-}   // scanner_stateNumbersFloat
+}  // scanner_stateNumbersFloat()
 
 /**
  * @brief Funkce scanneru pro zpracování řetězce s číslicemi PRO přijetí exponenciálního znaku.
  */
 Token scanner_stateNumbersFloatExp(Token lexToken, DString *str) {
     int lexChar = scanner_getNextChar();  // Vstup jednoho znaku z STDIN
+
     // Abstraktně: vybírej podle typu znaku
     switch (scanner_charIdentity(lexChar)) {  // Identifikace znaku
         // Pokud znak je jednoduchý operátor
@@ -1117,11 +1267,13 @@ Token scanner_stateNumbersFloatExp(Token lexToken, DString *str) {
                 parser_errorWatcher(SET_ERROR_LEXICAL);
             }
             break;
+
         // Pokud znak je číslo
         case NUMBER:
             DString_appendChar(str, (char)lexChar);
             lexToken = scanner_stateNumbersFloat(lexToken, str);
             break;
+
         // Jinak
         default:    // LETTER + NOT_IN_LANGUAGE + COMPLEX + CHAR_EOF
             // ERROR - nebylo načteno číslo do Tokenu nehotového floatu
@@ -1130,7 +1282,7 @@ Token scanner_stateNumbersFloatExp(Token lexToken, DString *str) {
     }
 
     return lexToken;
-}   // scanner_stateNumbersFloatExp
+}  // scanner_stateNumbersFloatExp
 
 /**
  * @brief Funkce scanneru pro zpracování řetězce s číslicemi PO přijetí desetinné tečky.
@@ -1140,10 +1292,12 @@ Token scanner_stateNumbersAfterPeriod(Token lexToken, DString *str) {
     int lexChar;
     // Inicializuj lexStopFSM
     bool lexStopFSM = false;
+
     // Abstraktně: cykluj, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         // Vstup jednoho znaku z STDIN
         lexChar = scanner_getNextChar();
+
         // Abstraktně: vybírej podle typu znaku
         switch (scanner_charIdentity(lexChar)) {  // Identifikace znaku
             // Pokud znak je písmeno
@@ -1161,21 +1315,25 @@ Token scanner_stateNumbersAfterPeriod(Token lexToken, DString *str) {
                     lexStopFSM = true;
                 }
                 break;
+
             // Pokud znak je číslo
             case NUMBER:
                 DString_appendChar(str, (char)lexChar);
                 break;
+
             // Pokud znak je bílý znak
             case WHITESPACE:
                 lexToken = scanner_tokenCreate(TOKEN_FLOAT, str);
                 lexStopFSM = true;
                 break;
+
             // Pokud znak není v jazyce
             case NOT_IN_LANGUAGE:
                 // ERROR - načtený znak nepatří mezi znaky jazyka
                 parser_errorWatcher(SET_ERROR_LEXICAL);
                 lexStopFSM = true;
                 break;
+
             // Jinak
             default:    // SIMPLE + COMPLEX + CHAR_EOF
                 lexToken = scanner_tokenCreate(TOKEN_FLOAT, str);
@@ -1186,13 +1344,14 @@ Token scanner_stateNumbersAfterPeriod(Token lexToken, DString *str) {
     }
 
     return lexToken;
-}   // scanner_stateNumbersAfterPeriod
+}  // scanner_stateNumbersAfterPeriod
 
 /**
  * @brief Funkce scanneru pro zpracování řetězce s číslicemi PRO přijetí desetinné tečky.
  */
 Token scanner_stateNumbersFloatPeriod(Token lexToken, DString *str) {
     int lexChar = scanner_getNextChar();  // Vstup jednoho znaku z STDIN
+
     // Abstraktně: vybírej podle typu znaku
     if (scanner_charIdentity(lexChar) == NUMBER) {  // Identifikace znaku
         // Pokud znak je číslo
@@ -1204,8 +1363,9 @@ Token scanner_stateNumbersFloatPeriod(Token lexToken, DString *str) {
         // ERROR - nebylo načteno číslo do Tokenu nehotového floatu
         parser_errorWatcher(SET_ERROR_LEXICAL);
     }
+
     return lexToken;
-}   // scanner_stateNumbersFloatPeriod
+}  // scanner_stateNumbersFloatPeriod
 
 /**
  * @brief Funkce scanneru pro úvodní zpracování řetězce s číslicemi.
@@ -1215,10 +1375,12 @@ Token scanner_stateNumbers(Token lexToken, DString *str) {
     int lexChar;
     // Inicializuj lexStopFSM
     bool lexStopFSM = false;
+
     // Abstraktně: cykluj, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         // Vstup jednoho znaku z STDIN
-        lexChar = scanner_getNextChar();  
+        lexChar = scanner_getNextChar();
+
         // Identifikace znaku
         switch (scanner_charIdentity(lexChar)) {
             // Pokud znak je písmeno
@@ -1236,21 +1398,25 @@ Token scanner_stateNumbers(Token lexToken, DString *str) {
                     lexStopFSM = true;
                 }
                 break;
+
             // Pokud znak je číslo
             case NUMBER:
                 DString_appendChar(str, (char)lexChar);
                 break;
+
             // Pokud znak je bílý znak
             case WHITESPACE:
                 lexToken = scanner_tokenCreate(TOKEN_INT, str);
                 lexStopFSM = true;
                 break;
+
             // Pokud znak není v jazyce
             case NOT_IN_LANGUAGE:
                 // ERROR - načtený znak nepatří mezi znaky jazyka
                 parser_errorWatcher(SET_ERROR_LEXICAL);
                 lexStopFSM = true;
                 break;
+
             // Pokud znak je složitý operátor
             case COMPLEX:
                 // Pokud složitý operátor je .
@@ -1266,6 +1432,7 @@ Token scanner_stateNumbers(Token lexToken, DString *str) {
                     lexStopFSM = true;
                 }
                 break;
+
             // Jinak
             default:    // SIMPLE + CHAR_EOF
                 lexToken = scanner_tokenCreate(TOKEN_INT, str);
@@ -1276,7 +1443,7 @@ Token scanner_stateNumbers(Token lexToken, DString *str) {
     }
 
     return lexToken;
-}   // scanner_stateNumbers
+}  // scanner_stateNumbers
 
 /**
  * @brief Funkce scanneru pro zpracování řetězce s písmeny.
@@ -1286,30 +1453,36 @@ Token scanner_stateLetters(Token lexToken, DString *str) {
     int lexChar;
     // Inicializuj lexStopFSM
     bool lexStopFSM = false;
+
     // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
     while(lexStopFSM == false) {
         lexChar = scanner_getNextChar();  // Vstup jednoho znaku z STDIN
+
         // Abstraktně: vybírej podle typu znaku
         switch (scanner_charIdentity(lexChar)) {  // Identifikace znaku
             // Pokud znak je písmeno
             case LETTER:
                 DString_appendChar(str, (char)lexChar);
                 break;
-            case NUMBER:
+
             // Pokud znak je číslo
+            case NUMBER:
                 DString_appendChar(str, (char)lexChar);
                 break;
-            case WHITESPACE:
+
             // Pokud znak je bílý znak
+            case WHITESPACE:
                 lexToken = scanner_isKeyword(str);
                 lexStopFSM = true;
                 break;
+
             // Pokud znak není v jazyce
             case NOT_IN_LANGUAGE:
                 lexStopFSM = true;
                 // ERROR - načtený znak nepatří mezi znaky jazyka
                 parser_errorWatcher(SET_ERROR_LEXICAL);
                 break;
+
             //Jinak
             default:    // SIMPLE + COMPLEX + CHAR_EOF
                 lexToken = scanner_isKeyword(str);
@@ -1319,88 +1492,20 @@ Token scanner_stateLetters(Token lexToken, DString *str) {
         }
     }
     return lexToken;
-}   // scanner_stateLetters
+}  // scanner_stateLetters()
 
 /**
- * @brief Hlavní řídící funkce scanneru.
+ * @brief Získá znak ze vstupu programu.
  */
-Token scanner_FSM() {
-    // Inicializuj lexChar
-    int lexChar;
-    // Inicializuj lexStopFSM
-    bool lexStopFSM = false;
-    // Inicializuj string
-    DString *str = DString_init();
-    // Inicializuj token
-    Token lexToken = scanner_init();
-    // Abstraktně: cykluje, dokud nepřijde příkaz k zastavení FSM
-    while(lexStopFSM == false) {
-        lexChar = scanner_getNextChar();  // Vstup jednoho znaku z STDIN
-        // Abstraktně: vybírej podle typu znaku
-        switch (scanner_charIdentity(lexChar)) {  // Identifikace znaku
-            // Pokud znak je písmeno
-            case LETTER:
-                DString_appendChar(str, (char)lexChar);
-                lexToken = scanner_stateLetters(lexToken, str);
-                lexStopFSM = true;
-                break;
-            // Pokud znak je číslo
-            case NUMBER:
-                DString_appendChar(str, (char)lexChar);
-                lexToken = scanner_stateNumbers(lexToken, str);
-                lexStopFSM = true;
-                break;
-            // Pokud znak je bílý znak
-            case WHITESPACE:
-                break;
-            // Pokud znak není v jazyce
-            case NOT_IN_LANGUAGE:
-                lexStopFSM = true;
-                // ERROR - načtený znak nepatří mezi znaky jazyka
-                parser_errorWatcher(SET_ERROR_LEXICAL);
-                break;
-            // Pokud znak je jednoduchý operátor
-            case SIMPLE:
-                lexToken = scanner_stateSimple(lexToken, lexChar);
-                lexStopFSM = true;
-                break;
-            // Pokud znak je složitý operátor
-            case COMPLEX:
-                lexToken = scanner_stateComplexControl(lexToken, lexChar, str);
-                lexStopFSM = true;
-                if(lexToken.type == TOKEN_COMMENT) {
-                    lexStopFSM = false;
-                }
-                break;
-            // Pokud znak je znak konce souboru (EOF)
-            case CHAR_EOF:
-                lexToken = scanner_stringlessTokenCreate(TOKEN_EOF);
-                scanner_ungetChar(lexChar);
-                lexStopFSM = true;
-                break;
-            // Jinak
-            default:
-                lexStopFSM = true;
-                // ERROR - charIdentity vrací default
-                parser_errorWatcher(SET_ERROR_LEXICAL);
-                break;
-            }
-        }
-
-    // Pokud je hodnota value tokenu rovna NULL nebo došlo k vytvoření tokenu s klíčovým slovem
-    if(lexToken.value == NULL || (lexToken.type >= LOWEST_KEYWORD && lexToken.type <= HIGHEST_KEYWORD)) {
-        // Uvolní string
-        DString_free(str);
-    }
-
-    return lexToken;
-}   // scanner_FSM
+inline int scanner_getNextChar() {
+    return getchar();
+} // scanner_getNextChar()
 
 /**
- * @brief Získá jeden Token.
+ * @brief Vrátí potřebný znak zpět na vstup programu.
  */
-inline Token scanner_getNextToken() {
-    return scanner_FSM();
-}   // scanner_getNextToken
+inline void scanner_ungetChar(int c) {
+    ungetc(c, stdin);
+} // scanner_ungetChar()
 
 /*** Konec souboru scanner.c ***/

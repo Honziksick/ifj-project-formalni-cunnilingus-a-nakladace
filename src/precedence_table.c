@@ -43,7 +43,7 @@
  * @brief Najde pravidlo v precedenční tabulce na základě terminálu na vrcholu
  *        precedenčního zásobníku a vstupního terminálu.
  */
-void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, Precedence *precedence) {
+void precTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, Precedence *precedence) {
     // Ověření platnosti předaného ukazatele - interní chyba
     if(precedence == NULL) {
         parser_errorWatcher(SET_ERROR_INTERNAL);
@@ -135,13 +135,13 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
     // Pokud precedence nebyla v tabulce nalezena nastavujeme syntaktickou chybu
     parser_errorWatcher(SET_ERROR_SYNTAX);
     *precedence = P_SYNTAX_ERROR;
-} // PrecTable_findPrecedence()
+} // precTable_findPrecedence()
 
 /**
  * @brief Namapuje NEterminál, ze kterého bylo předáno řízení precedenčnímu
  *        syntaktickému analyzátoru, na odpovídající "dollar" terminál.
  */
-void PrecTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, \
+void precTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, \
                                             DollarTerminals *currentDollar)
 {
     // Ověření platnosti předaného ukazatele
@@ -176,12 +176,12 @@ void PrecTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, \
             *currentDollar = CURRENT_DOLLAR_UNDEFINED;  // značí syntaktickou chybu
             break;
     }
-} // PrecTable_getDollarTerminalFromContext()
+} // precTable_getDollarTerminalFromContext()
 
 /**
  * @brief Mapuje typ vstupního precedenčního terminálu na "dollar" terminál.
  */
-void PrecParser_mapInTerminalToDollar(int bracketDepth, DollarTerminals dollarContext, \
+void precParser_mapInTerminalToDollar(int bracketDepth, DollarTerminals dollarContext, \
                                       PrecTerminals *inTerminal)
 {
     // Ověření platnosti předaného ukazatele
@@ -221,6 +221,6 @@ void PrecParser_mapInTerminalToDollar(int bracketDepth, DollarTerminals dollarCo
             *inTerminal = currentTerminal.PrecTerminal; // vrací nezměněný typ terminálu
             break;
     } // switch()
-} // PrecParser_mapInTerminalToDollar()
+} // precParser_mapInTerminalToDollar()
 
 /*** Konec souboru precedence_table.c ***/

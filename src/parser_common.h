@@ -82,7 +82,7 @@
  *
  * @details Toto makro umožňuje volat funkci @c Parser_watchSyntaxErrorInternal()
  *          s automatickým předáním informací o souboru, řádku a funkci. Pokud
- *          je definováno makro @c LOG_PARSER, funkce vypíše tyto informace při
+ *          je definováno makro @c LOG_VERBOSE, funkce vypíše tyto informace při
  *          nastavení chyby. Pokud není `LOG_PARSER` definováno, informace se
  *          nevypisují.
  *
@@ -98,29 +98,29 @@
  * @brief Makro pro logování chybových stavů při návratu rekurzivním sestupem.
  *
  * @details Toto makro slouží k logování chybových stavů na @c STDERR. Pokud je
- *          definováno @c LOG_PARSER, makro vypíše název souboru, číslo řádku
- *          a název funkce, kde došlo k chybě. Pokud @c LOG_PARSER` není
- *          definováno, makro neprovádí žádnou akci.
+ *          definována konstanta @c LOG_VERBOSE v hlavičkovém souboru @c error.h
+ *          a její hodnota je @c true, makro vypíše název souboru, číslo řádku
+ *          a název funkce, kde došlo k chybě. Pokud @c LOG_VERBOSE není definováno
+ *          nebo jeho hodnota není @c true, makro neprovádí žádnou akci.
  *
  * @param file Název souboru, ve kterém došlo k chybě.
  * @param line Číslo řádku, na kterém došlo k chybě.
  * @param func Název funkce, ve které došlo k chybě.
  */
-#ifdef LOG_PARSER
-    #define LOG_ERROR(file, line, func) \
-        do { \
-            const char* fileName = error_getFileName(file); \
-            fprintf(stderr, "\033[35mIn file: %s:%d (%s)\033[0m\n", fileName, line, func); \
-        } while(false)
-#else
-    #define LOG_ERROR(file, line, func) \
-        do { \
-            (void)(file); \
-            (void)(line); \
-            (void)(func); \
-        } while(false)
-#endif
-
+    #if LOG_VERBOSE
+        #define LOG_ERROR(file, line, func) \
+            do { \
+                const char* fileName = error_getFileName(file); \
+                fprintf(stderr, "\033[35mIn file: %s:%d (%s)\033[0m\n", fileName, line, func); \
+            } while(false)
+    #else
+        #define LOG_ERROR(file, line, func) \
+            do { \
+                (void)(file); \
+                (void)(line); \
+                (void)(func); \
+            } while(false)
+    #endif
 
 /*******************************************************************************
  *                                                                             *
@@ -364,11 +364,11 @@ void parser_mapTokenToPrecTerminal(TokenType tokenType, PrecTerminals *terminalT
  *          volání funkcí.
  *
  * @param [in] astDataType Datový typ z AST uzlu @c AST_DataType.
- * @param [out] symtableType Ukazatel na proměnnou typu @c symtable_functionReturnType,
+ * @param [out] symtableType Ukazatel na proměnnou typu @c Symtable_functionReturnType,
  *                           kam bude uložen výsledek.
  */
 void parser_mapASTDataTypeToFunReturnType(AST_DataType astDataType, \
-                                          symtable_functionReturnType *symtableType);
+                                          Symtable_functionReturnType *symtableType);
 
 /**
  * @brief Namapuje typ datového typu AST na stav symbolu v tabulce symbolů.
@@ -379,11 +379,11 @@ void parser_mapASTDataTypeToFunReturnType(AST_DataType astDataType, \
  *          symbolů rámců.
  *
  * @param [in] astDataType Datový typ z AST (`AST_DataType`).
- * @param [out] symtableState Ukazatel na proměnnou typu @c symtable_symbolState,
+ * @param [out] symtableState Ukazatel na proměnnou typu @c Symtable_symbolState,
  *                           kam bude uložen výsledek.
  */
 void parser_mapASTDataTypeToSymtableState(AST_DataType astDataType, \
-                                          symtable_symbolState *symtableState);
+                                          Symtable_symbolState *symtableState);
 
 #endif  // PARSER_COMMON_H_
 

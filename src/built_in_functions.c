@@ -3,7 +3,9 @@
  * Název projektu:   Implementace překladače imperativního jazyka IFJ24        *
  *                                                                             *
  * Soubor:           built_in_functions.c                                      *
- * Autor:            Hýža Pavel         <xhyzapa00>                            *
+ * Autor:            Pavel Hýža   <xhyzapa00>                                  *
+ *                   David Krejčí <xkrejcd00>                                  *
+ *                   Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            22.11.2024                                                *
  * Poslední změna:   29.11.2024                                                *
@@ -18,8 +20,11 @@
 /**
  * @file built_in_functions.c
  * @author Hýža Pavel \<xhyzapa00>
+ * @author David Krejčí \<xkrejcd00>
+ * @author Jan Kalina \<xkalinj00>
  *
- * @brief Vestavěné funkce jazyka IFJ24
+ * @brief Implementační soubor pro generování některých vestavěných funkcí jazyka
+ *        IFJ24 v cílovém kódu (IFJcode24).
  * @details Tento soubor obsahuje definice někteých vestavěných funkcí jazyka
  *          IFJ24 pomocí assembler instrukcí poskytovaných jazykem IFJcode24
  *          pro generátor kódu tac_generator.
@@ -27,8 +32,18 @@
 
 #include "built_in_functions.h"
 
-void TAC_builtInFunctions() {
 
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Generuje vestavěné funkce pro cílový kód IFJcode24.
+ */
+void TAC_builtInFunctions() {
+    // Kód pro vestavěnou funkci "ifj.substring()""
     char builtInFunSubstring[] = "\n\
         #---------------------------------------------------\n\
         #pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8\n\
@@ -81,9 +96,10 @@ void TAC_builtInFunctions() {
         \n\
         ";
 
-char builtInFunStrcmp[] = "\n\
-    #-----------------------------------------\n\
-    #pub fn ifj.strcmp(s1: []u8, s2: []u8) i32\n\
+    // Kód pro vestavěnou funkci "ifj.strcmp()""
+    char builtInFunStrcmp[] = "\n\
+        #-----------------------------------------\n\
+        #pub fn ifj.strcmp(s1: []u8, s2: []u8) i32\n\
         LABEL $$ifj$strcmp\n\
         PUSHFRAME\n\
         \n\
@@ -136,9 +152,10 @@ char builtInFunStrcmp[] = "\n\
         \n\
         ";
 
-char builtInFunOrd[] = "\n\
-    #-----------------------------------------\n\
-    #pub fn ifj.ord(s: []u8, i: i32) i32\n\
+    // Kód pro vestavěnou funkci "ifj.ord()""
+    char builtInFunOrd[] = "\n\
+        #-----------------------------------------\n\
+        #pub fn ifj.ord(s: []u8, i: i32) i32\n\
         LABEL $$ifj$ord\n\
         PUSHFRAME\n\
         \n\
@@ -168,9 +185,10 @@ char builtInFunOrd[] = "\n\
         \n\
         ";
 
+    // Vytiskne kód pro vestavěné funkce
     printf("%s", builtInFunSubstring);
     printf("%s", builtInFunStrcmp);
     printf("%s", builtInFunOrd);
-}
+} // TAC_builtInFunctions()
 
 /*** Konec souboru built_in_functions.c ***/

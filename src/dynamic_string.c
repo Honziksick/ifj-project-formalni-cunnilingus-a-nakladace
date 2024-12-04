@@ -21,18 +21,19 @@
  * @author Farkašovský Lukáš \<xfarkal00> (hlavní)
  * @author Kalina Jan \<xkalinj00> (edit)
  *
- * @brief Definice a implementace funkcí pro práci s dynamickým řetězcem DString.
+ * @brief Implementace funkcí pro práci s dynamickým řetězcem DString.
  * @details Tento soubor obsahuje deklaraci funkcí a datových typů knihovny
  *          pro dynamický řetězec.
 */
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
-
 #include "dynamic_string.h"
-#include "error.h"
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Inicializace dynamického řetězce s počáteční kapacitou.
@@ -63,7 +64,7 @@ DString *DString_init() {
     stringCreated->length = 0;
 
     return stringCreated;
-} /* konec DString_init() */
+} // konec DString_init()
 
 /**
  * @brief Uvolnění paměti dynamického řetězce.
@@ -83,7 +84,7 @@ void DString_free(DString *str) {
         free(str);
         str = NULL;
     }
-} /* konec DString_free() */
+} // konec DString_free()
 
 /**
  * @brief Přidání jednoho znaku na konec dynamického řetězce.
@@ -109,7 +110,7 @@ int DString_appendChar(DString *str, char character) {
     str->length++;
 
     return STRING_SUCCESS;
-} /* konec DString_appendChar() */
+} // konec DString_appendChar()
 
 /**
  * @brief Zkopíruje obsah jednoho dynamického řetězce do druhého.
@@ -140,7 +141,7 @@ int DString_copy(DString *strCopied, DString *strTo) {
     strTo->allocatedSize = strCopied->length + 1;
 
     return STRING_SUCCESS;
-} /* konec DString_copy() */
+} // konec DString_copy()
 
 /**
  * @brief Porovná dva dynamické řetězce.
@@ -165,7 +166,7 @@ int DString_compare(DString *str1, DString *str2) {
         }
     }
     return STRING_EQUAL;
-} /* konec DString_compare() */
+} // konec DString_compare()
 
 /**
  * @brief Porovná dynamický řetězec s konstantním řetězcem.
@@ -192,38 +193,7 @@ int DString_compareWithConstChar(DString *str, const char *strConst) {
     }
 
     return STRING_EQUAL;
-} /* konec DString_compareWithConstChar() */
-
-/**
- * @brief Zvětší dynamický řetězec na požadovanou délku.
- */
-DString *DString_resize(DString *string, size_t size) {
-    // Pokud nemáme řetězec, tak vracíme NULL
-    if(string == NULL) {
-        return NULL;
-    }
-
-    // Nový paměťový nárok pole znaků dynamického stringu
-    size_t resizeSize = string->length + size;
-
-    // Vytvoříme buňky pro znaky
-    char *newStr = (char *)realloc(string->str, resizeSize * sizeof(char));
-
-    // Pokud se špatně realokuje, vrací NULL
-    if(string->str == NULL) {
-        free(string);
-        return NULL;
-    }
-
-    // Aktualizace ukazatele na pole znaků a velikost alokované paměti
-    string->str = newStr;
-    string->allocatedSize = resizeSize;
-    for(size_t i = string->length; i < resizeSize; i++){
-        string->str[i] = '\0';
-    }
-
-    return string;
-} /* konec DString_resize() */
+} // konec DString_compareWithConstChar()
 
 /**
  * @brief Převede řetězec obsažený v DString na konstantní řetězec typu char.
@@ -248,7 +218,7 @@ char *DString_DStringtoConstChar(DString *string) {
     constStr[string->length] = '\0';
 
     return constStr;
-} /* konec DString_DStringtoConstChar() */
+} // konec DString_DStringtoConstChar()
 
 
 /**
@@ -289,6 +259,44 @@ DString *DString_constCharToDString(const char *strConst){
     memcpy(stringCreated->str, strConst, length*sizeof(char));
 
     return stringCreated;
-} /* konec DString_constCharToDString() */
+} // konec DString_constCharToDString()
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE INTERNÍCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Zvětší dynamický řetězec na požadovanou délku.
+ */
+DString *DString_resize(DString *string, size_t size) {
+    // Pokud nemáme řetězec, tak vracíme NULL
+    if(string == NULL) {
+        return NULL;
+    }
+
+    // Nový paměťový nárok pole znaků dynamického stringu
+    size_t resizeSize = string->length + size;
+
+    // Vytvoříme buňky pro znaky
+    char *newStr = (char *)realloc(string->str, resizeSize * sizeof(char));
+
+    // Pokud se špatně realokuje, vrací NULL
+    if(string->str == NULL) {
+        free(string);
+        return NULL;
+    }
+
+    // Aktualizace ukazatele na pole znaků a velikost alokované paměti
+    string->str = newStr;
+    string->allocatedSize = resizeSize;
+    for(size_t i = string->length; i < resizeSize; i++){
+        string->str[i] = '\0';
+    }
+
+    return string;
+} // konec DString_resize()
 
 /*** Konec souboru dynamic_string.c ***/

@@ -203,7 +203,7 @@ typedef struct PrecedenceTable {
  * @param [out] rule Ukazatel na proměnnou typu @c Precedence, kam bude uložena
  *                   nalezená precedence.
  */
-void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, \
+void precTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inputTerminal, \
                               Precedence *rule);
 
 /**
@@ -221,7 +221,7 @@ void PrecTable_findPrecedence(PrecTerminals stackTopTerminal, PrecTerminals inpu
  * @param [out] currentDollar Ukazatel na proměnnou typu @c DollarTerminals,
  *                            kam bude uložen výsledek.
  */
-void PrecTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, \
+void precTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, \
                                             DollarTerminals *currentDollar);
 
 /**
@@ -241,7 +241,7 @@ void PrecTable_getDollarTerminalFromContext(LLNonTerminals fromNonTerminal, \
  * @param [out] inTerminal Ukazatel na proměnnou, do které bude uložen
  *                         namapovaný typ vstupního precedenčního terminál.
  */
-void PrecParser_mapInTerminalToDollar(int bracketDepth, DollarTerminals dollarContext, \
+void precParser_mapInTerminalToDollar(int bracketDepth, DollarTerminals dollarContext, \
                                       PrecTerminals *inTerminal);
 
 #endif  // PREC_TABLE_H_

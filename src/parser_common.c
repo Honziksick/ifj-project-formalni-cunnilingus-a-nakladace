@@ -27,13 +27,8 @@
  *          typů pro parser.
  */
 
-/*
- * Při definici bude syntakticý analyzátor zaznamenávat navštívené funkce
- * při návratu rekurzivním sestup od chvíle, kdy došlo k chybě.
- */
-//#define LOG_PARSER 1
-
 #include "parser_common.h"
+
 
 /*******************************************************************************
  *                                                                             *
@@ -552,7 +547,7 @@ void parser_mapTokenToPrecTerminal(TokenType tokenType, PrecTerminals *terminal)
  * @brief Namapuje typ datového typu AST na typ návratového typu tabulky symbolů.
  */
 void parser_mapASTDataTypeToFunReturnType(AST_DataType astDataType, \
-                                          symtable_functionReturnType *symtableType)
+                                          Symtable_functionReturnType *symtableType)
 {
     // Ověření platnosti předaného ukazatele
     if(symtableType == NULL) {
@@ -607,7 +602,7 @@ void parser_mapASTDataTypeToFunReturnType(AST_DataType astDataType, \
  * @brief Namapuje typ datového typu AST na stav symbolu v tabulce symbolů.
  */
 void parser_mapASTDataTypeToSymtableState(AST_DataType astDataType, \
-                                          symtable_symbolState *symtableState)
+                                          Symtable_symbolState *symtableState)
 {
     // Ověření platnosti předaného ukazatele
     if(symtableState == NULL) {

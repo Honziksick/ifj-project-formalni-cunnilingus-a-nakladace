@@ -8,7 +8,7 @@
  *                   David Krejčí <xkrejcd00> (tvorba množin)                  *
  *                                                                             *
  * Datum:            24.10.2024                                                *
- * Poslední změna:   24.11.2024                                                *
+ * Poslední změna:   03.12.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -39,7 +39,8 @@
  ******************************************************************************/
 
 /**
- * @brief Najde pravidlo v LL tabulce na základě neterminálu a kódu terminálu.
+ * @brief Najde pravidlo v LL tabulce na základě aktuálního neterminálu
+ *        a terminálu.
  */
 void LLtable_findRule(LLTerminals terminal, LLNonTerminals nonTerminal, LLRuleSet *rule) {
     // Ověření platnosti předaného ukazatele - interní chyba

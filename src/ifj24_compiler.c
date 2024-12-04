@@ -53,4 +53,6 @@ int main() {
 
     // Překlad skončil úspěchem
     return SUCCESS;
-}
+} // konec main()
+
+/*** Konec souboru ifj24_compiler.h ***/

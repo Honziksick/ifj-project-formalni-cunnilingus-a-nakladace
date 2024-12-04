@@ -142,7 +142,7 @@ typedef struct ReductionRuleSet {
  *         prázdného výrazu nebo @c PARSING_ERROR (tj. NULL) v případě chyby při
  *         syntaktické analýze.
  */
-AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal);
+AST_ExprNode *precParser_parse(LLNonTerminals fromNonTerminal);
 
 
 /*******************************************************************************
@@ -168,9 +168,9 @@ AST_ExprNode *PrecParser_parse(LLNonTerminals fromNonTerminal);
  *
  * @note Funkce modifikuje přes odkaz předané proměnné @c inTerminal a
  *       @c topTerminal pro další použití v hlavním cyklu precedenčního
- *       syntaktického analyzátoru uvnitř funkce @c PrecParser_parse().
+ *       syntaktického analyzátoru uvnitř funkce @c precParser_parse().
  */
-void PrecParser_applyEqualPrecedence(int bracketDepth, DollarTerminals dollarContext, \
+void precParser_applyEqualPrecedence(int bracketDepth, DollarTerminals dollarContext, \
                                      PrecTerminals *inTerminal, PrecTerminals *topTerminal);
 
 /**
@@ -183,7 +183,7 @@ void PrecParser_applyEqualPrecedence(int bracketDepth, DollarTerminals dollarCon
  *
  * @note Funkce modifikuje přes odkaz předané proměnné @c inTerminal a
  *       @c topTerminal pro další použití v hlavním cyklu precedenčního
- *       syntaktického analyzátoru uvnitř funkce @c PrecParser_parse().
+ *       syntaktického analyzátoru uvnitř funkce @c precParser_parse().
  *
  * @param [in] bracketDepth Úroveň zanoření závorek.
  * @param [in] dollarContext Kontextový terminál typu @c DollarTerminals.
@@ -192,7 +192,7 @@ void PrecParser_applyEqualPrecedence(int bracketDepth, DollarTerminals dollarCon
  * @param [in,out] topTerminal Ukazatel na terminál na vrcholu zásobníku.
  *                             Hodnota může být v rámci funkce aktualizována.
  */
-void PrecParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarContext, \
+void precParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarContext, \
                                     PrecTerminals *inTerminal, PrecTerminals *topTerminal);
 
 /**
@@ -205,7 +205,7 @@ void PrecParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarCont
  *
  * @note Funkce modifikuje přes odkaz předané proměnné @c inTerminal a
  *       @c topTerminal pro další použití v hlavním cyklu precedenčního
- *       syntaktického analyzátoru uvnitř funkce @c PrecParser_parse().
+ *       syntaktického analyzátoru uvnitř funkce @c precParser_parse().
  *
  * @param [in] bracketDepth Úroveň zanoření závorek.
  * @param [in] fromNonTerminal Neterminál předávající řízení precedenčnímu
@@ -220,7 +220,7 @@ void PrecParser_applyLessPrecedence(int bracketDepth, DollarTerminals dollarCont
  *         aktuálním "dollar" terminálem je pravá závorka, což značí ukončení
  *         hlavní smyčky syntaktické analýzy. Jinak vrací @c false.
  */
-bool PrecParser_applyGreaterPrecedence(int *bracketDepth, LLNonTerminals fromNonTerminal, \
+bool precParser_applyGreaterPrecedence(int *bracketDepth, LLNonTerminals fromNonTerminal, \
                                        DollarTerminals dollarContext, PrecTerminals *inTerminal, \
                                        PrecTerminals *topTerminal);
 
@@ -242,7 +242,7 @@ bool PrecParser_applyGreaterPrecedence(int *bracketDepth, LLNonTerminals fromNon
  * @param [out] rule Ukazatel na proměnnou, do které bude uloženo nalezené
  *                   redukční pravidlo.
  */
-void PrecParser_chooseReductionRule(ReductionRule *rule);
+void precParser_chooseReductionRule(ReductionRule *rule);
 
 /**
  * @brief Vyhledá redukční pravidlo odpovídající dané sekvenci symbolů.
@@ -255,7 +255,7 @@ void PrecParser_chooseReductionRule(ReductionRule *rule);
  * @param [out] rule Ukazatel na proměnnou, do které bude uloženo nalezené
  *                   redukční pravidlo.
  */
-void PrecParser_findReductionRule(PrecStackSymbol *symbolsToReduce, ReductionRule *rule);
+void precParser_findReductionRule(PrecStackSymbol *symbolsToReduce, ReductionRule *rule);
 
 /**
  * @brief Aplikuje redukci na zásobníku podle zvoleného redukčního pravidla.
@@ -266,7 +266,7 @@ void PrecParser_findReductionRule(PrecStackSymbol *symbolsToReduce, ReductionRul
  *
  * @param [in] rule Redukční pravidlo, které se má aplikovat.
  */
-void PrecParser_reduce(ReductionRule rule);
+void precParser_reduce(ReductionRule rule);
 
 /**
  * @brief Aplikuje zbývající redukce, dokud nebude vrcholovým terminálem "dollar".
@@ -278,7 +278,7 @@ void PrecParser_reduce(ReductionRule rule);
  * @param topTerminal Ukazatel na terminál na vrcholu zásobníku.
  * @return Vrací @c true, pokud redukce proběhly úspěšně, jinak @c false.
  */
-bool PrecParser_applyRemainingReductions(PrecTerminals *topTerminal);
+bool precParser_applyRemainingReductions(PrecTerminals *topTerminal);
 
 
 /*******************************************************************************
@@ -295,7 +295,7 @@ bool PrecParser_applyRemainingReductions(PrecTerminals *topTerminal);
  *
  * @param [in] nodeType Typ AST uzlu (`AST_VAR_NODE` nebo `AST_LITERAL_NODE`).
  */
-void PrecParser_reduceVarOrLit(AST_NodeType nodeType);
+void precParser_reduceVarOrLit(AST_NodeType nodeType);
 
 /**
  * @brief Aplikuje redukci pro binární operace `E -> E op E`.
@@ -306,7 +306,7 @@ void PrecParser_reduceVarOrLit(AST_NodeType nodeType);
  *
  * @param [in] binOp Typ binární operace (např. `AST_OP_ADD`, `AST_OP_SUBTRACT`, ...).
  */
-void PrecParser_reduceBinOp(AST_BinOpType binOp);
+void precParser_reduceBinOp(AST_BinOpType binOp);
 
 /**
  * @brief Aplikuje redukci pro výraz v závorkách `E -> ( E )`.
@@ -314,7 +314,7 @@ void PrecParser_reduceBinOp(AST_BinOpType binOp);
  * @details Tato funkce zpracovává redukci závorek. Odstraní závorky a ponechá
  *          na zásobníku pouze výraz uvnitř závorek.
  */
-void PrecParser_reduceIntoBrackets();
+void precParser_reduceIntoBrackets();
 
 /**
  * @brief Aplikuje redukci pro volání funkce `E -> id \<ARG_LIST>` nebo
@@ -330,7 +330,7 @@ void PrecParser_reduceIntoBrackets();
  * @note Namísto vstupního parametru @c true lze využít exkvivalentní
  *       @c IS_BUILT_IN_FUNCTION a pro @c false ekvivalentní @c IS_USER_FUNCTION.
  */
-void PrecParser_reduceFunCall(bool isBuiltIn);
+void precParser_reduceFunCall(bool isBuiltIn);
 
 
 /*******************************************************************************
@@ -353,7 +353,7 @@ void PrecParser_reduceFunCall(bool isBuiltIn);
  *
  * @return @c True, pokud se jedná o prázdný výraz, jinak @c false.
  */
-bool PrecParser_parsingEmptyExpression(LLNonTerminals fromNonTerminal);
+bool precParser_parsingEmptyExpression(LLNonTerminals fromNonTerminal);
 
 /**
  * @brief Určuje, zda by měla funkce pro výběr redukčního pravidla ukončit
@@ -368,7 +368,7 @@ bool PrecParser_parsingEmptyExpression(LLNonTerminals fromNonTerminal);
  *
  * @return @c True, pokud by mělo procházení zásobníku skončit, jinak @c false.
  */
-bool PrecParser_shouldEndRuleSelecetion(unsigned char distanceFromTop, PrecStackNode *stackNode);
+bool precParser_shouldEndRuleSelecetion(unsigned char distanceFromTop, PrecStackNode *stackNode);
 
 /**
  * @brief Zkontroluje podmínky pro ukončení hlavní smyčky precedenční
@@ -385,7 +385,7 @@ bool PrecParser_shouldEndRuleSelecetion(unsigned char distanceFromTop, PrecStack
  * @param [in] greaterStopFlag Vlajka pro speciální ukončení po aplikaci @c P_GREATER.
  * @return Vrací @c true, pokud má být smyčka ukončena, jinak @c false.
  */
-bool PrecParser_shouldStopParsingLoop(PrecTerminals inTerminal, PrecTerminals topTerminal, \
+bool precParser_shouldStopParsingLoop(PrecTerminals inTerminal, PrecTerminals topTerminal, \
                                       bool greaterStopFlag);
 
 #endif // PREC_PARSER_H_

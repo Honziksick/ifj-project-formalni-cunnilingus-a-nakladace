@@ -24,11 +24,14 @@
 *          která je implementována jako hashovací tabulka s implicitním řetězením.
 */
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include "dynamic_string.h"
 #include "symtable.h"
 
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Inicializuje novou tabulku symbolů
@@ -56,12 +59,12 @@ SymtablePtr symtable_init() {
     table->array = items;
 
     return table;
-}  // symtable_init
+}  // symtable_init()
 
 /**
  * @brief Přidá novou položku do tabulky symbolů
 */
-symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **outItem) {
+Symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **outItem) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
@@ -138,19 +141,19 @@ symtable_result symtable_addItem(Symtable *table, DString *key, SymtableItem **o
         // Jinak pokračujeme v hledání
         index = (index+1) % table->allocatedSize;
     }
-}  // symtable_addItem
+}  // symtable_addItem()
 
 /**
  * @brief Přidá novou položku do tabulky symbolů z tokenu
 */
-symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem **outItem) {
+Symtable_result symtable_addToken(Symtable *table, Token token, SymtableItem **outItem) {
     return symtable_addItem(table, token.value, outItem);
-}  // symtable_addToken
+}  // symtable_addToken()
 
 /**
  * @brief Vyhledá položku v tabulce symbolů
 */
-symtable_result symtable_findItem(Symtable *table, DString *searchedKey, SymtableItem **outItem) {
+Symtable_result symtable_findItem(Symtable *table, DString *searchedKey, SymtableItem **outItem) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
@@ -188,12 +191,12 @@ symtable_result symtable_findItem(Symtable *table, DString *searchedKey, Symtabl
         item = &table->array[new_index];
     }
     return SYMTABLE_ITEM_DOESNT_EXIST;
-}  // symtable_findItem
+}  // symtable_findItem()
 
 /**
  * @brief Odstraní položku z tabulky symbolů
 */
-symtable_result symtable_deleteItem(Symtable *table, DString *key) {
+Symtable_result symtable_deleteItem(Symtable *table, DString *key) {
     // Pokud je tabulka NULL, vracíme SYMTABLE_TABLE_NULL
     if(table == NULL) {
         return SYMTABLE_TABLE_NULL;
@@ -206,7 +209,7 @@ symtable_result symtable_deleteItem(Symtable *table, DString *key) {
 
     // Pokusíme se najít položku
     SymtableItemPtr item;
-    symtable_result findResult = symtable_findItem(table,key,&item);
+    Symtable_result findResult = symtable_findItem(table,key,&item);
 
     // Při neúspěchu vracíme návratový kód
     if(findResult != SYMTABLE_SUCCESS) {
@@ -233,7 +236,7 @@ symtable_result symtable_deleteItem(Symtable *table, DString *key) {
     }
     item->symbolState = SYMTABLE_SYMBOL_DEAD;
     return SYMTABLE_SUCCESS;
-}  // symtable_deleteItem
+}  // symtable_deleteItem()
 
 /**
  * @brief Vymaže všechny položky z tabulky symbolů
@@ -269,10 +272,9 @@ void symtable_deleteAll(Symtable *table, bool keepData) {
                     free(data->params);
                     free(item.data);
                     item.data = NULL;
-                } else
                 // Pokud je položka string, uvolníme jako string
-                if(item.symbolState == SYMTABLE_SYMBOL_VARIABLE_STRING ||
-                   item.symbolState == SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL) {
+                } else if(item.symbolState == SYMTABLE_SYMBOL_VARIABLE_STRING ||
+                          item.symbolState == SYMTABLE_SYMBOL_VARIABLE_STRING_OR_NULL) {
 
                     item.data = NULL;
                 }
@@ -292,7 +294,7 @@ void symtable_deleteAll(Symtable *table, bool keepData) {
             item.symbolState = SYMTABLE_SYMBOL_DEAD;
         }
     }
-}  // symtable_deleteAll
+}  // symtable_deleteAll()
 
 /**
  * @brief Zničí tabulku symbolů a uvolní její paměť
@@ -306,7 +308,7 @@ inline void symtable_destroyTable(Symtable *table) {
     symtable_deleteAll(table, false);
     free(table->array);
     free(table);
-}  // symtable_destroyTable
+}  // symtable_destroyTable()
 
 /**
  * @brief Vytiskne obsah tabulky symbolů
@@ -339,7 +341,8 @@ void symtable_print(Symtable *table, FILE *file, bool printData, bool cutData) {
         char *key = DString_DStringtoConstChar(item.key);
         if(cutData) {
             fprintf(file, "%-20.20s", key);
-        }else {
+        }
+        else {
             fprintf(file, "%-20s", key);
         }
         free(key);
@@ -382,31 +385,36 @@ void symtable_print(Symtable *table, FILE *file, bool printData, bool cutData) {
             // Vytiskneme konstantnost
             if(item.constant) {
                 fprintf(file, "const         ");
-            }else {
+            }
+            else {
                 fprintf(file, "non-const     ");
             }
             // Vytiskneme definovanost
             if(item.knownValue) {
                 fprintf(file, "known              ");
-            }else {
+            }
+            else {
                 fprintf(file, "unknown            ");
             }
             // Vytiskneme použitost
             if(item.used) {
                 fprintf(file, "used          ");
-            }else {
+            }
+            else {
                 fprintf(file, "unused        ");
             }
             // Vytiskneme změnu
             if(item.changed) {
                 fprintf(file, "changed       ");
-            }else {
+            }
+            else {
                 fprintf(file, "unchanged     ");
             }
             // Vytiskneme adresu dat
             if(item.data == NULL) {
                 fprintf(file, "NULL");
-            }else {
+            }
+            else {
                 fprintf(file, "%p", item.data);
             }
         }
@@ -416,10 +424,14 @@ void symtable_print(Symtable *table, FILE *file, bool printData, bool cutData) {
     if(empty) {
         fprintf(file, "Table is empty\n");
     }
-}  // symtable_print
+}  // symtable_print()
 
 
-
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE INTERNÍCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Hashovací funkce pro výpočet hashe z klíče
@@ -430,7 +442,7 @@ size_t symtable_hashFunction(DString *key) {
         hash = ((hash << 5) + hash) + (size_t)key->str[i];
     }
     return hash;
-}  // symtable_hashFunction
+}  // symtable_hashFunction()
 
 /**
  * @brief Přesun dat z jedné tabulky do druhé (používá se při rozšiřování)
@@ -456,7 +468,7 @@ bool symtable_transfer(Symtable *outTable, Symtable *inTable) {
 
         // Vytvoříme novou položku v cílové tabulce
         SymtableItemPtr newLocation;
-        symtable_result result = symtable_addItem(inTable, outTable->array[i].key, &newLocation);
+        Symtable_result result = symtable_addItem(inTable, outTable->array[i].key, &newLocation);
         // Pokud se nepodařilo přidat položku, vracíme false
         if(result != SYMTABLE_SUCCESS) {
             return false;
@@ -470,7 +482,7 @@ bool symtable_transfer(Symtable *outTable, Symtable *inTable) {
         newLocation->changed = outTable->array[i].changed;
     }
     return true;
-}  // symtable_transfer
+}  // symtable_transfer()
 
 /**
  * @brief Zvětší tabulku symbolů na novou velikost
@@ -511,7 +523,7 @@ Symtable *symtable_resize(Symtable *table, size_t size) {
     free(newTable);
 
     return table;
-}  // symtable_resize
+}  // symtable_resize()
 
 /**
  * @brief Alokuje paměť pro položky tabulky symbolů
@@ -535,7 +547,7 @@ inline SymtableItemPtr symtable_initItems(size_t size) {
         items[i].changed = false;
     }
     return items;
-}  // symtable_initItems
+}  // symtable_initItems()
 
 /**
  * @brief Inicializuje novou strukturu pro data funkce
@@ -571,6 +583,6 @@ SymtableFunctionData *symtable_initFunctionData(size_t paramCount) {
     data->paramCount = paramCount;
     data->params = params;
     return data;
-}  // symtable_initFunctionData
+}  // symtable_initFunctionData()
 
 /*** Konec souboru symtable.c ***/

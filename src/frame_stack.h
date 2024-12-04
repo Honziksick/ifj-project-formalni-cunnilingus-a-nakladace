@@ -34,9 +34,14 @@
 #define FRAME_STACK_H_
 /** @endcond  */
 
+// Import standardních knihoven jazyka C
 #include <stdlib.h>
 #include <stdbool.h>
+
+// Import knihoven pro tabulku symbolů
 #include "symtable.h"
+
+// Import sdílených knihoven překladače
 #include "dynamic_string.h"
 #include "error.h"
 
@@ -49,8 +54,11 @@
 #define FRAME_ARRAY_INIT_SIZE 10        /**< Počáteční velikost pole rámců. */
 #define FRAME_ARRAY_EXPAND_FACTOR 2     /**< Při rozšíření pole rámců se velikost pole násobí tímto faktorem. */
 
-#define IS_CONST true       /**< Přidáváme do tabulky symbolů konstantní proměnnou. */
-#define IS_VAR   false      /**< Přidáváme do tabulky symbolů modifikovatelnou proměnnou. */
+#define IS_CONST true           /**< Přidáváme do tabulky symbolů konstantní proměnnou.       */
+#define IS_VAR   false          /**< Přidáváme do tabulky symbolů modifikovatelnou proměnnou. */
+
+#define IS_FUNCTION  true       /**< Vkládáme rámec označený jako rámec funkce.       */
+#define NOT_FUNCTION false      /**< Vkládáme rámec, který je podřízený rámci funkce. */
 
 /*******************************************************************************
  *                                                                             *
@@ -72,7 +80,7 @@ typedef enum {
     FRAME_STACK_NOT_INITIALIZED,        /**< Zásobník rámců není inicializován */
     FRAME_STACK_KEY_NULL,               /**< Předaný klíč je NULL           */
     FRAME_STACK_POP_GLOBAL              /**< Pokus o odstranění globálního rámce */
-} frame_stack_result;
+} FrameStack_result;
 
 
 /*******************************************************************************
@@ -156,7 +164,7 @@ void frameStack_push(bool isFunction);
  *
  * @details Odstraní vrcholový rámec ze zásobníku, ale ponechá jej v poli.
  */
-frame_stack_result frameStack_pop();
+FrameStack_result frameStack_pop();
 
 /**
  * @brief Vyhledá položku v zásobníku rámců podle klíče.
@@ -175,7 +183,7 @@ frame_stack_result frameStack_pop();
  *         - @c FRAME_STACK_ALLOCATION_FAIL pokud selhalo alokování paměti
  *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
-frame_stack_result frameStack_findItem(DString *key, SymtableItem **outItem);
+FrameStack_result frameStack_findItem(DString *key, SymtableItem **outItem);
 
 /**
  * @brief Přidá novou položku do vrchního rámce zásobníku.
@@ -194,7 +202,7 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **outItem);
  *         - @c FRAME_STACK_ALLOCATION_FAIL pokud selhalo alokování paměti
  *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
-frame_stack_result frameStack_addItem(DString *key, SymtableItem **outItem);
+FrameStack_result frameStack_addItem(DString *key, SymtableItem **outItem);
 
 /**
  * @brief Přidá novou položku s daty do vrchního rámce zásobníku.
@@ -217,8 +225,8 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **outItem);
  *         - @c FRAME_STACK_ALLOCATION_FAIL pokud selhalo alokování paměti
  *         - @c FRAME_STACK_KEY_NULL pokud byl předán klíč NULL
  */
-frame_stack_result frameStack_addItemExpress(DString *key,
-                    symtable_symbolState state, bool constant, void* data, SymtableItem **outItem);
+FrameStack_result frameStack_addItemExpress(DString *key,
+                    Symtable_symbolState state, bool constant, void* data, SymtableItem **outItem);
 
 /**
  * @brief Vrátí ID rámce, ve kterém je položka s daným klíčem.
@@ -283,7 +291,7 @@ void frameStack_addEmbeddedFunctions();
  * @param [in] key Klíč funkce
  * @param [in] data Ukazatel na data funkce
  */
-frame_stack_result frameStack_addFunction(const char* key, void* data);
+FrameStack_result frameStack_addFunction(const char* key, void* data);
 
 #endif  // FRAME_STACK_H_
 

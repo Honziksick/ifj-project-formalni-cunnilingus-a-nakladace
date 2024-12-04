@@ -100,8 +100,6 @@ void AST_destroyNode(AST_NodeType type, void *node);
  *          @c NULL a globální ukazatel zůstává nadále neplatný.
  *
  * @note Funkce využívá jako vstupní parametr globální ukazatel na kořen stromu.
- *
- * @return Ukazatel na nový uzel typu `AST_ProgramNode`, nebo @c NULL při chybě.
  */
 void AST_initTree();
 
@@ -150,7 +148,7 @@ void AST_initNewFunDefNode(AST_FunDefNode *node, DString *identifier,  \
  *
  * @param [in] node Ukazatel na uzel, který má být inicializován.
  * @param [in] dataType Datový typ proměnné parametru/argumentu.
- * @param [in] variable Ukazatel na uzel proměnné.
+ * @param [in] expression Ukazatel na uzel výraz argumentu / parametru.
  */
 void AST_initNewArgOrParamNode(AST_ArgOrParamNode *node, AST_DataType dataType, \
                                AST_ExprNode *expression);

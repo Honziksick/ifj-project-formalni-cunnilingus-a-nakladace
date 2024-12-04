@@ -52,7 +52,7 @@ struct PrecStackList *precStackList = NULL;
 /**
  * @brief Inicializuje globální seznam precedenčních zásobníků.
  */
-void PrecStackList_create() {
+void precStackList_create() {
     if(precStackList == NULL) {
         // Alokace paměti pro seznam precedenční zásobníků
         precStackList = (PrecStackList *)malloc(sizeof(PrecStackList));
@@ -66,22 +66,22 @@ void PrecStackList_create() {
         // Počáteční inicializace prvního zásobníku v seznamu na NULL
         precStackList->stack = NULL;
     }
-} // PrecStackList_create()
+} // precStackList_create()
 
 /**
  * @brief Uvolní globální strukturu seznamu zásobníků.
  */
-void PrecStackList_destroy() {
+void precStackList_destroy() {
     if(precStackList != NULL) {
         free(precStackList);        // Uvvolnění paměti pro seznam zásobníků
         precStackList = NULL;       // Uvedení do neinicializovaného stavu
     }
-} // PrecStackList_destroy()
+} // precStackList_destroy()
 
 /**
  * @brief Přidá nový precedenční zásobník na vrchol seznamu a inicializuje jej.
  */
-void PrecStackList_push() {
+void precStackList_push() {
     // Kontrolujeme, že seznam zásobníků existuje
     if(precStackList == NULL) {
         return;
@@ -102,13 +102,13 @@ void PrecStackList_push() {
     precStackList->stack = newStack;
 
     // Inicializace nového zásobníku - push počátečního "dollar" symbolu
-    PrecStack_pushPrecTerminal(T_PREC_DOLLAR, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
-} // PrecStackList_push()
+    precStack_pushPrecTerminal(T_PREC_DOLLAR, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
+} // precStackList_push()
 
 /**
  * @brief Odebere a uvolní vrcholový zásobník ze seznamu (bez uvolnění AST uzlů).
  */
-void PrecStackList_pop() {
+void precStackList_pop() {
     // Kontrola, že seznam a zásobníků a jeho vrchol existují
     if(precStackList == NULL || precStackList->stack == NULL) {
         return;
@@ -118,29 +118,29 @@ void PrecStackList_pop() {
     PrecStack *topStack = precStackList->stack;
     precStackList->stack = topStack->next;
 
-    PrecStack_dispose(topStack);    // Uvolní zásobníka a zásobníkové uzly bez AST uzlů
-} // PrecStackList_pop()
+    precStack_dispose(topStack);    // Uvolní zásobníka a zásobníkové uzly bez AST uzlů
+} // precStackList_pop()
 
 /**
  * @brief Uvolní všechny zásobníky a jejich obsah ze seznamu
- *        pomocí @c PrecStack_purge() (včetně uvolnění AST uzlů).
+ *        pomocí @c precStack_purge() (včetně uvolnění AST uzlů).
  */
-void PrecStackList_purge() {
+void precStackList_purge() {
     // Uvolní všechny zásobníky včetně AST uzlů
     while(precStackList != NULL && precStackList->stack != NULL) {
-        PrecStack_purge(precStackList->stack);
+        precStack_purge(precStackList->stack);
     }
 
     if(precStackList != NULL) {
         free(precStackList);
         precStackList = NULL;
     }
-} // PrecStackList_purge()
+} // precStackList_purge()
 
 /**
  * @brief Vloží precedenční terminál na aktuální precedenční zásobník.
  */
-void PrecStack_pushPrecTerminal(PrecTerminals terminal, AST_NodeType type, void *node) {
+void precStack_pushPrecTerminal(PrecTerminals terminal, AST_NodeType type, void *node) {
     // Pokud není precStack alokovaný, nic se neděje
     if(precStackList == NULL || precStackList->stack == NULL) {
         return;
@@ -148,10 +148,10 @@ void PrecStack_pushPrecTerminal(PrecTerminals terminal, AST_NodeType type, void 
 
     // Namapujeme typ precedenčního terminálu na typ zásobníkového symbolu
     PrecStackSymbol stackSymbol = PREC_STACK_SYM_UNEDFINED;
-    PrecStack_mapPrecTerminalToStackSymbol(terminal, &stackSymbol);
+    precStack_mapPrecTerminalToStackSymbol(terminal, &stackSymbol);
 
     // Vytvoříme nový uzel zásobníku
-    PrecStackNode *newStackNode = PrecStack_createStackNode();
+    PrecStackNode *newStackNode = precStack_createStackNode();
 
     // Inicializace nové zásobníkového uzlu pro terminál
     if(newStackNode != NULL) {
@@ -159,17 +159,17 @@ void PrecStack_pushPrecTerminal(PrecTerminals terminal, AST_NodeType type, void 
         newStackNode->symbol = stackSymbol;
         newStackNode->nodeType = type;
         newStackNode->node = node;
-        newStackNode->next = PrecStack_top();
+        newStackNode->next = precStack_top();
 
         // Nastavení nového uzlu jako vrcholu zásobníku
         precStackList->stack->top = newStackNode;
     }
-} // PrecStack_pushPrecTerminal()
+} // precStack_pushPrecTerminal()
 
 /**
  * @brief Vloží NEterminál na globální precedenční zásobník.
  */
-void PrecStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType type, void *node) {
+void precStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType type, void *node) {
     // Pokud není precStack alokovaný, nic se neděje
     if(precStackList == NULL || precStackList->stack == NULL) {
         return;
@@ -177,10 +177,10 @@ void PrecStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType ty
 
     // Namapujeme typ zásobníkového neterminálu na typ zásobníkového symbolu
     PrecStackSymbol stackSymbol = PREC_STACK_SYM_UNEDFINED;
-    PrecStack_mapStackNonTerminalToStackSymbol(symbol, &stackSymbol);
+    precStack_mapStackNonTerminalToStackSymbol(symbol, &stackSymbol);
 
     // Vytvoříme nový uzel zásobníku
-    PrecStackNode *newStackNode = PrecStack_createStackNode();
+    PrecStackNode *newStackNode = precStack_createStackNode();
 
     // Inicializace nové zásobníkového uzlu pro neterminál
     if(newStackNode != NULL) {
@@ -201,17 +201,17 @@ void PrecStack_pushPrecNonTerminal(PrecStackNonTerminals symbol, AST_NodeType ty
         newStackNode->symbol = stackSymbol;
         newStackNode->nodeType = type;
         newStackNode->node = node;
-        newStackNode->next = PrecStack_top();
+        newStackNode->next = precStack_top();
 
         // Nastavení nového uzlu jako vrcholu zásobníku
         precStackList->stack->top = newStackNode;
     }
-} // PrecStack_pushPrecNonTerminal()
+} // precStack_pushPrecNonTerminal()
 
 /**
  * @brief Vloží inicializovaný Stack uzel na zásobník, popř. i s AST uzlem.
  */
-void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
+void precStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
     // Switch specifikující uzel pushnutý na zásbník
     switch(inTerminal) {
         // Pro uzel pro proměnnou
@@ -223,7 +223,7 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
                                AST_VAL_UNDEFINED);
 
             // Pushnutí uzlu na zásobník
-            PrecStack_pushPrecTerminal(inTerminal, AST_VAR_NODE, pushNode);
+            precStack_pushPrecTerminal(inTerminal, AST_VAR_NODE, pushNode);
             break;
         } // case T_PREC_ID
 
@@ -236,7 +236,7 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
                                currentTerminal.value);
 
             // Pushnutí uzlu na zásobník
-            PrecStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
+            precStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
             break;
         } // case T_PREC_INT_LITERAL
 
@@ -249,7 +249,7 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
                                currentTerminal.value);
 
             // Pushnutí uzlu na zásobník
-            PrecStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
+            precStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
             break;
         } // case T_PREC_FLOAT_LITERAL
 
@@ -262,7 +262,7 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
                                currentTerminal.value);
 
             // Pushnutí uzlu na zásobník
-            PrecStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
+            precStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
             break;
         } // case T_PREC_STRING_LITERAL
 
@@ -275,20 +275,20 @@ void PrecStack_pushBothStackAndASTNode(PrecTerminals inTerminal) {
                                currentTerminal.value);
 
             // Pushnutí uzlu na zásobník
-            PrecStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
+            precStack_pushPrecTerminal(inTerminal, AST_LITERAL_NODE, pushNode);
             break;
         } // case T_PREC_NULL_LITERAL
 
         // Jinak oushujeme terminálový uzel na zásobník bez vytvoření AST uzlu
         default:
-            PrecStack_pushPrecTerminal(inTerminal, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
+            precStack_pushPrecTerminal(inTerminal, SN_WITHOUT_AST_TYPE, SN_WITHOUT_AST_PTR);
     } // switch()
-} // PrecStack_pushBothStackAndASTNode()
+} // precStack_pushBothStackAndASTNode()
 
 /**
  * @brief Vloží handle za první terminál na zásobníku.
  */
-void PrecStack_pushHandleAfterFirstTerminal() {
+void precStack_pushHandleAfterFirstTerminal() {
     // Kontrolujeme, že aexstuje seznam zásbníků a vrcholový zásobník
     if(precStackList == NULL || precStackList->stack == NULL) {
         parser_errorWatcher(SET_ERROR_INTERNAL);
@@ -296,7 +296,7 @@ void PrecStack_pushHandleAfterFirstTerminal() {
     }
 
     // Připravíme si pomocné ukazatele k průchodu aktuálním zásobníkem
-    PrecStackNode *current = PrecStack_top();
+    PrecStackNode *current = precStack_top();
     PrecStackNode *prev = NULL;
 
     // Procházáme zásobník, dokud nenajdieme první terminál na zásobníku
@@ -311,7 +311,7 @@ void PrecStack_pushHandleAfterFirstTerminal() {
     }
 
     // Vytvoření nového uzlu pro handle
-    PrecStackNode *handleNode = PrecStack_createStackNode();
+    PrecStackNode *handleNode = precStack_createStackNode();
 
     // Inicializujeme uzel pro handle
     if(handleNode != NULL) {
@@ -323,7 +323,7 @@ void PrecStack_pushHandleAfterFirstTerminal() {
         // Vložení handle za první terminál
         if(prev == NULL) {
             // Pokud je první terminál na vrcholu zásobníku
-            handleNode->next = PrecStack_top();
+            handleNode->next = precStack_top();
             precStackList->stack->top = handleNode;
         }
         // Pokud je první terminál někde uvnitř zásobníku
@@ -332,12 +332,12 @@ void PrecStack_pushHandleAfterFirstTerminal() {
             prev->next = handleNode;
         }
     }
-} // PrecStack_pushHandleAfterFirstTerminal()
+} // precStack_pushHandleAfterFirstTerminal()
 
 /**
  * @brief Odebere uzel AST z globálního precedenčního zásobníku.
  */
-PrecStackNode *PrecStack_pop() {
+PrecStackNode *precStack_pop() {
     // Zkontrolujeme, že je co popnout
     if(precStackList == NULL || precStackList->stack == NULL || precStackList->stack->top == NULL) {
         parser_errorWatcher(SET_ERROR_INTERNAL);
@@ -345,18 +345,18 @@ PrecStackNode *PrecStack_pop() {
     }
 
     // Aktualizujeme vrcholový uzel aktuálního zásobníku
-    PrecStackNode *node = PrecStack_top();
+    PrecStackNode *node = precStack_top();
     precStackList->stack->top = node->next;
 
     // Vracíme ukazatel na vyňatý uzel
     return node;
-} // PrecStack_pop()
+} // precStack_pop()
 
 /**
  * @brief Získá ukazatel na uzel na vrcholu globálního precedenčního zásobníku
  *        bez jeho odebrání ze zásobníku.
  */
-inline PrecStackNode* PrecStack_top() {
+inline PrecStackNode* precStack_top() {
     // Kontrola, zda je zásobník alokovaný
     if(precStackList == NULL || precStackList->stack == NULL) {
         parser_errorWatcher(SET_ERROR_INTERNAL);
@@ -365,12 +365,12 @@ inline PrecStackNode* PrecStack_top() {
 
     // Vracíme ukazatel na vrcholový prvek (může být NULL)
     return precStackList->stack->top;
-} // PrecStack_top()
+} // precStack_top()
 
 /**
  * @brief Uvolní všechny zdroje spojené s uzlem @c PrecStackNode.
  */
-void PrecStack_freeNode(PrecStackNode *stackNode) {
+void precStack_freeNode(PrecStackNode *stackNode) {
     // Zkontrolujeme, platnost předaného ukazatele
     if(stackNode == NULL) {
         return;
@@ -391,12 +391,12 @@ void PrecStack_freeNode(PrecStackNode *stackNode) {
     // Uvolnění samotného uzlu "PrecStackNode"stackNode
     free(stackNode);
     stackNode = NULL;
-} // PrecStack_freeNode()
+} // precStack_freeNode()
 
 /**
  * @brief Získá terminál na vrcholu zásobníku, který je nejblíže vrcholu.
  */
-void PrecStack_getTopPrecTerminal(PrecTerminals *topTerminal) {
+void precStack_getTopPrecTerminal(PrecTerminals *topTerminal) {
     // Kontrolujem platnost přijatého ukazatele a struktur zásobníku
     if(topTerminal == NULL || precStackList == NULL || precStackList->stack == NULL) {
         parser_errorWatcher(SET_ERROR_SYNTAX);
@@ -405,7 +405,7 @@ void PrecStack_getTopPrecTerminal(PrecTerminals *topTerminal) {
     }
 
     // Získání vrcholu zásobníku
-    PrecStackNode* stackTopNode = PrecStack_top();
+    PrecStackNode* stackTopNode = precStack_top();
 
     // Pokud je zásobník prázdný nastala syntaktická chyba
     if(stackTopNode == NULL) {
@@ -426,16 +426,16 @@ void PrecStack_getTopPrecTerminal(PrecTerminals *topTerminal) {
     }
 
     // Namapujeme zásobníkový symbol na typ precedenčního terminálu
-    PrecStack_mapStackSymbolToPrecTerminal(stackTopNode->symbol, topTerminal);
-} // PrecStack_getTopPrecTerminal()
+    precStack_mapStackSymbolToPrecTerminal(stackTopNode->symbol, topTerminal);
+} // precStack_getTopPrecTerminal()
 
 
 /**
  * @brief Zkontroluje, zda je na vrcholu zásobníku symbol ID.
  */
-bool PrecStack_isIdOnTop() {
+bool precStack_isIdOnTop() {
     // Získání vrcholu zásobníku
-    PrecStackNode* stackTopNode = PrecStack_top();
+    PrecStackNode* stackTopNode = precStack_top();
 
     // Pokud je zásobník prázdný, vrátíme false
     if(stackTopNode == NULL) {
@@ -444,20 +444,20 @@ bool PrecStack_isIdOnTop() {
 
     // Kontrola, zda je na vrcholu zásobníku symbol ID
     return (stackTopNode->symbol == PREC_STACK_SYM_ID);
-} // PrecStack_isIdOnTop()
+} // precStack_isIdOnTop()
 
 /**
  * @brief Získá výsledný AST uzel výrazu z precedenčního zásobníku.
  */
-void PrecStack_getResult(AST_ExprNode **result) {
+void precStack_getResult(AST_ExprNode **result) {
     // Kontrola, že zásobník není prázdný
-    if(PrecStack_isEmpty()) {
+    if(precStack_isEmpty()) {
         parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
     }
 
     // Získáme vrchní prvek na zásobníku
-    PrecStackNode *topNode = PrecStack_top();
+    PrecStackNode *topNode = precStack_top();
     if(topNode == NULL) {
         parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
@@ -471,7 +471,7 @@ void PrecStack_getResult(AST_ExprNode **result) {
 
     // Uložíme výsledný "AST_ExprNode *""
     *result = topNode->node;
-} // PrecStack_getResult()
+} // precStack_getResult()
 
 
 /*******************************************************************************
@@ -484,7 +484,7 @@ void PrecStack_getResult(AST_ExprNode **result) {
  * @brief Uvolní všechny uzly z globálního precedenčního zásobníku a
  *        inicializuje ho do počátečního stavu.
  */
-void PrecStack_dispose(PrecStack *stack) {
+void precStack_dispose(PrecStack *stack) {
     // Kontrola, že zásbník již není prázdný
     if(stack == NULL) {
         return;
@@ -504,13 +504,13 @@ void PrecStack_dispose(PrecStack *stack) {
     PrecStack *nextStack = stack->next;
     free(stack);
     precStackList->stack = nextStack;
-} // PrecStack_dispose()
+} // precStack_dispose()
 
 /**
  * @brief Uvolní všechny uzly z globálního precedenčního zásobníku pomocí
- *        funkce @c PrecStack_freeNode().
+ *        funkce @c precStack_freeNode().
  */
-void PrecStack_purge(PrecStack *stack) {
+void precStack_purge(PrecStack *stack) {
     // Kontrola, že zásobník není prázdný
     if(stack == NULL) {
         return;
@@ -522,20 +522,20 @@ void PrecStack_purge(PrecStack *stack) {
         PrecStackNode* toDelete = stack->top;
         stack->top = toDelete->next;
 
-        // Uvolníme vrcholový uzel pomocí funkce PrecStack_freeNode
-        PrecStack_freeNode(toDelete);
+        // Uvolníme vrcholový uzel pomocí funkce precStack_freeNode
+        precStack_freeNode(toDelete);
     }
 
     // Uvolníme strukturu zásobníku a zaktualizjeme vrchol seznamu zásobníků
     PrecStack *nextStack = stack->next;
     free(stack);
     precStackList->stack = nextStack;
-} // PrecStack_purge()
+} // precStack_purge()
 
 /**
  * @brief Zkontroluje, zda je aktuální precedenční zásobník prázdný.
  */
-bool PrecStack_isEmpty() {
+bool precStack_isEmpty() {
     // Kontrola, zda je zásobník alokovaný
     if(precStackList == NULL || precStackList->stack == NULL) {
         parser_errorWatcher(SET_ERROR_INTERNAL);
@@ -544,12 +544,12 @@ bool PrecStack_isEmpty() {
 
     // Jinak zkontroluj existenci vrchního prvku
     return (precStackList->stack->top == NULL);
-} // PrecStack_isEmpty()
+} // precStack_isEmpty()
 
 /**
  * @brief Vytvoří nový zásobníkový uzel typu typu @c PrecStackNode.
  */
-PrecStackNode *PrecStack_createStackNode() {
+PrecStackNode *precStack_createStackNode() {
     // Kontrola, zda je zásobník alokovaný
     if(precStackList == NULL || precStackList->stack == NULL) {
         parser_errorWatcher(SET_ERROR_INTERNAL);
@@ -574,12 +574,12 @@ PrecStackNode *PrecStack_createStackNode() {
 
     // Vracíme ukazatel na nový uzel typu "PrecStackNode"
     return node;
-} // PrecStack_createStackNode()
+} // precStack_createStackNode()
 
 /**
  * @brief Namapuje typ precedenčního terminálu na typ zásobníkového symbolu.
  */
-void PrecStack_mapPrecTerminalToStackSymbol(PrecTerminals terminal, PrecStackSymbol *stackSymbol) {
+void precStack_mapPrecTerminalToStackSymbol(PrecTerminals terminal, PrecStackSymbol *stackSymbol) {
     // Ověření platnosti předaného ukazatele
     if(stackSymbol == NULL) {
         parser_errorWatcher(SET_ERROR_INTERNAL);
@@ -698,12 +698,12 @@ void PrecStack_mapPrecTerminalToStackSymbol(PrecTerminals terminal, PrecStackSym
             parser_errorWatcher(SET_ERROR_SYNTAX);
             break;
     } // switch()
-}  // PrecStack_mapPrecTerminalToStackSymbol()
+}  // precStack_mapPrecTerminalToStackSymbol()
 
 /**
  * @brief Namapuje typ zásobníkového symbolu na typ precedenčního terminálu.
  */
-void PrecStack_mapStackSymbolToPrecTerminal(PrecStackSymbol stackSymbol, PrecTerminals *terminal) {
+void precStack_mapStackSymbolToPrecTerminal(PrecStackSymbol stackSymbol, PrecTerminals *terminal) {
     if(terminal == NULL) {
         parser_errorWatcher(SET_ERROR_INTERNAL);
         return;
@@ -821,12 +821,12 @@ void PrecStack_mapStackSymbolToPrecTerminal(PrecStackSymbol stackSymbol, PrecTer
             parser_errorWatcher(SET_ERROR_SYNTAX);
             break;
     } // switch()
-}  // PrecStack_mapStackSymbolToPrecTerminal()
+}  // precStack_mapStackSymbolToPrecTerminal()
 
 /**
  * @brief Namapuje typ zásobníkového neterminálu na typ zásobníkového symbolu.
  */
-void PrecStack_mapStackNonTerminalToStackSymbol(PrecStackNonTerminals stackNonTerminal, PrecStackSymbol *symbol) {
+void precStack_mapStackNonTerminalToStackSymbol(PrecStackNonTerminals stackNonTerminal, PrecStackSymbol *symbol) {
     // Ověření platnosti předaného ukazatele
     if(symbol == NULL) {
         parser_errorWatcher(SET_ERROR_INTERNAL);
@@ -855,6 +855,6 @@ void PrecStack_mapStackNonTerminalToStackSymbol(PrecStackNonTerminals stackNonTe
             parser_errorWatcher(SET_ERROR_SYNTAX);
             break;
     } // switch()
-} // PrecStack_mapStackNonTerminalToStackSymbol()
+} // precStack_mapStackNonTerminalToStackSymbol()
 
 /*** Konec souboru precedence_stack.c ***/
