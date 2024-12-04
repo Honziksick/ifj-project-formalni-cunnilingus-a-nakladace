@@ -364,7 +364,7 @@ Token scanner_stateComplexBackslash(Token lexToken, DString *str) {
                 }
             /*
             ------------------------------------
-            Stav 17: STATE18_DOUBLE_BACKSLASH_LF
+            Stav 3: STATE18_DOUBLE_BACKSLASH_LF
             ------------------------------------
             */
             case STATE17_DOUBLE_BACKSLASH_LF:
