@@ -1397,11 +1397,19 @@ TEST(Lex, Multiline){
 
 }*/
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi.zig
- */
+// ----- Začátek souboru: lex_test_multi.zig -----
+//      //Ukazka prace s retezci a vestavenymi funkcemi 
+//      const ifj = @import("ifj24.zig");
+//      pub fn main() void {
+//          const s1 : []u8 = ifj.string( 
+//          \\Toto
+//          \\je
+//          \\nejaky
+//          \\text  // ve viceradkovem retezcovem literalu nelze mit komentar
+//          ); // ukoncujici uvozovky ovlivnuji implicitni odsazeni vnitrnich radku retezce
+//          ifj.write(s1);
+//      }
+// ----- Konec souboru: lex_test_multi.zig -----
 TEST(Lex, lex_test_multi){
     string path = lex_path + "lex_test_multi.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -1507,12 +1515,15 @@ TEST(Lex, lex_test_multi){
 
 }
 
-
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi2.zig
- */
+// ----- Začátek souboru: lex_test_multi2.zig -----
+//      ifj.concat(
+//           \\prvni
+//          \\parametr
+//          ,
+//          \\druhy
+//          \\parametr
+//      );
+// ----- Konec souboru: lex_test_multi2.zig -----
 TEST(Lex, lex_test_multi2){
     string path = lex_path + "lex_test_multi2.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -1612,11 +1623,12 @@ TEST(Lex, lex_test_multi2){
 
 }
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_string_escapes.zig
- */
+// ----- Začátek souboru: lex_test_string_escapes.zig -----
+//      ifj.concat(
+//          "Toto je test escape sekvenci stringu. Lomeno n: \n; Lomeno lomeno: \\; Lomeno uvozovky: \"; Lomeno r: \r; Lomeno t: \t.",
+//          "Toto je test x escape sekvence stringu. :(58) = \x3A; }(125) = \x7D; NL(10) = \x0A; ú(250) = \xFA."
+//      );
+// ----- Konec souboru: lex_test_string_escapes.zig -----
 TEST(Lex, lex_test_string_escapes){
     string path = lex_path + "lex_test_string_escapes.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -1716,11 +1728,12 @@ TEST(Lex, lex_test_string_escapes){
 
 }
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_comment.zig
- */
+// ----- Začátek souboru: lex_test_comment.zig -----
+//      const ifj = @import("ifj24.zig");
+//      //alphabetagamma
+//      123;
+//      //jedna dva tři čtyři pět šest
+// ----- Konec souboru: lex_test_comment.zig -----
 TEST(Lex, Comment) {
     string path = lex_path + "lex_test_comment.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -1777,11 +1790,19 @@ TEST(Lex, Comment) {
     fclose(f);
 }
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_satanic.zig
- */
+// ----- Začátek souboru: lex_test_satanic.zig -----
+//  ifj.insejn(
+//    ?[]u8
+//    ?
+//    [
+//                 ]    
+//                        u8
+//    ?    i32
+//    ?
+//     f64
+//    (){}|.,:;+-/*=!=>>=<<=insejn123.123.05 ifelse _ _abrakadabra
+//  );
+// ----- Konec souboru: lex_test_satanic.zig -----
 TEST(Lex, Satanic) {
     string path = lex_path + "lex_test_satanic.zig";
     FILE* f = fopen(path.c_str(), "r");
@@ -1841,6 +1862,37 @@ TEST(Lex, Satanic) {
     fclose(f);
 }
 
+// ----- Začátek souboru: lex_test_unterminated_string_01.zig -----
+//    const ifj = @import("ifj24.zig");
+//    pub fn main() void {
+//          const s1 : []u8 = ifj.string("Unterminated string); // ukoncujici uvozovky ovlivnuji implicitni odsazeni vnitrnich radku retezce
+//          ifj.write(s1);
+//      }
+// ----- Konec souboru: lex_test_unterminated_string_01.zig -----
+
+// ----- Začátek souboru: lex_test_unterminated_string_02.zig -----
+//    const ifj = @import("ifj24.zig");
+//    pub fn main() void {
+//          const s1 : []u8 = "Unterminated string;
+//          ifj.write(s1);
+//      }
+// ----- Konec souboru: lex_test_unterminated_string_02.zig -----
+
+// ----- Začátek souboru: lex_test_unterminated_string_03.zig -----
+//      const ifj = @import("ifj24.zig");
+//      pub fn main() void {
+//          const s1 : []u8 = Unterminated_string";
+//          ifj.write(s1);
+//      }
+// ----- Konec souboru: lex_test_unterminated_string_03.zig -----
+
+// ----- Začátek souboru: lex_test_unterminated_string_04.zig -----
+//      const ifj = @import("ifj24.zig");
+//      pub fn main() void {
+//          const s1 : []u8 = ifj.string(Unterminated_string");
+//          ifj.write(s1);
+//      }
+// ----- Konec souboru: lex_test_unterminated_string_04.zig -----
 TEST(Lex, UnterminatedString){
     for (int i = 1; i <= 4; i++) {
         string filename = "lex_test_unterminated_string_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
