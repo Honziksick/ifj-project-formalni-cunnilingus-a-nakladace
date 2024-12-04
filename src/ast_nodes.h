@@ -244,7 +244,7 @@ typedef struct AST_ArgOrParamNode {
  *          uložena ve členu `statement`.
  *
  * @note Povolené typy pro `void *statement`:
- *       - @c AST_ExprNode* (pro přiřazení, volání funkce, návratový výraz)
+ *       - @c AST_ExprNode* (pro přiřazení, binární operaci, návratový výraz)
  *       - @c AST_FunCallNode* (pro volání funkce)
  *       - @c AST_IfNode* (pro podmíněný příkaz)
  *       - @c AST_WhileNode* (pro cyklus typu `while()`)

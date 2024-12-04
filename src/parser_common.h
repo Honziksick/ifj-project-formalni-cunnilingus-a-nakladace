@@ -235,12 +235,14 @@ extern struct PrecStackList *precStackList;
  ******************************************************************************/
 
 /**
- * @brief Získá další token ze scanneru a aktualizuje globální současný token.
+ * @brief Získá další token z lexikálního analyzátoru a aktualizuje jím globální
+ *        současný terminál.
  *
- * @details Funkce @c parser_getNextToken() spravuje načítání tokenů ze scanneru
- *          pro parser. Chování funkce je řízeno parametrem @c state:
+ * @details Funkce @c parser_getNextToken() spravuje předávání tokenů z
+ *          lexikálního analyzátoru do syntaktického analyzátoru. Chování funkce
+ *          je řízeno parametrem @c state následujícím způsobem:
  *          - Pokud je @c state rovno @c POKE_SCANNER, funkce zavolá scanner a
- *            načte nový token, který aktualizuje globální proměnnou @c currentToken.
+ *            načte nový token, který aktualizuje globální proměnnou @c currentTerminal.
  *          - Pokud je @c state rovno @c RESET_LOOKAHEAD, funkce vyresetuje interní
  *            lookahead token, což je užitečné při zpětném zpracování tokenů.
  *
@@ -256,7 +258,8 @@ extern struct PrecStackList *precStackList;
 void parser_getNextToken(bool state);
 
 /**
- * @brief Nastaví nebo zkontroluje stav chyb během parsování.
+ * @brief Nastaví chybový stav nebo zkontroluje, zda v rámci syntaktické analýzy
+ *        chybový stav nastal.
  *
  * @details Funkce @c Parser_watchSyntaxErrorInternal() slouží k centrální správě
  *          chybových stavů během parsování. Umožňuje nastavit různé typy chyb

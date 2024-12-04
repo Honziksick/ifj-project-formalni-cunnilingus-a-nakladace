@@ -54,7 +54,8 @@ AST_ProgramNode *ASTroot = NULL;  // Počíteční inicializace
  ******************************************************************************/
 
 /**
- * @brief Získá další token ze scanneru a aktualizuje globální současný token.
+ * @brief Získá další token z lexikálního analyzátoru a aktualizuje jím globální
+ *        současný terminál.
  */
 void parser_getNextToken(bool state) {
     // Statická proměnná pro uchování lookahead terminálu
@@ -83,7 +84,8 @@ void parser_getNextToken(bool state) {
 } // parser_getNextToken()
 
 /**
- * @brief Nastaví nebo zkontroluje stav syntax error.
+ * @brief Nastaví chybový stav nebo zkontroluje, zda v rámci syntaktické analýzy
+ *        chybový stav nastal.
  */
 bool parser_errorWatcherInternal(ParserErrorState state, const char *file, \
                                  int line, const char *func)
@@ -119,42 +121,30 @@ bool parser_errorWatcherInternal(ParserErrorState state, const char *file, \
         // Nastavení stavu lexikální chyby
         case SET_ERROR_LEXICAL:
             lexicalError = true;
-            parser_updateFirstError(state, &firstError);
-            LOG_ERROR(file, line, func);
             break;
 
         // Nastavení stavu syntaktické chyby
         case SET_ERROR_SYNTAX:
             syntaxError = true;
-            parser_updateFirstError(state, &firstError);
-            LOG_ERROR(file, line, func);
             break;
 
         // Nastavení stavu sémantické chyby - nedefinovaná funkce či proměnná.
         case SET_ERROR_SEM_UNDEF:
             semUndefError = true;
-            parser_updateFirstError(state, &firstError);
-            LOG_ERROR(file, line, func);
             break;
 
         // Nastavení stavu sémantické chyby - redefinice nebo přiřazení do nemodifikovatelné proměnné
         case SET_ERROR_SEM_REDEF_OR_CONSTDEF:
             semRedefError = true;
-            parser_updateFirstError(state, &firstError);
-            LOG_ERROR(file, line, func);
             break;
 
         case SET_ERROR_SEM_OTHER:
             semOther = true;
-            parser_updateFirstError(state, &firstError);
-            LOG_ERROR(file, line, func);
             break;
 
         // Nastavení stavu interní chyby překladače
         case SET_ERROR_INTERNAL:
             internalError = true;
-            parser_updateFirstError(state, &firstError);
-            LOG_ERROR(file, line, func);
             break;
 
         // Zavolá funkci pro řízení chybových stavů
@@ -166,6 +156,13 @@ bool parser_errorWatcherInternal(ParserErrorState state, const char *file, \
         default:
             break;
     } // switch()
+
+    // Podmínka vyjadřuje, že je právě zaznamenáván error. Chyby jsou ve výčtu
+    // ParserErrorState vyjádřeny od SET_ERROR_LEXICAL (2) po SET_ERROR_INTERNAL (7)
+    if(state >= SET_ERROR_LEXICAL && state <= SET_ERROR_INTERNAL) {
+        parser_updateFirstError(state, &firstError);
+        LOG_ERROR(file, line, func);
+    }
 
     // Vracíme `true`, pokud došlo alespoň k jakékoliv jedné chybě
     return (lexicalError || syntaxError || semUndefError || semRedefError || semOther || internalError);
