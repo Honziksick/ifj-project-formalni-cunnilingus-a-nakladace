@@ -59,9 +59,9 @@ TEST(ASTtest_Root, InitRoot) {
     AST_VarNode *importedFile = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(importedFile, nullptr);
     ASTroot->importedFile = importedFile;
-    ASTroot->importedFile->identifier = string_init();
+    ASTroot->importedFile->identifier = DString_init();
     ASSERT_NE(ASTroot->importedFile->identifier, nullptr);
-    ASSERT_EQ(string_append_char(ASTroot->importedFile->identifier, 'i'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(ASTroot->importedFile->identifier, 'i'), STRING_SUCCESS);
 
     ASSERT_EQ(ASTroot->type, AST_PROGRAM_NODE);
     ASSERT_EQ(ASTroot->functionList, nullptr);
@@ -80,22 +80,22 @@ TEST(ASTtest_Root, ManyFuncLinkedRoot) {
     AST_VarNode *importedFile = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(importedFile, nullptr);
     root->importedFile = importedFile;
-    root->importedFile->identifier = string_init();
+    root->importedFile->identifier = DString_init();
     ASSERT_NE(root->importedFile->identifier, nullptr);
-    ASSERT_EQ(string_append_char(root->importedFile->identifier, 'i'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(root->importedFile->identifier, 'i'), STRING_SUCCESS);
 
     AST_FunDefNode *func1 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
     ASSERT_NE(func1, nullptr);
-    func1->identifier = string_init();
+    func1->identifier = DString_init();
     ASSERT_NE(func1->identifier, nullptr);
-    ASSERT_EQ(string_append_char(func1->identifier, 'f'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(func1->identifier, 'f'), STRING_SUCCESS);
     func1->returnType = AST_DATA_TYPE_INT;
 
     AST_FunDefNode *func2 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
     ASSERT_NE(func2, nullptr);
-    func2->identifier = string_init();
+    func2->identifier = DString_init();
     ASSERT_NE(func2->identifier, nullptr);
-    ASSERT_EQ(string_append_char(func2->identifier, 'g'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(func2->identifier, 'g'), STRING_SUCCESS);
     func2->returnType = AST_DATA_TYPE_FLOAT;
 
     func1->next = func2;
@@ -133,9 +133,9 @@ TEST(ASTtest_FunDefNode, UnInitFunDefNode) {
 TEST(ASTtest_FunDefNode, InitFunDefNode) {
     AST_FunDefNode *node = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
     ASSERT_NE(node, nullptr);
-    node->identifier = string_init();
+    node->identifier = DString_init();
     ASSERT_NE(node->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node->identifier, 'f'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(node->identifier, 'f'), STRING_SUCCESS);
     node->returnType = AST_DATA_TYPE_INT;
     ASSERT_EQ(node->type, AST_FUN_DEF_NODE);
     ASSERT_EQ(node->parameters, nullptr);
@@ -153,16 +153,16 @@ TEST(ASTtest_FunDefNode, InitFunDefNode) {
 TEST(ASTtest_FunDefNode, LinkedFunDefNode) {
     AST_FunDefNode *node1 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
     ASSERT_NE(node1, nullptr);
-    node1->identifier = string_init();
+    node1->identifier = DString_init();
     ASSERT_NE(node1->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node1->identifier, 'f'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(node1->identifier, 'f'), STRING_SUCCESS);
     node1->returnType = AST_DATA_TYPE_INT;
 
     AST_FunDefNode *node2 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
     ASSERT_NE(node2, nullptr);
-    node2->identifier = string_init();
+    node2->identifier = DString_init();
     ASSERT_NE(node2->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node2->identifier, 'g'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(node2->identifier, 'g'), STRING_SUCCESS);
     node2->returnType = AST_DATA_TYPE_FLOAT;
 
     node1->next = node2;
@@ -182,9 +182,9 @@ TEST(ASTtest_FunDefNode, LinkedFunDefNode) {
 TEST(ASTtest_FunDefNode, ComplexStatFunDefNode) {
     AST_FunDefNode *node = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
     ASSERT_NE(node, nullptr);
-    node->identifier = string_init();
+    node->identifier = DString_init();
     ASSERT_NE(node->identifier, nullptr);
-    ASSERT_EQ(string_append_char(node->identifier, 'f'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(node->identifier, 'f'), STRING_SUCCESS);
     node->returnType = AST_DATA_TYPE_INT;
 
     AST_StatementNode *stmt = (AST_StatementNode *)AST_createNode(AST_STATEMENT_NODE);
@@ -224,13 +224,13 @@ TEST(ASTtest_ArgOrParamNode, LinkedArgOrParamNode) {
     AST_VarNode *lit = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
     ASSERT_NE(lit, nullptr);
     lit->literalType = AST_LITERAL_STRING;
-    lit->value = string_init();
+    lit->value = DString_init();
     ASSERT_NE(lit->value, nullptr);
-    ASSERT_EQ(string_append_char((DString *)lit->value, 'H'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)lit->value, 'e'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)lit->value, 'o'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)lit->value, 'H'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)lit->value, 'e'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)lit->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)lit->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)lit->value, 'o'), STRING_SUCCESS);
 
     AST_ExprNode *exprLit = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     ASSERT_NE(exprLit, nullptr);
@@ -245,9 +245,9 @@ TEST(ASTtest_ArgOrParamNode, LinkedArgOrParamNode) {
 
     AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(var, nullptr);
-    var->identifier = string_init();
+    var->identifier = DString_init();
     ASSERT_NE(var->identifier, nullptr);
-    ASSERT_EQ(string_append_char(var->identifier, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(var->identifier, 'a'), STRING_SUCCESS);
     var->literalType = AST_LITERAL_INT;
     int *value2 = (int *)malloc(sizeof(int));
     *value2 = 42;
@@ -280,9 +280,9 @@ TEST(ASTtest_ArgOrParamNode, IntegerVarArgOrParamNode) {
 
     AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(var, nullptr);
-    var->identifier = string_init();
+    var->identifier = DString_init();
     ASSERT_NE(var->identifier, nullptr);
-    ASSERT_EQ(string_append_char(var->identifier, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(var->identifier, 'a'), STRING_SUCCESS);
     var->literalType = AST_LITERAL_INT;
     int *value = (int *)malloc(sizeof(int));
     *value = 42;
@@ -309,9 +309,9 @@ TEST(ASTtest_ArgOrParamNode, FloatVarArgOrParamNode) {
 
     AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(var, nullptr);
-    var->identifier = string_init();
+    var->identifier = DString_init();
     ASSERT_NE(var->identifier, nullptr);
-    ASSERT_EQ(string_append_char(var->identifier, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(var->identifier, 'a'), STRING_SUCCESS);
     var->literalType = AST_LITERAL_FLOAT;
     double *value = (double *)malloc(sizeof(double));
     *value = 3.14;
@@ -338,17 +338,17 @@ TEST(ASTtest_ArgOrParamNode, StringVarArgOrParamNode) {
 
     AST_VarNode *var = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(var, nullptr);
-    var->identifier = string_init();
+    var->identifier = DString_init();
     ASSERT_NE(var->identifier, nullptr);
-    ASSERT_EQ(string_append_char(var->identifier, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(var->identifier, 'a'), STRING_SUCCESS);
     var->literalType = AST_LITERAL_STRING;
-    var->value = string_init();
+    var->value = DString_init();
     ASSERT_NE(var->value, nullptr);
-    ASSERT_EQ(string_append_char((DString *)var->value, 'H'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)var->value, 'e'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)var->value, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)var->value, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)var->value, 'o'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)var->value, 'H'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)var->value, 'e'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)var->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)var->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)var->value, 'o'), STRING_SUCCESS);
 
     AST_ExprNode *exprVar = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     ASSERT_NE(exprVar, nullptr);
@@ -424,13 +424,13 @@ TEST(ASTtest_ArgOrParamNode, StringLitArgOrParamNode) {
     AST_VarNode *lit = (AST_VarNode *)AST_createNode(AST_LITERAL_NODE);
     ASSERT_NE(lit, nullptr);
     lit->literalType = AST_LITERAL_STRING;
-    lit->value = string_init();
+    lit->value = DString_init();
     ASSERT_NE(lit->value, nullptr);
-    ASSERT_EQ(string_append_char((DString *)lit->value, 'H'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)lit->value, 'e'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)lit->value, 'l'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char((DString *)lit->value, 'o'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)lit->value, 'H'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)lit->value, 'e'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)lit->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)lit->value, 'l'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar((DString *)lit->value, 'o'), STRING_SUCCESS);
 
     AST_ExprNode *exprLit = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     ASSERT_NE(exprLit, nullptr);
@@ -530,9 +530,9 @@ TEST(ASTtest_StatementNode, FunCallStatementNode) {
 
     AST_FunCallNode *funCall = (AST_FunCallNode *)AST_createNode(AST_FUN_CALL_NODE);
     ASSERT_NE(funCall, nullptr);
-    funCall->identifier = string_init();
+    funCall->identifier = DString_init();
     ASSERT_NE(funCall->identifier, nullptr);
-    ASSERT_EQ(string_append_char(funCall->identifier, 'f'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(funCall->identifier, 'f'), STRING_SUCCESS);
     node->statement = funCall;
 
     ASSERT_EQ(node->statement, funCall);
@@ -843,16 +843,16 @@ TEST(ASTtest_Tree, SimpleTree) {
     AST_VarNode *importedFile = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(importedFile, nullptr);
     root->importedFile = importedFile;
-    root->importedFile->identifier = string_init();
+    root->importedFile->identifier = DString_init();
     ASSERT_NE(root->importedFile->identifier, nullptr);
-    ASSERT_EQ(string_append_char(root->importedFile->identifier, 'i'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(root->importedFile->identifier, 'i'), STRING_SUCCESS);
 
     // Vytvoření funkce
     AST_FunDefNode *func = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
     ASSERT_NE(func, nullptr);
-    func->identifier = string_init();
+    func->identifier = DString_init();
     ASSERT_NE(func->identifier, nullptr);
-    ASSERT_EQ(string_append_char(func->identifier, 'f'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(func->identifier, 'f'), STRING_SUCCESS);
     func->returnType = AST_DATA_TYPE_INT;
 
     // Vytvoření příkazu
@@ -885,24 +885,24 @@ TEST(ASTtest_Tree, MoreComplexTree) {
     AST_VarNode *importedFile = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(importedFile, nullptr);
     root->importedFile = importedFile;
-    root->importedFile->identifier = string_init();
+    root->importedFile->identifier = DString_init();
     ASSERT_NE(root->importedFile->identifier, nullptr);
-    ASSERT_EQ(string_append_char(root->importedFile->identifier, 'i'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(root->importedFile->identifier, 'i'), STRING_SUCCESS);
 
     // Vytvoření první funkce
     AST_FunDefNode *func1 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
     ASSERT_NE(func1, nullptr);
-    func1->identifier = string_init();
+    func1->identifier = DString_init();
     ASSERT_NE(func1->identifier, nullptr);
-    ASSERT_EQ(string_append_char(func1->identifier, 'f'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(func1->identifier, 'f'), STRING_SUCCESS);
     func1->returnType = AST_DATA_TYPE_INT;
 
     // Vytvoření druhé funkce
     AST_FunDefNode *func2 = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
     ASSERT_NE(func2, nullptr);
-    func2->identifier = string_init();
+    func2->identifier = DString_init();
     ASSERT_NE(func2->identifier, nullptr);
-    ASSERT_EQ(string_append_char(func2->identifier, 'g'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(func2->identifier, 'g'), STRING_SUCCESS);
     func2->returnType = AST_DATA_TYPE_FLOAT;
 
     // Vytvoření příkazu pro první funkci
@@ -954,19 +954,19 @@ TEST(ASTtest_Tree, ComplexTree) {
     AST_VarNode *importedFile = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(importedFile, nullptr);
     ASTroot->importedFile = importedFile;
-    ASTroot->importedFile->identifier = string_init();
+    ASTroot->importedFile->identifier = DString_init();
     ASSERT_NE(ASTroot->importedFile->identifier, nullptr);
-    ASSERT_EQ(string_append_char(ASTroot->importedFile->identifier, 'i'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(ASTroot->importedFile->identifier, 'i'), STRING_SUCCESS);
 
     // Vytvoření funkce main
     AST_FunDefNode *mainFunc = (AST_FunDefNode *)AST_createNode(AST_FUN_DEF_NODE);
     ASSERT_NE(mainFunc, nullptr);
-    mainFunc->identifier = string_init();
+    mainFunc->identifier = DString_init();
     ASSERT_NE(mainFunc->identifier, nullptr);
-    ASSERT_EQ(string_append_char(mainFunc->identifier, 'm'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(mainFunc->identifier, 'a'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(mainFunc->identifier, 'i'), STRING_SUCCESS);
-    ASSERT_EQ(string_append_char(mainFunc->identifier, 'n'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(mainFunc->identifier, 'm'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(mainFunc->identifier, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(mainFunc->identifier, 'i'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(mainFunc->identifier, 'n'), STRING_SUCCESS);
     mainFunc->returnType = AST_DATA_TYPE_INT;
 
     // Vytvoření příkazu if
@@ -985,9 +985,9 @@ TEST(ASTtest_Tree, ComplexTree) {
     leftOperandIf->exprType = AST_EXPR_VARIABLE;
     leftOperandIf->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(leftOperandIf->expression, nullptr);
-    ((AST_VarNode *)leftOperandIf->expression)->identifier = string_init();
+    ((AST_VarNode *)leftOperandIf->expression)->identifier = DString_init();
     ASSERT_NE(((AST_VarNode *)leftOperandIf->expression)->identifier, nullptr);
-    ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandIf->expression)->identifier, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(((AST_VarNode *)leftOperandIf->expression)->identifier, 'a'), STRING_SUCCESS);
 
     // Nastavení pravého operandu podmínky if
     AST_ExprNode *rightOperandIf = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
@@ -1020,9 +1020,9 @@ TEST(ASTtest_Tree, ComplexTree) {
     leftOperandThen->exprType = AST_EXPR_VARIABLE;
     leftOperandThen->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(leftOperandThen->expression, nullptr);
-    ((AST_VarNode *)leftOperandThen->expression)->identifier = string_init();
+    ((AST_VarNode *)leftOperandThen->expression)->identifier = DString_init();
     ASSERT_NE(((AST_VarNode *)leftOperandThen->expression)->identifier, nullptr);
-    ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandThen->expression)->identifier, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(((AST_VarNode *)leftOperandThen->expression)->identifier, 'a'), STRING_SUCCESS);
 
     AST_ExprNode *rightOperandThen = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     ASSERT_NE(rightOperandThen, nullptr);
@@ -1054,9 +1054,9 @@ TEST(ASTtest_Tree, ComplexTree) {
     leftOperandElse->exprType = AST_EXPR_VARIABLE;
     leftOperandElse->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(leftOperandElse->expression, nullptr);
-    ((AST_VarNode *)leftOperandElse->expression)->identifier = string_init();
+    ((AST_VarNode *)leftOperandElse->expression)->identifier = DString_init();
     ASSERT_NE(((AST_VarNode *)leftOperandElse->expression)->identifier, nullptr);
-    ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandElse->expression)->identifier, 'a'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(((AST_VarNode *)leftOperandElse->expression)->identifier, 'a'), STRING_SUCCESS);
 
     AST_ExprNode *rightOperandElse = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     ASSERT_NE(rightOperandElse, nullptr);
@@ -1090,9 +1090,9 @@ TEST(ASTtest_Tree, ComplexTree) {
     leftOperandWhile->exprType = AST_EXPR_VARIABLE;
     leftOperandWhile->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(leftOperandWhile->expression, nullptr);
-    ((AST_VarNode *)leftOperandWhile->expression)->identifier = string_init();
+    ((AST_VarNode *)leftOperandWhile->expression)->identifier = DString_init();
     ASSERT_NE(((AST_VarNode *)leftOperandWhile->expression)->identifier, nullptr);
-    ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandWhile->expression)->identifier, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(((AST_VarNode *)leftOperandWhile->expression)->identifier, 'b'), STRING_SUCCESS);
 
     AST_ExprNode *rightOperandWhile = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     ASSERT_NE(rightOperandWhile, nullptr);
@@ -1124,9 +1124,9 @@ TEST(ASTtest_Tree, ComplexTree) {
     leftOperandWhileBody->exprType = AST_EXPR_VARIABLE;
     leftOperandWhileBody->expression = (AST_VarNode *)AST_createNode(AST_VAR_NODE);
     ASSERT_NE(leftOperandWhileBody->expression, nullptr);
-    ((AST_VarNode *)leftOperandWhileBody->expression)->identifier = string_init();
+    ((AST_VarNode *)leftOperandWhileBody->expression)->identifier = DString_init();
     ASSERT_NE(((AST_VarNode *)leftOperandWhileBody->expression)->identifier, nullptr);
-    ASSERT_EQ(string_append_char(((AST_VarNode *)leftOperandWhileBody->expression)->identifier, 'b'), STRING_SUCCESS);
+    ASSERT_EQ(DString_appendChar(((AST_VarNode *)leftOperandWhileBody->expression)->identifier, 'b'), STRING_SUCCESS);
 
     AST_ExprNode *rightOperandWhileBody = (AST_ExprNode *)AST_createNode(AST_EXPR_NODE);
     ASSERT_NE(rightOperandWhileBody, nullptr);

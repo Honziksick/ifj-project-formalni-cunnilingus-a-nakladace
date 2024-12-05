@@ -4,9 +4,10 @@
  *                                                                             *
  * Soubor:           tac_generator.c                                           *
  * Autor:            Lukáš Farkašovský   <xfarkal00>                           *
+ *                   David Krejčí        <xkrejcd00>                           *
  *                                                                             *
  * Datum:            12.11.2024                                                *
- * Poslední změna:   15.11.2024                                                *
+ * Poslední změna:   01.12.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -17,704 +18,798 @@
  ******************************************************************************/
 /**
  * @file tac_generator.c
- * @author Lukáš Farkašovský \<xfarkal00>
+ * @author Krejčí David \<xkrejcd00> (hlavní)
+ * @author Farkašovský Lukáš \<xfarkal00> (edit)
  *
- * @brief Implementace funkcí pro generátor vnitřního kódu (3AK + Cílový jazyk).
- * @details Knihovna pro generování cílového kódu z AST.
+ * @brief Implementace generátoru tříadresného kódu (3AK) a cílového kódu.
+ * @details Tento soubor obsahuje implementaci funkcí pro generování tříadresného
+ *          kódu (3AK) a cílového kódu z abstraktního syntaktického stromu (AST).
+ *          Implementace zahrnuje funkce pro generování kódu pro různé typy uzlů
+ *          AST, jako jsou definice funkcí, výrazy, podmínky a smyčky.
  */
 
+// Import knihoven překladače
 #include "tac_generator.h"
-#include "error.h"
+#include "semantic_analyser.h"
+#include "built_in_functions.h"
 
-TAC_InstructionList *tacList = NULL; // Globální proměnná pro seznam instrukcí
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
- * @brief Inicializuje nový prázdný seznam tříadresných instrukcí.
+ * @brief Generuje cílový kód programu ze stromu AST.
  */
-inline void TAC_createInstructionList(){
-    // Alokace paměti pro seznam instrukcí
-    tacList = (TAC_InstructionList *)malloc(sizeof(struct TAC_InstructionList));
-    if (tacList == NULL){
+void TAC_generateProgram() {
+    // Vyresetujeme statické proměnné pro více testů
+    TAC_resetStatic();
+
+    // Povinná hlavička (prolog)
+    printf(".IFJcode24\n");
+
+    // Definice pomocných proměnných pro výpočty
+    printf("DEFVAR GF@?tempDEST\n");
+    printf("DEFVAR GF@?tempSRC1\n");
+    printf("DEFVAR GF@?tempSRC2\n");
+
+    // Vytvoříme temporary frame pro main
+    printf("CREATEFRAME\n");
+    // Voláme funkci main
+    printf("CALL $$main\n");
+    // Jakmile se vrátíme z funkce main, skočíme na konec programu
+    printf("JUMP $$end$$\n");
+
+    // Definice vestavěných funkcí
+    TAC_builtInFunctions();
+
+    // Procházíme seznam funkcí a generujeme kód pro každou funkci
+    AST_FunDefNode *node = ASTroot->functionList;
+    while(node != NULL) {
+        putchar('\n');
+        TAC_generateFunctionDefinition(node);
+        node = node->next;
+    }
+
+    // Konec programu
+    // Vypíšeme buffer
+    TAC_bufferPrint(NULL);
+    putchar('\n');
+    printf("LABEL $$end$$\n");
+    putchar('\n');
+
+}  // TAC_generateProgram
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE INTERNÍCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Generuje cílový kód definice funkce
+ */
+void TAC_generateFunctionDefinition(AST_FunDefNode *funDefNode) {
+    printf("LABEL $$%s\n", funDefNode->identifier->str);
+    printf("PUSHFRAME\n");
+
+    TAC_generateStatementBlock(funDefNode->body, TAC_ALL);
+
+    // Vypíšeme buffer
+    TAC_bufferPrint(NULL);
+    // Pokud je funkce void, tak jí přidáme return
+    if(funDefNode->returnType == AST_DATA_TYPE_VOID) {
+        printf("POPFRAME\n");
+        printf("RETURN\n");
+    }
+
+}  // TAC_generateFunctionDefinition
+
+
+/**
+ * @brief Generuje cílový kód pro blok příkazů
+ */
+void TAC_generateStatementBlock(AST_StatementNode* statement, TAC_mode mode) {
+    // Projdeme všechny příkazy v bloku
+    while(statement != NULL) {
+        // Pro každý voláme funkci podle typu příkazu
+        switch(statement->statementType) {
+            case AST_STATEMENT_VAR_DEF:
+                TAC_generateVarDef(statement->statement, mode);
+                break;
+            case AST_STATEMENT_EXPR:
+                if(mode != TAC_VAR_DEF_ONLY) {
+                    TAC_generateExpression(statement->statement);
+                }
+                break;
+            case AST_STATEMENT_FUN_CALL:
+                if(mode != TAC_VAR_DEF_ONLY) {
+                    TAC_generateFunctionCall(statement->statement);
+                }
+                break;
+            case AST_STATEMENT_IF:
+                TAC_generateIf(statement->statement, mode);
+                break;
+            case AST_STATEMENT_WHILE:
+                TAC_generateWhile(statement->statement, mode);
+                break;
+            case AST_STATEMENT_RETURN:
+                if(mode != TAC_VAR_DEF_ONLY) {
+                    TAC_generateReturn(statement->statement);
+                }
+                // Vracíme se z funkce
+                return;
+            default:
+                error_handle(ERROR_INTERNAL);
+        }
+        // Přesuneme se na další příkaz
+        statement = statement->next;
+    }
+}  // TAC_generateStatementBlock
+
+/**
+ * @brief Generuje cílový kód pro binární operace
+ */
+void TAC_generateBinaryOperator(AST_BinOpNode *binNode) {
+    // Pokud operace není přiřazení, tak na vrchol datového zásobníku dáme levý operand
+    if(binNode->op != AST_OP_ASSIGNMENT) {
+        TAC_generateExpression(binNode->left);
+    }
+    // Na vrchol datového zásobníku dáme pravý operand
+    TAC_generateExpression(binNode->right);
+
+    // Kontrola NULL
+    if(binNode == NULL) {
+        return;
+    }
+
+    // Pomocné proměnné je potřeba definovat mimo switch-case
+    Semantic_Data type = SEM_DATA_UNKNOWN;     /** Typ operandů (pro dělení) */
+    AST_VarNode *var = NULL;       /** Uzel proměnné (pro přiřazení) */
+
+    // Vytvoříme buffer pro instrukce
+    char buffer[OPTIMIZE_BUFFER_SIZE] = {0};
+    int writtenSize = 0;
+    switch (binNode->op) {
+        case AST_OP_ASSIGNMENT:
+            // Kontrola NULL
+            if(binNode->left->expression == NULL) {
+                return;
+            }
+
+            var = (AST_VarNode *)binNode->left->expression;
+            if(DString_compareWithConstChar(var->identifier, "_" ) == STRING_EQUAL) {
+                // Přiřazujeme do pseudoproměnné - zahodíme hodnotu
+                snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS GF@?tempSRC1\n");
+                TAC_bufferPrint(&buffer);
+            } else {
+                // Nahrajeme hodnotu výrazu do proměnné
+                writtenSize = snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS LF@%s$%lu$\n", var->identifier->str, var->frameID);
+                // Pokud nám nestačí velikost bufferu
+                if(writtenSize >= OPTIMIZE_BUFFER_SIZE) {
+                    // Vypíšeme buffer
+                    TAC_bufferPrint(NULL);
+                    // Vypíšeme instukci přímo
+                    printf("POPS LF@%s$%lu$\n", var->identifier->str, var->frameID);
+                }
+                TAC_bufferPrint(&buffer);
+            }
+            break;
+
+        case AST_OP_ADD:
+            TAC_bufferPrint(NULL);
+            printf("ADDS\n");
+            break;
+        case AST_OP_SUBTRACT:
+            TAC_bufferPrint(NULL);
+            printf("SUBS\n");
+            break;
+        case AST_OP_MULTIPLY:
+            TAC_bufferPrint(NULL);
+            printf("MULS\n");
+            break;
+        case AST_OP_DIVIDE:
+            // Musíme zjistit, zda se jedná o celočíselné nebo desetinné dělení
+            if(semantic_analyseExpr(binNode->right, &type, NULL) != 0) {
+                error_handle(ERROR_INTERNAL);
+            }
+
+            TAC_bufferPrint(NULL);
+            if(type == SEM_DATA_INT) {
+                printf("IDIVS\n");
+            } else {
+                printf("DIVS\n");
+            }
+            break;
+        case AST_OP_EQUAL:
+            TAC_bufferPrint(NULL);
+            printf("EQS\n");
+            break;
+        case AST_OP_NOT_EQUAL:
+            TAC_bufferPrint(NULL);
+            printf("EQS\n");
+            printf("NOTS\n");
+            break;
+        case AST_OP_LESS_THAN:
+            TAC_bufferPrint(NULL);
+            printf("LTS\n");
+            break;
+        case AST_OP_GREATER_THAN:
+            TAC_bufferPrint(NULL);
+            printf("GTS\n");
+            break;
+        case AST_OP_LESS_EQUAL:
+            TAC_bufferPrint(NULL);
+            printf("GTS\n");
+            printf("NOTS\n");
+            break;
+        case AST_OP_GREATER_EQUAL:
+            TAC_bufferPrint(NULL);
+            printf("LTS\n");
+            printf("NOTS\n");
+            break;
+
+        default:
+            error_handle(ERROR_INTERNAL);
+    }
+
+}  // TAC_generateBinaryOperator
+
+/**
+ * @brief Generuje cílový kód pro definici proměnné
+ */
+void TAC_generateVarDef(AST_ExprNode *exprNode, TAC_mode mode) {
+    // Kontrola NULL
+    if(exprNode == NULL || exprNode->expression == NULL) {
+        return;
+    }
+
+    AST_BinOpNode *binNode = exprNode->expression;
+
+    // Kontrola NULL
+    if(binNode->left == NULL || binNode->left->expression == NULL) {
+        return;
+    }
+
+    // Definujeme proměnnou
+    AST_VarNode *var = (AST_VarNode *)binNode->left->expression;
+
+    if(mode != TAC_EXCEPT_VAR_DEF) {
+        TAC_bufferPrint(NULL);
+        printf("DEFVAR LF@%s$%lu$ \n", var->identifier->str, var->frameID);
+    }
+    if(mode != TAC_VAR_DEF_ONLY) {
+        // Na vrchol zásobníku vložíme hodnotu výrazu vpravo
+        TAC_generateExpression(binNode->right);
+
+        // Vytvoříme buffer pro instrukce
+        char buffer[OPTIMIZE_BUFFER_SIZE] = {0};
+        int writtenSize = 0;
+        // Nahrajeme hodnotu výrazu do proměnné
+        writtenSize = snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS LF@%s$%lu$ \n", var->identifier->str, var->frameID);
+        if(writtenSize >= OPTIMIZE_BUFFER_SIZE) {
+            // Vypíšeme buffer
+            TAC_bufferPrint(NULL);
+            // Vypíšeme instukci přímo
+            printf("POPS LF@%s$%lu$ \n", var->identifier->str, var->frameID);
+        }
+        TAC_bufferPrint(&buffer);
+    }
+
+}  // TAC_generateVarDef
+
+/**
+ * @brief Generuje cílový kód pro výraz
+ */
+void TAC_generateExpression(AST_ExprNode *expr) {
+    // Kontrola NULL
+    if(expr == NULL) {
+        return;
+    }
+
+    AST_VarNode *var = (AST_VarNode*)expr->expression;
+    // Vytvoříme buffer pro instrukce
+    char buffer[OPTIMIZE_BUFFER_SIZE] = {0};
+    int writtenSize = 0;
+    // Podle typu výrazu voláme další funkce
+    switch (expr->exprType) {
+        case AST_EXPR_LITERAL:
+            TAC_generateLiteral(var);
+            break;
+        case AST_EXPR_VARIABLE:
+            // Pokud je proměnná, tak se její hodnota rovnou nahraje na vrchol zásobníku
+            writtenSize = snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS LF@%s$%lu$\n", var->identifier->str, var->frameID);
+            if(writtenSize >= OPTIMIZE_BUFFER_SIZE) {
+                // Vypíšeme buffer
+                TAC_bufferPrint(NULL);
+                // Vypíšeme instukci přímo
+                printf("PUSHS LF@%s$%lu$\n", var->identifier->str, var->frameID);
+            }
+            TAC_bufferPrint(&buffer);
+            break;
+        case AST_EXPR_BINARY_OP:
+            TAC_generateBinaryOperator(expr->expression);
+            break;
+        case AST_EXPR_FUN_CALL:
+            TAC_generateFunctionCall(expr->expression);
+            break;
+        default:
+
+            error_handle(ERROR_INTERNAL);
+    }
+}  // TAC_generateExpression
+
+/**
+ * @brief Generuje cílový kód pro literál
+ */
+void TAC_generateLiteral(AST_VarNode *literal) {
+    // Kontrola NULL
+    if(literal == NULL) {
+        return;
+    }
+
+    DString *value = NULL;
+    // Vytvoříme buffer pro instrukce
+    char buffer[OPTIMIZE_BUFFER_SIZE] = {0};
+    // Podle typu literálu na vrchol zásobníku dáme hodnotu
+    switch (literal->literalType) {
+        case AST_LITERAL_INT:
+            snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS int@%d \n", *(int*)literal->value);
+            break;
+        case AST_LITERAL_FLOAT:
+            snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS float@%a \n", *(double*)literal->value);
+            break;
+        case AST_LITERAL_STRING:
+            value = (DString*)literal->value;
+            value = TAC_convertSpecialSymbols(value);
+            snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS string@%s \n", value->str);
+            DString_free(value);
+            break;
+        case AST_LITERAL_NULL:
+            snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS nil@nil \n");
+            break;
+        case AST_LITERAL_BOOL:
+            if(*(bool*)literal->value) {
+                snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS bool@true \n");
+            } else {
+                snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS bool@false \n");
+            }
+            break;
+        default:
+            error_handle(ERROR_INTERNAL);
+    }
+    TAC_bufferPrint(&buffer);
+}  // TAC_generateLiteral
+
+/**
+ * @brief Generuje cílový kód pro podmíněný příkaz if
+ */
+void TAC_generateIf(AST_IfNode *ifNode, TAC_mode mode) {
+    // Kontrola NULL
+    if(ifNode == NULL) {
+        return;
+    }
+
+    // Unikátní identifikátor pro if
+    static unsigned int count = 0;
+    unsigned int id = count;
+    count++;
+
+    // Pro reset mezi testy
+    if(ifNode->type == RESET_STATIC) {
+        count = 0;
+        return;
+    }
+
+    // Pokud pouze generujeme definice proměnných
+    if(mode == TAC_VAR_DEF_ONLY) {
+        // Pokud má NULL prodmínku, tak definujeme idWithoutNull
+        if(ifNode->nullCondition != NULL) {
+            DString *idWithoutNull = ifNode->nullCondition->identifier;
+            TAC_bufferPrint(NULL);
+            printf("DEFVAR LF@%s$%lu$\n", idWithoutNull->str, ifNode->nullCondition->frameID);
+        }
+        // Definujeme proměnné v then a else větvích
+        TAC_generateStatementBlock(ifNode->thenBranch, TAC_VAR_DEF_ONLY);
+        TAC_generateStatementBlock(ifNode->elseBranch, TAC_VAR_DEF_ONLY);
+        return;
+    }
+
+    // Vyhodnotíme podmínku
+    printf("# if_%d\n", id);
+    TAC_generateExpression(ifNode->condition);
+    printf("# then_%d\n", id);
+    // je bool nebo null podmínka?
+    if(ifNode->nullCondition == NULL) {
+        TAC_bufferPrint(NULL);
+        printf("PUSHS bool@true\n");
+        printf("JUMPIFNEQS if_else$%d\n", id);
+    }
+    else {
+        // Výsledek podmínky vložíme do proměnné
+        char buffer[OPTIMIZE_BUFFER_SIZE] = "POPS GF@?tempSRC1\n";
+        TAC_bufferPrint(&buffer);
+        TAC_bufferPrint(NULL);
+        printf("JUMPIFEQ if_else$%d GF@?tempSRC1 nil@nil\n", id);
+        // Definujeme id_bez_null
+        DString *idWithoutNull = ifNode->nullCondition->identifier;
+        if(mode != TAC_EXCEPT_VAR_DEF) {
+            printf("DEFVAR LF@%s$%lu$\n", idWithoutNull->str, ifNode->nullCondition->frameID);
+        }
+        printf("MOVE LF@%s$%lu$ GF@?tempSRC1\n", idWithoutNull->str, ifNode->nullCondition->frameID);
+    }
+
+    // Generujeme tělo if
+    TAC_generateStatementBlock(ifNode->thenBranch, mode);
+    TAC_bufferPrint(NULL);
+    printf("JUMP if_end$%d\n", id);
+
+    // Generujeme tělo else
+    printf("LABEL if_else$%d\n", id);
+    TAC_generateStatementBlock(ifNode->elseBranch, mode);
+    TAC_bufferPrint(NULL);
+    printf("LABEL if_end$%d\n", id);
+
+}  // TAC_generateIf
+
+/**
+ * @brief Generuje cílový kód pro smyčku while
+ */
+void TAC_generateWhile(AST_WhileNode *whileNode, TAC_mode mode) {
+    // Unikátní identifikátor pro while
+    static unsigned int count = 0;
+    unsigned int id = count;
+
+    count++;
+
+    // Pro reset mezi testy
+    if(whileNode->type == RESET_STATIC) {
+        count = 0;
+        return;
+    }
+    TAC_bufferPrint(NULL);
+
+    // Pokud pouze generujeme definice proměnných
+    if(mode == TAC_VAR_DEF_ONLY) {
+        // Definujeme NULL podmínku pokud existuje
+        if(whileNode->nullCondition != NULL) {
+            DString *idWithoutNull = whileNode->nullCondition->identifier;
+            printf("DEFVAR LF@%s$%lu$\n", idWithoutNull->str, whileNode->nullCondition->frameID);
+        }
+        // Definujeme proměnné v těle while
+        TAC_generateStatementBlock(whileNode->body, TAC_VAR_DEF_ONLY);
+        return;
+    }
+    // Pokud máme NULL podmínku, tak nejdříve definujeme id_bez_null
+    DString *idWithoutNull = NULL;
+    if(whileNode->nullCondition != NULL && mode != TAC_EXCEPT_VAR_DEF) {
+        idWithoutNull = whileNode->nullCondition->identifier;
+        printf("DEFVAR LF@%s$%lu$\n", idWithoutNull->str, whileNode->nullCondition->frameID);
+    }
+    // Definujeme proměnné těla
+    if(mode == TAC_ALL) {
+        printf("# Definice vsech promennych v tele while\n");
+        TAC_generateStatementBlock(whileNode->body, TAC_VAR_DEF_ONLY);
+    }
+    // Návěští začátku while
+    printf("LABEL while_start$%d\n", id);
+    // Vyhodnotíme podmínku
+    TAC_generateExpression(whileNode->condition);
+    printf("# while_body_%d\n", id);
+    // Je pravdivostní nebo null podmínka?
+    if(whileNode->nullCondition == NULL) {
+        printf("PUSHS bool@true\n");
+        printf("JUMPIFNEQS while_end$%d\n", id);
+    }
+    else {
+        // Výsledek podmínky uložíme do proměnné
+        char buffer[OPTIMIZE_BUFFER_SIZE] = "POPS GF@?tempSRC1\n";
+        TAC_bufferPrint(&buffer);
+        TAC_bufferPrint(NULL);
+        printf("JUMPIFEQ while_end$%d GF@?tempSRC1 nil@nil\n", id);
+        // Přesuneme hodnotu do idWithoutNull
+
+        printf("MOVE LF@%s$%lu$ GF@?tempSRC1\n", idWithoutNull->str, whileNode->nullCondition->frameID);
+    }
+
+    // Generujeme tělo while
+    TAC_generateStatementBlock(whileNode->body, TAC_EXCEPT_VAR_DEF);
+    TAC_bufferPrint(NULL);
+    // Skočíme na začátek cyklu
+    printf("JUMP while_start$%d\n", id);
+    printf("LABEL while_end$%d\n", id);
+
+}  // TAC_generateWhile
+
+/**
+ * @brief Generuje cílový kód pro návrat z funkce
+ */
+void TAC_generateReturn(AST_ExprNode *expr) {
+    // Na datový zásobník vyhodnotíme výraz
+    TAC_generateExpression(expr);
+    TAC_bufferPrint(NULL);
+    // Vrátíme se z funkce
+    printf("POPFRAME\n");
+    printf("RETURN\n");
+}  // TAC_generateReturn
+
+void TAC_generateFunctionCall(AST_FunCallNode *funCallNode) {
+    TAC_bufferPrint(NULL);
+    // Vytvoříme buffer pro instrukce
+    char buffer[OPTIMIZE_BUFFER_SIZE] = {0};
+    int writtenSize = 0;
+
+    // Pokud je funkce vestavěná, tak se podíváme, zda ji můžeme nahradit instrukcemi
+    if(funCallNode->isBuiltIn) {
+        if(DString_compareWithConstChar(funCallNode->identifier, "readstr") == STRING_EQUAL) {
+            // Načteme řetězec a výsledek nahrajeme na zásobník
+            printf("READ GF@?tempSRC1 string\n");
+            snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS GF@?tempSRC1\n");
+            TAC_bufferPrint(&buffer);
+            return;
+        }
+        else if(DString_compareWithConstChar(funCallNode->identifier, "readi32") == STRING_EQUAL) {
+            // Načteme číslo a výsledek nahrajeme na zásobník
+            printf("READ GF@?tempSRC1 int\n");
+            snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS GF@?tempSRC1\n");
+            TAC_bufferPrint(&buffer);
+            return;
+        }
+        else if(DString_compareWithConstChar(funCallNode->identifier, "readf64") == STRING_EQUAL) {
+            // Načteme číslo a výsledek nahrajeme na zásobník
+            printf("READ GF@?tempSRC1 float\n");
+            snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "PUSHS GF@?tempSRC1\n");
+            TAC_bufferPrint(&buffer);
+            return;
+        }
+        else if(DString_compareWithConstChar(funCallNode->identifier, "write") == STRING_EQUAL) {
+            AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argument volání funkce */
+            // Vyhodnotíme parametr
+            TAC_generateExpression(arg->expression);
+            snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS GF@?tempSRC1\n");
+            TAC_bufferPrint(&buffer);
+            TAC_bufferPrint(NULL);
+            printf("WRITE GF@?tempSRC1\n");
+            return;
+        }
+        else if(DString_compareWithConstChar(funCallNode->identifier, "i2f") == STRING_EQUAL) {
+            // Vyhodnotíme parametr
+            TAC_generateExpression(funCallNode->arguments->expression);
+            TAC_bufferPrint(NULL);
+            printf("INT2FLOATS\n");
+            return;
+        }
+        else if(DString_compareWithConstChar(funCallNode->identifier, "f2i") == STRING_EQUAL) {
+            // Vyhodnotíme parametr
+            TAC_generateExpression(funCallNode->arguments->expression);
+            TAC_bufferPrint(NULL);
+            printf("FLOAT2INTS\n");
+            return;
+        }
+        else if(DString_compareWithConstChar(funCallNode->identifier, "string") == STRING_EQUAL) {
+            TAC_generateExpression(funCallNode->arguments->expression);
+            return;
+        }
+        else if(DString_compareWithConstChar(funCallNode->identifier, "length") == STRING_EQUAL) {
+            // Vyhodnotíme parametr a nahrajeme do pomocné proměnné
+            TAC_generateExpression(funCallNode->arguments->expression);
+            snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS GF@?tempSRC1\n");
+            TAC_bufferPrint(&buffer);
+            TAC_bufferPrint(NULL);
+            // Zjistíme délku řetězce a výsledek nahrajeme na zásobník
+            printf("STRLEN GF@?tempDEST GF@?tempSRC1\n");
+            printf("PUSHS GF@?tempDEST\n");
+            return;
+        }
+        else if(DString_compareWithConstChar(funCallNode->identifier, "concat") == STRING_EQUAL) {
+            // Vyhodnotíme oba parametry a nahrajeme do pomocných proměnných
+            TAC_generateExpression(funCallNode->arguments->expression);
+            TAC_generateExpression(funCallNode->arguments->next->expression);
+            snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS GF@?tempSRC2\n");
+            TAC_bufferPrint(&buffer);
+            snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS GF@?tempSRC1\n");
+            TAC_bufferPrint(&buffer);
+            TAC_bufferPrint(NULL);
+            // Spojíme oba řetězce a výsledek nahrajeme na zásobník
+            printf("CONCAT GF@?tempDEST GF@?tempSRC1 GF@?tempSRC2\n");
+            printf("PUSHS GF@?tempDEST\n");
+            return;
+        }
+        else if(DString_compareWithConstChar(funCallNode->identifier, "chr") == STRING_EQUAL) {
+            // Vyhodnotíme parametr a nahrajeme do pomocné proměnné
+            TAC_generateExpression(funCallNode->arguments->expression);
+            TAC_bufferPrint(NULL);
+            printf("INT2CHARS\n");
+            return;
+        }
+    }
+    // Jinak budeme funkci volat
+
+    // Vytvoříme dočasný rámec pro parametry funkce
+    printf("CREATEFRAME\n");
+
+    // Najdeme definici funkce
+    DString *key = NULL;
+    SymtableItemPtr function = NULL;
+
+    // Pokud je funkce vestavěná, tak přidáme prefix ifj.
+    if(funCallNode->isBuiltIn) {
+        key = DString_constCharToDString("ifj.");
+        if(key == NULL) {
+            error_handle(ERROR_INTERNAL);
+        }
+        for(size_t i = 0; i < funCallNode->identifier->length; i++) {
+            DString_appendChar(key, funCallNode->identifier->str[i]);
+        }
+    }
+    // Jinak jen překopírujeme identifikátor
+    else {
+        key = DString_init();
+        if(key == NULL) {
+            error_handle(ERROR_INTERNAL);
+        }
+        if(DString_copy(funCallNode->identifier, key) != STRING_SUCCESS) {
+            error_handle(ERROR_INTERNAL);
+        }
+    }
+
+    // Najdeme definici funkce
+    if(symtable_findItem(frameStack.bottom->frame, key, &function) != SYMTABLE_SUCCESS) {
+        DString_free(key);
         error_handle(ERROR_INTERNAL);
     }
 
-    // Inicializace seznamu
-    tacList->head = NULL;
-    tacList->tail = NULL;
-}
-
-/**
- * @brief Vytvoří a inicializuje novou tříadresnou instrukci na základní hodnoty.
- */
-TAC_Instruction *TAC_initInstruction(){
-    TAC_Instruction *instr = (TAC_Instruction *)malloc(sizeof(struct TAC_Instruction));
-    if(instr == NULL){
-        return NULL;
-    }
-
-    // Základní inicializace instrukce
-    instr->op = TAC_OP_NONE;
-    instr->dest.type = TAC_OPERAND_NONE;
-    instr->src1.type = TAC_OPERAND_NONE;
-    instr->src2.type = TAC_OPERAND_NONE;
-    instr->next = NULL;
-
-    return instr;
-}
-
-/**
- * @brief Vytvoří novou tříadresnou instrukci.
- */
-TAC_Instruction *TAC_createInstruction(TAC_Operation op, TAC_Operand dest, TAC_Operand src1, TAC_Operand src2){
-    // Alokace paměti a inicializace pro novou instrukci
-    TAC_Instruction *instr = TAC_initInstruction();
-    if(instr == NULL){
-        return NULL;
-    }
-
-    instr->op = op;
-
-    // Switch pro nastavení operandů instrukce pro jednotlivé operace
-    switch (instr->op){
-        case TAC_OP_JUMPIFEQ:
-        case TAC_OP_JUMPIFNEQ:
-        case TAC_OP_ADD:
-        case TAC_OP_SUB:
-        case TAC_OP_MUL:
-        case TAC_OP_DIV:
-        case TAC_OP_IF_EQ:
-        case TAC_OP_IF_LT:
-        case TAC_OP_IF_GT:
-        case TAC_OP_CONCAT:
-        case TAC_OP_OR:
-            instr->src1 = src1;
-            instr->src2 = src2;
-            instr->dest = dest;
-            return instr;
-
-        case TAC_OP_ASSIGN:
-        case TAC_OP_READ:
-        case TAC_OP_TYPE:
-        case TAC_OP_NOT:
-            instr->src1 = src1;
-            instr->dest = dest;
-            return instr;
-
-        case TAC_OP_PARAM:
-        case TAC_OP_CALL:
-        case TAC_OP_LABEL:
-        case TAC_OP_JUMP:
-        case TAC_OP_EXIT:
-        case TAC_OP_WRITE:
-        case TAC_OP_DEFVAR:
-            instr->dest = dest;
-            return instr;
-
-        default:
-            return instr;
-    }
-} // TAC_createInstruction
-
-/**
- * @brief Přidá instrukci na konec seznamu instrukcí.
- */
-void TAC_appendInstruction(TAC_Instruction *instr){
-    // Přidání první instrukce do seznamu
-    if(tacList->head == NULL){
-        tacList->head = instr;
-        tacList->tail = instr;
-    }
-    // Přidání dalších instrukcí na konec seznamu
-    else{
-        tacList->tail->next = instr;
-        tacList->tail = instr;
-        // Konec ukazuje na NULL
-        tacList->tail->next = NULL;
-    }
-} // TAC_appendInstruction
-
-/**
- * @brief Vytiskne operand tříadresného kódu.
- */
-void TAC_printOperand(TAC_Operand *operand){
-
-    if(operand->type != TAC_OPERAND_INT && operand->type != TAC_OPERAND_FLOAT && operand->type != TAC_OPERAND_NIL){
-        // Pomocný řetězec pro výpis, kvůli alokaci ve funkci string_toConstChar
-        char *stringHelpVar = string_toConstChar(operand->value.varName);
-        char *stringHelpLabel = string_toConstChar(operand->value.labelName);
-
-        switch (operand->type){
-            case TAC_OPERAND_NONE: break;
-            case TAC_OPERAND_VAR: printf("LF@$%s", stringHelpVar); break;
-            case TAC_OPERAND_TEMP: printf("TF@$%s", stringHelpVar); break;
-            case TAC_OPERAND_LABEL: printf("_%s", stringHelpLabel); break;
-            case TAC_OPERAND_STRING: printf("string@%s", stringHelpVar); break;
-            case TAC_OPERAND_BOOL: printf("bool@%s", stringHelpVar); break;
-            case TAC_OPERAND_GLOBAL: printf("GF@$%s", stringHelpVar); break;
-            default: break;
-        }
-
-        // Uvolnění alokovaného řetězce
-        free(stringHelpVar);
-        free(stringHelpLabel);
-    }
-    else{
-
-        switch (operand->type){
-            case TAC_OPERAND_INT: printf("int@%d", operand->value.intValue); break;
-            case TAC_OPERAND_FLOAT: printf("float@%a", operand->value.floatValue); break;
-            case TAC_OPERAND_NIL: printf("nil@nil"); break;
-            default: break;
-        }
-    }
-}// TAC_printOperand
-
-/**
- * @brief Vytiskne instrukci tříadresného kódu.
- */
-void TAC_printInstruction(TAC_Instruction *instr){
-    // Výpis operace instrukce
-    switch (instr->op){
-        case TAC_OP_NONE: break;
-        case TAC_OP_ADD: printf("ADD "); break; // ADD dest, src1, src2
-        case TAC_OP_SUB: printf("SUB "); break; // SUB dest, src1, src2
-        case TAC_OP_MUL: printf("MUL "); break; // MUL dest, src1, src2
-        case TAC_OP_DIV: printf("DIV "); break; // DIV dest, src1, src2
-        case TAC_OP_IF_EQ: printf("EQ "); break; // EQ dest, src1, src2
-        case TAC_OP_IF_LT: printf("LT "); break; // LT dest, src1, src2
-        case TAC_OP_IF_GT: printf("GT "); break; // GT dest, src1, src2
-        case TAC_OP_CALL: printf("CALL "); break; // CALL dest
-        case TAC_OP_RETURN: printf("RETURN "); break; // RETURN src1
-        case TAC_OP_LABEL: printf("LABEL "); break; // LABEL dest
-        case TAC_OP_JUMP: printf("JUMP "); break; // JUMP dest
-        case TAC_OP_JUMPIFEQ: printf("JUMPIFEQ "); break; // JUMPIFEQ dest, src1, src2
-        case TAC_OP_JUMPIFNEQ: printf("JUMPIFNEQ "); break; // JUMPIFNEQ dest, src1, src2
-        case TAC_OP_TYPE: printf("TYPE "); break; // TYPE dest, src1
-        case TAC_OP_EXIT: printf("EXIT "); break; // EXIT src1
-        case TAC_OP_CREATEFRAME: printf("CREATEFRAME"); break; // CREATEFRAME
-        case TAC_OP_PUSHFRAME: printf("PUSHFRAME"); break; // PUSHFRAME
-        case TAC_OP_POPFRAME: printf("POPFRAME"); break; // POPFRAME
-        case TAC_OP_DEFVAR: printf("DEFVAR "); break; // DEFVAR dest
-        case TAC_OP_WRITE: printf("WRITE "); break; // WRITE src1
-        case TAC_OP_READ: printf("READ "); break; // READ dest
-        case TAC_OP_CONCAT: printf("CONCAT "); break; // CONCAT dest, src1, src2
-        case TAC_OP_ASSIGN: printf("MOVE "); break; // MOVE dest, src1
-        case TAC_OP_CLEARS: printf("CLEARS"); break; // CLEARS
-        case TAC_OP_NOT: printf("NOT "); break; // NOT dest, src1
-        default: break;
-    }
-    // Výpis operandů instrukce --> dest, src1, src2 (pokud využívá všechny adresy)
-    switch (instr->op){
-        // dest, src1, src2
-        case TAC_OP_NONE: break;
-        case TAC_OP_ADD:
-        case TAC_OP_SUB:
-        case TAC_OP_MUL:
-        case TAC_OP_DIV:
-        case TAC_OP_JUMPIFEQ:
-        case TAC_OP_JUMPIFNEQ:
-        case TAC_OP_IF_EQ:
-        case TAC_OP_IF_LT:
-        case TAC_OP_IF_GT:
-        case TAC_OP_NOT:
-            // Destinace --> kam se zapíš€e výsledek
-            TAC_printOperand(&(instr->dest));
-            // Mezery mezi operandy
-            printf(" ");
-            TAC_printOperand(&(instr->src1));
-            printf(" ");
-            TAC_printOperand(&(instr->src2));
-            return;
-
-        // dest
-        case TAC_OP_DEFVAR:
-        case TAC_OP_JUMP:
-        case TAC_OP_EXIT:
-        case TAC_OP_WRITE:
-        case TAC_OP_CALL:
-        case TAC_OP_LABEL:
-            TAC_printOperand(&(instr->dest));
-            return;
-
-        // dest, src1
-        case TAC_OP_ASSIGN:
-        case TAC_OP_TYPE:
-        case TAC_OP_READ:
-            TAC_printOperand(&(instr->dest));
-            printf(" ");
-            TAC_printOperand(&(instr->src1));
-            return;
-
-        // Pokud instrukce nepotřebuje žádný operand
-        default:
-            return;
-    }
-}// TAC_printInstruction
-
-/**
- * @brief Vytiskne všechny instrukce v seznamu tříadresného kódu.
- */
-void TAC_printInstructionList(){
-    // Pokud je seznam prázdný, nemáme co tisknout
-    if(tacList->head == NULL){
-        return;
-    }
-
-    // Postupné tisknutí instrukcí od hlavičky
-    TAC_Instruction *current = tacList->head;
-
-    // Dokud máme, co tisknout
-    while(current != NULL){
-        TAC_printInstruction(current);
-        printf("\n");
-        current = current->next;
-    }
-} // TAC_printInstructionList
-
-/**
- * @brief Vytvoří označení pro začátek programu.
- */
-bool TAC_generateProgramCodeBegin(AST_ProgramNode *programNode){
-    // Vytvoření instrukce pro hlavní funkci
-    TAC_Instruction *instr;
-
-    // Globální proměnné pro práci s operacemi, které ukládají výsledek do proměnné
-    // ?tempDEST, ?tempSRC1, ?tempSRC2 --> používá se ? pro zamezení kolize s názvy proměnných
-    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_GLOBAL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_GLOBAL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("?tempSRC2"), .type = TAC_OPERAND_GLOBAL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-
-    // Vytvoření rámce pro tělo programu
-    instr = TAC_createInstruction(TAC_OP_LABEL, (TAC_Operand){.value.labelName = string_charToDString(programNode->importedFile->identifier->str), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_CREATEFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_PUSHFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    return true;
-} // TAC_generateProgramCode
-
-bool TAC_generateProgramCodeEnd(){
-    TAC_Instruction *instr;
-    // Přesun rámce ze zásobníku do globálního rámce
-    instr = TAC_createInstruction(TAC_OP_POPFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    // Vyčistíme zásobník rámců
-    instr = TAC_createInstruction(TAC_OP_CLEARS, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    return true;
-} // TAC_generateProgramCode
-
-/**
- * @brief Generuje kód pro začátek definice funkce.
- */
-bool TAC_generateFunctionDefinitionBegin(AST_FunDefNode *funDefNode){
-    TAC_Instruction *instr;
-    // Label funkce
-    instr = TAC_createInstruction(TAC_OP_LABEL, (TAC_Operand){.value.labelName = string_charToDString(funDefNode->identifier->str), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_CREATEFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    return true;
-} // TAC_generateFunctionDefinitionBegin
-
-/**
- * @brief Generuje kód pro konec definice funkce.
- */
-bool TAC_generateFunctionDefinitionEnd(){
-    TAC_Instruction *instr;
-
-    instr = TAC_createInstruction(TAC_OP_POPFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    // Návrat do místa, kde bylo zavoláno call
-    instr = TAC_createInstruction(TAC_OP_RETURN, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    return true;
-} // TAC_generateFunctionDefinitionEnd
-
-/**
- * @brief Generuje tříadresný kód pro binární operace.
- */
-bool TAC_generateBinOp(AST_BinOpNode *binOp){
-    TAC_Instruction *instr;
-    AST_ExprNode *leftOperand = binOp->left;
-    AST_ExprNode *rightOperand = binOp->right;
-
-    // Rekurzivní volání pro výrazy v levém a pravém operandu --> důležité pro složitější výrazy
-
-    // Levý operand
-    if (leftOperand->exprType == AST_EXPR_BINARY_OP){
-        TAC_generateBinOp((AST_BinOpNode *)leftOperand->expression);
-    }
-
-    // Pravý operand
-    if(rightOperand->exprType == AST_EXPR_BINARY_OP){
-        TAC_generateBinOp((AST_BinOpNode *)rightOperand->expression);
-    }
-
-    TAC_Operand operandUsedLeft;
-    TAC_Operand operandUsedRight;
-
-    if(leftOperand->exprType == AST_EXPR_LITERAL){
-        // Switch na určení typu literálu
-        switch (((AST_VarNode*)leftOperand->expression)->literalType){
-            case AST_LITERAL_INT:
-                operandUsedLeft.type = TAC_OPERAND_INT;
-                operandUsedLeft.value.intValue = *((int *)((AST_VarNode *)leftOperand->expression)->value);
-                break;
-
-            case AST_LITERAL_FLOAT:
-                operandUsedLeft.type = TAC_OPERAND_FLOAT;
-                operandUsedLeft.value.floatValue = *((double *)((AST_VarNode *)leftOperand->expression)->value);
-                break;
-
-            case AST_LITERAL_STRING:
-                operandUsedLeft.type = TAC_OPERAND_STRING;
-                operandUsedLeft.value.varName = (DString *)((AST_VarNode *)leftOperand->expression)->value;
-                break;
-
-            case AST_LITERAL_NULL:
-                operandUsedLeft.type = TAC_OPERAND_NIL;
-                break;
-
-            default: break;
-        }
-    }
-
-    if(rightOperand->exprType == AST_EXPR_LITERAL){
-        // Switch na určení typu literálu
-        switch (((AST_VarNode*)rightOperand->expression)->literalType){
-            case AST_LITERAL_INT:
-                operandUsedRight.type = TAC_OPERAND_INT;
-                operandUsedRight.value.intValue = *((int *)((AST_VarNode *)rightOperand->expression)->value);
-                break;
-
-            case AST_LITERAL_FLOAT:
-                operandUsedRight.type = TAC_OPERAND_FLOAT;
-                operandUsedRight.value.floatValue = *((double *)((AST_VarNode *)rightOperand->expression)->value);
-                break;
-
-            case AST_LITERAL_STRING:
-                operandUsedRight.type = TAC_OPERAND_STRING;
-                operandUsedRight.value.varName = (DString *)((AST_VarNode *)rightOperand->expression)->value;
-                break;
-
-            case AST_LITERAL_NULL:
-                operandUsedRight.type = TAC_OPERAND_NIL;
-                break;
-
-            default: break;
-        }
-    }
-
-    if(leftOperand->exprType == AST_EXPR_VARIABLE){
-        operandUsedLeft.type = TAC_OPERAND_VAR;
-        operandUsedLeft.value.varName = ((AST_VarNode *)leftOperand->expression)->identifier;
-    }
-
-    if(rightOperand->exprType == AST_EXPR_VARIABLE){
-        operandUsedRight.type = TAC_OPERAND_VAR;
-        operandUsedRight.value.varName = ((AST_VarNode *)rightOperand->expression)->identifier;
-    }
-
-    // Vytvoření instrukce pro každý binární operátor
-    // ?tempDEST ==> globální proměnnám, do které ukládáme výsledek operací
-    switch (binOp->op){
-        case AST_OP_ADD:
-            instr = TAC_createInstruction(TAC_OP_ADD, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            break;
-
-        case AST_OP_SUBTRACT:
-            instr = TAC_createInstruction(TAC_OP_SUB, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            break;
-
-        case AST_OP_MULTIPLY:
-            instr = TAC_createInstruction(TAC_OP_MUL, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            break;
-
-        case AST_OP_DIVIDE:
-            instr = TAC_createInstruction(TAC_OP_DIV, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            break;
-
-        case AST_OP_ASSIGNMENT:
-            instr = TAC_createInstruction(TAC_OP_ASSIGN, operandUsedLeft, operandUsedRight, (TAC_Operand){.type = TAC_OPERAND_NONE});
-            TAC_appendInstruction(instr);
-            break;
-
-        case AST_OP_EQUAL:
-            instr = TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            break;
-
-        case AST_OP_NOT_EQUAL:
-            instr = TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            instr = TAC_createInstruction(TAC_OP_NOT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-            TAC_appendInstruction(instr);
-            break;
-
-        case AST_OP_GREATER_THAN:
-            instr = TAC_createInstruction(TAC_OP_IF_GT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            break;
-
-        case AST_OP_LESS_THAN:
-            instr = TAC_createInstruction(TAC_OP_IF_LT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            break;
-
-        case AST_OP_GREATER_EQUAL:
-            instr = TAC_createInstruction(TAC_OP_IF_GT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            instr = TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            instr = TAC_createInstruction(TAC_OP_OR, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_TEMP});
-            TAC_appendInstruction(instr);
-            break;
-
-        case AST_OP_LESS_EQUAL:
-            instr = TAC_createInstruction(TAC_OP_IF_LT, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            instr = TAC_createInstruction(TAC_OP_IF_EQ, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, operandUsedLeft, operandUsedRight);
-            TAC_appendInstruction(instr);
-            instr = TAC_createInstruction(TAC_OP_OR, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempDEST"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.value.varName = string_charToDString("?tempSRC1"), .type = TAC_OPERAND_TEMP});
-            TAC_appendInstruction(instr);
-            break;
-
-        default: break;
-    }
-
-    return true;
-}
-
-/**
- * @brief Generuje tříadresný kód pro výrazy.
- */
-bool TAC_generateExpression(AST_ExprNode *exprNode){
-    TAC_Instruction *instr;
-    // Přidělení binárního operátoru z výrazu
-    AST_BinOpNode *binOp = (AST_BinOpNode *)exprNode->expression;
-
-    switch (exprNode->exprType){
-        case AST_EXPR_BINARY_OP:
-            TAC_generateBinOp(binOp);
-            break;
-
-        case AST_EXPR_FUN_CALL:
-            instr = TAC_createInstruction(TAC_OP_CALL, (TAC_Operand){.value.labelName = string_charToDString(((AST_VarNode *)exprNode->expression)->identifier->str), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-            TAC_appendInstruction(instr);
-            break;
-
-        default: break;
-    }
-    return true;
-} // TAC_generateStatement
-
-/**
- * @brief Generuje tříadresný kód pro příkazy.
- */
-bool TAC_generateStatement(AST_StatementNode *statement){
-    TAC_Instruction *instr;
-
-    switch (statement->statementType){
-        case AST_STATEMENT_VAR_DEF:
-            instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString(((AST_VarNode *)statement->statement)->identifier->str), .type = TAC_OPERAND_VAR}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-            TAC_appendInstruction(instr);
-            break;
-
-        default: break;
-    }
-    return true;
-}
-
-/**
- * @brief Uvolní operand.
-*/
-void TAC_destroyOperand(TAC_Operand *operand){
-    switch (operand->type){
-        // Uvolní dynamický řetězec varName
-        case TAC_OPERAND_VAR:
-        case TAC_OPERAND_TEMP:
-        case TAC_OPERAND_STRING:
-        case TAC_OPERAND_BOOL:
-        case TAC_OPERAND_GLOBAL:
-            string_free(operand->value.varName);
-            break;
-
-        // Uvolní dynamický řetězec labelName
-        case TAC_OPERAND_LABEL:
-            string_free(operand->value.labelName);
-            break;
-
-        // Pokud operand nemá dynamický řetězec, nemáme co uvolnit
-        default:
-            break;
-    }
-} // TAC_destroyOperand
-
-/*
- * @brief Uvolní instrukci.
- */
-void TAC_destroyInstruction(TAC_Instruction *instr){
-    switch (instr->op){
-        // dest, src1, src2
-        case TAC_OP_NONE: break;
-        case TAC_OP_ADD:
-        case TAC_OP_SUB:
-        case TAC_OP_MUL:
-        case TAC_OP_DIV:
-        case TAC_OP_JUMPIFEQ:
-        case TAC_OP_JUMPIFNEQ:
-        case TAC_OP_IF_EQ:
-        case TAC_OP_IF_LT:
-        case TAC_OP_IF_GT:
-        case TAC_OP_NOT:
-
-            TAC_destroyOperand(&(instr->dest));
-            TAC_destroyOperand(&(instr->src1));
-            TAC_destroyOperand(&(instr->src2));
-            return;
-
-        // dest
-        case TAC_OP_DEFVAR:
-        case TAC_OP_JUMP:
-        case TAC_OP_EXIT:
-        case TAC_OP_WRITE:
-        case TAC_OP_CALL:
-        case TAC_OP_LABEL:
-
-            TAC_destroyOperand(&(instr->dest));
-            return;
-
-        // dest, src1
-        case TAC_OP_ASSIGN:
-        case TAC_OP_TYPE:
-        case TAC_OP_READ:
-
-            TAC_destroyOperand(&(instr->dest));
-            TAC_destroyOperand(&(instr->src1));
-            return;
-
-        // Pokud instrukce nepotřebuje žádný operand
-        default:
-            return;
-    }
-} // TAC_destroyInstruction
-
-
-/**
- * @brief Uvolní všechny instrukce v seznamu tříadresného kódu.
- */
-void TAC_freeInstructionList(){
-    // Pokud je seznam prázdný, nemáme, co mazat
-    if(tacList->head == NULL){
-        return;
-    }
-
-    // Dokud máme, co mazat
-    while(tacList->head != NULL){
-        // Postupné mazání instrukcí od hlavičky
-        TAC_Instruction *current = tacList->head;
-
-        tacList->head = tacList->head->next;
-
-        //TAC_destroyInstruction(current);
-        free(current);
-    }
-} // TAC_freeInstructionList
-
-/**
- * @brief Uvolní všechny instrukce v seznamu tříadresného kódu a potom samotný seznam.
- */
-void TAC_destroyInstructionList(){
-    if (tacList == NULL){
-        return;
-    }
-    TAC_freeInstructionList(tacList);
-    free(tacList);
-    //tacList = NULL;
-} // TAC_destroyInstructionList
-
-/**
- * @brief Testovací funkce pro generování tříadresného kódu.
- */
-bool TAC_generateTestCode(){
-    TAC_Instruction *instr;
-    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("konik"), .type = TAC_OPERAND_VAR}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_LABEL, (TAC_Operand){.value.labelName = string_charToDString("pejsek"), .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_EXIT, (TAC_Operand){.value.intValue = 42, .type = TAC_OPERAND_INT}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_EXIT, (TAC_Operand){.value.floatValue = 42.55556, .type = TAC_OPERAND_FLOAT}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = string_charToDString("temp_konik"), .type = TAC_OPERAND_TEMP}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    return true;
-}
-
-bool TAC_generateFunCall(AST_FunCallNode *funCallNode){
-    TAC_Instruction *instr;
-    // Vytvoříme temporary frame pro parametry funkce
-    instr = TAC_createInstruction(TAC_OP_CREATEFRAME, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-
-    // Najdeme definici funkce
-    SymtableItemPtr function;
-    if(symtable_findItem(frameStack.bottom->frame, funCallNode->identifier, &function) != SYMTABLE_SUCCESS){
-        return false;
-    }
     SymtableFunctionData *functionData = function->data;    /**< Definovaná data funkce */
-    
     AST_ArgOrParamNode *arg = funCallNode->arguments;       /**< Argumenty volání funkce */
     // Pro všechny parametry
-    for(size_t i = 0; i < functionData->param_count; i++){
-        // Vytvoříme instrukci DEFVAR pro parametr
-        instr = TAC_createInstruction(TAC_OP_DEFVAR, (TAC_Operand){.value.varName = functionData->params[i].id}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-        TAC_appendInstruction(instr);
-        AST_VarNode *var_node = (AST_VarNode*)arg->expression->expression;
-        // Do nově definováné proměnné vložíme hodnotu
-        // Vložíme hodnotu literálu
-        if(var_node->identifier == NULL){
-            TAC_Operand src;
-            switch (var_node->literalType)
-            {
-            case AST_LITERAL_INT:
-                src = (TAC_Operand){.type = TAC_OPERAND_INT, .value.intValue = *(int*)var_node->value};
-                break;
-            case AST_LITERAL_FLOAT:
-                src = (TAC_Operand){.type = TAC_OPERAND_FLOAT, .value.floatValue = *(double*)var_node->value};
-                break;
-            case AST_LITERAL_STRING:
-                src = (TAC_Operand){.type = TAC_OPERAND_STRING, .value.varName = var_node->value};
-                break;
-            case AST_LITERAL_NULL:
-                src = (TAC_Operand){.type = TAC_OPERAND_NIL, .value.varName = NULL};
-                break;
-            
-            default:
-                return false;
-            }
-            instr = TAC_createInstruction(TAC_OP_ASSIGN, (TAC_Operand){.value.varName = functionData->params[i].id, .type = TAC_OPERAND_VAR}, src, (TAC_Operand){.type = TAC_OPERAND_NONE});
+    for(size_t i = 0; i < functionData->paramCount; i++) {
+        char *paramId = functionData->params[i].id->str;
+        if(funCallNode->isBuiltIn) {
+            // Built-in funkce nemají rámcový suffix
+            printf("DEFVAR TF@%s\n", paramId);
         }
-        // Vložíme hodnotu proměnné ve volání funkce
         else {
-            instr = TAC_createInstruction(TAC_OP_ASSIGN, (TAC_Operand){.value.varName = functionData->params[i].id, .type = TAC_OPERAND_VAR}, (TAC_Operand){.value.varName = var_node->identifier, .type = TAC_OPERAND_VAR}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-
+            printf("DEFVAR TF@%s$%lu$\n", paramId, functionData->bodyFrameID);
         }
-        TAC_appendInstruction(instr);
+        // Na zásobník vyhodnotíme hodnotu parametru
+        TAC_generateExpression(arg->expression);
+        // Vytvoříme instrukci DEFVAR pro parametr
+        // Pokud je funkce vestavěná, tak se nepřidává frameID do názvu
+        if(funCallNode->isBuiltIn) {
+            // Vstavěné funkce nemají rámcový suffix
+            writtenSize = snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS TF@%s\n", paramId);
+            if(writtenSize >= OPTIMIZE_BUFFER_SIZE) {
+                // Vypíšeme buffer
+                TAC_bufferPrint(NULL);
+                // Vypíšeme instukci přímo
+                printf("POPS TF@%s\n", paramId);
+            }
+        }
+        else {
+            writtenSize = snprintf(buffer, OPTIMIZE_BUFFER_SIZE, "POPS TF@%s$%lu$\n", paramId, functionData->bodyFrameID);
+            if(writtenSize >= OPTIMIZE_BUFFER_SIZE) {
+                // Vypíšeme buffer
+                TAC_bufferPrint(NULL);
+                // Vypíšeme instukci přímo
+                printf("POPS TF@%s$%lu$\n", paramId, functionData->bodyFrameID);
+            }
+        }
+        // Vypíšeme buffer
+        TAC_bufferPrint(&buffer);
+        TAC_bufferPrint(NULL);
+        // Přesuneme se na další parametr
+        arg = arg->next;
     }
+
     // Přidáme skok na návěští funkce
-    instr = TAC_createInstruction(TAC_OP_JUMP, (TAC_Operand){.value.labelName = funCallNode->identifier, .type = TAC_OPERAND_LABEL}, (TAC_Operand){.type = TAC_OPERAND_NONE}, (TAC_Operand){.type = TAC_OPERAND_NONE});
-    TAC_appendInstruction(instr);
-    return true;    //Vracíme true při úspěchu
-}
+    if(funCallNode->isBuiltIn) {
+        printf("CALL $$ifj$%s\n", funCallNode->identifier->str);
+    }
+    else {
+        printf("CALL $$%s\n", key->str);
+    }
+    DString_free(key);
+
+}  // TAC_generateFunctionCall
+
+/**
+ * @brief Převede speciální znaky na escape sekvence
+ */
+DString *TAC_convertSpecialSymbols(DString *origin) {
+    // Vytvoříme nový řetězec pro výsledek
+    DString *transformed = DString_init();
+    if(transformed == NULL) {
+        error_handle(ERROR_INTERNAL);
+    }
+
+    // Pro každý znak v originálním řetězci
+    for(size_t i = 0; i < origin->length; i++) {
+        char c = origin->str[i];
+        // Pokud je znak alfanumerický, tak ho přidáme do výsledku
+        if(isalnum(c)) {
+            DString_appendChar(transformed, c);
+        }
+        // Pokud je znak speciální, tak ho převedeme na escape sekvenci
+        else {
+            char buffer[MAX_BUFFER_SIZE];     // 5 = lomítko + 3 číslice + '\0'
+            snprintf(buffer, sizeof(buffer), "\\%03d", (unsigned char)c);
+            for(int j = 0; j < MAX_BUFFER_SIZE-1; j++) {
+                DString_appendChar(transformed, buffer[j]);
+            }
+        }
+    }
+    DString_appendChar(transformed, '\0');
+
+    return transformed;
+}  // TAC_convertSpecialSymbols
+
+/**
+ * @brief Resetuje statické proměnné v případě více testů v jednom spuštění
+ */
+void TAC_resetStatic() {
+    AST_IfNode ifNode = {.type = RESET_STATIC};
+    AST_WhileNode whileNode = {.type = RESET_STATIC};
+    TAC_generateIf(&ifNode, TAC_ALL);
+    TAC_generateWhile(&whileNode, TAC_ALL);
+}  // TAC_resetStatic
+
+/**
+ * @brief Přidá instrukci do bufferu
+ */
+void TAC_bufferPrint(char (*newInstruction)[OPTIMIZE_BUFFER_SIZE]) {
+
+    static char buffered[OPTIMIZE_BUFFER_SIZE] = {'\0'};
+
+    // Pokud jsme dostali NULL, tak vypíšeme buffer
+    if(newInstruction == NULL) {
+        if(*buffered != '\0') {
+            printf("%s", buffered);
+            *buffered = '\0';
+        }
+        return;
+    }
+
+    // Pokud zatím nemáme uloženou instrukci, tak ji uložíme
+    if(*buffered == '\0') {
+        strcpy(buffered, *newInstruction);
+        return;
+    }
+    // Pokud jsme dostali nový řetězec, tak se podíváme, zda jde optimalizovat
+    // První intrukce je push a druhá pop
+    if(strncmp(buffered, "PUSHS", 5) == 0 && strncmp(*newInstruction, "POPS", 4) == 0) {
+        // Zjistíme, zda se jedná o stejnou proměnnou
+        if(strcmp(buffered + 6, *newInstruction + 5) == 0) {
+            // Můžeme odstranit zbytečné instukce
+            *buffered = '\0';
+            return;
+        }
+
+        // Pokud se nejedná o stejnou proměnnou, tak nahradíme instukcí move
+        printf("MOVE ");
+        // Vypíšeme cíl
+        char *ptr = *newInstruction + 5;
+        while(*ptr != '\0' && *ptr != '\n') {
+            putchar(*ptr);
+            ptr++;
+        }
+        putchar(' ');
+        // Vypíšeme zdroj
+        ptr = buffered + 6;
+        while(*ptr != '\0' && *ptr != '\n') {
+            putchar(*ptr);
+            ptr++;
+        }
+        putchar('\n');
+        *buffered = '\0';
+    }
+    else {
+        // Pokud se nejedná o push a pop, tak vypíšeme buffer a uložíme novou instrukci
+        printf("%s", buffered);
+        strcpy(buffered, *newInstruction);
+    }
+}  // TAC_bufferPrint
 
 /*** Konec souboru tac_generator.c ***/

@@ -7,7 +7,7 @@
  *                   Krejčí David       <xhyzapa00>                            *
  *                                                                             *
  * Datum:            9.10.2024                                                 *
- * Poslední změna:   22.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -36,7 +36,7 @@
 #define TEST_HASH_FUNCTION(keyword, expected_hash) \
     MAKE_STRING(str_##keyword, #keyword); \
     EXPECT_EQ(symtable_hashFunction(str_##keyword), expected_hash); \
-    string_free(str_##keyword);
+    DString_free(str_##keyword);
 
 /**
  * @brief Funkce na testování typu tokenů
@@ -45,7 +45,7 @@ void testTokenType(TokenType expected_type){
     Token token = scanner_FSM();
     EXPECT_EQ(token.type, expected_type);
     if(token.value != NULL) {
-        string_free(token.value);
+        DString_free(token.value);
     }
     if(token.type != expected_type){
         exit(2);
@@ -59,8 +59,8 @@ void testTokenString(const char* expected_string){
     Token token = scanner_FSM();
     EXPECT_EQ(token.type, TOKEN_STRING);
     if(token.value != NULL) {
-        if(string_compare_const_str(token.value, expected_string) != STRING_EQUAL){
-            char *actual_string = string_toConstChar(token.value);
+        if(DString_compareWithConstChar(token.value, expected_string) != STRING_EQUAL){
+            char *actual_string = DString_DStringtoConstChar(token.value);
 
             // Find the first mismatch position
             size_t mismatch_index = 0;
@@ -76,11 +76,11 @@ void testTokenString(const char* expected_string){
             cerr << "Got character at position:      '" << actual_string[mismatch_index] << "'\n\n";
 
             // Clean up and exit
-            string_free(token.value);
+            DString_free(token.value);
             free(actual_string);
             exit(2);
         }
-        string_free(token.value);
+        DString_free(token.value);
     }else{
         exit(2);
     }
@@ -108,27 +108,27 @@ void testTokenString(const char* expected_string){
 
     MAKE_STRING(import, "@import");
     EXPECT_EQ(symtable_hashFunction(import), KEYWORD_IMPORT_HASH);
-    string_free(import);
+    DString_free(import);
 
     MAKE_STRING(underscore, "_");
     EXPECT_EQ(symtable_hashFunction(underscore), KEYWORD_UNDERSCORE_HASH);
-    string_free(underscore);
+    DString_free(underscore);
 
     MAKE_STRING(i32N, "?i32");
     EXPECT_EQ(symtable_hashFunction(i32N), KEYWORD_QI32_HASH);
-    string_free(i32N);
+    DString_free(i32N);
 
     MAKE_STRING(f64N, "?f64");
     EXPECT_EQ(symtable_hashFunction(f64N), KEYWORD_QF64_HASH);
-    string_free(f64N);
+    DString_free(f64N);
 
     MAKE_STRING(u8N, "?[]u8");
     EXPECT_EQ(symtable_hashFunction(u8N), KEYWORD_QU8_HASH);
-    string_free(u8N);
+    DString_free(u8N);
 
     MAKE_STRING(u8, "[]u8");
     EXPECT_EQ(symtable_hashFunction(u8), KEYWORD_U8_HASH);
-    string_free(u8);
+    DString_free(u8);
 
 
 }*/
@@ -178,9 +178,20 @@ TEST(Identity, eof) {
 
 TEST(Identity, error) {
     // Unprintable znaky v ASCII nebo znaky mimo základní tabulku
-    EXPECT_EXIT(scanner_charIdentity(0), ExitedWithCode(1), "");
-    EXPECT_EXIT(scanner_charIdentity(16), ExitedWithCode(1), "");
-    EXPECT_EXIT(scanner_charIdentity(17), ExitedWithCode(1), "");
+    scanner_charIdentity(0);
+    bool result = parser_errorWatcher(IS_PARSING_ERROR);
+    EXPECT_TRUE(result);
+    parser_errorWatcher(RESET_ERROR_FLAGS);
+
+    scanner_charIdentity(16);
+    result = parser_errorWatcher(IS_PARSING_ERROR);
+    EXPECT_TRUE(result);
+    parser_errorWatcher(RESET_ERROR_FLAGS);
+
+    scanner_charIdentity(17);
+    result = parser_errorWatcher(IS_PARSING_ERROR);
+    EXPECT_TRUE(result);
+    parser_errorWatcher(RESET_ERROR_FLAGS);
 }
 
 
@@ -213,7 +224,7 @@ TEST(FSM, FSM_Identifier){
     
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_IDENTIFIER);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /** TOTO JE BLBĚ NAPSANÉ
@@ -269,8 +280,9 @@ TEST(FSM, FSM_Identifier_ERROR_3){
     ASSERT_NE(f, nullptr);
     stdin = f;
 
-
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
 
 /**
@@ -288,14 +300,13 @@ TEST(FSM, FSM_Identifier_ERROR_4){
     state = scanner_FSM();
     ASSERT_EQ(state.type, TOKEN_IDENTIFIER);
     ASSERT_NE(state.value, nullptr);
-    ASSERT_EQ(string_compare_const_str(state.value, "hello"), STRING_EQUAL);
-    string_free(state.value);
+    ASSERT_EQ(DString_compareWithConstChar(state.value, "hello"), STRING_EQUAL);
+    DString_free(state.value);
 
 
     // Načteme .
     state = scanner_FSM();
     ASSERT_EQ(state.type, TOKEN_PERIOD);
-
 }
 
 //Muj test
@@ -309,7 +320,7 @@ TEST(FSM, FSM_Number_INT_One_Number){
 
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_INT);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /**
@@ -325,7 +336,7 @@ TEST(FSM, FSM_Number_INT){
 
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_INT);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /**
@@ -339,7 +350,9 @@ TEST(FSM, FSM_Number_INT_ERROR_1){
     ASSERT_NE(f, nullptr);
     stdin = f;
 
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
 
 /**
@@ -355,7 +368,7 @@ TEST(FSM, FSM_Number_FLOAT){
 
     state = scanner_FSM();
     EXPECT_EQ(state.type, TOKEN_FLOAT);
-    string_free(state.value);
+    DString_free(state.value);
 }
 
 /**
@@ -371,9 +384,7 @@ TEST(FSM, FSM_Number_FLOAT_ERROR_1){
 
     state = scanner_FSM();
     ASSERT_EQ(state.type, TOKEN_PERIOD);
-    state = scanner_FSM();
-    ASSERT_EQ(state.type, TOKEN_INT);
-    string_free(state.value);
+    ASSERT_EQ(state.value, nullptr);
 }
 
 /**
@@ -387,8 +398,11 @@ TEST(FSM, FSM_Number_FLOAT_ERROR_2){
     ASSERT_NE(f, nullptr);
     stdin = f;
 
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
+
 
 /**
  * @brief Testuje funkci `scanner_FSM` pro chybné float číslo.
@@ -401,7 +415,9 @@ TEST(FSM, FSM_Number_FLOAT_ERROR_3){
     ASSERT_NE(f, nullptr);
     stdin = f;
 
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
 
 /**
@@ -580,7 +596,9 @@ TEST(FSM, FSM_OPERATOR_ERROR_1){
     ASSERT_NE(f, nullptr);
     stdin = f;
 
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
 
 /**
@@ -595,17 +613,26 @@ TEST(FSM, FSM_OPERATOR_ERROR_2){
     stdin = f;
 
     state = scanner_FSM();
-    ASSERT_EQ(state.type, TOKEN_EQUAL_TO);
-    ASSERT_EXIT(state = scanner_FSM(), ExitedWithCode(1), "");
+    EXPECT_EQ(state.type, TOKEN_EQUAL_TO);
+    ASSERT_EQ(state.value, nullptr);
+    state = scanner_FSM();
+    ASSERT_EQ(state.type, TOKEN_UNINITIALIZED);
+    ASSERT_EQ(state.value, nullptr);
 }
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program hello.zig
- */
+// ----- Začátek souboru: hello.zig -----
+//        // Hello World example in IFJ24
+//        // run it on Merlin.fit.vutbr.cz by: zig run hello.zig
+//      const ifj = @import("ifj24.zig");
+//      pub fn main() void {
+//          const y : i32 = 24;
+//          ifj.write("Hello from IFJ"); // one-parameter function only
+//          ifj.write(y);
+//          ifj.write("\n");
+//      }
+// ----- Konec souboru: hello.zig -----
 TEST(Lex, Hello) {
-    string path = exam_path + "hello.zig";
+    string path = examPath + "hello.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -679,14 +706,32 @@ TEST(Lex, Hello) {
     fclose(f);
 }
 
-
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program fun.zig
- */
+// ----- Začátek souboru: fun.zig -----
+//      const ifj = @import("ifj24.zig");
+//      pub fn f (x : i32) i32    // seznam parametru
+//      { //deklarace funkce; v IFJ24 nejsou blokove komentare
+//        if(x<10){return x-1;}else{const y = x - 1; // cannot redefine x (shadowing is forbidden)
+//          ifj.write("calling g with "); ifj.write(y); ifj.write("\n");
+//          const res = g(y);
+//          return res;
+//        }
+//      }
+//      pub fn g(x:i32) i32 {
+//        if (x > 0) {
+//          ifj.write("calling f with "); ifj.write(x); ifj.write("\n"); 
+//          const y = f(x); // inicializace konstanty volanim funkce
+//          return y; 
+//        } else {
+//        return 200; 
+//        }
+//        }
+//      pub fn main() void {
+//        const res = g(10);
+//      ifj.write("res: "); ifj.write(res); ifj.write("\n");
+//    }
+// ----- Konec souboru: fun.zig -----
 TEST(Lex, Fun) {
-    string path = exam_path + "fun.zig";
+    string path = examPath + "fun.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -832,14 +877,39 @@ TEST(Lex, Fun) {
     fclose(f);
 }
 
-
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example1.zig
- */
+// ----- Začátek souboru: example1.zig -----
+//      //Program 1: Vypocet faktorialu (iterativne)
+//      //Hlavni telo programu
+//      const ifj = @import("ifj24.zig");
+//      pub fn main() void {
+//          ifj.write("Zadejte cislo pro vypocet faktorialu\n");
+//          const a = ifj.readi32();
+//          if (a) |val| {
+//              if (val < 0) {
+//                  ifj.write("Faktorial ");
+//                  ifj.write(val);
+//                  ifj.write(" nelze spocitat\n");
+//              } else {
+//                  var d: f64 = ifj.i2f(val);
+//                  var vysl: f64 = 1.0;
+//                  while (d > 0) {
+//                      vysl = vysl * d;
+//                      d = d - 1.0;
+//                  }
+//                  ifj.write("Vysledek: ");
+//                  ifj.write(vysl);
+//                  ifj.write(" = ");
+//                  const vysl_i32 = ifj.f2i(vysl);
+//                  ifj.write(vysl_i32);
+//                  ifj.write("\n");
+//              }
+//          } else { // a == null
+//              ifj.write("Faktorial pro null nelze spocitat\n");
+//          }
+//      }
+// ----- Konec souboru: example1.zig -----
 TEST(Lex, Example1){
-    string path = exam_path + "example1.zig";
+    string path = examPath + "example1.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -977,13 +1047,40 @@ TEST(Lex, Example1){
 }
 
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example2.zig
- */
+// ~~~~~ Začátek souboru: example2.zig ~~~~~
+//    const ifj = @import("ifj24.zig");
+//    pub fn main() void {
+//        ifj.write("Zadejte cislo pro vypocet faktorialu: ");
+//        const inp = ifj.readi32();
+//        if (inp) |INP| {
+//            if (INP < 0) {
+//                ifj.write("Faktorial nelze spocitat!\n");
+//            } else {
+//                const vysl = factorial(INP);
+//                ifj.write("Vysledek: ");
+//                ifj.write(vysl);
+//            }
+//        } else {
+//            ifj.write("Chyba pri nacitani celeho cisla!\n");
+//        }
+//    }
+//    pub fn decrement(n: i32, m: i32) i32 {
+//        return n - m;
+//    }
+//    pub fn factorial(n: i32) i32 {
+//        var result: i32 = 0 - 1;
+//        if (n < 2) {
+//            result = 1;
+//        } else {
+//            const decremented_n = decrement(n, 1);
+//            const temp_result = factorial(decremented_n);
+//            result = n * temp_result;
+//        }
+//        return result;
+//    }
+// ~~~~~ Konec souboru: example2.zig ~~~~~
 TEST(Lex, Example2) {
-    string path = exam_path + "example2.zig";
+    string path = examPath + "example2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1126,13 +1223,37 @@ TEST(Lex, Example2) {
     fclose(f);
 }
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program example3.zig
- */
+// ~~~~~ Začátek souboru: example3.zig ~~~~~
+//    const ifj = @import("ifj24.zig");
+//    pub fn main() void {
+//        const str1 = ifj.string("Toto je nejaky text v programu jazyka IFJ24");
+//        var str2 = ifj.string(", ktery jeste trochu obohatime");
+//        str2 = ifj.concat(str1, str2);
+//        ifj
+//            .  write(str1);
+//        ifj.write("\n");
+//        ifj.write(str2);
+//        ifj.write("\n");
+//        ifj.write("Zadejte serazenou posloupnost vsech malych pismen a-h, ");
+//        var newInput = ifj.readstr();
+//        var all: []u8 = ifj.string("");
+//        while (newInput) |inpOK| {
+//            const abcdefgh = ifj.string("abcdefgh"); 
+//            const strcmpResult = ifj.strcmp(inpOK, abcdefgh);
+//            if (strcmpResult == 0) {
+//                ifj.write("Spravne zadano!\n");
+//                ifj.write(all); 
+//                newInput = null; 
+//            } else {
+//                ifj.write("Spatne zadana posloupnost, zkuste znovu:\n");
+//                all = ifj.concat(all, inpOK); 
+//                newInput = ifj.readstr();
+//            }
+//        }
+//    }
+// ~~~~~ Konec souboru: example3.zig ~~~~~
 TEST(Lex, Example3) {
-    string path = exam_path + "example3.zig";
+    string path = examPath + "example3.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1376,13 +1497,21 @@ TEST(Lex, Multiline){
 
 }*/
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi.zig
- */
+// ----- Začátek souboru: lex_test_multi.zig -----
+//      //Ukazka prace s retezci a vestavenymi funkcemi 
+//      const ifj = @import("ifj24.zig");
+//      pub fn main() void {
+//          const s1 : []u8 = ifj.string( 
+//          \\Toto
+//          \\je
+//          \\nejaky
+//          \\text  // ve viceradkovem retezcovem literalu nelze mit komentar
+//          ); // ukoncujici uvozovky ovlivnuji implicitni odsazeni vnitrnich radku retezce
+//          ifj.write(s1);
+//      }
+// ----- Konec souboru: lex_test_multi.zig -----
 TEST(Lex, lex_test_multi){
-    string path = lex_path + "lex_test_multi.zig";
+    string path = lexPath + "lex_test_multi.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1486,14 +1615,17 @@ TEST(Lex, lex_test_multi){
 
 }
 
-
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_multi2.zig
- */
+// ----- Začátek souboru: lex_test_multi2.zig -----
+//      ifj.concat(
+//           \\prvni
+//          \\parametr
+//          ,
+//          \\druhy
+//          \\parametr
+//      );
+// ----- Konec souboru: lex_test_multi2.zig -----
 TEST(Lex, lex_test_multi2){
-    string path = lex_path + "lex_test_multi2.zig";
+    string path = lexPath + "lex_test_multi2.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1591,13 +1723,14 @@ TEST(Lex, lex_test_multi2){
 
 }
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro korektní vstupní program lex_test_string_escapes.zig
- */
+// ----- Začátek souboru: lex_test_string_escapes.zig -----
+//      ifj.concat(
+//          "Toto je test escape sekvenci stringu. Lomeno n: \n; Lomeno lomeno: \\; Lomeno uvozovky: \"; Lomeno r: \r; Lomeno t: \t.",
+//          "Toto je test x escape sekvence stringu. :(58) = \x3A; }(125) = \x7D; NL(10) = \x0A; ú(250) = \xFA."
+//      );
+// ----- Konec souboru: lex_test_string_escapes.zig -----
 TEST(Lex, lex_test_string_escapes){
-    string path = lex_path + "lex_test_string_escapes.zig";
+    string path = lexPath + "lex_test_string_escapes.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1695,13 +1828,14 @@ TEST(Lex, lex_test_string_escapes){
 
 }
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_comment.zig
- */
+// ----- Začátek souboru: lex_test_comment.zig -----
+//      const ifj = @import("ifj24.zig");
+//      //alphabetagamma
+//      123;
+//      //jedna dva tři čtyři pět šest
+// ----- Konec souboru: lex_test_comment.zig -----
 TEST(Lex, Comment) {
-    string path = lex_path + "lex_test_comment.zig";
+    string path = lexPath + "lex_test_comment.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1756,13 +1890,21 @@ TEST(Lex, Comment) {
     fclose(f);
 }
 
-/**
- * @brief Testuje lexikální analyzátor pro vstupní program
- * 
- * @details Testuje výstup lexikálního analyzátoru pro vstupní program lex_test_satanic.zig
- */
+// ----- Začátek souboru: lex_test_satanic.zig -----
+//  ifj.insejn(
+//    ?[]u8
+//    ?
+//    [
+//                 ]    
+//                        u8
+//    ?    i32
+//    ?
+//     f64
+//    (){}|.,:;+-/*=!=>>=<<=insejn123.123.05 ifelse _ _abrakadabra
+//  );
+// ----- Konec souboru: lex_test_satanic.zig -----
 TEST(Lex, Satanic) {
-    string path = lex_path + "lex_test_satanic.zig";
+    string path = lexPath + "lex_test_satanic.zig";
     FILE* f = fopen(path.c_str(), "r");
     ASSERT_NE(f, nullptr);
     FILE* stdin_backup = stdin;
@@ -1776,6 +1918,204 @@ TEST(Lex, Satanic) {
         TOKEN_EQUALITY_SIGN, TOKEN_NOT_EQUAL_TO, TOKEN_GREATER_THAN, TOKEN_GREATER_EQUAL_THAN, TOKEN_LESS_THAN, TOKEN_LESS_EQUAL_THAN,
         TOKEN_IDENTIFIER, TOKEN_PERIOD, TOKEN_FLOAT, TOKEN_IDENTIFIER, TOKEN_K_underscore, TOKEN_IDENTIFIER,
         TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON, TOKEN_EOF
+    };
+
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
+        long int current_pos = ftell(stdin);
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
+            exit(0);
+        } else {
+            // Parent process waits for the child
+            int status;
+            waitpid(pid, &status, 0);
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Print the remaining input
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+
+                FAIL();
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+// ----- Začátek souboru: lex_test_unterminated_string_01.zig -----
+//    const ifj = @import("ifj24.zig");
+//    pub fn main() void {
+//          const s1 : []u8 = ifj.string("Unterminated string); // ukoncujici uvozovky ovlivnuji implicitni odsazeni vnitrnich radku retezce
+//          ifj.write(s1);
+//      }
+// ----- Konec souboru: lex_test_unterminated_string_01.zig -----
+
+// ----- Začátek souboru: lex_test_unterminated_string_02.zig -----
+//    const ifj = @import("ifj24.zig");
+//    pub fn main() void {
+//          const s1 : []u8 = "Unterminated string;
+//          ifj.write(s1);
+//      }
+// ----- Konec souboru: lex_test_unterminated_string_02.zig -----
+
+// ----- Začátek souboru: lex_test_unterminated_string_03.zig -----
+//      const ifj = @import("ifj24.zig");
+//      pub fn main() void {
+//          const s1 : []u8 = Unterminated_string";
+//          ifj.write(s1);
+//      }
+// ----- Konec souboru: lex_test_unterminated_string_03.zig -----
+
+// ----- Začátek souboru: lex_test_unterminated_string_04.zig -----
+//      const ifj = @import("ifj24.zig");
+//      pub fn main() void {
+//          const s1 : []u8 = ifj.string(Unterminated_string");
+//          ifj.write(s1);
+//      }
+// ----- Konec souboru: lex_test_unterminated_string_04.zig -----
+TEST(Lex, UnterminatedString){
+    for (int i = 1; i <= 4; i++) {
+        string filename = "lex_test_unterminated_string_" + string(i < 10 ? "0" : "") + to_string(i) + ".zig";
+        string path = lexPath + filename;
+
+        cerr << COLOR_PINK << "TESTING: " << COLOR_RESET << filename << endl;
+
+        FILE* f = fopen(path.c_str(), "r");
+        ASSERT_NE(f, nullptr) << COLOR_PINK "Can't open file: " COLOR_RESET << filename;
+        
+        FILE* stdin_backup = stdin;
+        stdin = f;
+
+        // Sémantická analýza by měl skončit chybou
+        EXPECT_EXIT(LLparser_parseProgram(), ExitedWithCode(1), "");
+        
+        cerr << COLOR_PINK << "DONE: " << COLOR_RESET << filename << endl << endl;
+
+        // Uvolnění alokovaných zdrojů
+        IFJ24Compiler_freeAllAllocatedMemory();
+
+        // Navrácení STDIN do původního stavu a uzavření souboru
+        stdin = stdin_backup;
+        fclose(f);
+    }
+}
+
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro vstupní program semen_test_2_undefined_fun.zig
+ */
+TEST(Lex, Semantic_2_Undefined_fun) {
+    string path = semPath + "semen_test_2_undefined_fun.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // Your corrected expected tokens
+        //const ifj = @import("ifj24.zig");
+        TOKEN_K_const, TOKEN_K_ifj, TOKEN_EQUALITY_SIGN, TOKEN_K_import, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //7
+        //pub fn main() void {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_void, TOKEN_LEFT_CURLY_BRACKET, //14
+        //ifj.write("ned ynkep ijerp\n");
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_STRING, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //21
+        //const a: i32 = decrement(10, 5);
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_INT, TOKEN_COMMA, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,  //33
+        //const b: i32 = increment(20, 30); //Volani nedefinovane funkce 'increment'
+        TOKEN_K_const, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_EQUALITY_SIGN, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_INT, TOKEN_COMMA, TOKEN_INT, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,  //45
+        //ifj.write(a);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //52
+        //ifj.write(b);
+        TOKEN_K_ifj, TOKEN_PERIOD, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_RIGHT_PARENTHESIS, TOKEN_SEMICOLON,    //59
+        //}
+        TOKEN_RIGHT_CURLY_BRACKET,  //60
+        //pub fn decrement(n: i32, m: i32) i32 {
+        TOKEN_K_pub, TOKEN_K_fn, TOKEN_IDENTIFIER, TOKEN_LEFT_PARENTHESIS, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_COMMA, TOKEN_IDENTIFIER, TOKEN_COLON, TOKEN_K_i32, TOKEN_RIGHT_PARENTHESIS, TOKEN_K_i32, TOKEN_LEFT_CURLY_BRACKET,    //75
+        //return n - m;
+        TOKEN_K_return, TOKEN_IDENTIFIER, TOKEN_MINUS, TOKEN_IDENTIFIER, TOKEN_SEMICOLON,   //80
+        //}
+        TOKEN_RIGHT_CURLY_BRACKET, TOKEN_EOF //82
+    };
+
+    for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {
+        // Save the current position in the input file
+        long int current_pos = ftell(stdin);
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork\n");
+            exit(1);
+        } else if (pid == 0) {
+            // Child process calls testTokenType and exits
+            testTokenType(expected_arr[i]);
+            exit(0);
+        } else {
+            // Parent process waits for the child
+            int status;
+            waitpid(pid, &status, 0);
+            if (WEXITSTATUS(status) != 0) {
+                // Child process exited with an error
+                cerr << "Error in token " << i << endl;
+                cerr << "Expected type: " << expected_arr[i] << endl;
+
+                // Print the remaining input
+                fseek(stdin, current_pos, SEEK_SET);
+                char buffer[256];
+                cerr << "Remaining input: ";
+                while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                    cerr << buffer;
+                }
+                cerr << endl;
+
+                stdin = stdin_backup;
+                fclose(f);
+
+                FAIL();
+            }
+        }
+    }
+
+    stdin = stdin_backup;
+    fclose(f);
+}
+
+/**
+ * @brief Testuje lexikální analyzátor pro vstupní program
+ * 
+ * @details Testuje výstup lexikálního analyzátoru pro vstupní program semen_test_2_undefined_fun.zig
+ */
+TEST(Lex, Double_simple) {
+    string path = lexPath + "lex_test_double_simple.zig";
+    FILE* f = fopen(path.c_str(), "r");
+    ASSERT_NE(f, nullptr);
+    FILE* stdin_backup = stdin;
+    stdin = f;
+
+    TokenType expected_arr[] = {
+        // Your corrected expected tokens
+        //()
+        TOKEN_LEFT_PARENTHESIS, TOKEN_RIGHT_PARENTHESIS, TOKEN_EOF
     };
 
     for (unsigned long i = 0; i < sizeof(expected_arr) / sizeof(TokenType); i++) {

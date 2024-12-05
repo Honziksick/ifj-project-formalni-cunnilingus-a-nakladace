@@ -7,7 +7,7 @@
  *                   Kalina Jan         <xkalinj00> (edit)                     *
  *                                                                             *
  * Datum:            08.10.2024                                                *
- * Poslední změna:   10.11.2024                                                *
+ * Poslední změna:   27.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -21,23 +21,24 @@
  * @author Farkašovský Lukáš \<xfarkal00> (hlavní)
  * @author Kalina Jan \<xkalinj00> (edit)
  *
- * @brief Definice a implementace funkcí modulu scanner.
+ * @brief Implementace funkcí pro práci s dynamickým řetězcem DString.
  * @details Tento soubor obsahuje deklaraci funkcí a datových typů knihovny
- *          pro dynamický string.
+ *          pro dynamický řetězec.
 */
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
-
 #include "dynamic_string.h"
-#include "error.h"
+
+
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE VEŘEJNÝCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
 
 /**
  * @brief Inicializace dynamického řetězce s počáteční kapacitou.
 */
-DString *string_init() {
+DString *DString_init() {
     // Vytvoříme nový string
     DString *stringCreated = (DString *)malloc(sizeof(DString));
 
@@ -63,13 +64,13 @@ DString *string_init() {
     stringCreated->length = 0;
 
     return stringCreated;
-} /* konec string_init() */
+} // konec DString_init()
 
 /**
  * @brief Uvolnění paměti dynamického řetězce.
 */
-void string_free(DString *str) {
-    // Pokud string existuje, smažeme ho
+void DString_free(DString *str) {
+    // Pokud řetězec existuje, smažeme ho
     if(str != NULL) {
         // Nejdříve ukazatel na pole a až pak strukturu
         if(str->str != NULL) {
@@ -83,21 +84,21 @@ void string_free(DString *str) {
         free(str);
         str = NULL;
     }
-} /* konec string_free() */
+} // konec DString_free()
 
 /**
  * @brief Přidání jednoho znaku na konec dynamického řetězce.
 */
-int string_append_char(DString *str, char character) {
+int DString_appendChar(DString *str, char character) {
     // Kontrola, že přijatý ukazatel není NULL
     if(str == NULL) {
         return STRING_RESIZE_FAIL;
     }
 
-    // Pokud je string plný, musíme ho zvětšit o jedno
+    // Pokud je řetězec plný, musíme ho zvětšit o DEFAULT_RESIZE_SIZE
     if(str->length+1 >= str->allocatedSize) {
-        // Kontrola, zda neselhal resize
-        str = string_resize(str, DEFAULT_RESIZE_SIZE);
+        // Kontrola, zda neselhalo zvětšení řetězce
+        str = DString_resize(str, DEFAULT_RESIZE_SIZE);
         if(str == NULL){
             return STRING_RESIZE_FAIL;
         }
@@ -105,16 +106,16 @@ int string_append_char(DString *str, char character) {
 
     // Přidání znaku na konec
     str->str[str->length] = character;
-    // Řetězec se zvětší o jeden
+    // Délka řetězce se zvětší o jeden
     str->length++;
 
     return STRING_SUCCESS;
-} /* konec string_append_char() */
+} // konec DString_appendChar()
 
 /**
  * @brief Zkopíruje obsah jednoho dynamického řetězce do druhého.
 */
-int string_copy(DString *strCopied, DString *strTo) {
+int DString_copy(DString *strCopied, DString *strTo) {
     // Pokud jeden z řetězců neexistuje, vrátí STRING_COPY_FAIL
     if(strCopied == NULL || strTo == NULL) {
         return STRING_COPY_FAIL;
@@ -123,7 +124,7 @@ int string_copy(DString *strCopied, DString *strTo) {
     // Uvolníme buňky řetězce, do kterého chceme kopírovat (vyčistíme ho)
     free(strTo->str);
 
-    // Alokujeme nový dynamický string (+1 pro nulový znak)
+    // Alokujeme nový dynamický řetězec (+1 pro nulový znak)
     strTo->str = (char *)malloc((strCopied->length + 1) * sizeof(char));
     if(strTo->str == NULL) {
         return STRING_COPY_FAIL;
@@ -140,13 +141,13 @@ int string_copy(DString *strCopied, DString *strTo) {
     strTo->allocatedSize = strCopied->length + 1;
 
     return STRING_SUCCESS;
-} /* konec string_copy() */
+} // konec DString_copy()
 
 /**
  * @brief Porovná dva dynamické řetězce.
 */
-int string_compare(DString *str1, DString *str2) {
-    // Pokud je jeden ze stringů prázdný
+int DString_compare(DString *str1, DString *str2) {
+    // Pokud je jeden ze řetězců prázdný, vrátíme STRING_NOT_EQUAL
     if(str1 == NULL || str2 == NULL) {
         return STRING_NOT_EQUAL;
     }
@@ -157,21 +158,21 @@ int string_compare(DString *str1, DString *str2) {
         return STRING_NOT_EQUAL;
     }
 
-    // Projdeme oba stringy
+    // Projdeme oba řetězce
     for(size_t i = 0; i < str1->length; i++) {
-        // Pokud si jsou odlišné, vrátíme false
+        // Pokud si jsou odlišné, vrátíme STRING_NOT_EQUAL
         if(str1->str[i] != str2->str[i]){
             return STRING_NOT_EQUAL;
         }
     }
     return STRING_EQUAL;
-} /* konec string_compare() */
+} // konec DString_compare()
 
 /**
  * @brief Porovná dynamický řetězec s konstantním řetězcem.
 */
-int string_compare_const_str(DString *str, const char *strConst) {
-    // Pokud porovnávaný string neexistuje
+int DString_compareWithConstChar(DString *str, const char *strConst) {
+    // Pokud porovnávaný řetězec neexistuje
     if(str == NULL) {
         return STRING_NOT_EQUAL;
     }
@@ -192,41 +193,12 @@ int string_compare_const_str(DString *str, const char *strConst) {
     }
 
     return STRING_EQUAL;
-} /* konec string_compare_const_str() */
+} // konec DString_compareWithConstChar()
 
 /**
- * @brief Zvětší dynamický řetězec na požadovanou délku.
+ * @brief Převede řetězec obsažený v DString na konstantní řetězec typu char.
  */
-DString *string_resize(DString *string, size_t size) {
-    // Pokud nemáme řetězec, tak vracíme NULL
-    if(string == NULL) {
-        return NULL;
-    }
-
-    // Nový paměťový nárok pole znaků dynamického stringu
-    size_t resizeSize = string->length + size;
-
-    // Vytvoříme buňky pro znaky
-    char *newStr = (char *)realloc(string->str, resizeSize * sizeof(char));
-
-    // Pokud se špatně realokuje, vrací NULL
-    if(string->str == NULL) {
-        free(string);
-        return NULL;
-    }
-
-    // Aktualizace akazatele na pole znaků a velikost alokované paměti
-    string->str = newStr;
-    string->allocatedSize = resizeSize;
-    for(size_t i = string->length; i < resizeSize; i++){
-        string->str[i] = '\0';
-    }
-
-    return string;
-} /* konec string_resize() */
-
-
-char *string_toConstChar(DString *string) {
+char *DString_DStringtoConstChar(DString *string) {
     // Pokud nemáme řetězec, nebo nemá hodnotu, tak vracíme NULL
     if(string == NULL || string->str == NULL || string->length < 1) {
         return NULL;
@@ -246,21 +218,22 @@ char *string_toConstChar(DString *string) {
     constStr[string->length] = '\0';
 
     return constStr;
-} /* konec string_toConstChar() */
+} // konec DString_DStringtoConstChar()
 
 
 /**
- * @brief Vytvoří nový dynamický řetězec z konstantního řetězce
+ * @brief Vytvoří nový dynamický řetězec z konstantního řetězce.
  */
-DString *string_charToDString(const char *strConst){
+DString *DString_constCharToDString(const char *strConst){
     // Pokud nemáme řetězec, nebo nemá hodnotu, tak vracíme NULL
     if(strConst == NULL || strlen(strConst) < 1) {
         return NULL;
     }
 
+    // Získáme délku konstantního řetězce
     size_t length = strlen(strConst);
 
-    // Vytvoříme nový string
+    // Vytvoříme nový DString
     DString *stringCreated = (DString *)malloc(sizeof(DString));
 
     // Pokud se špatně alokovala paměť, vrátíme NULL
@@ -286,8 +259,44 @@ DString *string_charToDString(const char *strConst){
     memcpy(stringCreated->str, strConst, length*sizeof(char));
 
     return stringCreated;
+} // konec DString_constCharToDString()
 
 
-} /* konec string_charToString() */
+/*******************************************************************************
+ *                                                                             *
+ *                        IMPLEMENTACE INTERNÍCH FUNKCÍ                        *
+ *                                                                             *
+ ******************************************************************************/
+
+/**
+ * @brief Zvětší dynamický řetězec na požadovanou délku.
+ */
+DString *DString_resize(DString *string, size_t size) {
+    // Pokud nemáme řetězec, tak vracíme NULL
+    if(string == NULL) {
+        return NULL;
+    }
+
+    // Nový paměťový nárok pole znaků dynamického stringu
+    size_t resizeSize = string->length + size;
+
+    // Vytvoříme buňky pro znaky
+    char *newStr = (char *)realloc(string->str, resizeSize * sizeof(char));
+
+    // Pokud se špatně realokuje, vrací NULL
+    if(string->str == NULL) {
+        free(string);
+        return NULL;
+    }
+
+    // Aktualizace ukazatele na pole znaků a velikost alokované paměti
+    string->str = newStr;
+    string->allocatedSize = resizeSize;
+    for(size_t i = string->length; i < resizeSize; i++){
+        string->str[i] = '\0';
+    }
+
+    return string;
+} // konec DString_resize()
 
 /*** Konec souboru dynamic_string.c ***/
