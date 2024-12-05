@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            06.11.2024                                                *
- * Poslední změna:   06.11.2024                                                *
+ * Poslední změna:   25.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -30,16 +30,14 @@
 #define MAIN_H_
 /** @endcond  */
 
-
-#include "error.h"
+// Import knihoven hlavních modolů
 #include "llparser.h"
 #include "semantic_analyser.h"
 #include "tac_generator.h"
 
-/**
- * @brief Konstanta označující úspěšné dokončení překladu
- */
-#define SUCCESS 0
+// Import sdílených knihoven překladače
+#include "error.h"
+
 
 /*******************************************************************************
  *                                                                             *
@@ -48,16 +46,17 @@
  ******************************************************************************/
 
 /**
- * @brief Hlavní funkce programu.
- * @details Funkce `main` zpracovává argumenty příkazové řádky, spouští
- *          inicializaci, překlad a uvolnění prostředků překladače pomocí
- *          volání příslušných funkcí jednotlivých submodulů překladače
+ * @brief Hlavní funkce překladače 'ifj24compiler' týmu "xkalinj00".
  *
- * @param argc Počet argumentů příkazové řádky.
- * @param argv Pole řetězců s argumenty příkazové řádky.
+ * @details Funkce `main` zajišťuje nejzákladnější řízení překladu. Spouští
+ *          příslušné moduly překladače (parser, sémantický analyzátor a generátor
+ *          mezikódu IFJ24code). V případě úspěšného dokončení překladu zajišťuje
+ *          uvolnění všech v modulech alokovaných zdrojů.
  *
  * @return @c SUCCESS při úspěchu, jinak @c ErrorType hodnota při chybě.
  */
 int main();
 
 #endif  // MAIN_H_
+
+/*** Konec souboru ifj24_compiler.h ***/

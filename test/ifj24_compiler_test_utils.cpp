@@ -6,7 +6,7 @@
  * Autor:            Jan Kalina   <xkalinj00>                                  *
  *                                                                             *
  * Datum:            08.11.2024                                                *
- * Poslední změna:   19.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -32,11 +32,14 @@ using namespace std;
 using namespace testing;
 using namespace internal;
 
-string lex_path = "../test/test_examples/lexical_examples/";
-string exam_path = "../ifj24_examples/ifj24_programs/";
-string synt_path = "../test/test_examples/syntactic_examples/";
-string synt_error_path = synt_path + "syntax_error/";
-string sem_path = "../test/test_examples/semantic_examples/";
+string lexPath = "../test/test_examples/lexical_examples/";
+string examPath = "../test/test_examples/ifj24code_examples/in/";
+string syntPath = "../test/test_examples/syntactic_examples/";
+string syntErrorPath = syntPath + "syntax_error/";
+string semPath = "../test/test_examples/semantic_examples/";
+string semErrorPath = semPath + "semantic_error/";
+
+vector<bool> levels;
 
 /*******************************************************************************
  *                                                                             *
@@ -49,7 +52,6 @@ string sem_path = "../test/test_examples/semantic_examples/";
  */
 string ASTutils_printCapturedOutput(AST_NodeType type, void *node, bool useColors) {
     stringstream buffer;
-    vector<bool> levels;
 
     if (node == nullptr) {
         buffer << "Null node passed" << endl;
@@ -58,37 +60,37 @@ string ASTutils_printCapturedOutput(AST_NodeType type, void *node, bool useColor
 
     switch (type) {
         case AST_PROGRAM_NODE:
-            ASTutils_printProgramNode((AST_ProgramNode *)node, buffer, 0, useColors, levels, true);
+            ASTutils_printProgramNode((AST_ProgramNode *)node, buffer, 0, useColors, true);
             break;
         case AST_FUN_DEF_NODE:
-            ASTutils_printFunDefNode((AST_FunDefNode *)node, buffer, 0, useColors, levels, true);
+            ASTutils_printFunDefNode((AST_FunDefNode *)node, buffer, 0, useColors, true);
             break;
         case AST_ARG_OR_PARAM_NODE:
-            ASTutils_printArgOrParamNode((AST_ArgOrParamNode *)node, buffer, 0, useColors, levels);
+            ASTutils_printArgOrParamNode((AST_ArgOrParamNode *)node, buffer, 0, useColors);
             break;
         case AST_STATEMENT_NODE:
-            ASTutils_printStatementNode((AST_StatementNode *)node, buffer, 0, useColors, levels);
+            ASTutils_printStatementNode((AST_StatementNode *)node, buffer, 0, useColors);
             break;
         case AST_FUN_CALL_NODE:
-            ASTutils_printFunCallNode((AST_FunCallNode *)node, buffer, 0, useColors, levels, true);
+            ASTutils_printFunCallNode((AST_FunCallNode *)node, buffer, 0, useColors, true);
             break;
         case AST_IF_NODE:
-            ASTutils_printIfNode((AST_IfNode *)node, buffer, 0, useColors, levels, true);
+            ASTutils_printIfNode((AST_IfNode *)node, buffer, 0, useColors, true);
             break;
         case AST_WHILE_NODE:
-            ASTutils_printWhileNode((AST_WhileNode *)node, buffer, 0, useColors, levels, true);
+            ASTutils_printWhileNode((AST_WhileNode *)node, buffer, 0, useColors, true);
             break;
         case AST_EXPR_NODE:
-            ASTutils_printExprNode((AST_ExprNode *)node, buffer, 0, useColors, levels, true);
+            ASTutils_printExprNode((AST_ExprNode *)node, buffer, 0, useColors, true);
             break;
         case AST_BIN_OP_NODE:
-            ASTutils_printBinOpNode((AST_BinOpNode *)node, buffer, 0, useColors, levels, true);
+            ASTutils_printBinOpNode((AST_BinOpNode *)node, buffer, 0, useColors, true);
             break;
         case AST_VAR_NODE:
-            ASTutils_printVarNode((AST_VarNode *)node, buffer, 0, useColors, levels, true);
+            ASTutils_printVarNode((AST_VarNode *)node, buffer, 0, useColors, true);
             break;
         case AST_LITERAL_NODE:
-            ASTutils_printLiteralNode((AST_VarNode *)node, buffer, 0, useColors, levels, true);
+            ASTutils_printLiteralNode((AST_VarNode *)node, buffer, 0, useColors, true);
             break;
         default:
             buffer << "Unknown node type" << endl;
@@ -107,47 +109,50 @@ string ASTutils_printCapturedOutput(AST_NodeType type, void *node, bool useColor
 /**
  * @brief Vytiskne uzel AST_NODE_PROGRAM.
  */
-void ASTutils_printProgramNode(AST_ProgramNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild) {
+void ASTutils_printProgramNode(AST_ProgramNode *node, ostream &out, int indent, bool useColors, bool isLastChild) {
     if (node == nullptr) {
-        ASTutils_printIndent(indent, out, levels, isLastChild);
+        ASTutils_printIndent(indent, out, isLastChild);
         out << "(null)" << endl;
         return;
     }
 
     // Programový uzel je hlavní, tedy poslední uzel této úrovně
-    ASTutils_printIndent(indent, out, levels, isLastChild);
+    ASTutils_printIndent(indent, out, isLastChild);
     if (useColors)
         out << COLOR_GOLD << "Program Node" << COLOR_RESET << endl;
     else
         out << "Program Node" << endl;
 
     // Aktualizace vektoru úrovní
-    levels.push_back(!isLastChild);
+    levels.push_back(true);
 
     // Ověření existence importovaného souboru
     if (node->importedFile != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         if (useColors)
             out << COLOR_BLUE << "Imported File: " << COLOR_RESET << endl;
         else
             out << "Imported File: " << endl;
-        ASTutils_printVarNode(node->importedFile, out, indent + 2, useColors, levels, true);
+        ASTutils_printVarNode(node->importedFile, out, indent + 2, useColors, true);
     } else {
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         if (useColors)
             out << COLOR_BLUE << "Imported File: " << COLOR_RESET << "(null)" << endl;
         else
             out << "Imported File: " << "(null)" << endl;
     }
 
+    // Aktualizace vektoru úrovní
+    levels.pop_back();
+
     // Iterace přes seznam funkcí a tisk každé funkce
     AST_FunDefNode *func = node->functionList;
     if (func == nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         out << COLOR_BLUE << "Function List: " << COLOR_RESET << "(null)" << endl;
     } else {
         while (func != nullptr) {
-            ASTutils_printFunDefNode(func, out, indent + 1, useColors, levels, func->next == nullptr);
+            ASTutils_printFunDefNode(func, out, indent + 1, useColors, func->next == nullptr);
             func = func->next;
         }
     }
@@ -159,19 +164,19 @@ void ASTutils_printProgramNode(AST_ProgramNode *node, ostream &out, int indent, 
 /**
  * @brief Vytiskne uzel AST_NODE_FUN_DEF.
  */
-void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild) {
+void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bool useColors, bool isLastChild) {
     if(node == nullptr) {
-        ASTutils_printIndent(indent, out, levels, isLastChild);
+        ASTutils_printIndent(indent, out, isLastChild);
         out << "(null)" << endl;
         return;
     }
 
     // Tisknutí odsazení
-    ASTutils_printIndent(indent, out, levels, isLastChild);
+    ASTutils_printIndent(indent, out, isLastChild);
 
     // Ověření existence identifikátoru
     if (node->identifier != nullptr && node->identifier->str != nullptr) {
-        char *identifier = string_toConstChar(node->identifier);
+        char *identifier = DString_DStringtoConstChar(node->identifier);
         if (useColors)
             out << COLOR_BLUE << "Function Definition: " << COLOR_RESET << identifier << endl;
         else
@@ -182,25 +187,27 @@ void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bo
         out << COLOR_BLUE << "Function Definition: " << COLOR_RESET << "(null)" << endl;
     }
 
-    // Aktualizace vektoru úrovní
     levels.push_back(!isLastChild);
-
+    levels.push_back(!isLastChild);
+    
     // Výpis parametrů funkce, pokud existují
     if(node->parameters != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         if (useColors)
             out << COLOR_BLUE << "Parameters:" << COLOR_RESET << endl;
         else
             out << "Parameters:" << endl;
-        ASTutils_printArgOrParamNode(node->parameters, out, indent + 2, useColors, levels);
+        ASTutils_printArgOrParamNode(node->parameters, out, indent + 2, useColors);
     } else {
         // Pokud parametry neexistují
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         out << COLOR_BLUE << "Parameters: " << COLOR_RESET << "(null)" << endl;
     }
+    // Aktualizace vektoru úrovní
+    levels.pop_back();
 
     // Výpis návratového typu funkce
-    ASTutils_printIndent(indent + 1, out, levels, false);
+    ASTutils_printIndent(indent + 1, out, false);
     if (useColors)
         out << COLOR_BLUE << "Return Type: " << COLOR_RESET << node->returnType << endl;
     else
@@ -208,15 +215,18 @@ void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bo
 
     // Výpis těla funkce, pokud existuje
     if(node->body != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         if (useColors)
             out << COLOR_BLUE << "Function Body:" << COLOR_RESET << endl;
         else
             out << "Function Body:" << endl;
-        ASTutils_printStatementNode(node->body, out, indent + 2, useColors, levels);
+        
+        levels.push_back(false);
+        ASTutils_printStatementNode(node->body, out, indent + 2, useColors);
+        levels.pop_back();
     } else {
         // Pokud tělo funkce neexistuje
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         out << COLOR_BLUE << "Function Body: " << COLOR_RESET << "(null)" << endl;
     }
 
@@ -227,9 +237,9 @@ void ASTutils_printFunDefNode(AST_FunDefNode *node, ostream &out, int indent, bo
 /**
  * @brief Vytiskne uzel AST_NODE_ARG_OR_PARAM.
  */
-void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels) {
+void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int indent, bool useColors) {
     if(node == nullptr) {
-        ASTutils_printIndent(indent, out, levels, true);
+        ASTutils_printIndent(indent, out, true);
         out << "(null)" << endl;
         return;
     }
@@ -240,7 +250,7 @@ void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int in
         bool isLast = (node->next == nullptr);
 
         // Tisknutí odsazení
-        ASTutils_printIndent(indent, out, levels, isLast);
+        ASTutils_printIndent(indent, out, isLast);
 
         // Aktualizace vektoru úrovní
         levels.push_back(!isLast);
@@ -253,10 +263,10 @@ void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int in
 
         // Výpis výrazu parametru, pokud existuje
         if(node->expression != nullptr) {
-            ASTutils_printExprNode(node->expression, out, indent + 1, useColors, levels, true);
+            ASTutils_printExprNode(node->expression, out, indent + 1, useColors, true);
         } else {
             // Pokud výraz neexistuje
-            ASTutils_printIndent(indent + 1, out, levels, true);
+            ASTutils_printIndent(indent + 1, out, true);
             out << COLOR_BLUE << "Expression: " << COLOR_RESET << "(null)" << endl;
         }
 
@@ -270,9 +280,9 @@ void ASTutils_printArgOrParamNode(AST_ArgOrParamNode *node, ostream &out, int in
 /**
  * @brief Vytiskne uzel AST_NODE_STATEMENT.
  */
-void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels) {
+void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int indent, bool useColors) {
     if(node == nullptr) {
-        ASTutils_printIndent(indent, out, levels, true);
+        ASTutils_printIndent(indent, out, true);
         out << "(null)" << endl;
         return;
     }
@@ -283,7 +293,7 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
         bool isLast = (node->next == nullptr);
 
         // Tisknutí odsazení
-        ASTutils_printIndent(indent, out, levels, isLast);
+        ASTutils_printIndent(indent, out, isLast);
 
         // Aktualizace vektoru úrovní
         levels.push_back(!isLast);
@@ -301,9 +311,9 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                 else
                     out << "Variable Definition" << endl;
                 if(node->statement != nullptr) {
-                    ASTutils_printExprNode((AST_ExprNode*)node->statement, out, indent + 1, useColors, levels, true);
+                    ASTutils_printExprNode((AST_ExprNode*)node->statement, out, indent + 1, useColors, true);
                 } else {
-                    ASTutils_printIndent(indent + 1, out, levels, true);
+                    ASTutils_printIndent(indent + 1, out, true);
                     out << COLOR_BLUE << "Variable Definition: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
@@ -313,9 +323,9 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                 else
                     out << "Expression" << endl;
                 if(node->statement != nullptr) {
-                    ASTutils_printExprNode((AST_ExprNode*)node->statement, out, indent + 1, useColors, levels, true);
+                    ASTutils_printExprNode((AST_ExprNode*)node->statement, out, indent + 1, useColors, true);
                 } else {
-                    ASTutils_printIndent(indent + 1, out, levels, true);
+                    ASTutils_printIndent(indent + 1, out, true);
                     out << COLOR_BLUE << "Expression: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
@@ -325,9 +335,9 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                 else
                     out << "Function Call" << endl;
                 if(node->statement != nullptr) {
-                    ASTutils_printFunCallNode((AST_FunCallNode*)node->statement, out, indent + 1, useColors, levels, true);
+                    ASTutils_printFunCallNode((AST_FunCallNode*)node->statement, out, indent + 1, useColors, true);
                 } else {
-                    ASTutils_printIndent(indent + 1, out, levels, true);
+                    ASTutils_printIndent(indent + 1, out, true);
                     out << COLOR_BLUE << "Function Call: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
@@ -337,9 +347,9 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                 else
                     out << "If Statement" << endl;
                 if(node->statement != nullptr) {
-                    ASTutils_printIfNode((AST_IfNode*)node->statement, out, indent + 1, useColors, levels, true);
+                    ASTutils_printIfNode((AST_IfNode*)node->statement, out, indent + 1, useColors, true);
                 } else {
-                    ASTutils_printIndent(indent + 1, out, levels, true);
+                    ASTutils_printIndent(indent + 1, out, true);
                     out << COLOR_BLUE << "If Statement: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
@@ -349,9 +359,9 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                 else
                     out << "While Loop" << endl;
                 if(node->statement != nullptr) {
-                    ASTutils_printWhileNode((AST_WhileNode*)node->statement, out, indent + 1, useColors, levels, true);
+                    ASTutils_printWhileNode((AST_WhileNode*)node->statement, out, indent + 1, useColors, true);
                 } else {
-                    ASTutils_printIndent(indent + 1, out, levels, true);
+                    ASTutils_printIndent(indent + 1, out, true);
                     out << COLOR_BLUE << "While Loop: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
@@ -361,9 +371,9 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
                 else
                     out << "Return Statement" << endl;
                 if(node->statement != nullptr) {
-                    ASTutils_printExprNode((AST_ExprNode*)node->statement, out, indent + 1, useColors, levels, true);
+                    ASTutils_printExprNode((AST_ExprNode*)node->statement, out, indent + 1, useColors, true);
                 } else {
-                    ASTutils_printIndent(indent + 1, out, levels, true);
+                    ASTutils_printIndent(indent + 1, out, true);
                     out << COLOR_BLUE << "Return Statement: " << COLOR_RESET << "(null)" << endl;
                 }
                 break;
@@ -380,19 +390,19 @@ void ASTutils_printStatementNode(AST_StatementNode *node, ostream &out, int inde
 /**
  * @brief Vytiskne uzel AST_NODE_FUN_CALL.
  */
-void ASTutils_printFunCallNode(AST_FunCallNode *node, ostream &out, int indent, bool useColors, vector<bool>  &levels, bool isLastChild) {
+void ASTutils_printFunCallNode(AST_FunCallNode *node, ostream &out, int indent, bool useColors, bool isLastChild) {
     if(node == nullptr) {
-        ASTutils_printIndent(indent, out, levels, isLastChild);
+        ASTutils_printIndent(indent, out, isLastChild);
         out << "(null)" << endl;
         return;
     }
 
     // Tisknutí odsazení
-    ASTutils_printIndent(indent, out, levels, isLastChild);
+    ASTutils_printIndent(indent, out, isLastChild);
 
     // Ověření existence identifikátoru a tisknutí identifikátoru
     if (node->identifier != nullptr && node->identifier->str != nullptr) { 
-        char *identifier = string_toConstChar(node->identifier);
+        char *identifier = DString_DStringtoConstChar(node->identifier);
         if (useColors)
             out << COLOR_GOLD << "Function Call: " << COLOR_RESET << identifier << endl;
         else
@@ -403,22 +413,22 @@ void ASTutils_printFunCallNode(AST_FunCallNode *node, ostream &out, int indent, 
         out << COLOR_BLUE << "Function Call: " << COLOR_RESET << "(null)" << endl;
     }
 
-    // Aktualizace vektoru úrovní
     levels.push_back(!isLastChild);
 
     // Výpis argumentů funkce, pokud existují
     if(node->arguments != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         if (useColors)
             out << COLOR_BLUE << "Arguments:" << COLOR_RESET << endl;
         else
             out << "Arguments:" << endl;
-        ASTutils_printArgOrParamNode(node->arguments, out, indent + 2, useColors, levels);
+        ASTutils_printArgOrParamNode(node->arguments, out, indent + 2, useColors);
     } else {
         // Pokud argumenty neexistují
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         out << COLOR_BLUE << "Arguments: " << COLOR_RESET << "(null)" << endl;
     }
+
 
     // Odstranit současnou úroveň z vektoru pro tisk svislice
     levels.pop_back();
@@ -427,15 +437,15 @@ void ASTutils_printFunCallNode(AST_FunCallNode *node, ostream &out, int indent, 
 /**
  * @brief Vytiskne uzel AST_NODE_IF.
  */
-void ASTutils_printIfNode(AST_IfNode *node, ostream &out, int indent, bool useColors, vector<bool>  &levels, bool isLastChild) {
+void ASTutils_printIfNode(AST_IfNode *node, ostream &out, int indent, bool useColors, bool isLastChild) {
     if(node == nullptr) {
-        ASTutils_printIndent(indent, out, levels, isLastChild);
+        ASTutils_printIndent(indent, out, isLastChild);
         out << "(null)" << endl;
         return;
     }
 
     // Tisknutí odsazení a typu uzlu
-    ASTutils_printIndent(indent, out, levels, isLastChild);
+    ASTutils_printIndent(indent, out, isLastChild);
     if (useColors)
         out << COLOR_GOLD << "If Statement" << COLOR_RESET << endl;
     else
@@ -443,75 +453,80 @@ void ASTutils_printIfNode(AST_IfNode *node, ostream &out, int indent, bool useCo
 
     // Aktualizace vektoru úrovní
     levels.push_back(!isLastChild);
+    levels.push_back(true);
 
     // Výpis podmínky if
     if(node->condition != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         if (useColors)
             out << COLOR_BLUE << "Condition:" << COLOR_RESET << endl;
         else
             out << "Condition:" << endl;
-        ASTutils_printExprNode(node->condition, out, indent + 2, useColors, levels, true);
+        ASTutils_printExprNode(node->condition, out, indent + 2, useColors, true);
     } else {
         // Pokud podmínka neexistuje
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         out << COLOR_BLUE << "Condition: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Výpis nullCondition, pokud existuje
     if(node->nullCondition != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         if (useColors)
             out << COLOR_BLUE << "Null Condition:" << COLOR_RESET << endl;
         else
             out << "Null Condition:" << endl;
-        ASTutils_printVarNode(node->nullCondition, out, indent + 2, useColors, levels, true);
+        ASTutils_printVarNode(node->nullCondition, out, indent + 2, useColors, true);
     }
 
     // Výpis větve 'then'
     if(node->thenBranch != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         if (useColors)
             out << COLOR_BLUE << "Then Branch:" << COLOR_RESET << endl;
         else
             out << "Then Branch:" << endl;
-        ASTutils_printStatementNode(node->thenBranch, out, indent + 2, useColors, levels);
+        ASTutils_printStatementNode(node->thenBranch, out, indent + 2, useColors);
     } else {
         // Pokud 'then' větev neexistuje
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         out << COLOR_BLUE << "Then Branch: " << COLOR_RESET << "(null)" << endl;
     }
 
+    levels.pop_back();
+    levels.push_back(false);
+
     // Výpis větve 'else', pokud existuje
     if(node->elseBranch != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         if (useColors)
             out << COLOR_BLUE << "Else Branch:" << COLOR_RESET << endl;
         else
             out << "Else Branch:" << endl;
-        ASTutils_printStatementNode(node->elseBranch, out, indent + 2, useColors, levels);
+        ASTutils_printStatementNode(node->elseBranch, out, indent + 2, useColors);
     } else {
         // Pokud 'else' větev neexistuje
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         out << COLOR_BLUE << "Else Branch: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Odstranit současnou úroveň z vektoru pro tisk svislice
+    levels.pop_back();
     levels.pop_back();
 }  // ASTutils_printIfNode()
 
 /**
  * @brief Vytiskne uzel AST_NODE_WHILE.
  */
-void ASTutils_printWhileNode(AST_WhileNode *node, ostream &out, int indent, bool useColors, vector<bool>  &levels, bool isLastChild) {
+void ASTutils_printWhileNode(AST_WhileNode *node, ostream &out, int indent, bool useColors, bool isLastChild) {
     if(node == nullptr) {
-        ASTutils_printIndent(indent, out, levels, isLastChild);
+        ASTutils_printIndent(indent, out, isLastChild);
         out << "(null)" << endl;
         return;
     }
 
     // Tisknutí odsazení a typu uzlu
-    ASTutils_printIndent(indent, out, levels, isLastChild);
+    ASTutils_printIndent(indent, out, isLastChild);
     if (useColors)
         out << COLOR_GOLD << "While Loop" << COLOR_RESET << endl;
     else
@@ -519,61 +534,66 @@ void ASTutils_printWhileNode(AST_WhileNode *node, ostream &out, int indent, bool
 
     // Aktualizace vektoru úrovní
     levels.push_back(!isLastChild);
+    levels.push_back(true);
 
     // Výpis podmínky while
     if(node->condition != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         if (useColors)
             out << COLOR_BLUE << "Condition:" << COLOR_RESET << endl;
         else
             out << "Condition:" << endl;
-        ASTutils_printExprNode(node->condition, out, indent + 2, useColors, levels, true);
+        ASTutils_printExprNode(node->condition, out, indent + 2, useColors, true);
     } else {
         // Pokud podmínka neexistuje
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         out << COLOR_BLUE << "Condition: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Výpis nullCondition, pokud existuje
     if(node->nullCondition != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         if (useColors)
             out << COLOR_BLUE << "Null Condition:" << COLOR_RESET << endl;
         else
             out << "Null Condition:" << endl;
-        ASTutils_printVarNode(node->nullCondition, out, indent + 2, useColors, levels, true);
+        ASTutils_printVarNode(node->nullCondition, out, indent + 2, useColors, true);
     }
+
+    levels.pop_back();
+    levels.push_back(false);
 
     // Výpis těla cyklu
     if(node->body != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         if (useColors)
             out << COLOR_BLUE << "Body:" << COLOR_RESET << endl;
         else
             out << "Body:" << endl;
-        ASTutils_printStatementNode(node->body, out, indent + 2, useColors, levels);
+        ASTutils_printStatementNode(node->body, out, indent + 2, useColors);
     } else {
         // Pokud tělo cyklu neexistuje
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         out << COLOR_BLUE << "Body: " << COLOR_RESET << "(null)" << endl;
     }
 
     // Odstranit současnou úroveň z vektoru pro tisk svislice
+    levels.pop_back();
     levels.pop_back();
 }  // ASTutils_printWhileNode()
 
 /**
  * @brief Vytiskne uzel AST_NODE_EXPR.
  */
-void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild) {
+void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool useColors, bool isLastChild) {
     if(node == nullptr) {
-        ASTutils_printIndent(indent, out, levels, isLastChild);
+        ASTutils_printIndent(indent, out, isLastChild);
         out << "(null)" << endl;
         return;
     }
 
     // Tisknutí odsazení a typu výrazu
-    ASTutils_printIndent(indent, out, levels, isLastChild);
+    ASTutils_printIndent(indent, out, isLastChild);
 
     if (useColors)
         out << COLOR_BLUE << "Expression: " << COLOR_RESET;
@@ -581,6 +601,8 @@ void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool u
         out << "Expression: ";
 
     levels.push_back(!isLastChild);
+    levels.push_back(!isLastChild);
+
 
     // Rozlišení typu výrazu pomocí switch
     switch(node->exprType) {
@@ -592,9 +614,9 @@ void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool u
                 out << "Literal" << endl;
             if(node->expression != nullptr) {
                 // Aktualizace vektoru úrovní
-                ASTutils_printVarNode((AST_VarNode*)node->expression, out, indent + 1, useColors, levels, true);
+                ASTutils_printVarNode((AST_VarNode*)node->expression, out, indent + 1, useColors, true);
             } else {
-                ASTutils_printIndent(indent + 1, out, levels, true);
+                ASTutils_printIndent(indent + 1, out, true);
                 out << COLOR_BLUE << "Literal: " << COLOR_RESET << "(null)" << endl;
             }
             break;
@@ -606,9 +628,9 @@ void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool u
                 out << "Variable" << endl;
             if(node->expression != nullptr) {
                 // Aktualizace vektoru úrovní
-                ASTutils_printVarNode((AST_VarNode*)node->expression, out, indent + 1, useColors, levels, true);
+                ASTutils_printVarNode((AST_VarNode*)node->expression, out, indent + 1, useColors, true);
             } else {
-                ASTutils_printIndent(indent + 1, out, levels, true);
+                ASTutils_printIndent(indent + 1, out, true);
                 out << COLOR_BLUE << "Variable: " << COLOR_RESET << "(null)" << endl;
             }
             break;
@@ -620,9 +642,9 @@ void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool u
                 out << "Function Call" << endl;
             if(node->expression != nullptr) {
                 // Aktualizace vektoru úrovní
-                ASTutils_printFunCallNode((AST_FunCallNode*)node->expression, out, indent + 1, useColors, levels, true);
+                ASTutils_printFunCallNode((AST_FunCallNode*)node->expression, out, indent + 1, useColors, true);
             } else {
-                ASTutils_printIndent(indent + 1, out, levels, true);
+                ASTutils_printIndent(indent + 1, out, true);
                 out << COLOR_BLUE << "Function Call: " << COLOR_RESET << "(null)" << endl;
             }
             break;
@@ -634,9 +656,9 @@ void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool u
                 out << "Binary Operation" << endl;
             if(node->expression != nullptr) {
                 // Aktualizace vektoru úrovní
-                ASTutils_printBinOpNode((AST_BinOpNode*)node->expression, out, indent + 1, useColors, levels, true);
+                ASTutils_printBinOpNode((AST_BinOpNode*)node->expression, out, indent + 1, useColors, true);
             } else {
-                ASTutils_printIndent(indent + 1, out, levels, true);
+                ASTutils_printIndent(indent + 1, out, true);
                 out << COLOR_BLUE << "Binary Operation: " << COLOR_RESET << "(null)" << endl;
             }
             break;
@@ -648,20 +670,21 @@ void ASTutils_printExprNode(AST_ExprNode *node, ostream &out, int indent, bool u
 
     // Odstranit současnou úroveň z vektoru pro tisk svislice
     levels.pop_back();
+    levels.pop_back();
 }  // ASTutils_printExprNode()
 
 /**
  * @brief Vytiskne uzel AST_NODE_BIN_OP.
  */
-void ASTutils_printBinOpNode(AST_BinOpNode *node, ostream &out, int indent, bool useColors, vector<bool>  &levels, bool isLastChild) {
+void ASTutils_printBinOpNode(AST_BinOpNode *node, ostream &out, int indent, bool useColors, bool isLastChild) {
     if(node == nullptr) {
-        ASTutils_printIndent(indent, out, levels, isLastChild);
+        ASTutils_printIndent(indent, out, isLastChild);
         out << "(null)" << endl;
         return;
     }
 
     // Tisknutí odsazení a operátoru
-    ASTutils_printIndent(indent, out, levels, isLastChild);
+    ASTutils_printIndent(indent, out, isLastChild);
     if (useColors)
         out << COLOR_BLUE << "Operator: " << COLOR_RESET;
     else
@@ -669,7 +692,7 @@ void ASTutils_printBinOpNode(AST_BinOpNode *node, ostream &out, int indent, bool
     
     // Aktualizace vektoru úrovní
     levels.push_back(!isLastChild);
-    
+
     // Rozlišení typu operátoru pomocí switch
     switch(node->op) {
         case AST_OP_EQUAL:
@@ -755,53 +778,56 @@ void ASTutils_printBinOpNode(AST_BinOpNode *node, ostream &out, int indent, bool
             break;
     }
 
+    levels.pop_back();
+    levels.push_back(isLastChild);
     // Výpis levého operandu, pokud existuje
     if(node->left != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
 
         if (useColors)
             out << COLOR_BLUE << "Left Operand:" << COLOR_RESET << endl;
         else
             out << "Left Operand:" << endl;
         // **Změna zde:** isLastChild = false pro levý operand
-        ASTutils_printExprNode(node->left, out, indent + 2, useColors, levels, true);
+        ASTutils_printExprNode(node->left, out, indent + 2, useColors, true);
     } else {
         // Pokud levý operand neexistuje
-        ASTutils_printIndent(indent + 1, out, levels, false);
+        ASTutils_printIndent(indent + 1, out, false);
         out << COLOR_BLUE << "Left Operand: " << COLOR_RESET << "(null)" << endl;
     }
 
+
+    levels.pop_back();
+
     // Výpis pravého operandu, pokud existuje
     if(node->right != nullptr) {
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         if (useColors)
             out << COLOR_BLUE << "Right Operand:" << COLOR_RESET << endl;
         else
             out << "Right Operand:" << endl;
         // **Změna zde:** isLastChild = true pro pravý operand
-        ASTutils_printExprNode(node->right, out, indent + 2, useColors, levels, true);
+        ASTutils_printExprNode(node->right, out, indent + 2, useColors, true);
     } else {
         // Pokud pravý operand neexistuje
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         out << COLOR_BLUE << "Right Operand: " << COLOR_RESET << "(null)" << endl;
     }
 
-    // Odstranit současnou úroveň z vektoru pro tisk svislice
-    levels.pop_back();
 }  // ASTutils_printBinOpNode()
 
 /**
  * @brief Vytiskne uzel AST_NODE_LITERAL.
  */
-void ASTutils_printLiteralNode(AST_VarNode *node, ostream &out, int indent, bool useColors, vector<bool>  &levels, bool isLastChild) {
+void ASTutils_printLiteralNode(AST_VarNode *node, ostream &out, int indent, bool useColors, bool isLastChild) {
     if(node == nullptr) {
-        ASTutils_printIndent(indent, out, levels, isLastChild);
+        ASTutils_printIndent(indent, out, isLastChild);
         out << "(null)" << endl;
         return;
     }
 
     // Tisknutí odsazení a typu literálu
-    ASTutils_printIndent(indent, out, levels, isLastChild);
+    ASTutils_printIndent(indent, out, isLastChild);
 
     // Tisknutí typu literálu
     if (useColors)
@@ -812,7 +838,8 @@ void ASTutils_printLiteralNode(AST_VarNode *node, ostream &out, int indent, bool
     // Aktualizace vektoru úrovní
     levels.push_back(!isLastChild);
 
-    char *str;
+    char *str = nullptr;
+    string escapedStr;
     // Rozlišení typu literálu pomocí switch
     switch(node->literalType) {
         case AST_LITERAL_INT:
@@ -846,16 +873,18 @@ void ASTutils_printLiteralNode(AST_VarNode *node, ostream &out, int indent, bool
             }
             break;
         case AST_LITERAL_STRING:
-            str = string_toConstChar((DString*)node->value);
+            str = DString_DStringtoConstChar((DString*)node->value);
             // Literál typu string
             if(useColors) {
-                if (node->value != nullptr)
+                if (node->value != nullptr) {
                     out << COLOR_GOLD << "String: " << COLOR_RESET << str << endl;
+                }
                 else
                     out << COLOR_GOLD << "String: " << COLOR_RESET << "(null)" << endl;
             } else {
-                if (node->value != nullptr)
+                if (node->value != nullptr) {
                     out << "String: " << str << endl;
+                }
                 else
                     out << "String: (null)" << endl;
             }
@@ -883,19 +912,19 @@ void ASTutils_printLiteralNode(AST_VarNode *node, ostream &out, int indent, bool
 /**
  * @brief Vytiskne uzel AST_NODE_VAR_DEF.
  */
-void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool useColors, vector<bool> &levels, bool isLastChild) {
+void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool useColors, bool isLastChild) {
     if(node == nullptr) {
-        ASTutils_printIndent(indent, out, levels, isLastChild);
+        ASTutils_printIndent(indent, out, isLastChild);
         out << "(null)" << endl;
         return;
     }
 
     // Tisknutí odsazení
-    ASTutils_printIndent(indent, out, levels, isLastChild);
+    ASTutils_printIndent(indent, out, isLastChild);
 
     // Ověření existence identifikátoru a tisknutí identifikátoru
     if (node->identifier != nullptr && node->identifier->str != nullptr) { 
-        char *identifier = string_toConstChar(node->identifier);
+        char *identifier = DString_DStringtoConstChar(node->identifier);
         if (useColors)
             out << COLOR_BLUE << "Variable/Literal: " << COLOR_RESET << identifier << endl;
         else
@@ -906,10 +935,7 @@ void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool use
         out << COLOR_BLUE << "Variable/Literal: " << COLOR_RESET << "(null)" << endl;
     }
 
-    // Aktualizace vektoru úrovní
-    levels.push_back(!isLastChild);
-
-    ASTutils_printIndent(indent + 1, out, levels, false);
+    ASTutils_printIndent(indent + 1, out, false);
 
     // Výpis FrameID
     if(useColors)
@@ -919,7 +945,7 @@ void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool use
 
     // Výpis hodnoty proměnné, pokud existuje
     if(node->value != nullptr || node->literalType == AST_LITERAL_NULL) {
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         if (useColors)
             out << COLOR_BLUE << "Value:" << COLOR_RESET << endl;
         else
@@ -930,27 +956,24 @@ void ASTutils_printVarNode(AST_VarNode *node, ostream &out, int indent, bool use
             case AST_LITERAL_FLOAT:
             case AST_LITERAL_STRING:
             case AST_LITERAL_NULL:
-                ASTutils_printLiteralNode(node, out, indent + 2, useColors, levels, true);
+                ASTutils_printLiteralNode(node, out, indent + 2, useColors, true);
                 break;
             default:
-                ASTutils_printIndent(indent + 2, out, levels, true);
+                ASTutils_printIndent(indent + 2, out, true);
                 out << "Unknown Value Type" << endl;
                 break;
         }
     } else {
         // Pokud `value` není platný, ošetříme výstup
-        ASTutils_printIndent(indent + 1, out, levels, true);
+        ASTutils_printIndent(indent + 1, out, true);
         out << COLOR_BLUE << "Value: " << COLOR_RESET << "(null)" << endl;
     }
-
-    // Odstranit současnou úroveň z vektoru pro tisk svislice
-    levels.pop_back();
 } // ASTutils_printVarNode()
 
 /**
  * @brief Pomocná funkce pro výpis odsazení
  */
-void ASTutils_printIndent(int indent, ostream &out, const vector<bool> &levels, bool isLastChild) {
+void ASTutils_printIndent(int indent, ostream &out, bool isLastChild) {
     // Iterujte přes všechny úrovně kromě aktuální a předposlední
     for (int i = 0; i < indent-1; ++i) {
         if (i < (int)levels.size()) {

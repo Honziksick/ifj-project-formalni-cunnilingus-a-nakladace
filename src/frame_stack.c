@@ -6,7 +6,7 @@
  * Autor:            David Krejčí <xkrejcd00>                                  *
  *                                                                             *
  * Datum:            30.10.2024                                                *
- * Poslední změna:   17.11.2024                                                *
+ * Poslední změna:   29.11.2024                                                *
  *                                                                             *
  * Tým:      Tým xkalinj00                                                     *
  * Členové:  Farkašovský Lukáš    <xfarkal00>                                  *
@@ -133,22 +133,22 @@ void frameStack_push(bool isFunction) {
     // Pokud došla kapacita pole rámců, tak jej rozšíříme
     if(frameStack.currentID +1 > frameArray.allocated) {
         // Vytvoříme nové pole s dvojnásobnou kapacitou
-        FramePtr *new_array = malloc(frameArray.allocated * FRAME_ARRAY_EXPAND_FACTOR * sizeof(FramePtr));
-        if(new_array == NULL) {
+        FramePtr *newArray = malloc(frameArray.allocated * FRAME_ARRAY_EXPAND_FACTOR * sizeof(FramePtr));
+        if(newArray == NULL) {
             free(frame->frame);
             free(frame);
             error_handle(ERROR_INTERNAL);
         }
 
         // Překopírujeme položky
-        memcpy(new_array, frameArray.array, frameArray.allocated * sizeof(FramePtr));
+        memcpy(newArray, frameArray.array, frameArray.allocated * sizeof(FramePtr));
 
         // Uvolníme staré pole
         free(frameArray.array);
 
         // Nastavíme novou velikost a ukazatel na pole
         frameArray.allocated *= FRAME_ARRAY_EXPAND_FACTOR;
-        frameArray.array = new_array;
+        frameArray.array = newArray;
     }
 
     // Přidáme rámec do globálního pole
@@ -158,7 +158,7 @@ void frameStack_push(bool isFunction) {
 /**
  * @brief Odstraní vrchní rámec ze zásobníku.
  */
-frame_stack_result frameStack_pop() {
+FrameStack_result frameStack_pop() {
     if(frameStack.top == NULL) {
         return FRAME_STACK_NOT_INITIALIZED;
     }
@@ -175,7 +175,7 @@ frame_stack_result frameStack_pop() {
 /**
  * @brief Vyhledá položku v zásobníku rámců podle klíče.
  */
-frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item) {
+FrameStack_result frameStack_findItem(DString *key, SymtableItem **outItem) {
     // Pokud je klíč NULL, vrátíme chybu
     if(key == NULL) {
         return FRAME_STACK_KEY_NULL;
@@ -192,7 +192,7 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item) {
     // Cyklus prohledávání rámců
     while(true) {
         // Prohledáme rámec
-        symtable_result result = symtable_findItem(frame->frame, key, out_item);
+        Symtable_result result = symtable_findItem(frame->frame, key, outItem);
         if(result == SYMTABLE_SUCCESS) {
             // Pokud byla položka nalezena, vrátíme úspěch
             return FRAME_STACK_SUCCESS;
@@ -214,7 +214,7 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item) {
     }
 
     // Projdeme ještě globální rámec
-    symtable_result result = symtable_findItem(frameArray.array[0]->frame, key, out_item);
+    Symtable_result result = symtable_findItem(frameArray.array[0]->frame, key, outItem);
     if(result == SYMTABLE_SUCCESS) {
         return FRAME_STACK_SUCCESS;
     }
@@ -226,11 +226,11 @@ frame_stack_result frameStack_findItem(DString *key, SymtableItem **out_item) {
 /**
  * @brief Přidá novou položku do vrchního rámce zásobníku.
  */
-frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item) {
+FrameStack_result frameStack_addItem(DString *key, SymtableItem **outItem) {
     // Voláme findItem, abychom zjistili, zda položka již existuje
     // Zároveň získáme ukazatel na položku, pokud existuje
     // Funkce se zároveň postará o chybové stavy
-    frame_stack_result result = frameStack_findItem(key, out_item);
+    FrameStack_result result = frameStack_findItem(key, outItem);
 
     // Pokud položka již existuje, vracíme tuto informaci
     if(result == FRAME_STACK_SUCCESS) {
@@ -239,7 +239,7 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item) {
 
     // Pokud položka neexistuje, přidáme ji
     if(result == FRAME_STACK_ITEM_DOESNT_EXIST) {
-        symtable_result sym_result = symtable_addItem(frameStack.top->frame, key, out_item);
+        Symtable_result sym_result = symtable_addItem(frameStack.top->frame, key, outItem);
 
         // Pokud se položka podařilo přidat, vrátíme úspěch
         if(sym_result == SYMTABLE_SUCCESS) {
@@ -258,20 +258,20 @@ frame_stack_result frameStack_addItem(DString *key, SymtableItem **out_item) {
 /**
  * @brief Přidá novou položku s daty do vrchního rámce zásobníku.
  */
-frame_stack_result frameStack_addItemExpress(DString *key,
-                    symtable_symbolState state, bool constant, void* data, SymtableItem **out_item){
+FrameStack_result frameStack_addItemExpress(DString *key,
+                    Symtable_symbolState state, bool constant, void* data, SymtableItem **outItem) {
     SymtableItemPtr item;
-    frame_stack_result result = frameStack_addItem(key, &item);
-    if(result != FRAME_STACK_SUCCESS){
+    FrameStack_result result = frameStack_addItem(key, &item);
+    if(result != FRAME_STACK_SUCCESS) {
         return result;
     }
 
-    item->symbol_state = state;
+    item->symbolState = state;
     item->constant = constant;
     item->data = data;
 
-    if(out_item != NULL) {
-        *out_item = item;
+    if(outItem != NULL) {
+        *outItem = item;
     }
 
     return FRAME_STACK_SUCCESS;
@@ -297,7 +297,7 @@ size_t frameStack_getId(DString *key) {
     // Cyklus prohledávání rámců
     while(true) {
         // Prohledáme rámec
-        symtable_result result = symtable_findItem(frame->frame, key, NULL);
+        Symtable_result result = symtable_findItem(frame->frame, key, NULL);
         if(result == SYMTABLE_SUCCESS) {
             // Pokud byla položka nalezena, vrátíme úspěch
             return frame->frameID;
@@ -340,7 +340,7 @@ void frameStack_destroyAll() {
 /**
  * @brief Vytiskne obsah pole rámců
  */
-void frameStack_printArray(FILE *file, bool print_data, bool cut_data) {
+void frameStack_printArray(FILE *file, bool printData, bool cutData) {
     for(size_t i = 0; i <= frameStack.currentID; i++) {
         if(frameArray.array == NULL) {
             return;
@@ -353,7 +353,7 @@ void frameStack_printArray(FILE *file, bool print_data, bool cut_data) {
         }
 
         fprintf(file, "\n");
-        symtable_print((frameArray.array[i])->frame, file, print_data, cut_data);
+        symtable_print((frameArray.array[i])->frame, file, printData, cutData);
         fprintf(file, "\n");
 
     }
@@ -362,7 +362,7 @@ void frameStack_printArray(FILE *file, bool print_data, bool cut_data) {
 /**
  * @brief Vytiskne obsah zásobníku rámců
  */
-void frameStack_print(FILE *file, bool print_data, bool cut_data) {
+void frameStack_print(FILE *file, bool printData, bool cutData) {
     // Pokud není zásobník inicializován, vrátíme se
     if(frameStack.top == NULL) {
         return;
@@ -377,7 +377,7 @@ void frameStack_print(FILE *file, bool print_data, bool cut_data) {
         }
 
         fprintf(file, "\n");
-        symtable_print(frame->frame, file, print_data, cut_data);
+        symtable_print(frame->frame, file, printData, cutData);
         fprintf(file, "\n");
 
         frame = frame->next;
@@ -391,178 +391,177 @@ inline void frameStack_printSimple() {
     frameStack_print(stdout, false, true);
 } // frameStack_printSimple()
 
-void frameStack_addEmbeddedFunctions(){
+void frameStack_addEmbeddedFunctions() {
     SymtableFunctionData *data;
 
     // Funkce pro načítání hodnot
-    data = symtable_init_function_data(0);
-    if(data == NULL){
+    data = symtable_initFunctionData(0);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_STRING_OR_NULL;
-    if(frameStack_addFunction("ifj.readstr", data) != FRAME_STACK_SUCCESS){
+    data->returnType = SYMTABLE_TYPE_STRING_OR_NULL;
+    if(frameStack_addFunction("ifj.readstr", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
-    data = symtable_init_function_data(0);
-    if(data == NULL){
+    data = symtable_initFunctionData(0);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_INT_OR_NULL;
-    if(frameStack_addFunction("ifj.readi32", data) != FRAME_STACK_SUCCESS){
+    data->returnType = SYMTABLE_TYPE_INT_OR_NULL;
+    if(frameStack_addFunction("ifj.readi32", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
-    data = symtable_init_function_data(0);
-    if(data == NULL){
+    data = symtable_initFunctionData(0);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_DOUBLE_OR_NULL;
-    if(frameStack_addFunction("ifj.readf64", data) != FRAME_STACK_SUCCESS){
+    data->returnType = SYMTABLE_TYPE_DOUBLE_OR_NULL;
+    if(frameStack_addFunction("ifj.readf64", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
     // Funkce pro výpis hodnoty
     // Neuložíme skutečná data, protože bere jakýkoliv typ = speciální případ
-    data = symtable_init_function_data(1);
-    if(data == NULL){
+    data = symtable_initFunctionData(1);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_VOID;
-    data->params[0].id = string_charToDString("term");
-    if(frameStack_addFunction("ifj.write", data) != FRAME_STACK_SUCCESS){
+    data->returnType = SYMTABLE_TYPE_VOID;
+    data->params[0].id = DString_constCharToDString("term");
+    if(frameStack_addFunction("ifj.write", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
     // Funkce pro konverzi číselných typů
-    data = symtable_init_function_data(1);
-    if(data == NULL){
+    data = symtable_initFunctionData(1);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_DOUBLE;
+    data->returnType = SYMTABLE_TYPE_DOUBLE;
     data->params[0].type = SYMTABLE_TYPE_INT;
-    data->params[0].id = string_charToDString("term");
-    if(frameStack_addFunction("ifj.i2f", data) != FRAME_STACK_SUCCESS){
+    data->params[0].id = DString_constCharToDString("term");
+    if(frameStack_addFunction("ifj.i2f", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
-    data = symtable_init_function_data(1);
-    if(data == NULL){
+    data = symtable_initFunctionData(1);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_INT;
+    data->returnType = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_DOUBLE;
-    data->params[0].id = string_charToDString("term");
-    if(frameStack_addFunction("ifj.f2i", data) != FRAME_STACK_SUCCESS){
+    data->params[0].id = DString_constCharToDString("term");
+    if(frameStack_addFunction("ifj.f2i", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
     // Funkce pro práci s řezy
     // Neuložíme skutečná data, protože bere 2 typy = speciální případ
-    data = symtable_init_function_data(1);
-    if(data == NULL){
+    data = symtable_initFunctionData(1);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("term");
-    if(frameStack_addFunction("ifj.string", data) != FRAME_STACK_SUCCESS){
+    data->returnType = SYMTABLE_TYPE_STRING;
+    data->params[0].id = DString_constCharToDString("term");
+    if(frameStack_addFunction("ifj.string", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
-    data = symtable_init_function_data(1);
-    if(data == NULL){
+    data = symtable_initFunctionData(1);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_INT;
+    data->returnType = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("s");
-    if(frameStack_addFunction("ifj.length", data) != FRAME_STACK_SUCCESS){
+    data->params[0].id = DString_constCharToDString("s");
+    if(frameStack_addFunction("ifj.length", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
-    data = symtable_init_function_data(2);
-    if(data == NULL){
+    data = symtable_initFunctionData(2);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_STRING;
+    data->returnType = SYMTABLE_TYPE_STRING;
     data->params[0].type = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("s1");
+    data->params[0].id = DString_constCharToDString("s1");
     data->params[1].type = SYMTABLE_TYPE_STRING;
-    data->params[1].id = string_charToDString("s2");
-    if(frameStack_addFunction("ifj.concat", data) != FRAME_STACK_SUCCESS){
+    data->params[1].id = DString_constCharToDString("s2");
+    if(frameStack_addFunction("ifj.concat", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
-    data = symtable_init_function_data(3);
-    if(data == NULL){
+    data = symtable_initFunctionData(3);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_STRING_OR_NULL;
+    data->returnType = SYMTABLE_TYPE_STRING_OR_NULL;
     data->params[0].type = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("s");
+    data->params[0].id = DString_constCharToDString("s");
     data->params[1].type = SYMTABLE_TYPE_INT;
-    data->params[1].id = string_charToDString("i");
+    data->params[1].id = DString_constCharToDString("i");
     data->params[2].type = SYMTABLE_TYPE_INT;
-    data->params[2].id = string_charToDString("j");
-    if(frameStack_addFunction("ifj.substring", data) != FRAME_STACK_SUCCESS){
+    data->params[2].id = DString_constCharToDString("j");
+    if(frameStack_addFunction("ifj.substring", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
-    data = symtable_init_function_data(2);
-    if(data == NULL){
+    data = symtable_initFunctionData(2);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_INT;
+    data->returnType = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("s1");
+    data->params[0].id = DString_constCharToDString("s1");
     data->params[1].type = SYMTABLE_TYPE_STRING;
-    data->params[1].id = string_charToDString("s2");
-    if(frameStack_addFunction("ifj.strcmp", data) != FRAME_STACK_SUCCESS){
+    data->params[1].id = DString_constCharToDString("s2");
+    if(frameStack_addFunction("ifj.strcmp", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
-    data = symtable_init_function_data(2);
-    if(data == NULL){
+    data = symtable_initFunctionData(2);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_INT;
+    data->returnType = SYMTABLE_TYPE_INT;
     data->params[0].type = SYMTABLE_TYPE_STRING;
-    data->params[0].id = string_charToDString("s");
+    data->params[0].id = DString_constCharToDString("s");
     data->params[1].type = SYMTABLE_TYPE_INT;
-    data->params[1].id = string_charToDString("i");
-    if(frameStack_addFunction("ifj.ord", data) != FRAME_STACK_SUCCESS){
+    data->params[1].id = DString_constCharToDString("i");
+    if(frameStack_addFunction("ifj.ord", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
 
-    data = symtable_init_function_data(1);
-    if(data == NULL){
+    data = symtable_initFunctionData(1);
+    if(data == NULL) {
         return;
     }
-    data->return_type = SYMTABLE_TYPE_STRING;
+    data->returnType = SYMTABLE_TYPE_STRING;
     data->params[0].type = SYMTABLE_TYPE_INT;
-    data->params[0].id = string_charToDString("i");
-    if(frameStack_addFunction("ifj.chr", data) != FRAME_STACK_SUCCESS){
+    data->params[0].id = DString_constCharToDString("i");
+    if(frameStack_addFunction("ifj.chr", data) != FRAME_STACK_SUCCESS) {
         error_handle(ERROR_INTERNAL);
     }
+} // frameStack_addEmbeddedFunctions()
 
-}
-
-frame_stack_result frameStack_addFunction(const char* key, void* data){
+FrameStack_result frameStack_addFunction(const char* key, void* data) {
     // Funkce pro načítání hodnot
-    DString *s_key = string_charToDString(key);
-    if(key == NULL){
+    DString *sKey = DString_constCharToDString(key);
+    if(key == NULL) {
         return FRAME_STACK_ALLOCATION_FAIL;
     }
     SymtableItemPtr item;
-    frame_stack_result result = frameStack_addItem(s_key, &item);
-    if(result != FRAME_STACK_SUCCESS){
-        string_free(s_key);
+    FrameStack_result result = frameStack_addItem(sKey, &item);
+    if(result != FRAME_STACK_SUCCESS) {
+        DString_free(sKey);
         return result;
     }
-    item->symbol_state = SYMTABLE_SYMBOL_FUNCTION;
+    item->symbolState = SYMTABLE_SYMBOL_FUNCTION;
     item->data = data;
-    string_free(s_key);
+    DString_free(sKey);
     return FRAME_STACK_SUCCESS;
-}
+} // frameStack_addFunction()
 
-/*** Konec souboru frame_stack.h ***/
+/*** Konec souboru frame_stack.c ***/

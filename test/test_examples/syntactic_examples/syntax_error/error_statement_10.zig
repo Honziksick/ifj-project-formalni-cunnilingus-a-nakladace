@@ -3,5 +3,6 @@
 const ifj = @import("ifj24.zig"); 
 
 pub fn main() void {
-    return x+y
+    const y : f64 = 3.14;
+    return 3.85+y
 }

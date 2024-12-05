@@ -1,5 +1,4 @@
 const ifj = @import("ifj24.zig");
 pub fn main() void {
-    ifj.foo(3.14);
-    var pi = ifj.foo(3.14);
+    _ = ifj.i2f(10);
 }

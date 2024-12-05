@@ -1,5 +1,5 @@
 const ifj = @import("ifj24.zig");
 pub fn main() void {
-    const x : ?[]u8 = "Bad semantic";
+    var x = 5.811547;
     x = x + x;
 }

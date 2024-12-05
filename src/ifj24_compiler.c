@@ -25,33 +25,34 @@
  *          submodulů překladače pro jazyk IFJ24.
  */
 
-
 #include "ifj24_compiler.h"
 
+
+/**
+ * @brief Hlavní funkce překladače 'ifj24compiler' týmu "xkalinj00".
+ */
 int main() {
-
+    // Spustíme parsování zdrojového souboru a vygeneruje AST
     LLparser_parseProgram();
+
+    // Přestože by toto nemělo nikdy nastat, raději zkontrolujeme, že kořen AST je platný
     if(ASTroot != NULL) {
+        // Spustíme sémantickou analýzu nad AST pomocí Symtable
         semantic_analyseProgram();
-        TAC_createInstructionList();
-        TAC_generateProgramCodeBegin(ASTroot);
 
-        // Projdeme všechny funkce a vygenerujeme kód pro každou z nich
-        AST_FunDefNode *current = ASTroot->functionList;
-        while(current != NULL){
-
-            TAC_generateFunctionDefinitionBegin(current);
-
-            current = current->next;
-        }
-
-        TAC_generateFunctionDefinitionEnd();
-        TAC_generateProgramCodeEnd();
-
-        TAC_printInstructionList();
+        // Spustíme generování mezikódu IFJ24code
+        TAC_generateProgram();
+    }
+    // Pokud tento neočekávaný případ nastal, hlásíme interní chybu
+    else {
+        error_handle(ERROR_INTERNAL);
     }
 
+    // Před úspěšným dokončením překladu uvolníme všechnu alokovanou paměť
     IFJ24Compiler_freeAllAllocatedMemory();
 
+    // Překlad skončil úspěchem
     return SUCCESS;
-}
+} // konec main()
+
+/*** Konec souboru ifj24_compiler.h ***/
