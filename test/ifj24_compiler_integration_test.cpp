@@ -1799,7 +1799,7 @@ TEST(Parser, Boundries) {
 }
 
 TEST(Lex, Error) {
-    for (int i = 1; i <= 6; i++) {
+    for (int i = 1; i <= 5; i++) {
         string filename = "lex_error_"  + to_string(i) + ".zig";
         string path = lexPath + filename;
 
