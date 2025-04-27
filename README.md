@@ -8,7 +8,7 @@ Podrobné informace o projektu jsou k nahlédnutí ve složce `info/` ve formát
 
 ## Autoři
 
-**Tým xkalinj00 alias _"Formální cunnilingus a nakladače"_**
+**Tým xkalinj00 alias _"Formální gramatiky a parsovače"_**
 | **Jméno**             | **xlogin** | **Přezdívka** | **Kontakt**                 |
 | --------------------- | ---------- | ------------- | --------------------------- |
 | **Farkašovský Lukáš** | xfarkal00  | NormREE       | xfarkal00@stud.fit.vutbr.cz |
